@@ -10,15 +10,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable;
 
-public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
+public sealed class CSharpReassignedVariableTests : AbstractReassignedVariableTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);
 
     [Fact]
-    public async Task TestNoParameterReassignment()
-    {
-        await TestAsync(
+    public Task TestNoParameterReassignment()
+        => TestAsync(
             """
             class C
             {
@@ -27,12 +26,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParameterReassignment()
-    {
-        await TestAsync(
+    public Task TestParameterReassignment()
+        => TestAsync(
             """
             class C
             {
@@ -42,12 +39,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParameterReassignmentWhenReadAfter()
-    {
-        await TestAsync(
+    public Task TestParameterReassignmentWhenReadAfter()
+        => TestAsync(
             """
             using System;
             class C
@@ -59,12 +54,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParameterReassignmentWhenReadBefore()
-    {
-        await TestAsync(
+    public Task TestParameterReassignmentWhenReadBefore()
+        => TestAsync(
             """
             using System;
             class C
@@ -76,12 +69,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParameterReassignmentWhenReadWithDefaultValue()
-    {
-        await TestAsync(
+    public Task TestParameterReassignmentWhenReadWithDefaultValue()
+        => TestAsync(
             """
             using System;
             class C
@@ -93,12 +84,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParameterWithExprBodyWithReassignment()
-    {
-        await TestAsync(
+    public Task TestParameterWithExprBodyWithReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -106,12 +95,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void M(int [|p|]) => Console.WriteLine([|p|]++);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalFunctionWithExprBodyWithReassignment()
-    {
-        await TestAsync(
+    public Task TestLocalFunctionWithExprBodyWithReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -122,12 +109,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                         => Console.WriteLine([|p|]++);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerWithWriteInExprBody()
-    {
-        await TestAsync(
+    public Task TestIndexerWithWriteInExprBody()
+        => TestAsync(
             """
             using System;
             class C
@@ -135,12 +120,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int this[int [|p|]] => [|p|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerWithWriteInGetter1()
-    {
-        await TestAsync(
+    public Task TestIndexerWithWriteInGetter1()
+        => TestAsync(
             """
             using System;
             class C
@@ -148,12 +131,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int this[int [|p|]] { get => [|p|]++; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerWithWriteInGetter2()
-    {
-        await TestAsync(
+    public Task TestIndexerWithWriteInGetter2()
+        => TestAsync(
             """
             using System;
             class C
@@ -161,12 +142,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int this[int [|p|]] { get { [|p|]++; } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerWithWriteInSetter1()
-    {
-        await TestAsync(
+    public Task TestIndexerWithWriteInSetter1()
+        => TestAsync(
             """
             using System;
             class C
@@ -174,12 +153,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int this[int [|p|]] { set => [|p|]++; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexerWithWriteInSetter2()
-    {
-        await TestAsync(
+    public Task TestIndexerWithWriteInSetter2()
+        => TestAsync(
             """
             using System;
             class C
@@ -187,12 +164,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int this[int [|p|]] { set { [|p|]++; } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyWithAssignmentToValue1()
-    {
-        await TestAsync(
+    public Task TestPropertyWithAssignmentToValue1()
+        => TestAsync(
             """
             using System;
             class C
@@ -200,12 +175,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int Goo { set => [|value|] = [|value|] + 1; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyWithAssignmentToValue2()
-    {
-        await TestAsync(
+    public Task TestPropertyWithAssignmentToValue2()
+        => TestAsync(
             """
             using System;
             class C
@@ -213,12 +186,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 int Goo { set { [|value|] = [|value|] + 1; } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEventAddWithAssignmentToValue()
-    {
-        await TestAsync(
+    public Task TestEventAddWithAssignmentToValue()
+        => TestAsync(
             """
             using System;
             class C
@@ -226,12 +197,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 event Action Goo { add { [|value|] = null; } remove { } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEventRemoveWithAssignmentToValue()
-    {
-        await TestAsync(
+    public Task TestEventRemoveWithAssignmentToValue()
+        => TestAsync(
             """
             using System;
             class C
@@ -239,12 +208,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 event Action Goo { add { } remove { [|value|] = null; } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLambdaParameterWithoutReassignment()
-    {
-        await TestAsync(
+    public Task TestLambdaParameterWithoutReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -255,12 +222,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLambdaParameterWithReassignment()
-    {
-        await TestAsync(
+    public Task TestLambdaParameterWithReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -271,12 +236,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLambdaParameterWithReassignment2()
-    {
-        await TestAsync(
+    public Task TestLambdaParameterWithReassignment2()
+        => TestAsync(
             """
             using System;
             class C
@@ -287,12 +250,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalWithoutInitializerWithoutReassignment()
-    {
-        await TestAsync(
+    public Task TestLocalWithoutInitializerWithoutReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -309,12 +270,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalWithoutInitializerWithReassignment()
-    {
-        await TestAsync(
+    public Task TestLocalWithoutInitializerWithReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -332,12 +291,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclaredByPattern()
-    {
-        await TestAsync(
+    public Task TestLocalDeclaredByPattern()
+        => TestAsync(
             """
             using System;
             class C
@@ -349,12 +306,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclaredByPatternButAssignedInFalseBranch()
-    {
-        await TestAsync(
+    public Task TestLocalDeclaredByPatternButAssignedInFalseBranch()
+        => TestAsync(
             """
             using System;
             class C
@@ -373,12 +328,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclaredByPositionalPattern()
-    {
-        await TestAsync(
+    public Task TestLocalDeclaredByPositionalPattern()
+        => TestAsync(
             """
             using System;
             class C
@@ -390,12 +343,33 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclaredByOutVar()
-    {
-        await TestAsync(
+    public Task TestPatternMatchingReassignedInLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    if (0 is var [|p|])
+                    {
+                        LocalFunc();
+                        Console.WriteLine([|p|]);
+                    }
+                    
+                    void LocalFunc()
+                    {
+                        [|p|] = 1;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLocalDeclaredByOutVar()
+        => TestAsync(
             """
             using System;
             class C
@@ -410,12 +384,34 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void M2(out int p) => p = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOutParameterCausingReassignment()
-    {
-        await TestAsync(
+    public Task TestOutVarReassignedInLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    Goo(out var [|v|]);
+                    
+                    LocalFunc();
+                    Console.WriteLine([|v|]);
+                    
+                    void LocalFunc()
+                    {
+                        [|v|] = 1;
+                    }
+                }
+
+                void Goo(out int v) => v = 0;
+            }
+            """);
+
+    [Fact]
+    public Task TestOutParameterCausingReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -430,12 +426,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void M2(out int p) => p = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOutParameterWithoutReassignment()
-    {
-        await TestAsync(
+    public Task TestOutParameterWithoutReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -450,12 +444,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void M2(out int p) => p = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignmentThroughOutParameter()
-    {
-        await TestAsync(
+    public Task AssignmentThroughOutParameter()
+        => TestAsync(
             """
             using System;
             class C
@@ -468,12 +460,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOutParameterReassignmentOneWrites()
-    {
-        await TestAsync(
+    public Task TestOutParameterReassignmentOneWrites()
+        => TestAsync(
             """
             using System;
             class C
@@ -485,12 +475,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignmentThroughRefParameter()
-    {
-        await TestAsync(
+    public Task AssignmentThroughRefParameter()
+        => TestAsync(
             """
             using System;
             class C
@@ -503,12 +491,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefParameterReassignment()
-    {
-        await TestAsync(
+    public Task TestRefParameterReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -520,12 +506,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignmentThroughRefLocal()
-    {
-        await TestAsync(
+    public Task AssignmentThroughRefLocal()
+        => TestAsync(
             """
             using System;
             class C
@@ -539,12 +523,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignmentThroughScopedRefLocal()
-    {
-        await TestAsync(
+    public Task AssignmentThroughScopedRefLocal()
+        => TestAsync(
             """
             using System;
             class C
@@ -558,12 +540,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefLocalReassignment()
-    {
-        await TestAsync(
+    public Task TestRefLocalReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -578,12 +558,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AssignmentThroughPointerIsNotAssignmentOfTheVariableItself()
-    {
-        await TestAsync(
+    public Task AssignmentThroughPointerIsNotAssignmentOfTheVariableItself()
+        => TestAsync(
             """
             using System;
             class C
@@ -595,12 +573,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPointerVariableReassignment()
-    {
-        await TestAsync(
+    public Task TestPointerVariableReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -612,12 +588,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefParameterCausingPossibleReassignment()
-    {
-        await TestAsync(
+    public Task TestRefParameterCausingPossibleReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -632,12 +606,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void M2(ref int p) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestVolatileRefReadParameterCausingPossibleReassignment()
-    {
-        await TestAsync(
+    public Task TestVolatileRefReadParameterCausingPossibleReassignment()
+        => TestAsync(
             """
             using System;
             using System.Threading;
@@ -653,12 +625,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefParameterWithoutReassignment()
-    {
-        await TestAsync(
+    public Task TestRefParameterWithoutReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -673,12 +643,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void M2(ref int p) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefLocalCausingPossibleReassignment()
-    {
-        await TestAsync(
+    public Task TestRefLocalCausingPossibleReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -691,12 +659,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReadonlyRefLocalWithNoReassignment()
-    {
-        await TestAsync(
+    public Task TestReadonlyRefLocalWithNoReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -709,12 +675,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestScopedReadonlyRefLocalWithNoReassignment()
-    {
-        await TestAsync(
+    public Task TestScopedReadonlyRefLocalWithNoReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -727,12 +691,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReadonlyRefLocalWithNoReassignment1()
-    {
-        await TestAsync(
+    public Task TestReadonlyRefLocalWithNoReassignment1()
+        => TestAsync(
             """
             using System;
             class C
@@ -745,12 +707,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestScopedReadonlyRefLocalWithNoReassignment1()
-    {
-        await TestAsync(
+    public Task TestScopedReadonlyRefLocalWithNoReassignment1()
+        => TestAsync(
             """
             using System;
             class C
@@ -763,12 +723,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPointerCausingPossibleReassignment()
-    {
-        await TestAsync(
+    public Task TestPointerCausingPossibleReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -781,12 +739,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefExtensionMethodCausingPossibleReassignment()
-    {
-        await TestAsync(
+    public Task TestRefExtensionMethodCausingPossibleReassignment()
+        => TestAsync(
             """
             using System;
             static class C
@@ -801,12 +757,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 static void M2(this ref int p) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMutatingStructMethod()
-    {
-        await TestAsync(
+    public Task TestMutatingStructMethod()
+        => TestAsync(
             """
             using System;
             struct S
@@ -822,12 +776,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 void MutatingMethod() => this = default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReassignmentWhenDeclaredWithDeconstruction()
-    {
-        await TestAsync(
+    public Task TestReassignmentWhenDeclaredWithDeconstruction()
+        => TestAsync(
             """
             using System;
             class C
@@ -842,12 +794,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 (int x, int y) Goo() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReassignmentThroughDeconstruction()
-    {
-        await TestAsync(
+    public Task TestReassignmentThroughDeconstruction()
+        => TestAsync(
             """
             using System;
             class C
@@ -862,55 +812,149 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 (int x, int y) Goo() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTopLevelNotReassigned()
-    {
-        await TestAsync(
+    public Task TestDeconstructionReassignedInLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var ([|b|], [|c|]) = (0, 0);
+                    
+                    Foo();
+                    Console.WriteLine($"{[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|b|] = 2;
+                        if (Environment.TickCount > 12345)
+                            [|c|] = 1;
+                        else
+                            [|c|] = 2;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction_MixedWithRegular()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var [|a|] = 0;
+                    var ([|b|], [|c|]) = (0, 0);
+                    
+                    Foo();
+                    Console.WriteLine($"{[|a|]} {[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|a|] = 1;
+                        [|b|] = 2;
+                        if (Environment.TickCount > 12345)
+                            [|c|] = 1;
+                        else
+                            [|c|] = 2;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction_ExplicitType()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    (int [|b|], int [|c|]) = (0, 0);
+                    
+                    Foo();
+                    Console.WriteLine($"{[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|b|] = 2;
+                        if (Environment.TickCount > 12345)
+                            [|c|] = 1;
+                        else
+                            [|c|] = 2;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction_Nested()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var ([|a|], ([|b|], [|c|])) = (1, (2, 3));
+                    
+                    Foo();
+                    Console.WriteLine($"{[|a|]} {[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|a|] = 10;
+                        [|b|] = 20;
+                        [|c|] = 30;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestTopLevelNotReassigned()
+        => TestAsync(
             """
             int p;
             p = 0;
             Console.WriteLine(p);
             """);
-    }
 
     [Fact]
-    public async Task TestTopLevelReassigned()
-    {
-        await TestAsync(
+    public Task TestTopLevelReassigned()
+        => TestAsync(
             """
             int [|p|] = 1;
             [|p|] = 0;
             Console.WriteLine([|p|]);
             """);
-    }
 
     [Fact]
-    public async Task TestTopLevelArgsParameterNotReassigned()
-    {
-        await TestAsync(
+    public Task TestTopLevelArgsParameterNotReassigned()
+        => TestAsync(
             """
             Console.WriteLine(args);
             """);
-    }
 
     [Fact]
-    public async Task TestTopLevelArgsParameterReassigned()
-    {
-        await TestAsync(
+    public Task TestTopLevelArgsParameterReassigned()
+        => TestAsync(
             """
 
             [|args|] = null
             Console.WriteLine([|args|]);
 
             """);
-    }
 
     [Fact]
-    public async Task TestUsedInThisBase1()
-    {
-        await TestAsync(
+    public Task TestUsedInThisBase1()
+        => TestAsync(
             """
             class C
             {
@@ -924,12 +968,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUsedInThisBase2()
-    {
-        await TestAsync(
+    public Task TestUsedInThisBase2()
+        => TestAsync(
             """
             class C
             {
@@ -943,12 +985,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecord1()
-    {
-        await TestAsync(
+    public Task TestRecord1()
+        => TestAsync(
             """
             record X(int [|x|]) : Y([|x|]++)
             {
@@ -958,36 +998,30 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecord2()
-    {
-        await TestAsync(
+    public Task TestRecord2()
+        => TestAsync(
             """
             record X(int [|x|])
             {
                 int Y = [|x|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecord3()
-    {
-        await TestAsync(
+    public Task TestRecord3()
+        => TestAsync(
             """
             record struct X(int [|x|])
             {
                 int Y = [|x|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestClass1()
-    {
-        await TestAsync(
+    public Task TestClass1()
+        => TestAsync(
             """
             class X(int [|x|]) : Y([|x|]++)
             {
@@ -997,62 +1031,50 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestClass2()
-    {
-        await TestAsync(
+    public Task TestClass2()
+        => TestAsync(
             """
             class X(int [|x|])
             {
                 int Y = [|x|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestClass3()
-    {
-        await TestAsync(
+    public Task TestClass3()
+        => TestAsync(
             """
             class X(int [|x|])
             {
                 int Y() => [|x|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStruct2()
-    {
-        await TestAsync(
+    public Task TestStruct2()
+        => TestAsync(
             """
             struct X(int [|x|])
             {
                 int Y = [|x|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStruct3()
-    {
-        await TestAsync(
+    public Task TestStruct3()
+        => TestAsync(
             """
             struct X(int [|x|])
             {
                 int Y() => [|x|]++;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExceptionVariableReassignment()
-    {
-        // Note: this is a bug.  But the test currently tracks the current behavior.  Fixing this
-        // is just not deemed worth it currently.
-        await TestAsync(
+    public Task TestExceptionVariableReassignment()
+        => TestAsync(
             """
             using System;
             class C
@@ -1067,14 +1089,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalReassignedInExceptionFilter()
-    {
-        // Note: this is a bug.  But the test currently tracks the current behavior.  Fixing this
-        // is just not deemed worth it currently.
-        await TestAsync(
+    public Task TestLocalReassignedInExceptionFilter()
+        => TestAsync(
             """
             using System;
             class C
@@ -1086,12 +1104,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalReassignedInCaseGuard()
-    {
-        await TestAsync(
+    public Task TestLocalReassignedInCaseGuard()
+        => TestAsync(
             """
             using System;
             class C
@@ -1105,12 +1121,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalWithMultipleDeclarators()
-    {
-        await TestAsync(
+    public Task TestLocalWithMultipleDeclarators()
+        => TestAsync(
             """
             using System;
             class C
@@ -1123,12 +1137,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForLoop()
-    {
-        await TestAsync(
+    public Task TestForLoop()
+        => TestAsync(
             """
             using System;
             class C
@@ -1140,12 +1152,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForeach()
-    {
-        await TestAsync(
+    public Task TestForeach()
+        => TestAsync(
             """
             using System;
             class C
@@ -1157,12 +1167,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWriteThroughOneBranch()
-    {
-        await TestAsync(
+    public Task TestWriteThroughOneBranch()
+        => TestAsync(
             """
             using System;
             class C
@@ -1178,12 +1186,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDuplicateMethod()
-    {
-        await TestAsync(
+    public Task TestDuplicateMethod()
+        => TestAsync(
             """
             class C
             {
@@ -1198,12 +1204,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDuplicateParameter()
-    {
-        await TestAsync(
+    public Task TestDuplicateParameter()
+        => TestAsync(
             """
             class C
             {
@@ -1213,12 +1217,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58161")]
-    public async Task TestRefToSuppression1()
-    {
-        await TestAsync(
+    public Task TestRefToSuppression1()
+        => TestAsync(
             """
             #nullable enable
 
@@ -1231,12 +1233,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                     => Volatile.Read(ref [|target|]!);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrimaryConstructor1()
-    {
-        await TestAsync(
+    public Task TestPrimaryConstructor1()
+        => TestAsync(
             """
             class C(int [|p|])
             {
@@ -1246,12 +1246,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrimaryConstructor2()
-    {
-        await TestAsync(
+    public Task TestPrimaryConstructor2()
+        => TestAsync(
             """
             class C(int p)
             {
@@ -1261,12 +1259,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrimaryConstructor3()
-    {
-        await TestAsync(
+    public Task TestPrimaryConstructor3()
+        => TestAsync(
             """
             partial class C(int [|p|])
             {
@@ -1280,12 +1276,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrimaryConstructor4()
-    {
-        await TestAsync(
+    public Task TestPrimaryConstructor4()
+        => TestAsync(
             """
             class B(int p)
             {
@@ -1295,12 +1289,10 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrimaryConstructor5()
-    {
-        await TestAsync(
+    public Task TestPrimaryConstructor5()
+        => TestAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -1321,5 +1313,4 @@ public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
                 </Project>
             </Workspace>
             """);
-    }
 }

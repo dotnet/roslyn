@@ -19,6 +19,9 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 {
     private readonly IVsHierarchyItem _item;
     private readonly string _projectDirectoryPath;
+    private readonly string? _analyzerFilePath;
+
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -29,12 +32,13 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         ProjectId projectId,
         IVsHierarchyItem item,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService analyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext, workspace, projectId, commandHandler, analyzerService, listenerProvider)
+        : base(threadingContext, workspace, projectId, commandHandler, listenerProvider)
     {
         _item = item;
         _projectDirectoryPath = Path.GetDirectoryName(projectPath);
+
+        _analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, _item.CanonicalName);
 
         this.AnalyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
         if (this.AnalyzerReference == null)
@@ -46,7 +50,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
             // then connect to it.
             if (workspace.CurrentSolution.ContainsProject(projectId))
             {
-                Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChangedLookForAnalyzer);
                 item.PropertyChanged += IVsHierarchyItem_PropertyChanged;
 
                 // Now that we've subscribed, check once more in case we missed the event
@@ -63,7 +67,9 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
     private void UnsubscribeFromEvents()
     {
-        Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+
         _item.PropertyChanged -= IVsHierarchyItem_PropertyChanged;
     }
 
@@ -80,7 +86,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
     public override object SourceItem => _item;
 
-    private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChangedLookForAnalyzer(WorkspaceChangeEventArgs e)
     {
         // If the project has gone away in this change, it's not coming back, so we can stop looking at this point
         if (!e.NewSolution.ContainsProject(ProjectId))
@@ -113,14 +119,11 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
             return null;
         }
 
-        var canonicalName = _item.CanonicalName;
-        var analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, canonicalName);
-
-        if (string.IsNullOrEmpty(analyzerFilePath))
+        if (string.IsNullOrEmpty(_analyzerFilePath))
         {
             return null;
         }
 
-        return project.AnalyzerReferences.FirstOrDefault(r => string.Equals(r.FullPath, analyzerFilePath, StringComparison.OrdinalIgnoreCase));
+        return project.AnalyzerReferences.FirstOrDefault(r => string.Equals(r.FullPath, _analyzerFilePath, StringComparison.OrdinalIgnoreCase));
     }
 }

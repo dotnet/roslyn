@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Migration
+internal sealed record Migration
 {
     [JsonPropertyName("pass")]
     public Pass? Pass { get; init; }

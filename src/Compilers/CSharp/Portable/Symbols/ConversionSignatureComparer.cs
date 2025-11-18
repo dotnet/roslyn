@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class ConversionSignatureComparer : IEqualityComparer<SourceUserDefinedConversionSymbol>
+    internal sealed class ConversionSignatureComparer : IEqualityComparer<MethodSymbol>
     {
         private static readonly ConversionSignatureComparer s_comparer = new ConversionSignatureComparer();
         public static ConversionSignatureComparer Comparer
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        public bool Equals(SourceUserDefinedConversionSymbol member1, SourceUserDefinedConversionSymbol member2)
+        public bool Equals(MethodSymbol member1, MethodSymbol member2)
         {
             if (ReferenceEquals(member1, member2))
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && (member1.Name == WellKnownMemberNames.ImplicitConversionName || member2.Name == WellKnownMemberNames.ImplicitConversionName || member1.Name == member2.Name);
         }
 
-        public int GetHashCode(SourceUserDefinedConversionSymbol member)
+        public int GetHashCode(MethodSymbol member)
         {
             if ((object)member == null)
             {

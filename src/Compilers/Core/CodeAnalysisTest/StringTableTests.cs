@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var s3 = st.Add(" ");
             Assert.Same(s2, s3);
 
-            var s4 = st.Add(new char[1] { ' ' }, 0, 1);
+            var s4 = st.Add([' ']);
             Assert.Same(s3, s4);
 
             var s5 = st.Add("ABC DEF", 3, 1);

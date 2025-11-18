@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
-internal class InheritanceMarginGlyph : Button
+internal sealed class InheritanceMarginGlyph : Button
 {
     private const string ToolTipStyleKey = "ToolTipStyle";
 

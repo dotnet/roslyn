@@ -35,7 +35,7 @@ internal sealed class CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer : 
     protected override bool IsIfConditionalDirective(SyntaxNode node)
         => node is IfDirectiveTriviaSyntax;
 
-    protected override bool ReturnsThrow(SyntaxNode node)
+    protected override bool ReturnsThrow(SyntaxNode? node)
     {
         if (node is not BaseMethodDeclarationSyntax methodSyntax)
         {

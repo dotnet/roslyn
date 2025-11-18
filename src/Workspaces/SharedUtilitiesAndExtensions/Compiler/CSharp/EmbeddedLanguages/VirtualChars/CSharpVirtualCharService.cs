@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -23,7 +22,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
 {
     public static readonly IVirtualCharService Instance = new CSharpVirtualCharService();
 
-    private static readonly ObjectPool<ImmutableSegmentedList<VirtualChar>.Builder> s_pooledBuilders = new(() => ImmutableSegmentedList.CreateBuilder<VirtualChar>());
+    private static readonly ObjectPool<ImmutableSegmentedList<VirtualCharGreen>.Builder> s_pooledBuilders = new(() => ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>());
 
     protected CSharpVirtualCharService()
     {
@@ -42,7 +41,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         return false;
     }
 
-    protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
+    protected override VirtualCharGreenSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
     {
         // C# preprocessor directives can contain string literals.  However, these string literals do not behave
         // like normal literals.  Because they are used for paths (i.e. in a #line directive), the language does not
@@ -124,15 +123,14 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         return false;
     }
 
-    private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
+    private static VirtualCharGreenSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-    private static VirtualCharSequence TryConvertSingleLineRawStringToVirtualChars(SyntaxToken token)
+    private static VirtualCharGreenSequence TryConvertSingleLineRawStringToVirtualChars(SyntaxToken token)
     {
         var tokenText = token.Text;
-        var offset = token.SpanStart;
 
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>();
 
         var startIndexInclusive = 0;
         var endIndexExclusive = tokenText.Length;
@@ -157,9 +155,9 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         }
 
         for (var index = startIndexInclusive; index < endIndexExclusive;)
-            index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
+            index += ConvertTextAtIndexToVirtualChar(tokenText, index, result);
 
-        return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+        return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, result);
     }
 
     /// <summary>
@@ -171,7 +169,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
     /// <param name="tokenIncludeDelimiters">If this token includes the quote (<c>"</c>) characters for the
     /// delimiters inside of it or not.  If so, then those quotes will need to be skipped when determining the
     /// content</param>
-    private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
+    private static VirtualCharGreenSequence TryConvertMultiLineRawStringToVirtualChars(
         SyntaxToken token, ExpressionSyntax parentExpression, bool tokenIncludeDelimiters)
     {
         // if this is the first text content chunk of the multi-line literal.  The first chunk contains the leading
@@ -179,7 +177,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         // they start right after some `{...}` interpolation
         var isFirstChunk =
             parentExpression is LiteralExpressionSyntax ||
-            (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+            (parentExpression is InterpolatedStringExpressionSyntax { Contents: [var firstContent, ..] } && firstContent == token.GetRequiredParent());
 
         if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return default;
@@ -200,7 +198,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         // include the line contents for the line that has the final `    """` on it.
         var lastLineExclusive = tokenIncludeDelimiters ? tokenSourceText.Lines.Count - 1 : tokenSourceText.Lines.Count;
 
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>();
         for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
         {
             var currentLine = tokenSourceText.Lines[lineNumber];
@@ -222,13 +220,13 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             // Now that we've found the start and end portions of that line, convert all the characters within to
             // virtual chars and return.
             for (var i = lineStart; i < lineEnd;)
-                i += ConvertTextAtIndexToRune(tokenSourceText, i, result, token.SpanStart);
+                i += ConvertTextAtIndexToVirtualChar(tokenSourceText, i, result);
         }
 
-        return VirtualCharSequence.Create(result.ToImmutable());
+        return VirtualCharGreenSequence.Create(result.ToImmutable());
     }
 
-    private static VirtualCharSequence TryConvertStringToVirtualChars(
+    private static VirtualCharGreenSequence TryConvertStringToVirtualChars(
         SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
     {
         var tokenText = token.Text;
@@ -247,110 +245,81 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         var startIndexInclusive = startDelimiter.Length;
         var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-        // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
-        // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
-        // have escapes and non-escapes mixed together.
-
-        using var _ = ArrayBuilder<(char ch, TextSpan span)>.GetInstance(out var charResults);
-
-        // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
-        var offset = token.SpanStart;
-        for (var index = startIndexInclusive; index < endIndexExclusive;)
+        // Avoid creating and processsing the runes if there are no escapes or surrogates in the string.
+        if (!ContainsEscape(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
         {
-            var ch = tokenText[index];
-            if (ch == '\\')
-            {
-                if (!TryAddEscape(charResults, tokenText, offset, index))
-                    return default;
-
-                index += charResults.Last().span.Length;
-            }
-            else if (escapeBraces && IsOpenOrCloseBrace(ch))
-            {
-                if (!IsLegalBraceEscape(tokenText, index, offset, out var braceSpan))
-                    return default;
-
-                charResults.Add((ch, braceSpan));
-                index += charResults.Last().span.Length;
-            }
-            else
-            {
-                charResults.Add((ch, new TextSpan(offset + index, 1)));
-                index++;
-            }
+            var sequence = VirtualCharGreenSequence.Create(tokenText);
+            return sequence[startIndexInclusive..endIndexExclusive];
         }
-
-        return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, charResults);
-    }
-
-    private static VirtualCharSequence CreateVirtualCharSequence(
-        string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<(char ch, TextSpan span)> charResults)
-    {
-        // Second pass.  Convert those characters to Runes.
-        using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
-        var runeResults = pooledRuneResults.Object;
-
-        try
+        else
         {
-            ConvertCharactersToRunes(charResults, runeResults);
+            using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
+            var charResults = pooledRuneResults.Object;
 
-            return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
-        }
-        finally
-        {
-            // Ensure the builder is cleared out before releasing back to the pool.
-            runeResults.Clear();
-        }
-    }
-
-    private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ImmutableSegmentedList<VirtualChar>.Builder runeResults)
-    {
-        for (var i = 0; i < charResults.Count;)
-        {
-            var (ch, span) = charResults[i];
-
-            // First, see if this was a valid single char that can become a Rune.
-            if (Rune.TryCreate(ch, out var rune))
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                runeResults.Add(VirtualChar.Create(rune, span));
-                i++;
-                continue;
-            }
-
-            // Next, see if we got at least a surrogate pair that can be converted into a Rune.
-            if (i + 1 < charResults.Count)
-            {
-                var (nextCh, nextSpan) = charResults[i + 1];
-                if (Rune.TryCreate(ch, nextCh, out rune))
+                var ch = tokenText[index];
+                if (ch == '\\')
                 {
-                    runeResults.Add(VirtualChar.Create(rune, TextSpan.FromBounds(span.Start, nextSpan.End)));
-                    i += 2;
-                    continue;
+                    if (TryAddEscape(charResults, tokenText, index) is not int escapeWidth)
+                        return default;
+
+                    index += escapeWidth;
+                }
+                else if (escapeBraces && IsOpenOrCloseBrace(ch))
+                {
+                    if (!IsLegalBraceEscape(tokenText, index, out var braceWidth))
+                        return default;
+
+                    charResults.Add(new VirtualCharGreen(ch, index, braceWidth));
+                    index += braceWidth;
+                }
+                else
+                {
+                    charResults.Add(new VirtualCharGreen(ch, index, width: 1));
+                    index++;
                 }
             }
 
-            // Had an unpaired surrogate.
-            Debug.Assert(char.IsSurrogate(ch));
-            runeResults.Add(VirtualChar.Create(ch, span));
-            i++;
+            var sequence = CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, charResults);
+            charResults.Clear();
+
+            return sequence;
         }
     }
 
-    private static bool TryAddEscape(
-        ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
+    private static bool ContainsEscape(ReadOnlySpan<char> tokenText, bool escapeBraces)
+    {
+        foreach (var ch in tokenText)
+        {
+            if (ch == '\\')
+                return true;
+            else if (escapeBraces && IsOpenOrCloseBrace(ch))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result,
+        string tokenText,
+        int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
 
-        return TryAddSingleCharacterEscape(result, tokenText, offset, index) ||
-               TryAddMultiCharacterEscape(result, tokenText, offset, index);
+        return TryAddSingleCharacterEscape(result, tokenText, index) ??
+               TryAddMultiCharacterEscape(result, tokenText, index);
     }
 
     public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
         => ch.TryGetEscapeCharacter(out escapedChar);
 
-    private static bool TryAddSingleCharacterEscape(
-        ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddSingleCharacterEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -376,15 +345,16 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             case 't': ch = '\t'; break;
             case 'v': ch = '\v'; break;
             default:
-                return false;
+                return null;
         }
 
-        result.Add((ch, new TextSpan(offset + index, 2)));
-        return true;
+        result.Add(new VirtualCharGreen(ch, offset: index, width: 2));
+        return result.Last().Width;
     }
 
-    private static bool TryAddMultiCharacterEscape(
-        ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddMultiCharacterEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -395,15 +365,19 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             case 'x':
             case 'u':
             case 'U':
-                return TryAddMultiCharacterEscape(result, tokenText, offset, index, ch);
+                return TryAddMultiCharacterEscape(result, tokenText, index, ch);
             default:
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
         }
     }
 
-    private static bool TryAddMultiCharacterEscape(
-        ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index, char character)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddMultiCharacterEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result,
+        string tokenText,
+        int index,
+        char character)
     {
         var startIndex = index;
         Debug.Assert(tokenText[index] == '\\');
@@ -418,7 +392,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (!IsHexDigit(tokenText[index]))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             for (var i = 0; i < 8; i++)
@@ -427,7 +401,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 if (!IsHexDigit(character))
                 {
                     Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                    return false;
+                    return null;
                 }
 
                 uintChar = (uint)((uintChar << 4) + HexValue(character));
@@ -438,7 +412,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (uintChar > 0x0010FFFF)
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             if (uintChar < 0x00010000)
@@ -446,8 +420,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 // something like \U0000000A
                 //
                 // Represents a single char value.
-                result.Add(((char)uintChar, new TextSpan(startIndex + offset, 2 + 8)));
-                return true;
+                result.Add(new VirtualCharGreen((char)uintChar, offset: startIndex, width: 2 + 8));
             }
             else
             {
@@ -455,12 +428,15 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 var lowSurrogate = ((uintChar - 0x00010000) % 0x0400) + 0xDC00;
                 var highSurrogate = ((uintChar - 0x00010000) / 0x0400) + 0xD800;
 
-                // Encode this as a surrogate pair.
-                var pos = startIndex + offset;
-                result.Add(((char)highSurrogate, new TextSpan(pos, 0)));
-                result.Add(((char)lowSurrogate, new TextSpan(pos, 2 + 8)));
-                return true;
+                // Encode this as a surrogate pair.  For the purposes of mapping, we'll say the high surrogate maps to
+                // the first 6 chars (the \UAAAA in \UAAAABBBB) and the low surrogate maps to the last 4 chars (the BBBB
+                // in \UAAAABBBB).
+                const string prefix = @"\UAAAA";
+                result.Add(new VirtualCharGreen((char)highSurrogate, offset: startIndex, width: prefix.Length));
+                result.Add(new VirtualCharGreen((char)lowSurrogate, offset: startIndex + prefix.Length, width: 4));
             }
+
+            return @"\UAAAABBBB".Length;
         }
         else if (character == 'u')
         {
@@ -470,7 +446,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (!IsHexDigit(tokenText[index]))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             for (var i = 0; i < 4; i++)
@@ -479,15 +455,16 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 if (!IsHexDigit(ch2))
                 {
                     Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                    return false;
+                    return null;
                 }
 
                 intChar = (intChar << 4) + HexValue(ch2);
             }
 
             character = (char)intChar;
-            result.Add((character, new TextSpan(startIndex + offset, 2 + 4)));
-            return true;
+            var width = @"\uAAAA".Length;
+            result.Add(new VirtualCharGreen(character, offset: startIndex, width));
+            return width;
         }
         else
         {
@@ -498,7 +475,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (!IsHexDigit(tokenText[index]))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             var endIndex = index;
@@ -516,8 +493,9 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             }
 
             character = (char)intChar;
-            result.Add((character, TextSpan.FromBounds(startIndex + offset, endIndex + offset)));
-            return true;
+            var width = endIndex - startIndex;
+            result.Add(new VirtualCharGreen(character, offset: startIndex, width));
+            return width;
         }
     }
 
@@ -528,9 +506,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
     }
 
     private static bool IsHexDigit(char c)
-    {
-        return c is >= '0' and <= '9' or
-               >= 'A' and <= 'F' or
-               >= 'a' and <= 'f';
-    }
+        => c is (>= '0' and <= '9') or
+                (>= 'A' and <= 'F') or
+                (>= 'a' and <= 'f');
 }

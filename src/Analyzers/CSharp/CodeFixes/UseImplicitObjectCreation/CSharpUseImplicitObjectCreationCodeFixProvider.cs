@@ -25,6 +25,8 @@ using static CSharpUseImplicitObjectCreationDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitObjectCreation), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.UseCollectionExpressionForNew)]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.UseCollectionInitializer)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxEditorBasedCodeFixProvider

@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
             TypeSymbol explicitInterfaceType;
-            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, syntax.Modifiers, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
 
             var methodKind = interfaceSpecifier == null
                 ? MethodKind.Conversion
@@ -63,10 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodKind,
                 explicitInterfaceType,
                 name,
+                isCompoundAssignmentOrIncrementAssignment: false,
                 containingType,
                 location,
                 syntax,
-                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
+                MakeDeclarationModifiers(isCompoundAssignmentOrIncrementAssignment: false, methodKind, containingType, syntax, location, diagnostics),
                 hasAnyBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.IsExpressionBodied(),
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),

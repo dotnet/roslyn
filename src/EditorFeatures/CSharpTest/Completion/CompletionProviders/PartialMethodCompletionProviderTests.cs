@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -17,400 +15,316 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(PartialMethodCompletionProvider);
 
     [Fact]
-    public async Task NoPartialMethods1()
-    {
-        var text = """
+    public Task NoPartialMethods1()
+        => VerifyNoItemsExistAsync("""
             class c
             {
                 $$
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task NoPartialMethods2()
-    {
-        var text = """
+    public Task NoPartialMethods2()
+        => VerifyNoItemsExistAsync("""
             class c
             {
                 private void goo() { };
 
                 partial void $$
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task NoExtendedPartialMethods2()
-    {
-        var text = """
+    public Task NoExtendedPartialMethods2()
+        => VerifyNoItemsExistAsync("""
             class c
             {
                 public void goo() { };
 
                 public void $$
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task PartialMethodInPartialClass()
-    {
-        var text = """
+    public Task PartialMethodInPartialClass()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial void goo();
 
                 partial void $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task ExtendedPartialMethodInPartialClass()
-    {
-        var text = """
+    public Task ExtendedPartialMethodInPartialClass()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 public partial void goo();
 
                 public partial void $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task PartialMethodInPartialGenericClass()
-    {
-        var text = """
+    public Task PartialMethodInPartialGenericClass()
+        => VerifyItemExistsAsync("""
             partial class c<T>
             {
                 partial void goo(T bar);
 
                 partial void $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo(T bar)");
-    }
+            """, "goo(T bar)");
 
     [Fact]
-    public async Task ExtendedPartialMethodInPartialGenericClass()
-    {
-        var text = """
+    public Task ExtendedPartialMethodInPartialGenericClass()
+        => VerifyItemExistsAsync("""
             partial class c<T>
             {
                 public partial void goo(T bar);
 
                 public partial void $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo(T bar)");
-    }
+            """, "goo(T bar)");
 
     [Fact]
-    public async Task PartialMethodInPartialStruct()
-    {
-        var text = """
+    public Task PartialMethodInPartialStruct()
+        => VerifyItemExistsAsync("""
             partial struct c
             {
                 partial void goo();
 
                 partial void $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task ExtendedPartialMethodInPartialStruct()
-    {
-        var text = """
+    public Task ExtendedPartialMethodInPartialStruct()
+        => VerifyItemExistsAsync("""
             partial struct c
             {
                 public partial void goo();
 
                 public partial void $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task CompletionOnPartial1()
-    {
-        var text = """
+    public Task CompletionOnPartial1()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial void goo();
 
                 partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task CompletionOnExtendedPartial1()
-    {
-        var text = """
+    public Task CompletionOnExtendedPartial1()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 public partial void goo();
 
                 partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task CompletionOnPartial2()
-    {
-        var text = """
+    public Task CompletionOnPartial2()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task CompletionOnExtendedPartial2()
-    {
-        var text = """
+    public Task CompletionOnExtendedPartial2()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 public partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task StaticUnsafePartial()
-    {
-        var text = """
+    public Task StaticUnsafePartial()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial static unsafe void goo();
 
                 void static unsafe partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task StaticUnsafeExtendedPartial()
-    {
-        var text = """
+    public Task StaticUnsafeExtendedPartial()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 public partial static unsafe void goo();
 
                 void static unsafe partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task PartialCompletionWithPrivate()
-    {
-        var text = """
+    public Task PartialCompletionWithPrivate()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial static unsafe void goo();
 
                 private partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task PartialCompletionWithPublic()
-    {
-        var text = """
+    public Task PartialCompletionWithPublic()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 public partial static unsafe void goo();
 
                 public partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task NotCompletionDespiteValidModifier()
-    {
-        var text = """
+    public Task NotCompletionDespiteValidModifier()
+        => VerifyNoItemsExistAsync("""
             partial class c
             {
                 partial void goo();
 
                 void partial unsafe $$
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task NoExtendedCompletionDespiteValidModifier()
-    {
-        var text = """
+    public Task NoExtendedCompletionDespiteValidModifier()
+        => VerifyNoItemsExistAsync("""
             partial class c
             {
                 public partial void goo();
 
                 void partial unsafe $$
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task YesIfPublic()
-    {
-        var text = """
+    public Task YesIfPublic()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 public partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task YesIfInternal()
-    {
-        var text = """
+    public Task YesIfInternal()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 internal partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task YesIfProtected()
-    {
-        var text = """
+    public Task YesIfProtected()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 protected partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task YesIfProtectedInternal()
-    {
-        var text = """
+    public Task YesIfProtectedInternal()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 protected internal partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task YesIfExtern()
-    {
-        var text = """
+    public Task YesIfExtern()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial void goo();
 
                 extern void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task YesIfVirtual()
-    {
-        var text = """
+    public Task YesIfVirtual()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 virtual partial void goo();
 
                 void partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task YesIfNonVoidReturnType()
-    {
-        var text = """
+    public Task YesIfNonVoidReturnType()
+        => VerifyItemExistsAsync("""
             partial class c
             {
                 partial int goo();
 
                 partial $$
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo()");
-    }
+            """, "goo()");
 
     [Fact]
-    public async Task NotInsideInterface()
-    {
-        var text = """
+    public Task NotInsideInterface()
+        => VerifyNoItemsExistAsync("""
             partial interface i
             {
                 partial void goo();
 
                 partial $$
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitInPartialClass()
-    {
-        var markupBeforeCommit = """
+    public Task CommitInPartialClass()
+        => VerifyCustomCommitProviderAsync("""
             partial class c
             {
                 partial void goo();
 
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial class c
             {
                 partial void goo();
@@ -420,24 +334,18 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitInExtendedPartialClass()
-    {
-        var markupBeforeCommit = """
+    public Task CommitInExtendedPartialClass()
+        => VerifyCustomCommitProviderAsync("""
             partial class c
             {
                 public partial void goo();
 
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial class c
             {
                 public partial void goo();
@@ -447,24 +355,18 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitGenericPartialMethod()
-    {
-        var markupBeforeCommit = """
+    public Task CommitGenericPartialMethod()
+        => VerifyCustomCommitProviderAsync("""
             partial class c<T>
             {
                 partial void goo(T bar);
 
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo(T bar)", """
             partial class c<T>
             {
                 partial void goo(T bar);
@@ -474,24 +376,18 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo(T bar)", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitGenericExtendedPartialMethod()
-    {
-        var markupBeforeCommit = """
+    public Task CommitGenericExtendedPartialMethod()
+        => VerifyCustomCommitProviderAsync("""
             partial class c<T>
             {
                 public partial void goo(T bar);
 
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo(T bar)", """
             partial class c<T>
             {
                 public partial void goo(T bar);
@@ -501,24 +397,18 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo(T bar)", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitMethodErasesPrivate()
-    {
-        var markupBeforeCommit = """
+    public Task CommitMethodErasesPrivate()
+        => VerifyCustomCommitProviderAsync("""
             partial class c
             {
                 partial void goo();
 
                 private partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial class c
             {
                 partial void goo();
@@ -528,24 +418,18 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitMethodKeepsExtendedPrivate()
-    {
-        var markupBeforeCommit = """
+    public Task CommitMethodKeepsExtendedPrivate()
+        => VerifyCustomCommitProviderAsync("""
             partial class c
             {
                 private partial void goo();
 
                 private partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial class c
             {
                 private partial void goo();
@@ -555,15 +439,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitInPartialClassPart()
-    {
-        var markupBeforeCommit = """
+    public Task CommitInPartialClassPart()
+        => VerifyCustomCommitProviderAsync("""
             partial class c
             {
                 partial void goo();
@@ -573,9 +453,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             {
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial class c
             {
                 partial void goo();
@@ -588,15 +466,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitInExtendedPartialClassPart()
-    {
-        var markupBeforeCommit = """
+    public Task CommitInExtendedPartialClassPart()
+        => VerifyCustomCommitProviderAsync("""
             partial class c
             {
                 public partial void goo();
@@ -606,9 +480,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             {
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial class c
             {
                 public partial void goo();
@@ -621,24 +493,18 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task CommitInPartialStruct()
-    {
-        var markupBeforeCommit = """
+    public Task CommitInPartialStruct()
+        => VerifyCustomCommitProviderAsync("""
             partial struct c
             {
                 partial void goo();
 
                 partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "goo()", """
             partial struct c
             {
                 partial void goo();
@@ -648,15 +514,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [Fact]
-    public async Task NotIfNoPartialKeyword()
-    {
-        var text = """
+    public Task NotIfNoPartialKeyword()
+        => VerifyNoItemsExistAsync("""
             partial class C
                 {
                     partial void Goo();
@@ -666,14 +528,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                 {
                     void $$
                 }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task NotIfNoExtendedPartialKeyword()
-    {
-        var text = """
+    public Task NotIfNoExtendedPartialKeyword()
+        => VerifyNoItemsExistAsync("""
             partial class C
                 {
                     public partial void Goo();
@@ -683,14 +542,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                 {
                     void $$
                 }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
-    public async Task DoNotConsiderFollowingDeclarationPartial()
-    {
-        var text = """
+    public Task DoNotConsiderFollowingDeclarationPartial()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 partial $$
@@ -700,14 +556,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
-    public async Task DoNotConsiderFollowingDeclarationExtendedPartial()
-    {
-        var text = """
+    public Task DoNotConsiderFollowingDeclarationExtendedPartial()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public partial $$
@@ -717,14 +570,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
-    public async Task CommitAsync()
-    {
-        var markupBeforeCommit = """
+    public Task CommitAsync()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             partial class Bar
@@ -733,9 +583,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 async partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "Goo()", """
             using System;
 
             partial class Bar
@@ -747,15 +595,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
-    public async Task CommitAsyncExtended()
-    {
-        var markupBeforeCommit = """
+    public Task CommitAsyncExtended()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             partial class Bar
@@ -764,9 +608,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 async partial $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "Goo()", """
             using System;
 
             partial class Bar
@@ -778,15 +620,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
-    public async Task AmbiguityCommittingWithParen()
-    {
-        var markupBeforeCommit = """
+    public Task AmbiguityCommittingWithParen()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             partial class Bar
@@ -795,9 +633,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 partial Goo$$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "Goo()", """
             using System;
 
             partial class Bar
@@ -809,15 +645,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     [|throw new NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit, commitChar: '(');
-    }
+            """, commitChar: '(');
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
-    public async Task NoDefaultParameterValues()
-    {
-        var text = """
+    public Task NoDefaultParameterValues()
+        => VerifyCustomCommitProviderAsync("""
             namespace PartialClass
             {
                 partial class PClass
@@ -827,9 +659,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     partial $$
                 }
             }
-            """;
-
-        var expected = """
+            """, "PMethod(int i)", """
             namespace PartialClass
             {
                 partial class PClass
@@ -842,14 +672,11 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
-    }
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
-    public async Task NoDefaultParameterValuesExtended()
-    {
-        var text = """
+    public Task NoDefaultParameterValuesExtended()
+        => VerifyCustomCommitProviderAsync("""
             namespace PartialClass
             {
                 partial class PClass
@@ -859,9 +686,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     partial $$
                 }
             }
-            """;
-
-        var expected = """
+            """, "PMethod(int i)", """
             namespace PartialClass
             {
                 partial class PClass
@@ -874,9 +699,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
-    }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26388")]
     public async Task ExpressionBodyMethod()
@@ -888,26 +711,21 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent) }
         });
-
-        var text = """
+        await VerifyCustomCommitProviderAsync("""
             using System;
             partial class Bar
             {
                 partial void Foo();
                 partial $$
             }
-            """;
-
-        var expected = """
+            """, "Foo()", """
             using System;
             partial class Bar
             {
                 partial void Foo();
                 partial void Foo() => [|throw new NotImplementedException()|];
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
+            """);
     }
 
     [WpfFact]
@@ -920,29 +738,49 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent) }
         });
-
-        var text = """
+        await VerifyCustomCommitProviderAsync("""
             using System;
             partial class Bar
             {
                 public partial void Foo();
                 partial $$
             }
-            """
-;
-
-        var expected = """
+            """, "Foo()", """
             using System;
             partial class Bar
             {
                 public partial void Foo();
                 public partial void Foo() => [|throw new NotImplementedException()|];
             }
-            """
-;
-
-        await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
+            """);
     }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68805")]
+    public Task TestUnsafePartial()
+        => VerifyCustomCommitProviderAsync("""
+            unsafe partial class A
+            {
+                partial void Goo(void* p);
+            }
+
+            partial class A
+            {
+                partial $$
+            }
+            """, "Goo(void* p)", """
+            unsafe partial class A
+            {
+                partial void Goo(void* p);
+            }
+            
+            partial class A
+            {
+                unsafe partial void Goo(void* p)
+                {
+                    [|throw new System.NotImplementedException();|]
+                }
+            }
+            """);
 
     private Task VerifyItemExistsAsync(string markup, string expectedItem)
     {

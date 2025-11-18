@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences;
 
 [Trait(Traits.Feature, Traits.Features.UnusedReferences)]
-public class UnusedReferencesRemoverTests
+public sealed class UnusedReferencesRemoverTests
 {
     private static readonly string[] Empty = [];
 
@@ -203,7 +203,7 @@ public class UnusedReferencesRemoverTests
             compilationAssemblies: [assemblyPath],
             dependencies: []);
 
-    private class TestReferenceCleanupService : IReferenceCleanupService
+    private sealed class TestReferenceCleanupService : IReferenceCleanupService
     {
         private readonly List<ReferenceUpdate> _appliedUpdates = [];
         public IReadOnlyList<ReferenceUpdate> AppliedUpdates => _appliedUpdates;

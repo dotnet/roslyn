@@ -362,11 +362,7 @@ internal sealed partial class SolutionCompilationState
             {
                 // The GeneratorDriver that we have here is from a prior version of the Project, it may be missing state changes due
                 // to changes to the project. We'll update everything here.
-                var generatorDriver = oldGeneratorDriver
-                    .ReplaceAdditionalTexts(this.NewProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
-                    .WithUpdatedParseOptions(this.NewProjectState.ParseOptions!)
-                    .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider)
-                    .ReplaceGenerators(GetSourceGenerators(this.NewProjectState));
+                var generatorDriver = UpdateGeneratorDriverToMatchState(oldGeneratorDriver, NewProjectState);
 
                 return generatorDriver;
             }

@@ -13,5 +13,5 @@ internal interface IEditorConfigOptionsEnumerator
     /// Returns all editorconfig options defined by the implementing language, grouped by feature.
     /// </summary>
     /// <param name="includeUnsupported">True to include undocumented options that the user can set in editorconfig file but we provide no support for them.</param>
-    public abstract IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(bool includeUnsupported);
+    IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(bool includeUnsupported);
 }

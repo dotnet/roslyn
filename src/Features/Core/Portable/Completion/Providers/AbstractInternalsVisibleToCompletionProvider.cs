@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -12,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -157,7 +157,7 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
                 displayTextSuffix: "",
                 rules: CompletionItemRules.Default,
                 glyph: project.GetGlyph(),
-                properties: [KeyValuePairUtil.Create(ProjectGuidKey, projectGuid)]);
+                properties: [KeyValuePair.Create(ProjectGuidKey, projectGuid)]);
             context.AddItem(completionItem);
         }
 
@@ -253,7 +253,7 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
         var token = root.FindToken(result.Start);
         if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
         {
-            var text = root.GetText();
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Expand selection in both directions until a double quote or any line break character is reached
             static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));

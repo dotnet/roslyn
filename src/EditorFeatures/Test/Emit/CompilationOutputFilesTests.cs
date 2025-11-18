@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Emit.UnitTests;
 
-public class CompilationOutputFilesTests : TestBase
+public sealed class CompilationOutputFilesTests : TestBase
 {
     [Fact]
     public void OpenStream_Errors()

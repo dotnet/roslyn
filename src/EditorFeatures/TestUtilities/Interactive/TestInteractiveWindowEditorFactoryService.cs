@@ -13,42 +13,41 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive;
+
+[Export(typeof(IInteractiveWindowEditorFactoryService))]
+internal sealed class TestInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService
 {
-    [Export(typeof(IInteractiveWindowEditorFactoryService))]
-    internal class TestInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService
+    public const string ContentType = "text";
+
+    private readonly ITextBufferFactoryService _textBufferFactoryService;
+    private readonly ITextEditorFactoryService _textEditorFactoryService;
+    private readonly IContentTypeRegistryService _contentTypeRegistry;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestInteractiveWindowEditorFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentTypeRegistry)
     {
-        public const string ContentType = "text";
+        _textBufferFactoryService = textBufferFactoryService;
+        _textEditorFactoryService = textEditorFactoryService;
+        _contentTypeRegistry = contentTypeRegistry;
+    }
 
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
+    IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
+    {
+        WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(TestInteractiveWindowEditorFactoryService)}");
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestInteractiveWindowEditorFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentTypeRegistry)
+        var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
+        return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;
+    }
+
+    ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
+    {
+        if (!window.Properties.TryGetProperty(typeof(IContentType), out IContentType contentType))
         {
-            _textBufferFactoryService = textBufferFactoryService;
-            _textEditorFactoryService = textEditorFactoryService;
-            _contentTypeRegistry = contentTypeRegistry;
+            contentType = _contentTypeRegistry.GetContentType(ContentType);
         }
 
-        IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
-        {
-            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(TestInteractiveWindowEditorFactoryService)}");
-
-            var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
-            return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;
-        }
-
-        ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
-        {
-            if (!window.Properties.TryGetProperty(typeof(IContentType), out IContentType contentType))
-            {
-                contentType = _contentTypeRegistry.GetContentType(ContentType);
-            }
-
-            return _textBufferFactoryService.CreateTextBuffer(contentType);
-        }
+        return _textBufferFactoryService.CreateTextBuffer(contentType);
     }
 }

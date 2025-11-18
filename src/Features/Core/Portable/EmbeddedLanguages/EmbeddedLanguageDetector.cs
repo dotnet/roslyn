@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -422,9 +421,16 @@ internal readonly struct EmbeddedLanguageDetector(
         var syntaxFacts = Info.SyntaxFacts;
         var node = syntaxFacts.WalkUpParentheses(token.GetRequiredParent());
 
-        // if we're inside some collection-like initializer, find the instance actually being created. 
         if (syntaxFacts.IsAnyInitializerExpression(node.Parent, out var instance))
+        {
+            // if we're inside some initializer (like `new[] { "..." }`), find the instance actually being created. 
             node = syntaxFacts.WalkUpParentheses(instance);
+        }
+        else if (syntaxFacts.IsExpressionElement(node.Parent))
+        {
+            // if we're inside some collection (like `["..."]`), find the instance actually being created. 
+            node = syntaxFacts.WalkUpParentheses(node.Parent.GetRequiredParent());
+        }
 
         return node;
     }

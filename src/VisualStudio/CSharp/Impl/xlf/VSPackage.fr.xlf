@@ -298,43 +298,6 @@ Insérer un espace avant et après les opérateurs binaires ;</target>
         <target state="translated">Changer les options de mise en forme pour l'enveloppement ; Laisser un bloc sur une seule ligne ; Laisser les instructions et les déclarations de membre sur la même ligne</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé récemment;Listes de complétion;
-Afficher la liste de complétion une fois qu'un caractère a été tapé ;
-Afficher la liste de complétion après la suppression d'un caractère ;
-Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental) ;
-Mettre en surbrillance les parties correspondantes des éléments de liste de complétion ;
-Afficher les filtres d'éléments de complétion ;
-Effectuer la complétion automatique de l'instruction après l'entrée d'un point-virgule ;
-Comportement des extraits ;
-Ne jamais inclure d'extraits ;
-Toujours inclure les extraits ;
-Inclure les extraits quand ?-Tab est tapé après un identificateur ;
-Comportement de la touche Entrée ;
-Ne jamais ajouter de nouvelle ligne après Entrée ;
-Ajouter uniquement une nouvelle ligne une fois que la touche Entrée a été enfoncée à la fin du mot complet tapé ;
-Toujours ajouter une nouvelle ligne après Entrée ;
-Afficher les suggestions de nom ;
-Afficher les éléments des espaces de noms qui ne sont pas importés (expérimental) ;</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">Mise en forme</target>

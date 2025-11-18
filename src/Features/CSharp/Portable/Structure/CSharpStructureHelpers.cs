@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -287,8 +286,12 @@ internal static class CSharpStructureHelpers
         static SyntaxToken GetHintTextEndToken(SyntaxNode node)
             => node switch
             {
-                EnumDeclarationSyntax enumDeclaration => enumDeclaration.OpenBraceToken.GetPreviousToken(),
-                TypeDeclarationSyntax typeDeclaration => typeDeclaration.OpenBraceToken.GetPreviousToken(),
+                EnumDeclarationSyntax enumDeclaration
+                    => enumDeclaration.OpenBraceToken.GetPreviousToken(),
+                TypeDeclarationSyntax typeDeclaration
+                    => typeDeclaration.OpenBraceToken != default
+                        ? typeDeclaration.OpenBraceToken.GetPreviousToken()
+                        : typeDeclaration.SemicolonToken.GetPreviousToken(),
                 _ => node.GetLastToken()
             };
     }

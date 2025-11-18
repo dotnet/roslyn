@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -25,7 +24,7 @@ internal interface ISingleValuedOption : IOption2
     /// </list>
     /// Note that this property is not (and should not be) used for computing option values or storing options.
     /// </remarks>
-    public string? LanguageName { get; }
+    string? LanguageName { get; }
 }
 
 /// <inheritdoc cref="ISingleValuedOption"/>
@@ -76,7 +75,7 @@ internal sealed partial class Option2<T> : ISingleValuedOption<T>
     public T DefaultValue => Definition.DefaultValue;
     OptionDefinition IOption2.Definition => Definition;
 
-#if CODE_STYLE
+#if !WORKSPACE
     bool IOption2.IsPerLanguage => false;
 #else
     string IOption.Feature => "config";

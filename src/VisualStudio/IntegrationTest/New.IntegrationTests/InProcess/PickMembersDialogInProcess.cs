@@ -19,7 +19,7 @@ using Roslyn.Test.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class PickMembersDialogInProcess
+internal sealed partial class PickMembersDialogInProcess
 {
     private async Task<PickMembersDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
@@ -88,8 +88,6 @@ internal partial class PickMembersDialogInProcess
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
     }
 
-    public async Task ClickDownAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DownButton, cancellationToken);
-    }
+    public Task ClickDownAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DownButton, cancellationToken);
 }

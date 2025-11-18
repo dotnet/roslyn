@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Text.Json.Nodes;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
@@ -18,19 +19,22 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new OnInitialized(globalOptionService);
 
-    public class OnInitialized : IOnInitialized, ILspService
+    public sealed class OnInitialized(IGlobalOptionService globalOptionService) : IOnInitialized, ILspService
     {
-        private readonly IGlobalOptionService _globalOptionService;
-
-        public OnInitialized(IGlobalOptionService globalOptionService)
-        {
-            _globalOptionService = globalOptionService;
-        }
-
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             // Hot reload only works in devkit scenarios. Without, there is no need to register for dynamic document sync.
-            if (!_globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures))
+            if (!globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures))
+            {
+                return;
+            }
+
+            var languageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
+
+            // We know devkit is enabled, but we need to check cohosting too. Cohosting will register for document sync, and if we do
+            // it here as well, VS Code will send us duplicate open/close/change events for the same file, corrupting our documents.
+            if (clientCapabilities.Workspace?.Configuration == true &&
+                await IsCohostingEnabledAsync(languageServerManager, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
@@ -40,8 +44,6 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
             // the contents.
             if (clientCapabilities.TextDocument?.Synchronization?.DynamicRegistration is true)
             {
-                var languageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
-
                 var documentFilters = new[] { new DocumentFilter() { Pattern = "**/*.{razor, cshtml}", Language = "aspnetcorerazor" } };
                 var registrationOptions = new TextDocumentRegistrationOptions()
                 {
@@ -78,6 +80,26 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
                     },
                     cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private static async Task<bool> IsCohostingEnabledAsync(IClientLanguageServerManager languageServerManager, CancellationToken cancellationToken)
+        {
+            var configurationParams = new ConfigurationParams()
+            {
+                Items = [
+                    // Roslyn's typescript config handler will convert underscores to camelcase, so this checking
+                    // the 'razor.languageServer.cohostingEnabled' option
+                    new ConfigurationItem { Section = "razor.language_server.cohosting_enabled" },
+                ]
+            };
+
+            var options = await languageServerManager.SendRequestAsync<ConfigurationParams, JsonArray>(
+                Methods.WorkspaceConfigurationName,
+                configurationParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return options is [{ } result] &&
+                result.ToString() == "true";
         }
     }
 }

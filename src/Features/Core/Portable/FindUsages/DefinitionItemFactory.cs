@@ -8,10 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -25,28 +26,32 @@ internal static class DefinitionItemFactory
         memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
 
-    public static DefinitionItem ToNonClassifiedDefinitionItem(
+    public static Task<DefinitionItem> ToNonClassifiedDefinitionItemAsync(
         this ISymbol definition,
         Solution solution,
-        bool includeHiddenLocations)
-        => ToNonClassifiedDefinitionItem(definition, solution, FindReferencesSearchOptions.Default, includeHiddenLocations);
+        bool includeHiddenLocations,
+        CancellationToken cancellationToken)
+        => ToNonClassifiedDefinitionItemAsync(definition, solution, FindReferencesSearchOptions.Default, includeHiddenLocations, cancellationToken);
 
-    public static DefinitionItem ToNonClassifiedDefinitionItem(
+    public static Task<DefinitionItem> ToNonClassifiedDefinitionItemAsync(
         this ISymbol definition,
         Solution solution,
         FindReferencesSearchOptions options,
-        bool includeHiddenLocations)
-        => ToNonClassifiedDefinitionItem(definition, definition.Locations, solution, options, isPrimary: false, includeHiddenLocations);
+        bool includeHiddenLocations,
+        CancellationToken cancellationToken)
+        => ToNonClassifiedDefinitionItemAsync(definition, definition.Locations, solution, options, isPrimary: false, includeHiddenLocations, cancellationToken);
 
-    private static DefinitionItem ToNonClassifiedDefinitionItem(
+    private static async Task<DefinitionItem> ToNonClassifiedDefinitionItemAsync(
         ISymbol definition,
         ImmutableArray<Location> locations,
         Solution solution,
         FindReferencesSearchOptions options,
         bool isPrimary,
-        bool includeHiddenLocations)
+        bool includeHiddenLocations,
+        CancellationToken cancellationToken)
     {
-        var sourceLocations = GetSourceLocations(definition, locations, solution, includeHiddenLocations);
+        var sourceLocations = await GetSourceLocationsAsync(
+            solution, definition, locations, includeHiddenLocations, cancellationToken).ConfigureAwait(false);
 
         return ToDefinitionItem(
             definition,
@@ -66,7 +71,7 @@ internal static class DefinitionItemFactory
         bool includeHiddenLocations,
         CancellationToken cancellationToken)
     {
-        var sourceLocations = GetSourceLocations(definition, definition.Locations, solution, includeHiddenLocations);
+        var sourceLocations = await GetSourceLocationsAsync(solution, definition, definition.Locations, includeHiddenLocations, cancellationToken).ConfigureAwait(false);
         var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
         return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
     }
@@ -84,7 +89,7 @@ internal static class DefinitionItemFactory
         var definition = group.Symbols.First();
         var locations = group.Symbols.SelectManyAsArray(s => s.Locations);
 
-        var sourceLocations = GetSourceLocations(definition, locations, solution, includeHiddenLocations);
+        var sourceLocations = await GetSourceLocationsAsync(solution, definition, locations, includeHiddenLocations, cancellationToken).ConfigureAwait(false);
         var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
         return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
     }
@@ -220,7 +225,12 @@ internal static class DefinitionItemFactory
         return [];
     }
 
-    private static ImmutableArray<DocumentSpan> GetSourceLocations(ISymbol definition, ImmutableArray<Location> locations, Solution solution, bool includeHiddenLocations)
+    private static async Task<ImmutableArray<DocumentSpan>> GetSourceLocationsAsync(
+        Solution solution,
+        ISymbol definition,
+        ImmutableArray<Location> locations,
+        bool includeHiddenLocations,
+        CancellationToken cancellationToken)
     {
         // Assembly, module, global namespace and preprocessing symbol locations include all source documents; displaying all of them is not useful.
         // We could consider creating a definition item that points to the project source instead.
@@ -234,10 +244,11 @@ internal static class DefinitionItemFactory
         foreach (var location in locations)
         {
             if (location.IsInSource &&
-                (includeHiddenLocations || location.IsVisibleSourceLocation()) &&
-                solution.GetDocument(location.SourceTree) is { } document)
+                solution.GetDocument(location.SourceTree) is { } document &&
+                (includeHiddenLocations || document.IsRazorSourceGeneratedDocument() || location.IsVisibleSourceLocation()))
             {
-                source.Add(new DocumentSpan(document, location.SourceSpan));
+                var isGeneratedCode = await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false);
+                source.Add(new DocumentSpan(document, location.SourceSpan, isGeneratedCode));
             }
         }
 
@@ -288,6 +299,10 @@ internal static class DefinitionItemFactory
         CancellationToken cancellationToken)
     {
         var location = referenceLocation.Location;
+
+        // Razor has a mapping service that can map from hidden locations, or will drop results if it wants to,
+        // so hidden locations aren't a problem, and are actually desirable.
+        includeHiddenLocations |= referenceLocation.Document.IsRazorSourceGeneratedDocument();
 
         Debug.Assert(location.IsInSource);
         if (!location.IsVisibleSourceLocation() &&

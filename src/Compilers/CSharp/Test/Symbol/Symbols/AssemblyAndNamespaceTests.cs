@@ -417,9 +417,6 @@ class App
             // NOTE: As in dev11, we don't consider myTask::System.Threading.Tasks.Task to be
             // ambiguous with global::System.Threading.Tasks.Task (prefer global).
             comp.VerifyDiagnostics(
-                // (7,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void AM() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "AM"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Threading;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"),

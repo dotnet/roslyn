@@ -22,7 +22,7 @@ internal static class UseNullPropagationHelpers
     public static bool IsSystemNullableValueProperty([NotNullWhen(true)] ISymbol? symbol)
         => symbol is
         {
-            Name: nameof(Nullable<int>.Value),
+            Name: nameof(Nullable<>.Value),
             ContainingType.OriginalDefinition.SpecialType: SpecialType.System_Nullable_T,
         };
 }
@@ -45,7 +45,12 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TElementAccessExpressionSyntax,
     TMemberAccessExpressionSyntax,
     TIfStatementSyntax,
-    TExpressionStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    TExpressionStatementSyntax>() : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseNullPropagationDiagnosticId,
+        EnforceOnBuildValues.UseNullPropagation,
+        CodeStyleOptions2.PreferNullPropagation,
+        new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -61,15 +66,6 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     private static readonly ImmutableDictionary<string, string?> s_whenPartIsNullableProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseNullPropagationHelpers.WhenPartIsNullable, "");
 
-    protected AbstractUseNullPropagationDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
-               EnforceOnBuildValues.UseNullPropagation,
-               CodeStyleOptions2.PreferNullPropagation,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -83,6 +79,16 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         ISyntaxFacts syntaxFacts, TExpressionSyntax conditionNode,
         [NotNullWhen(true)] out TExpressionSyntax? conditionPartToCheck, out bool isEquals);
 
+    public (INamedTypeSymbol? expressionType, IMethodSymbol? referenceEqualsMethod) GetAnalysisSymbols(Compilation compilation)
+    {
+        var expressionType = compilation.ExpressionOfTType();
+        var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+        var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
+            .OfType<IMethodSymbol>()
+            .FirstOrDefault(m => m is { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 2 });
+        return (expressionType, referenceEqualsMethod);
+    }
+
     protected override void InitializeWorker(AnalysisContext context)
     {
         context.RegisterCompilationStartAction(context =>
@@ -92,22 +98,33 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
             var expressionType = context.Compilation.ExpressionOfTType();
 
-            var objectType = context.Compilation.GetSpecialType(SpecialType.System_Object);
-            var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault(m => m is { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 2 });
+            var (objectType, referenceEqualsMethod) = GetAnalysisSymbols(context.Compilation);
 
             var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
             context.RegisterSyntaxNodeAction(
-                context => AnalyzeTernaryConditionalExpression(context, expressionType, referenceEqualsMethod),
+                context => AnalyzeTernaryConditionalExpressionAndReportDiagnostic(context, expressionType, referenceEqualsMethod),
                 syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
             context.RegisterSyntaxNodeAction(
-                context => AnalyzeIfStatement(context, referenceEqualsMethod),
+                context => AnalyzeIfStatementAndReportDiagnostic(context, referenceEqualsMethod),
                 IfStatementSyntaxKind);
         });
     }
 
-    private void AnalyzeTernaryConditionalExpression(
+    public (TExpressionSyntax conditionalPart, SyntaxNode whenPart)? GetPartsOfConditionalExpression(
+        SemanticModel semanticModel,
+        TConditionalExpressionSyntax conditionalExpression,
+        CancellationToken cancellationToken)
+    {
+        var (objectType, referenceEqualsMethod) = GetAnalysisSymbols(semanticModel.Compilation);
+        var analysisResult = AnalyzeTernaryConditionalExpression(
+            semanticModel, objectType, referenceEqualsMethod, conditionalExpression, cancellationToken);
+        if (analysisResult is null)
+            return null;
+
+        return (analysisResult.Value.ConditionPartToCheck, analysisResult.Value.WhenPartToCheck);
+    }
+
+    private void AnalyzeTernaryConditionalExpressionAndReportDiagnostic(
         SyntaxNodeAnalysisContext context,
         INamedTypeSymbol? expressionType,
         IMethodSymbol? referenceEqualsMethod)
@@ -119,6 +136,27 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
+        var analysisResult = AnalyzeTernaryConditionalExpression(
+            context.SemanticModel, expressionType, referenceEqualsMethod, conditionalExpression, cancellationToken);
+        if (analysisResult is null)
+            return;
+
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            conditionalExpression.GetLocation(),
+            option.Notification,
+            context.Options,
+            additionalLocations: [conditionalExpression.GetLocation()],
+            analysisResult.Value.Properties));
+    }
+
+    public ConditionalExpressionAnalysisResult? AnalyzeTernaryConditionalExpression(
+        SemanticModel semanticModel,
+        INamedTypeSymbol? expressionType,
+        IMethodSymbol? referenceEqualsMethod,
+        TConditionalExpressionSyntax conditionalExpression,
+        CancellationToken cancellationToken)
+    {
         var syntaxFacts = this.SyntaxFacts;
         syntaxFacts.GetPartsOfConditionalExpression(
             conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
@@ -129,32 +167,31 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         var whenFalseNode = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(whenFalse);
 
         if (!TryAnalyzeCondition(
-                context, syntaxFacts, referenceEqualsMethod, conditionNode,
-                out var conditionPartToCheck, out var isEquals))
+                semanticModel, referenceEqualsMethod, conditionNode,
+                out var conditionPartToCheck, out var isEquals, cancellationToken))
         {
-            return;
+            return null;
         }
 
         // Needs to be of the form:
         //      x == null ? null : ...    or
         //      x != null ? ...  : null;
         if (isEquals && !syntaxFacts.IsNullLiteralExpression(whenTrueNode))
-            return;
+            return null;
 
         if (!isEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
-            return;
+            return null;
 
         var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
-        var semanticModel = context.SemanticModel;
         var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticModel, conditionPartToCheck, whenPartToCheck, cancellationToken);
         if (whenPartMatch == null)
-            return;
+            return null;
 
         // can't use ?. on a pointer
         var whenPartType = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type;
         if (whenPartType is IPointerTypeSymbol)
-            return;
+            return null;
 
         var type = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
         if (type?.IsValueType == true)
@@ -164,7 +201,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
                 // User has something like:  If(str is nothing, nothing, str.Length)
                 // In this case, converting to str?.Length changes the type of this from
                 // int to int?
-                return;
+                return null;
             }
             // But for a nullable type, such as  If(c is nothing, nothing, c.nullable)
             // converting to c?.nullable doesn't affect the type
@@ -176,7 +213,20 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             // `x == null ? x : x.M` cannot be converted to `x?.M` when M is a method symbol.
             var memberSymbol = semanticModel.GetSymbolInfo(whenPartToCheck, cancellationToken).GetAnySymbol();
             if (memberSymbol is IMethodSymbol)
-                return;
+                return null;
+
+            // we're converting from `x.M` to `x?.M`.  This is not legal if 'M' is an unconstrained type parameter as
+            // the lang/compiler doesn't know what final type to make out of this.
+
+            var memberType = semanticModel.GetTypeInfo(whenPartToCheck, cancellationToken).Type;
+            if (memberType is null or ITypeParameterSymbol
+                {
+                    IsReferenceType: false,
+                    IsValueType: false,
+                })
+            {
+                return null;
+            }
 
             // `x == null ? x : x.Value` will be converted to just 'x'.
             if (UseNullPropagationHelpers.IsSystemNullableValueProperty(memberSymbol))
@@ -185,12 +235,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         // ?. is not available in expression-trees.  Disallow the fix in that case.
         if (this.SemanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionType, cancellationToken))
-            return;
-
-        var locations = ImmutableArray.Create(
-            conditionalExpression.GetLocation(),
-            conditionPartToCheck.GetLocation(),
-            whenPartToCheck.GetLocation());
+            return null;
 
         var whenPartIsNullable = whenPartType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         var properties = whenPartIsNullable
@@ -200,23 +245,21 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (isTrivialNullableValueAccess)
             properties = properties.Add(UseNullPropagationHelpers.IsTrivialNullableValueAccess, UseNullPropagationHelpers.IsTrivialNullableValueAccess);
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            conditionalExpression.GetLocation(),
-            option.Notification,
-            context.Options,
-            locations,
-            properties));
+        return new(
+            conditionPartToCheck,
+            whenPartToCheck,
+            properties);
     }
 
     private bool TryAnalyzeCondition(
-        SyntaxNodeAnalysisContext context,
-        ISyntaxFacts syntaxFacts,
+        SemanticModel semanticModel,
         IMethodSymbol? referenceEqualsMethod,
         TExpressionSyntax condition,
         [NotNullWhen(true)] out TExpressionSyntax? conditionPartToCheck,
-        out bool isEquals)
+        out bool isEquals,
+        CancellationToken cancellationToken)
     {
+        var syntaxFacts = this.SyntaxFacts;
         condition = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(condition);
         var conditionIsNegated = false;
         if (syntaxFacts.IsLogicalNotExpression(condition))
@@ -232,8 +275,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
                     syntaxFacts, binaryExpression, out conditionPartToCheck, out isEquals),
 
             TInvocationExpressionSyntax invocation => TryAnalyzeInvocationCondition(
-                    context, syntaxFacts, referenceEqualsMethod, invocation,
-                    out conditionPartToCheck, out isEquals),
+                semanticModel, syntaxFacts, referenceEqualsMethod, invocation, out conditionPartToCheck, out isEquals, cancellationToken),
 
             _ => TryAnalyzePatternCondition(syntaxFacts, condition, out conditionPartToCheck, out isEquals),
         };
@@ -265,12 +307,13 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     }
 
     private static bool TryAnalyzeInvocationCondition(
-        SyntaxNodeAnalysisContext context,
+        SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
         IMethodSymbol? referenceEqualsMethod,
         TInvocationExpressionSyntax invocation,
         [NotNullWhen(true)] out TExpressionSyntax? conditionPartToCheck,
-        out bool isEquals)
+        out bool isEquals,
+        CancellationToken cancellationToken)
     {
         conditionPartToCheck = null;
         isEquals = true;
@@ -315,8 +358,6 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             return false;
         }
 
-        var semanticModel = context.SemanticModel;
-        var cancellationToken = context.CancellationToken;
         var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
         return referenceEqualsMethod.Equals(symbol);
     }
@@ -341,7 +382,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         return conditionRightIsNull ? conditionLeft : conditionRight;
     }
 
-    internal static TExpressionSyntax? GetWhenPartMatch(
+#pragma warning disable CA1822 // Mark members as static.  Helper method that doesn't want to call through generic form.
+    public TExpressionSyntax? GetWhenPartMatch(
         ISyntaxFacts syntaxFacts,
         SemanticModel semanticModel,
         TExpressionSyntax expressionToMatch,
@@ -365,6 +407,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             current = unwrapped;
         }
     }
+#pragma warning restore CA1822 // Mark members as static
 
     private static TExpressionSyntax RemoveObjectCastIfAny(
         ISyntaxFacts syntaxFacts, SemanticModel semanticModel, TExpressionSyntax node, CancellationToken cancellationToken)
@@ -396,6 +439,12 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         if (node is TElementAccessExpressionSyntax elementAccess)
             return (TExpressionSyntax?)syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
+
+        if (syntaxFacts.SyntaxKinds.SimpleAssignmentExpression == node.RawKind && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
+        {
+            syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
+            return (TExpressionSyntax)left;
+        }
 
         return null;
     }

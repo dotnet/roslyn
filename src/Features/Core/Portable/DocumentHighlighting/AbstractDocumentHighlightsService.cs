@@ -53,7 +53,7 @@ internal abstract partial class AbstractDocumentHighlightsService :
                 return [];
             }
 
-            return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
+            return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
         }
 
         return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -168,9 +168,14 @@ internal abstract partial class AbstractDocumentHighlightsService :
         references = references.FilterNonMatchingMethodNames(solution, symbol);
         references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
-        if (symbol.IsConstructor())
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
         {
-            references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+            var constructorParts1 = constructor.OriginalDefinition.GetAllMethodSymbolsOfPartialParts();
+            references = references.WhereAsArray(r =>
+            {
+                var constructorParts2 = ((IMethodSymbol)r.Definition).GetAllMethodSymbolsOfPartialParts();
+                return constructorParts1.Intersect(constructorParts2).Any();
+            });
         }
 
         using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);

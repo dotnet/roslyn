@@ -19,7 +19,7 @@ public sealed class RawStringLiteralCommandHandlerTests
 {
     internal sealed class RawStringLiteralTestState : AbstractCommandHandlerTestState
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
             typeof(RawStringLiteralCommandHandler));
 
         private readonly RawStringLiteralCommandHandler _commandHandler;
@@ -613,6 +613,27 @@ public sealed class RawStringLiteralCommandHandlerTests
         testState.AssertCodeIs(
             """"
             var v = $$"""[||]"""
+            """", withSpansOnly: true);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77724")]
+    public void TestGenerateWithInterpolatedString_TwoDollarSigns_InLocalFunction()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(
+            """
+            void M()
+            {
+                var v = $$""[||]
+            }
+            """, withSpansOnly: true);
+
+        testState.SendTypeChar('"');
+        testState.AssertCodeIs(
+            """"
+            void M()
+            {
+                var v = $$"""[||]"""
+            }
             """", withSpansOnly: true);
     }
 

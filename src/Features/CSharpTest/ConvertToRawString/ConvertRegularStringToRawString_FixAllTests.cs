@@ -20,9 +20,8 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
         => new ConvertStringToRawStringCodeRefactoringProvider();
 
     [Fact]
-    public async Task FixAllInDocument_SingleLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_SingleLine()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -107,12 +106,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllInDocument_MultiLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLine()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -215,12 +212,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -313,12 +308,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
         }
         """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInProject()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -395,12 +388,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInSolution()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -477,12 +468,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingMember()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -533,12 +522,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingType()
+        => TestInRegularAndScriptAsync(
         """
         partial class C
         {
@@ -607,12 +594,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingType_AcrossFiles()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingType_AcrossFiles()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -719,12 +704,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -759,12 +742,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern1_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern1_B()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -797,12 +778,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -839,12 +818,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern2_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern2_B()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -879,12 +856,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -923,12 +898,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern3_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern3_B()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -965,12 +938,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """", index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
-    public async Task FixAllInDocument_MultiLineShouldNotImpactExplicitEscapedString()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLineShouldNotImpactExplicitEscapedString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -999,12 +970,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
-    public async Task FixAllInDocument_EscapedCanAffectMultiLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_EscapedCanAffectMultiLine()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1036,12 +1005,10 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
-    public async Task FixAllInDocument_EscapedCanAffectMultiLine2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_EscapedCanAffectMultiLine2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1078,5 +1045,4 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
                 }
             }
             """");
-    }
 }

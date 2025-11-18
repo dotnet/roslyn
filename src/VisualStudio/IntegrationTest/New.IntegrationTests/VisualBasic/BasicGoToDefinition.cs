@@ -32,14 +32,18 @@ public class BasicGoToDefinition : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileDef.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileDef.vb", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"Class SomeClass
-End Class", HangMitigatingCancellationToken);
+            """
+            Class SomeClass
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileConsumer.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileConsumer.vb", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"Class SomeOtherClass
-    Dim gibberish As SomeClass
-End Class", HangMitigatingCancellationToken);
+            """
+            Class SomeOtherClass
+                Dim gibberish As SomeClass
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
         Assert.Equal($"FileDef.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
@@ -92,11 +96,13 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "SomeClass.vb", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "SomeClass.vb", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"Class SomeClass
-    Public Overrides Function ToString() As String
-        Return MyBase.ToString()
-    End Function
-End Class", HangMitigatingCancellationToken);
+            """
+            Class SomeClass
+                Public Overrides Function ToString() As String
+                    Return MyBase.ToString()
+                End Function
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Overrides", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
         Assert.Equal("Object [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

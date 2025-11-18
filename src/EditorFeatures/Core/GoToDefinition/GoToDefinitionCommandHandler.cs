@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
+[Order(Before = PredefinedCommandHandlerNames.LspGoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class GoToDefinitionCommandHandler(
+internal sealed class GoToDefinitionCommandHandler(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<GoToDefinitionCommandArgs>
@@ -124,14 +125,17 @@ internal class GoToDefinitionCommandHandler(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             // make sure that if our background indicator got canceled, that we do not still perform the navigation.
-            if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 return;
 
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
-            backgroundIndicator.CancelOnFocusLost = false;
+            var disposable = await backgroundIndicator.SuppressAutoCancelAsync().ConfigureAwait(false);
+            await using var _2 = disposable.ConfigureAwait(false);
+
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
-                _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),
+                cancellationToken).ConfigureAwait(false);
         }
 
         if (!succeeded)

@@ -2,17 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ObsoleteSymbol;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ObsoleteSymbol;
 
-public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
+public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);
+
+    private new Task TestAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup)
+        => base.TestAsync(markup);
 
     [Theory]
     [InlineData("class")]
@@ -22,9 +27,8 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
     [InlineData("record struct")]
     [InlineData("interface")]
     [InlineData("enum")]
-    public async Task TestObsoleteTypeDefinition(string keyword)
-    {
-        await TestAsync(
+    public Task TestObsoleteTypeDefinition(string keyword)
+        => TestAsync(
             $$"""
             [System.Obsolete]
             {{keyword}} [|ObsoleteType|]
@@ -35,24 +39,20 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteDelegateTypeDefinition()
-    {
-        await TestAsync(
+    public Task TestObsoleteDelegateTypeDefinition()
+        => TestAsync(
             """
             [System.Obsolete]
             delegate void [|ObsoleteType|]();
 
             delegate void NonObsoleteType();
             """);
-    }
 
     [Fact]
-    public async Task TestDeclarationAndUseOfObsoleteAlias()
-    {
-        await TestAsync(
+    public Task TestDeclarationAndUseOfObsoleteAlias()
+        => TestAsync(
             """
             using [|ObsoleteAlias|] = [|ObsoleteType|];
 
@@ -66,12 +66,10 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 [|ObsoleteAlias|] field = new [|ObsoleteType|]();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParametersAndReturnTypes()
-    {
-        await TestAsync(
+    public Task TestParametersAndReturnTypes()
+        => TestAsync(
             """
             [System.Obsolete]
             class [|ObsoleteType|];
@@ -83,12 +81,10 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 System.Func<[|ObsoleteType|], [|ObsoleteType|]> field = [|ObsoleteType|] ([|ObsoleteType|] arg) => [|new|]();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestImplicitType()
-    {
-        await TestAsync(
+    public Task TestImplicitType()
+        => TestAsync(
             """
             [System.Obsolete]
             class [|ObsoleteType|]
@@ -128,12 +124,10 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtensionMethods()
-    {
-        await TestAsync(
+    public Task TestExtensionMethods()
+        => TestAsync(
             """
             [System.Obsolete]
             static class [|ObsoleteType|]
@@ -155,12 +149,10 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenerics()
-    {
-        await TestAsync(
+    public Task TestGenerics()
+        => TestAsync(
             """
             [System.Obsolete]
             class [|ObsoleteType|];
@@ -196,5 +188,15 @@ public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79413")]
+    public Task TestObsoleteFeatureAttribute()
+        => TestAsync(
+            """
+            [System.Obsolete]
+            [System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("This is an obsolete feature.")]
+            static class ObsoleteType
+            {
+            }
+            """);
 }

@@ -23,9 +23,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30149)
-
-        Protected Overrides Function IsTypeInInterfaceBaseList(type As TypeSyntax) As Boolean
-            Return TypeOf type.Parent Is ImplementsStatementSyntax
-        End Function
     End Class
 End Namespace

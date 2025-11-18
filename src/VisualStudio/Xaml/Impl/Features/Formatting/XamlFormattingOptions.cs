@@ -6,12 +6,11 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting;
+
+internal sealed class XamlFormattingOptions
 {
-    internal class XamlFormattingOptions
-    {
-        public bool InsertSpaces { get; set; }
-        public int TabSize { get; set; }
-        public IDictionary<string, object> OtherOptions { get; set; }
-    }
+    public bool InsertSpaces { get; set; }
+    public int TabSize { get; set; }
+    public IDictionary<string, object> OtherOptions { get; set; }
 }

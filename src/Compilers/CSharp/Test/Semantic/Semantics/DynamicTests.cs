@@ -3604,7 +3604,7 @@ class C
   }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (10,12): error CS7083: Expression must be implicitly convertible to Boolean or its type 'B' must define operator 'false'.
+                // (10,12): error CS7083: Expression must be implicitly convertible to Boolean or its type 'B' must not be an interface and must define operator 'false'.
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "b").WithArguments("B", "false")
             );
         }
@@ -3625,7 +3625,7 @@ class C
   }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (10,12): error CS7083: Expression must be implicitly convertible to Boolean or its type 'B' must define operator 'true'.
+                // (10,12): error CS7083: Expression must be implicitly convertible to Boolean or its type 'B' must not be an interface and must define operator 'true'.
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "b").WithArguments("B", "true")
             );
         }
@@ -3646,6 +3646,104 @@ class C
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,12): error CS0019: Operator '&&' cannot be applied to operands of type 'method group' and 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M && d").WithArguments("&&", "method group", "dynamic")
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
+        public void DynamicBooleanExpression_InterfaceOperator_And()
+        {
+            const string source = @"
+interface I1
+{
+    static bool operator true(I1 x) => false;
+    static bool operator false(I1 x) => false;
+}
+
+class C1 : I1
+{
+    public static C1 operator &(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+class Test
+{
+    void M()
+    {
+        I1 x = new C1();
+        dynamic y = new C1();
+        _ = x && y;
+    }
+}";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (21,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'false'.
+                //         _ = x && y;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "false").WithLocation(21, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
+        public void DynamicBooleanExpression_InterfaceOperator_Or()
+        {
+            const string source = @"
+interface I1
+{
+    static bool operator true(I1 x) => false;
+    static bool operator false(I1 x) => false;
+}
+
+class C1 : I1
+{
+    public static C1 operator |(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+class Test
+{
+    void M()
+    {
+        I1 x = new C1();
+        dynamic y = new C1();
+        _ = x || y;
+    }
+}";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (21,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'true'.
+                //         _ = x || y;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "true").WithLocation(21, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
+        public void DynamicBooleanExpression_ClassWithoutOperator()
+        {
+            const string source = @"
+class C0 { }
+
+class C1 : C0
+{
+    public static C1 operator &(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+class Test
+{
+    void M()
+    {
+        C0 x = new C1();
+        dynamic y = new C1();
+        _ = x && y;
+    }
+}";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (17,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C0' must not be an interface and must define operator 'false'.
+                //         _ = x && y;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("C0", "false").WithLocation(17, 13)
             );
         }
 
@@ -11729,6 +11827,362 @@ class Test1
                 AssertEx.SequenceEqual(
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    void Test<[Preserve1][Preserve2]T>(T x)
+    {
+        dynamic local(dynamic y)
+        {
+            return y.M(x);
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_03()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    void Test()
+    {
+        dynamic local<[Preserve1][Preserve2]T>(T x, dynamic y)
+        {
+            return y.M(x);
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0|0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_04()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+class Test1
+{
+    void Test<[Preserve1][Preserve2]T>(T x)
+    {
+        var d = (dynamic y) =>
+        {
+            return y.M(x);
+        };
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_05()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(T x)
+    {
+        dynamic M2(dynamic y)
+        {
+            return y.M(x);
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            string source3 = @"
+static class Test1
+{
+    extension(int i)
+    {
+        dynamic M2<[Preserve1][Preserve2]T>(T x, dynamic y)
+        {
+            return y.M(x);
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_06()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(T x)
+    {
+        void Test()
+        {
+            dynamic local(dynamic y)
+            {
+                return y.M(x);
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            string source3 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        void Test<[Preserve1][Preserve2]T>(T x)
+        {
+            dynamic local(dynamic y)
+            {
+                return y.M(x);
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_07()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        void Test()
+        {
+            dynamic local<[Preserve1][Preserve2]T>(T x, dynamic y)
+            {
+                return y.M(x);
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0|1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_08()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(T x)
+    {
+        void Test()
+        {
+            var d = (dynamic y) =>
+            {
+                return y.M(x);
+            };
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            string source3 = @"
+static class Test1
+{
+    extension(int i)
+    {
+        void Test<[Preserve1][Preserve2]T>(T x)
+        {
+            var d = (dynamic y) =>
+            {
+                return y.M(x);
+            };
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
             }
         }
     }

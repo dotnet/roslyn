@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-    {
-        var diagnosticAnalyzerService = workspaceServices.SolutionServices.ExportProvider.GetExports<IDiagnosticAnalyzerService>().Single().Value;
-        return new CodeAnalysisDiagnosticAnalyzerService(diagnosticAnalyzerService, workspaceServices.Workspace);
-    }
+        => new CodeAnalysisDiagnosticAnalyzerService(workspaceServices.Workspace);
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
@@ -48,17 +45,15 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// </summary>
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
-        public CodeAnalysisDiagnosticAnalyzerService(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            Workspace workspace)
+        public CodeAnalysisDiagnosticAnalyzerService(Workspace workspace)
         {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _workspace = workspace;
+            _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
             {
@@ -88,32 +83,14 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         public bool HasProjectBeenAnalyzed(ProjectId projectId)
             => _analyzedProjectToDiagnostics.ContainsKey(projectId);
 
-        public async Task RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
+        public async ValueTask RunAnalysisAsync(Project project, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (projectId != null)
-            {
-                var project = solution.GetProject(projectId);
-                if (project != null)
-                {
-                    await AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                // We run analysis for all the projects concurrently as this is a user invoked operation.
-                await RoslynParallel.ForEachAsync(
-                    source: solution.Projects,
-                    cancellationToken,
-                    (project, cancellationToken) => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken)).ConfigureAwait(false);
-            }
-        }
+            Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-        private async ValueTask AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
-        {
-            // Execute force analysis for the project.
-            var diagnostics = await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await _diagnosticAnalyzerService.ForceRunCodeAnalysisDiagnosticsAsync(
+                project, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.
@@ -121,9 +98,6 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             // Remove from the cleared list now that we've run a more recent "run code analysis" on this project.
             _clearedProjectIds.Remove(project.Id);
-
-            // Now raise the callback into our caller to indicate this project has been analyzed.
-            onAfterProjectAnalyzed(project);
 
             // Finally, invoke a workspace refresh request for LSP client to pull onto these diagnostics.
             //

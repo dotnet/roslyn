@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,29 +15,29 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class StatementMatchingTests : EditingTestBase
+public sealed class StatementMatchingTests : EditingTestBase
 {
     #region Known Matches
 
     [Fact]
     public void KnownMatches()
     {
-        var src1 = @"
-Console.WriteLine(1)/*1*/;
-Console.WriteLine(1)/*2*/;
-";
+        var src1 = """
+            Console.WriteLine(1)/*1*/;
+            Console.WriteLine(1)/*2*/;
+            """;
 
-        var src2 = @"
-Console.WriteLine(1)/*3*/;
-Console.WriteLine(1)/*4*/;
-";
+        var src2 = """
+            Console.WriteLine(1)/*3*/;
+            Console.WriteLine(1)/*4*/;
+            """;
 
         var m1 = MakeMethodBody(src1);
         var m2 = MakeMethodBody(src2);
 
         var knownMatches = new KeyValuePair<SyntaxNode, SyntaxNode>[]
         {
-            new KeyValuePair<SyntaxNode, SyntaxNode>(((BlockSyntax)m1.RootNodes.First()).Statements[1], ((BlockSyntax)m2.RootNodes.First()).Statements[0])
+            new(((BlockSyntax)m1.RootNodes.First()).Statements[1], ((BlockSyntax)m2.RootNodes.First()).Statements[0])
         };
 
         // pre-matched:
@@ -71,13 +72,13 @@ Console.WriteLine(1)/*4*/;
     [Fact]
     public void KnownMatches_Root()
     {
-        var src1 = @"
-Console.WriteLine(1);
-";
+        var src1 = """
+            Console.WriteLine(1);
+            """;
 
-        var src2 = @"
-Console.WriteLine(2);
-";
+        var src2 = """
+            Console.WriteLine(2);
+            """;
 
         var m1 = MakeMethodBody(src1);
         var m2 = MakeMethodBody(src2);
@@ -101,33 +102,34 @@ Console.WriteLine(2);
     [Fact]
     public void MiscStatements()
     {
-        var src1 = @"
-int x = 1; 
-Console.WriteLine(1);
-x++/*1A*/;
-Console.WriteLine(2);
+        var src1 = """
+            int x = 1; 
+            Console.WriteLine(1);
+            x++/*1A*/;
+            Console.WriteLine(2);
 
-while (true)
-{
-    x++/*2A*/;
-}
+            while (true)
+            {
+                x++/*2A*/;
+            }
 
-Console.WriteLine(1);
-";
-        var src2 = @"
-int x = 1;
-x++/*1B*/;
-for (int i = 0; i < 10; i++) {}
-y++;
-if (x > 1)
-{
-    while (true)
-    {
-        x++/*2B*/;
-    }
+            Console.WriteLine(1);
+            """;
+        var src2 = """
+            int x = 1;
+            x++/*1B*/;
+            for (int i = 0; i < 10; i++) {}
+            y++;
+            if (x > 1)
+            {
+                while (true)
+                {
+                    x++/*2B*/;
+                }
 
-    Console.WriteLine(1);
-}";
+                Console.WriteLine(1);
+            }
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -150,15 +152,15 @@ if (x > 1)
     [Fact]
     public void ThrowException_UpdateInsert()
     {
-        var src1 = @"
-return a > 3 ? a : throw new Exception();
-return c > 7 ? c : 7;
-";
+        var src1 = """
+            return a > 3 ? a : throw new Exception();
+            return c > 7 ? c : 7;
+            """;
 
-        var src2 = @"
-return a > 3 ? a : throw new ArgumentException();
-return c > 7 ? c : throw new IndexOutOfRangeException();
-";
+        var src2 = """
+            return a > 3 ? a : throw new ArgumentException();
+            return c > 7 ? c : throw new IndexOutOfRangeException();
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -175,15 +177,15 @@ return c > 7 ? c : throw new IndexOutOfRangeException();
     [Fact]
     public void ThrowException_UpdateDelete()
     {
-        var src1 = @"
-return a > 3 ? a : throw new Exception();
-return b > 5 ? b : throw new OperationCanceledException();
-";
+        var src1 = """
+            return a > 3 ? a : throw new Exception();
+            return b > 5 ? b : throw new OperationCanceledException();
+            """;
 
-        var src2 = @"
-return a > 3 ? a : throw new ArgumentException();
-return b > 5 ? b : 5;
-";
+        var src2 = """
+            return a > 3 ? a : throw new ArgumentException();
+            return b > 5 ? b : 5;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -200,23 +202,25 @@ return b > 5 ? b : 5;
     [Fact]
     public void Tuple()
     {
-        var src1 = @"
-return (1, 2);
-return (d, 6);
-return (10, e, 22);
-return (2, () => { 
-    int a = 6;
-    return 1;
-});";
+        var src1 = """
+            return (1, 2);
+            return (d, 6);
+            return (10, e, 22);
+            return (2, () => { 
+                int a = 6;
+                return 1;
+            });
+            """;
 
-        var src2 = @"
-return (1, 2, 3);
-return (d, 5);
-return (10, e);
-return (2, () => {
-    int a = 6;
-    return 5;
-});";
+        var src2 = """
+            return (1, 2, 3);
+            return (d, 5);
+            return (10, e);
+            return (2, () => {
+                int a = 6;
+                return 5;
+            });
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -246,12 +250,12 @@ return (2, () => {
     [Fact]
     public void Locals_Rename()
     {
-        var src1 = @"
-int x = 1;
-";
-        var src2 = @"
-int y = 1;
-";
+        var src1 = """
+            int x = 1;
+            """;
+        var src2 = """
+            int y = 1;
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -268,12 +272,12 @@ int y = 1;
     [Fact]
     public void Locals_TypeChange()
     {
-        var src1 = @"
-int x = 1;
-";
-        var src2 = @"
-byte x = 1;
-";
+        var src1 = """
+            int x = 1;
+            """;
+        var src2 = """
+            byte x = 1;
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -290,23 +294,23 @@ byte x = 1;
     [Fact]
     public void BlocksWithLocals1()
     {
-        var src1 = @"
-{
-    int a = 1;
-}
-{
-    int b = 2;
-}
-";
-        var src2 = @"
-{
-    int a = 3;
-    int b = 4;
-}
-{
-    int b = 5;
-}
-";
+        var src1 = """
+            {
+                int a = 1;
+            }
+            {
+                int b = 2;
+            }
+            """;
+        var src2 = """
+            {
+                int a = 3;
+                int b = 4;
+            }
+            {
+                int b = 5;
+            }
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -328,27 +332,27 @@ byte x = 1;
     [Fact]
     public void IfBlocksWithLocals1()
     {
-        var src1 = @"
-if (X)
-{
-    int a = 1;
-}
-if (Y)
-{
-    int b = 2;
-}
-";
-        var src2 = @"
-if (Y)
-{
-    int a = 3;
-    int b = 4;
-}
-if (X)
-{
-    int b = 5;
-}
-";
+        var src1 = """
+            if (X)
+            {
+                int a = 1;
+            }
+            if (Y)
+            {
+                int b = 2;
+            }
+            """;
+        var src2 = """
+            if (Y)
+            {
+                int a = 3;
+                int b = 4;
+            }
+            if (X)
+            {
+                int b = 5;
+            }
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -372,26 +376,26 @@ if (X)
     [Fact]
     public void BlocksWithLocals2()
     {
-        var src1 = @"
-{
-    int a = 1;
-}
-{
-    {
-        int b = 2;
-    }
-}
-";
-        var src2 = @"
-{
-    int b = 1;
-}
-{
-    {
-        int a = 2;
-    }
-}
-";
+        var src1 = """
+            {
+                int a = 1;
+            }
+            {
+                {
+                    int b = 2;
+                }
+            }
+            """;
+        var src2 = """
+            {
+                int b = 1;
+            }
+            {
+                {
+                    int a = 2;
+                }
+            }
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -414,34 +418,34 @@ if (X)
     [Fact]
     public void BlocksWithLocals3()
     {
-        var src1 = @"
-{
-    int a = 1, b = 2, c = 3;
-    Console.WriteLine(a + b + c);
-}
-{
-    int c = 4, b = 5, a = 6;
-    Console.WriteLine(a + b + c);
-}
-{
-    int a = 7, b = 8;
-    Console.WriteLine(a + b);
-}
-";
-        var src2 = @"
-{
-    int a = 9, b = 10;
-    Console.WriteLine(a + b);
-}
-{
-    int c = 11, b = 12, a = 13;
-    Console.WriteLine(a + b + c);
-}
-{
-    int a = 14, b = 15, c = 16;
-    Console.WriteLine(a + b + c);
-}
-";
+        var src1 = """
+            {
+                int a = 1, b = 2, c = 3;
+                Console.WriteLine(a + b + c);
+            }
+            {
+                int c = 4, b = 5, a = 6;
+                Console.WriteLine(a + b + c);
+            }
+            {
+                int a = 7, b = 8;
+                Console.WriteLine(a + b);
+            }
+            """;
+        var src2 = """
+            {
+                int a = 9, b = 10;
+                Console.WriteLine(a + b);
+            }
+            {
+                int c = 11, b = 12, a = 13;
+                Console.WriteLine(a + b + c);
+            }
+            {
+                int a = 14, b = 15, c = 16;
+                Console.WriteLine(a + b + c);
+            }
+            """;
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
 
@@ -475,15 +479,15 @@ if (X)
     [Fact]
     public void VariableDesignations()
     {
-        var src1 = @"
-M(out int z);
-N(out var a);
-";
+        var src1 = """
+            M(out int z);
+            N(out var a);
+            """;
 
-        var src2 = @"
-M(out var z);
-N(out var b);
-";
+        var src2 = """
+            M(out var z);
+            N(out var b);
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -502,15 +506,15 @@ N(out var b);
     [Fact]
     public void ParenthesizedVariable_Update()
     {
-        var src1 = @"
-var (x1, (x2, x3, _)) = (1, (2, true, 3));
-var (a1, a2) = (1, () => { return 7; });
-";
+        var src1 = """
+            var (x1, (x2, x3, _)) = (1, (2, true, 3));
+            var (a1, a2) = (1, () => { return 7; });
+            """;
 
-        var src2 = @"
-var (x1, (x3, x4)) = (1, (2, true));
-var (a1, a3) = (1, () => { return 8; });
-";
+        var src2 = """
+            var (x1, (x3, x4)) = (1, (2, true));
+            var (a1, a3) = (1, () => { return 8; });
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -574,21 +578,21 @@ var (a1, a3) = (1, () => { return 8; });
     [Fact]
     public void RefVariable()
     {
-        var src1 = @"
-ref int a = ref G(new int[] { 1, 2 });
-    ref int G(int[] p)
-    {
-        return ref p[1];
-    }
-";
+        var src1 = """
+            ref int a = ref G(new int[] { 1, 2 });
+                ref int G(int[] p)
+                {
+                    return ref p[1];
+                }
+            """;
 
-        var src2 = @"
-ref int32 a = ref G1(new int[] { 1, 2 });
-    ref int G1(int[] p)
-    {
-        return ref p[2];
-    }
-";
+        var src2 = """
+            ref int32 a = ref G1(new int[] { 1, 2 });
+                ref int G1(int[] p)
+                {
+                    return ref p[2];
+                }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -635,12 +639,12 @@ ref int32 a = ref G1(new int[] { 1, 2 });
     [Fact]
     public void Lambdas2a()
     {
-        var src1 = @"
-F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);
-";
-        var src2 = @"
-F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
-";
+        var src1 = """
+            F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);
+            """;
+        var src2 = """
+            F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -664,12 +668,12 @@ F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830419")]
     public void Lambdas2b()
     {
-        var src1 = @"
-F(delegate { return x; });
-";
-        var src2 = @"
-F((a) => x, () => x);
-";
+        var src1 = """
+            F(delegate { return x; });
+            """;
+        var src2 = """
+            F((a) => x, () => x);
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -686,12 +690,12 @@ F((a) => x, () => x);
     [Fact]
     public void Lambdas3()
     {
-        var src1 = @"
-a += async u => u;
-";
-        var src2 = @"
-a += u => u;
-";
+        var src1 = """
+            a += async u => u;
+            """;
+        var src2 = """
+            a += u => u;
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -709,18 +713,18 @@ a += u => u;
     [Fact]
     public void Lambdas4()
     {
-        var src1 = @"
-foreach (var a in z)
-{
-    var e = from q in a.Where(l => l > 10) select q + 1;
-}
-";
-        var src2 = @"
-foreach (var a in z)
-{
-    var e = from q in a.Where(l => l < 0) select q + 1;
-}
-";
+        var src1 = """
+            foreach (var a in z)
+            {
+                var e = from q in a.Where(l => l > 10) select q + 1;
+            }
+            """;
+        var src2 = """
+            foreach (var a in z)
+            {
+                var e = from q in a.Where(l => l < 0) select q + 1;
+            }
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -745,12 +749,12 @@ foreach (var a in z)
     [Fact]
     public void Lambdas5()
     {
-        var src1 = @"
-F(a => b => c => d);
-";
-        var src2 = @"
-F(a => b => c => d);
-";
+        var src1 = """
+            F(a => b => c => d);
+            """;
+        var src2 = """
+            F(a => b => c => d);
+            """;
 
         var matches = GetMethodMatches(src1, src2);
         var actual = ToMatchingPairs(matches);
@@ -772,12 +776,12 @@ F(a => b => c => d);
     [Fact]
     public void Lambdas6()
     {
-        var src1 = @"
-F(a => b => c => d);
-";
-        var src2 = @"
-F(a => G(b => H(c => I(d))));
-";
+        var src1 = """
+            F(a => b => c => d);
+            """;
+        var src2 = """
+            F(a => G(b => H(c => I(d))));
+            """;
 
         var matches = GetMethodMatches(src1, src2);
         var actual = ToMatchingPairs(matches);
@@ -799,28 +803,28 @@ F(a => G(b => H(c => I(d))));
     [Fact]
     public void Lambdas7()
     {
-        var src1 = @"
-F(a => 
-{ 
-    F(c => /*1*/d);
-    F((u, v) => 
-    {
-        F((w) => c => /*2*/d);
-        F(p => p);
-    });
-});
-";
-        var src2 = @"
-F(a => 
-{ 
-    F(c => /*1*/d + 1);
-    F((u, v) => 
-    {
-        F((w) => c => /*2*/d + 1);
-        F(p => p*2);
-    });
-});
-";
+        var src1 = """
+            F(a => 
+            { 
+                F(c => /*1*/d);
+                F((u, v) => 
+                {
+                    F((w) => c => /*2*/d);
+                    F(p => p);
+                });
+            });
+            """;
+        var src2 = """
+            F(a => 
+            { 
+                F(c => /*1*/d + 1);
+                F((u, v) => 
+                {
+                    F((w) => c => /*2*/d + 1);
+                    F(p => p*2);
+                });
+            });
+            """;
 
         var matches = GetMethodMatches(src1, src2);
         var actual = ToMatchingPairs(matches);
@@ -971,17 +975,17 @@ F(a =>
     [Fact]
     public void LocalFunctionDefinitions()
     {
-        var src1 = @"
-(int a, string c) F1(int i) { return null; }
-(int a, int b) F2(int i) { return null; }
-(int a, int b, int c) F3(int i) { return null; }
-";
+        var src1 = """
+            (int a, string c) F1(int i) { return null; }
+            (int a, int b) F2(int i) { return null; }
+            (int a, int b, int c) F3(int i) { return null; }
+            """;
 
-        var src2 = @"
-(int a, int b) F1(int i) { return null; }
-(int a, int b, string c) F2(int i) { return null; }
-(int a, int b) F3(int i) { return null; }
-";
+        var src2 = """
+            (int a, int b) F1(int i) { return null; }
+            (int a, int b, string c) F2(int i) { return null; }
+            (int a, int b) F3(int i) { return null; }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -1029,17 +1033,17 @@ F(a =>
     [Fact]
     public void LocalFunctions2a()
     {
-        var src1 = @"
-F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);
-";
-        var src2 = @"
-int localF1(int y) => y + 1;
-int localF2(int x) => x + 1;
-int localF3(int x) => x;
-int localF4(int u) => u;
-async int localF5(int u, int v) =>  u + v;
-F(localF1, localF2, G(), localF2, localF3, localF4, localF5);
-";
+        var src1 = """
+            F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);
+            """;
+        var src2 = """
+            int localF1(int y) => y + 1;
+            int localF2(int x) => x + 1;
+            int localF3(int x) => x;
+            int localF4(int u) => u;
+            async int localF5(int u, int v) =>  u + v;
+            F(localF1, localF2, G(), localF2, localF3, localF4, localF5);
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -1061,13 +1065,13 @@ F(localF1, localF2, G(), localF2, localF3, localF4, localF5);
     [Fact]
     public void LocalFunctions2b()
     {
-        var src1 = @"
-F(delegate { return x; });
-";
-        var src2 = @"
-int localF() => x;
-F(localF);
-";
+        var src1 = """
+            F(delegate { return x; });
+            """;
+        var src2 = """
+            int localF() => x;
+            F(localF);
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -1084,13 +1088,13 @@ F(localF);
     [Fact]
     public void LocalFunctions3()
     {
-        var src1 = @"
-a += async u => u;
-";
-        var src2 = @"
-object localF(object u) => u;
-a += localF;
-";
+        var src1 = """
+            a += async u => u;
+            """;
+        var src2 = """
+            object localF(object u) => u;
+            a += localF;
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -1142,43 +1146,43 @@ a += localF;
     [Fact]
     public void LocalFunctions5()
     {
-        var src1 = @"
-void G6(int a)
-{ 
-    int G5(int c) => /*1*/d;
-    F(G5);
+        var src1 = """
+            void G6(int a)
+            { 
+                int G5(int c) => /*1*/d;
+                F(G5);
 
-    void G4()
-    {
-        void G1(int x) => x;
-        int G3(int w)
-        { 
-            int G2(int c) => /*2*/d;
-            return G2(w);
-        }
-        F(G3);
-        F(G1);
-    };
-    F(G4);
-}
-";
+                void G4()
+                {
+                    void G1(int x) => x;
+                    int G3(int w)
+                    { 
+                        int G2(int c) => /*2*/d;
+                        return G2(w);
+                    }
+                    F(G3);
+                    F(G1);
+                };
+                F(G4);
+            }
+            """;
 
-        var src2 = @"
-void G6(int a)
-{ 
-    int G5(int c) => /*1*/d + 1;F(G5);
+        var src2 = """
+            void G6(int a)
+            { 
+                int G5(int c) => /*1*/d + 1;F(G5);
 
-    void G4()
-    {
-        int G3(int w)
-        { 
-            int G2(int c) => /*2*/d + 1; return G2(w);
-        }
-        F(G3); F(G1); int G6(int p) => p *2; F(G6);
-    }
-    F(G4);
-}
-";
+                void G4()
+                {
+                    int G3(int w)
+                    { 
+                        int G2(int c) => /*2*/d + 1; return G2(w);
+                    }
+                    F(G3); F(G1); int G6(int p) => p *2; F(G6);
+                }
+                F(G4);
+            }
+            """;
 
         var matches = GetMethodMatches(src1, src2);
         var actual = ToMatchingPairs(matches);
@@ -1271,18 +1275,18 @@ void G6(int a)
     [Fact]
     public void Queries1()
     {
-        var src1 = @"
-var q = from c in cars
-        from ud in users_details
-        from bd in bids
-        select 1;
-";
-        var src2 = @"
-var q = from c in cars
-        from bd in bids
-        from ud in users_details
-        select 2;
-";
+        var src1 = """
+            var q = from c in cars
+                    from ud in users_details
+                    from bd in bids
+                    select 1;
+            """;
+        var src2 = """
+            var q = from c in cars
+                    from bd in bids
+                    from ud in users_details
+                    select 2;
+            """;
 
         var match = GetMethodMatch(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -1305,36 +1309,36 @@ var q = from c in cars
     [Fact]
     public void Queries2()
     {
-        var src1 = @"
-var q = from c in cars
-        from ud in users_details
-        from bd in bids
-        orderby c.listingOption descending
-        where a.userID == ud.userid
-        let images = from ai in auction_images
-                     where ai.belongs_to == c.id
-                     select ai
-        let bid = (from b in bids
-                    orderby b.id descending
-                    where b.carID == c.id
-                    select b.bidamount).FirstOrDefault()
-        select bid;
-";
-        var src2 = @"
-var q = from c in cars
-        from ud in users_details
-        from bd in bids
-        orderby c.listingOption descending
-        where a.userID == ud.userid
-        let images = from ai in auction_images
-                     where ai.belongs_to == c.id2
-                     select ai + 1
-        let bid = (from b in bids
-                    orderby b.id ascending
-                    where b.carID == c.id2
-                    select b.bidamount).FirstOrDefault()
-        select bid;
-";
+        var src1 = """
+            var q = from c in cars
+                    from ud in users_details
+                    from bd in bids
+                    orderby c.listingOption descending
+                    where a.userID == ud.userid
+                    let images = from ai in auction_images
+                                 where ai.belongs_to == c.id
+                                 select ai
+                    let bid = (from b in bids
+                                orderby b.id descending
+                                where b.carID == c.id
+                                select b.bidamount).FirstOrDefault()
+                    select bid;
+            """;
+        var src2 = """
+            var q = from c in cars
+                    from ud in users_details
+                    from bd in bids
+                    orderby c.listingOption descending
+                    where a.userID == ud.userid
+                    let images = from ai in auction_images
+                                 where ai.belongs_to == c.id2
+                                 select ai + 1
+                    let bid = (from b in bids
+                                orderby b.id ascending
+                                where b.carID == c.id2
+                                select b.bidamount).FirstOrDefault()
+                    select bid;
+            """;
 
         var match = GetMethodMatches(src1, src2);
         var actual = ToMatchingPairs(match);
@@ -1377,19 +1381,18 @@ var q = from c in cars
     [Fact]
     public void Queries3()
     {
-        var src1 = @"
-var q = from a in await seq1
-        join c in await seq2 on F(u => u) equals G(s => s) into g1
-        join l in await seq3 on F(v => v) equals G(t => t) into g2
-        select a;
-
-";
-        var src2 = @"
-var q = from a in await seq1
-        join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1
-        join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2
-        select a + 1;
-";
+        var src1 = """
+            var q = from a in await seq1
+                    join c in await seq2 on F(u => u) equals G(s => s) into g1
+                    join l in await seq3 on F(v => v) equals G(t => t) into g2
+                    select a;
+            """;
+        var src2 = """
+            var q = from a in await seq1
+                    join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1
+                    join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2
+                    select a + 1;
+            """;
 
         var match = GetMethodMatches(src1, src2, MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1474,14 +1477,14 @@ var q = from a in await seq1
     [Fact]
     public void Yields()
     {
-        var src1 = @"
-yield return 0;
-yield return 1;
-";
-        var src2 = @"
-yield break;
-yield return 1;
-";
+        var src1 = """
+            yield return 0;
+            yield return 1;
+            """;
+        var src2 = """
+            yield break;
+            yield return 1;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
         var actual = ToMatchingPairs(match);
@@ -1498,15 +1501,15 @@ yield return 1;
     [Fact]
     public void YieldReturn_Add()
     {
-        var src1 = @"
-yield return /*1*/ 1;
-yield return /*2*/ 2;
-";
-        var src2 = @"
-yield return /*3*/ 3;
-yield return /*1*/ 1;
-yield return /*2*/ 2;
-";
+        var src1 = """
+            yield return /*1*/ 1;
+            yield return /*2*/ 2;
+            """;
+        var src2 = """
+            yield return /*3*/ 3;
+            yield return /*1*/ 1;
+            yield return /*2*/ 2;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
         var actual = ToMatchingPairs(match);
@@ -1523,20 +1526,20 @@ yield return /*2*/ 2;
     [Fact]
     public void YieldReturn_Swap1()
     {
-        var src1 = @"
-A();
-yield return /*1*/ 1;
-B();
-yield return /*2*/ 2;
-C();
-";
-        var src2 = @"
-B();
-yield return /*2*/ 2;
-A();
-yield return /*1*/ 1;
-C();
-";
+        var src1 = """
+            A();
+            yield return /*1*/ 1;
+            B();
+            yield return /*2*/ 2;
+            C();
+            """;
+        var src2 = """
+            B();
+            yield return /*2*/ 2;
+            A();
+            yield return /*1*/ 1;
+            C();
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
         var actual = ToMatchingPairs(match);
@@ -1556,20 +1559,20 @@ C();
     [Fact]
     public void YieldReturn_Swap2()
     {
-        var src1 = @"
-yield return /*1*/ 1;
+        var src1 = """
+            yield return /*1*/ 1;
 
-{
-    yield return /*2*/ 2;
-}
+            {
+                yield return /*2*/ 2;
+            }
 
-foreach (var x in y) { yield return /*3*/ 3; }
-";
-        var src2 = @"
-yield return /*1*/ 1;
-yield return /*2*/ 3;
-foreach (var x in y) { yield return /*3*/ 2; }
-";
+            foreach (var x in y) { yield return /*3*/ 3; }
+            """;
+        var src2 = """
+            yield return /*1*/ 1;
+            yield return /*2*/ 3;
+            foreach (var x in y) { yield return /*3*/ 2; }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
         var actual = ToMatchingPairs(match);
@@ -1611,22 +1614,22 @@ foreach (var x in y) { yield return /*3*/ 2; }
     [Fact]
     public void Awaits()
     {
-        var src1 = @"
-await x;
-await using (expr) {}
-await using (D y = new D()) {}
-await using D y = new D();
-await foreach (var z in w) {} 
-await foreach (var (u, v) in w) {}
-";
-        var src2 = @"
-await foreach (var (u, v) in w) {}
-await foreach (var z in w) {} 
-await using D y = new D();
-await using (D y = new D()) {}
-await using (expr) {}
-await x;
-";
+        var src1 = """
+            await x;
+            await using (expr) {}
+            await using (D y = new D()) {}
+            await using D y = new D();
+            await foreach (var z in w) {} 
+            await foreach (var (u, v) in w) {}
+            """;
+        var src2 = """
+            await foreach (var (u, v) in w) {}
+            await foreach (var z in w) {} 
+            await using D y = new D();
+            await using (D y = new D()) {}
+            await using (expr) {}
+            await x;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1658,12 +1661,12 @@ await x;
     [Fact]
     public void Await_To_AwaitUsingExpression()
     {
-        var src1 = @"
-await x;
-";
-        var src2 = @"
-await using (expr) {}
-";
+        var src1 = """
+            await x;
+            """;
+        var src2 = """
+            await using (expr) {}
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1676,12 +1679,12 @@ await using (expr) {}
     [Fact]
     public void Await_To_AwaitUsingDecl()
     {
-        var src1 = @"
-await x;
-";
-        var src2 = @"
-await using D y = new D();
-";
+        var src1 = """
+            await x;
+            """;
+        var src2 = """
+            await using D y = new D();
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1695,12 +1698,12 @@ await using D y = new D();
     [Fact]
     public void AwaitUsingDecl_To_AwaitUsingStatement()
     {
-        var src1 = @"
-await using D y = new D();
-";
-        var src2 = @"
-await using (D y = new D()) { }
-";
+        var src1 = """
+            await using D y = new D();
+            """;
+        var src2 = """
+            await using (D y = new D()) { }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1713,12 +1716,12 @@ await using (D y = new D()) { }
     [Fact]
     public void AwaitUsingExpression_To_AwaitUsingStatementWithSingleVariable()
     {
-        var src1 = @"
-await using (y = new D()) { }
-";
-        var src2 = @"
-await using (D y = new D()) { }
-";
+        var src1 = """
+            await using (y = new D()) { }
+            """;
+        var src2 = """
+            await using (D y = new D()) { }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1736,12 +1739,12 @@ await using (D y = new D()) { }
     [Fact]
     public void AwaitUsingExpression_To_AwaitUsingStatementWithMultipleVariables()
     {
-        var src1 = @"
-await using (y = new D()) { }
-";
-        var src2 = @"
-await using (D y = new D(), z = new D()) { }
-";
+        var src1 = """
+            await using (y = new D()) { }
+            """;
+        var src2 = """
+            await using (D y = new D(), z = new D()) { }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1778,12 +1781,12 @@ await using (D y = new D(), z = new D()) { }
     [Fact]
     public void Await_To_AwaitForeach()
     {
-        var src1 = @"
-await x;
-";
-        var src2 = @"
-await foreach (var x in y) {}
-";
+        var src1 = """
+            await x;
+            """;
+        var src2 = """
+            await foreach (var x in y) {}
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1797,12 +1800,12 @@ await foreach (var x in y) {}
     [Fact]
     public void Await_To_AwaitForeachVar()
     {
-        var src1 = @"
-await x;
-";
-        var src2 = @"
-await foreach (var (x, y) in z) {}
-";
+        var src1 = """
+            await x;
+            """;
+        var src2 = """
+            await foreach (var (x, y) in z) {}
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1816,12 +1819,12 @@ await foreach (var (x, y) in z) {}
     [Fact]
     public void AwaitForeach_To_AwaitForeachVar()
     {
-        var src1 = @"
-await foreach (var x in y) {}
-";
-        var src2 = @"
-await foreach (var (u, v) in y) {}
-";
+        var src1 = """
+            await foreach (var x in y) {}
+            """;
+        var src2 = """
+            await foreach (var (u, v) in y) {}
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -1866,12 +1869,12 @@ await foreach (var (u, v) in y) {}
     [Fact]
     public void ConstructorWithInitializer1()
     {
-        var src1 = @"
-(int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
-";
-        var src2 = @"
-(int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
-";
+        var src1 = """
+            (int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
+            """;
+        var src2 = """
+            (int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.ConstructorWithParameters);
         var actual = ToMatchingPairs(match);
@@ -1892,12 +1895,12 @@ await foreach (var (u, v) in y) {}
     [Fact]
     public void ConstructorWithInitializer2()
     {
-        var src1 = @"
-() : base(a => a + 1) { Console.WriteLine(1); }
-";
-        var src2 = @"
-() { Console.WriteLine(1); }
-";
+        var src1 = """
+            () : base(a => a + 1) { Console.WriteLine(1); }
+            """;
+        var src2 = """
+            () { Console.WriteLine(1); }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.ConstructorWithParameters);
         var actual = ToMatchingPairs(match);
@@ -1919,16 +1922,16 @@ await foreach (var (u, v) in y) {}
     [Fact]
     public void ExceptionHandlers()
     {
-        var src1 = @"
-try { throw new InvalidOperationException(1); }
-catch (IOException e) when (filter(e)) { Console.WriteLine(2); }
-catch (Exception e) when (filter(e)) { Console.WriteLine(3); }
-";
-        var src2 = @"
-try { throw new InvalidOperationException(10); }
-catch (IOException e) when (filter(e)) { Console.WriteLine(20); }
-catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
-";
+        var src1 = """
+            try { throw new InvalidOperationException(1); }
+            catch (IOException e) when (filter(e)) { Console.WriteLine(2); }
+            catch (Exception e) when (filter(e)) { Console.WriteLine(3); }
+            """;
+        var src2 = """
+            try { throw new InvalidOperationException(10); }
+            catch (IOException e) when (filter(e)) { Console.WriteLine(20); }
+            catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -1960,15 +1963,15 @@ catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
     [Fact]
     public void ForeachVariable_Update1()
     {
-        var src1 = @"
-foreach (var (a1, a2) in e) { A1(); }
-foreach ((var b1, var b2) in e) { A2(); }
-";
+        var src1 = """
+            foreach (var (a1, a2) in e) { A1(); }
+            foreach ((var b1, var b2) in e) { A2(); }
+            """;
 
-        var src2 = @"
-foreach (var (a1, a3) in e) { A1(); }
-foreach ((var b3, int b2) in e) { A2(); }
-";
+        var src2 = """
+            foreach (var (a1, a3) in e) { A1(); }
+            foreach ((var b3, int b2) in e) { A2(); }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -1993,15 +1996,15 @@ foreach ((var b3, int b2) in e) { A2(); }
     [Fact]
     public void ForeachVariable_Update2()
     {
-        var src1 = @"
-foreach (_ in e2) { }
-foreach (_ in e3) { A(); }
-";
+        var src1 = """
+            foreach (_ in e2) { }
+            foreach (_ in e3) { A(); }
+            """;
 
-        var src2 = @"
-foreach (_ in e4) { A(); }
-foreach (var b in e2) { }
-";
+        var src2 = """
+            foreach (_ in e4) { A(); }
+            foreach (var b in e2) { }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2021,15 +2024,15 @@ foreach (var b in e2) { }
     [Fact]
     public void ForeachVariable_Insert()
     {
-        var src1 = @"
-foreach (var ((a3, a4), _) in e) { }
-foreach ((var b4, var b5) in e) { }
-";
+        var src1 = """
+            foreach (var ((a3, a4), _) in e) { }
+            foreach ((var b4, var b5) in e) { }
+            """;
 
-        var src2 = @"
-foreach (var ((a3, a5, a4), _) in e) { }
-foreach ((var b6, var b4, var b5) in e) { }
-";
+        var src2 = """
+            foreach (var ((a3, a5, a4), _) in e) { }
+            foreach ((var b6, var b4, var b5) in e) { }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2052,15 +2055,15 @@ foreach ((var b6, var b4, var b5) in e) { }
     [Fact]
     public void ForeachVariable_Delete()
     {
-        var src1 = @"
-foreach (var (a11, a12, a13) in e) { A1(); }
-foreach ((var b7, var b8, var b9) in e) { A2(); }
-";
+        var src1 = """
+            foreach (var (a11, a12, a13) in e) { A1(); }
+            foreach ((var b7, var b8, var b9) in e) { A2(); }
+            """;
 
-        var src2 = @"
-foreach (var (a12, a13) in e1) { A1(); }
-foreach ((var b7, var b9) in e) { A2(); }
-";
+        var src2 = """
+            foreach (var (a12, a13) in e1) { A1(); }
+            foreach ((var b7, var b9) in e) { A2(); }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2089,15 +2092,15 @@ foreach ((var b7, var b9) in e) { A2(); }
     [Fact]
     public void ConstantPattern()
     {
-        var src1 = @"
-if ((o is null) && (y == 7)) return 3;
-if (a is 7) return 5;
-";
+        var src1 = """
+            if ((o is null) && (y == 7)) return 3;
+            if (a is 7) return 5;
+            """;
 
-        var src2 = @"
-if ((o1 is null) && (y == 7)) return 3;
-if (a is 77) return 5;
-";
+        var src2 = """
+            if ((o1 is null) && (y == 7)) return 3;
+            if (a is 77) return 5;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2115,19 +2118,19 @@ if (a is 77) return 5;
     [Fact]
     public void DeclarationPattern()
     {
-        var src1 = @"
-if (!(o is int i) && (y == 7)) return;
-if (!(a is string s)) return;
-if (!(b is string t)) return;
-if (!(c is int j)) return;
-";
+        var src1 = """
+            if (!(o is int i) && (y == 7)) return;
+            if (!(a is string s)) return;
+            if (!(b is string t)) return;
+            if (!(c is int j)) return;
+            """;
 
-        var src2 = @"
-if (!(b is string t1)) return;
-if (!(o1 is int i) && (y == 7)) return;
-if (!(c is int)) return;
-if (!(a is int s)) return;
-";
+        var src2 = """
+            if (!(b is string t1)) return;
+            if (!(o1 is int i) && (y == 7)) return;
+            if (!(c is int)) return;
+            if (!(a is int s)) return;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2152,19 +2155,19 @@ if (!(a is int s)) return;
     [Fact]
     public void VarPattern()
     {
-        var src1 = @"
-if (!(o is (var x, var y))) return;
-if (!(o4 is (string a, var (b, c)))) return;
-if (!(o2 is var (e, f, g))) return;
-if (!(o3 is var (k, l, m))) return;
-";
+        var src1 = """
+            if (!(o is (var x, var y))) return;
+            if (!(o4 is (string a, var (b, c)))) return;
+            if (!(o2 is var (e, f, g))) return;
+            if (!(o3 is var (k, l, m))) return;
+            """;
 
-        var src2 = @"
-if (!(o is (int x, int y1)))  return;
-if (!(o1 is (var a, (var b, string c1)))) return;
-if (!(o7 is var (g, e, f))) return;
-if (!(o3 is (string k, int l2, int m))) return;
-";
+        var src2 = """
+            if (!(o is (int x, int y1)))  return;
+            if (!(o1 is (var a, (var b, string c1)))) return;
+            if (!(o7 is var (g, e, f))) return;
+            if (!(o3 is (string k, int l2, int m))) return;
+            """;
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
 
@@ -2196,23 +2199,25 @@ if (!(o3 is (string k, int l2, int m))) return;
     [Fact]
     public void PositionalPattern()
     {
-        var src1 = @"var r = (x, y, z) switch {
-(1, 2, 3) => 0,
-(var a, 3, 4) => a,
-(0, var b, int c) when c > 1 => 2,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-};
-";
+        var src1 = """
+            var r = (x, y, z) switch {
+            (1, 2, 3) => 0,
+            (var a, 3, 4) => a,
+            (0, var b, int c) when c > 1 => 2,
+            (1, 1, Point { X: 0 } p) => 3,
+            _ => 4
+            };
+            """;
 
-        var src2 = @"var r = ((x, y, z)) switch {
-(1, 2, 3) => 0,
-(var a1, 3, 4) => a1 * 2,
-(_, int b1, double c1) when c1 > 2 => c1,
-(1, 1, Point { Y: 0 } p1) => 3,
-_ => 4
-};
-";
+        var src2 = """
+            var r = ((x, y, z)) switch {
+            (1, 2, 3) => 0,
+            (var a1, 3, 4) => a1 * 2,
+            (_, int b1, double c1) when c1 > 2 => c1,
+            (1, 1, Point { Y: 0 } p1) => 3,
+            _ => 4
+            };
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2240,17 +2245,17 @@ _ => 4
     [Fact]
     public void PropertyPattern()
     {
-        var src1 = @"
-if (address is { State: ""WA"" }) return 1;
-if (obj is { Color: Color.Purple }) return 2;
-if (o is string { Length: 5 } s) return 3;
-";
+        var src1 = """
+            if (address is { State: "WA" }) return 1;
+            if (obj is { Color: Color.Purple }) return 2;
+            if (o is string { Length: 5 } s) return 3;
+            """;
 
-        var src2 = @"
-if (address is { ZipCode: 98052 }) return 4;
-if (obj is { Size: Size.M }) return 2;
-if (o is string { Length: 7 } s7) return 5;
-";
+        var src2 = """
+            if (address is { ZipCode: 98052 }) return 4;
+            if (obj is { Size: Size.M }) return 2;
+            if (o is string { Length: 7 } s7) return 5;
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2271,31 +2276,33 @@ if (o is string { Length: 7 } s7) return 5;
     [Fact]
     public void RecursivePatterns()
     {
-        var src1 = @"var r = obj switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        ("""", Task<int> t) => await t,
-        _ => 0
-    },
-    int i => i * i,
-    _ => -1
-};
-";
+        var src1 = """
+            var r = obj switch
+            {
+                string s when s.Length > 0 => (s, obj1) switch
+                {
+                    ("a", int i) => i,
+                    ("", Task<int> t) => await t,
+                    _ => 0
+                },
+                int i => i * i,
+                _ => -1
+            };
+            """;
 
-        var src2 = @"var r = obj switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""b"", decimal i1) => i1,
-        ("""", Task<object> obj2) => await obj2,
-        _ => 0
-    },
-    double i => i * i,
-    _ => -1
-};
-";
+        var src2 = """
+            var r = obj switch
+            {
+                string s when s.Length > 0 => (s, obj1) switch
+                {
+                    ("b", decimal i1) => i1,
+                    ("", Task<object> obj2) => await obj2,
+                    _ => 0
+                },
+                double i => i * i,
+                _ => -1
+            };
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
         var actual = ToMatchingPairs(match);
@@ -2327,22 +2334,22 @@ if (o is string { Length: 7 } s7) return 5;
     [Fact]
     public void CasePattern_UpdateInsert()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Circle c: return 1;
-    default: return 4;
-}
-";
+        var src1 = """
+            switch(shape)
+            {
+                case Circle c: return 1;
+                default: return 4;
+            }
+            """;
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle c1: return 1;
-    case Point p: return 0;
-    default: return 4;
-}
-";
+        var src2 = """
+            switch(shape)
+            {
+                case Circle c1: return 1;
+                case Point p: return 0;
+                default: return 4;
+            }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2363,20 +2370,20 @@ switch(shape)
     [Fact]
     public void CasePattern_UpdateDelete()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Point p: return 0;
-    case Circle c: return 1;
-}
-";
+        var src1 = """
+            switch(shape)
+            {
+                case Point p: return 0;
+                case Circle c: return 1;
+            }
+            """;
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle circle: return 1;
-}
-";
+        var src2 = """
+            switch(shape)
+            {
+                case Circle circle: return 1;
+            }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2395,21 +2402,21 @@ switch(shape)
     [Fact]
     public void WhenCondition()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Circle c when (c < 10): return 1;
-    case Circle c when (c > 100): return 2;
-}
-";
+        var src1 = """
+            switch(shape)
+            {
+                case Circle c when (c < 10): return 1;
+                case Circle c when (c > 100): return 2;
+            }
+            """;
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle c when (c < 5): return 1;
-    case Circle c2 when (c2 > 100): return 2;
-}
-";
+        var src2 = """
+            switch(shape)
+            {
+                case Circle c when (c < 5): return 1;
+                case Circle c2 when (c2 > 100): return 2;
+            }
+            """;
 
         var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
         var actual = ToMatchingPairs(match);
@@ -2504,30 +2511,30 @@ switch(shape)
     [Fact]
     public void TopLevelStatements()
     {
-        var src1 = @"
-Console.WriteLine(1);
-Console.WriteLine(2);
+        var src1 = """
+            Console.WriteLine(1);
+            Console.WriteLine(2);
 
-var x = 0;
-while (true)
-{
-    x++;
-}
+            var x = 0;
+            while (true)
+            {
+                x++;
+            }
 
-Console.WriteLine(3);
-";
-        var src2 = @"
-Console.WriteLine(4);
-Console.WriteLine(5);
+            Console.WriteLine(3);
+            """;
+        var src2 = """
+            Console.WriteLine(4);
+            Console.WriteLine(5);
 
-var x = 1;
-while (true)
-{
-    x--;
-}
+            var x = 1;
+            while (true)
+            {
+                x--;
+            }
 
-Console.WriteLine(6);
-";
+            Console.WriteLine(6);
+            """;
         var match = GetTopEdits(src1, src2).Match;
         var actual = ToMatchingPairs(match);
 

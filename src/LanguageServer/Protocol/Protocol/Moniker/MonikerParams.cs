@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class MonikerParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<Moniker[]>
+internal sealed class MonikerParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<Moniker[]>
 {
     /// <inheritdoc/>
     [JsonPropertyName(Methods.WorkDoneTokenName)]

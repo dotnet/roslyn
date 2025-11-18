@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,9 +19,9 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 [UseExportProvider]
-public class SymbolEquivalenceComparerTests
+public sealed class SymbolEquivalenceComparerTests
 {
-    public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+    public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new(OutputKind.DynamicallyLinkedLibrary);
     public static readonly CS.CSharpCompilationOptions CSharpSignedDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
         WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
         WithStrongNameProvider(DefaultDesktopStrongNameProvider);
@@ -31,22 +30,24 @@ public class SymbolEquivalenceComparerTests
     public async Task TestArraysAreEquivalent()
     {
         var csharpCode =
-@"class C
-{
-    int intField1;
-    int[] intArrayField1;
-    string[] stringArrayField1;
-    int[][] intArrayArrayField1;
-    int[,] intArrayRank2Field1;
-    System.Int32 int32Field1;
+            """
+            class C
+            {
+                int intField1;
+                int[] intArrayField1;
+                string[] stringArrayField1;
+                int[][] intArrayArrayField1;
+                int[,] intArrayRank2Field1;
+                System.Int32 int32Field1;
 
-    int intField2;
-    int[] intArrayField2;
-    string[] stringArrayField2;
-    int[][] intArrayArrayField2;
-    int[,] intArrayRank2Field2;
-    System.Int32 int32Field2;
-}";
+                int intField2;
+                int[] intArrayField2;
+                string[] stringArrayField2;
+                int[][] intArrayArrayField2;
+                int[,] intArrayRank2Field2;
+                System.Int32 int32Field2;
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(csharpCode);
         var type = (ITypeSymbol)(await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
@@ -100,24 +101,28 @@ public class SymbolEquivalenceComparerTests
     public async Task TestArraysInDifferentLanguagesAreEquivalent()
     {
         var csharpCode =
-@"class C
-{
-    int intField1;
-    int[] intArrayField1;
-    string[] stringArrayField1;
-    int[][] intArrayArrayField1;
-    int[,] intArrayRank2Field1;
-    System.Int32 int32Field1;
-}";
+            """
+            class C
+            {
+                int intField1;
+                int[] intArrayField1;
+                string[] stringArrayField1;
+                int[][] intArrayArrayField1;
+                int[,] intArrayRank2Field1;
+                System.Int32 int32Field1;
+            }
+            """;
         var vbCode =
-@"class C
-    dim intField1 as Integer;
-    dim intArrayField1 as Integer()
-    dim stringArrayField1 as String()
-    dim intArrayArrayField1 as Integer()()
-    dim intArrayRank2Field1 as Integer(,)
-    dim int32Field1 as System.Int32
-end class";
+            """
+            class C
+                dim intField1 as Integer;
+                dim intArrayField1 as Integer()
+                dim stringArrayField1 as String()
+                dim intArrayArrayField1 as Integer()()
+                dim intArrayRank2Field1 as Integer(,)
+                dim int32Field1 as System.Int32
+            end class
+            """;
 
         using var csharpWorkspace = TestWorkspace.CreateCSharp(csharpCode);
         using var vbWorkspace = TestWorkspace.CreateVisualBasic(vbCode);
@@ -165,30 +170,34 @@ end class";
     public async Task TestFields()
     {
         var csharpCode1 =
-@"class Type1
-{
-    int field1;
-    string field2;
-}
+            """
+            class Type1
+            {
+                int field1;
+                string field2;
+            }
 
-class Type2
-{
-    bool field3;
-    short field4;
-}";
+            class Type2
+            {
+                bool field3;
+                short field4;
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    int field1;
-    short field4;
-}
+            """
+            class Type1
+            {
+                int field1;
+                short field4;
+            }
 
-class Type2
-{
-    bool field3;
-    string field2;
-}";
+            class Type2
+            {
+                bool field3;
+                string field2;
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -218,28 +227,32 @@ class Type2
     public async Task TestFieldsAcrossLanguages()
     {
         var csharpCode1 =
-@"class Type1
-{
-    int field1;
-    string field2;
-}
+            """
+            class Type1
+            {
+                int field1;
+                string field2;
+            }
 
-class Type2
-{
-    bool field3;
-    short field4;
-}";
+            class Type2
+            {
+                bool field3;
+                short field4;
+            }
+            """;
 
         var vbCode1 =
-@"class Type1
-    dim field1 as Integer;
-    dim field4 as Short;
-end class
+            """
+            class Type1
+                dim field1 as Integer;
+                dim field4 as Short;
+            end class
 
-class Type2
-    dim field3 as Boolean;
-    dim field2 as String;
-end class";
+            class Type2
+                dim field3 as Boolean;
+                dim field2 as String;
+            end class
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateVisualBasic(vbCode1);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -266,19 +279,20 @@ end class";
     public async Task TestFieldsInGenericTypes()
     {
         var code =
-@"class C<T>
-{
-    int goo;
-    C<int> intInstantiation1;
-    C<string> stringInstantiation;
-    C<T> instanceInstantiation;
-}
+            """
+            class C<T>
+            {
+                int goo;
+                C<int> intInstantiation1;
+                C<string> stringInstantiation;
+                C<T> instanceInstantiation;
+            }
 
-class D
-{
-    C<int> intInstantiation2;
-}
-";
+            class D
+            {
+                C<int> intInstantiation2;
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code);
         var typeC = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
@@ -313,16 +327,20 @@ class D
     public async Task TestMethodsWithDifferentReturnTypeNotEquivalent()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo() {}
-}";
+            """
+            class Type1
+            {
+                void Goo() {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    int Goo() {}
-}";
+            """
+            class Type1
+            {
+                int Goo() {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -338,16 +356,20 @@ class D
     public async Task TestMethodsWithDifferentNamesAreNotEquivalent()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo() {}
-}";
+            """
+            class Type1
+            {
+                void Goo() {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo1() {}
-}";
+            """
+            class Type1
+            {
+                void Goo1() {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -363,16 +385,20 @@ class D
     public async Task TestMethodsWithDifferentAritiesAreNotEquivalent()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo() {}
-}";
+            """
+            class Type1
+            {
+                void Goo() {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo<T>() {}
-}";
+            """
+            class Type1
+            {
+                void Goo<T>() {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -388,16 +414,20 @@ class D
     public async Task TestMethodsWithDifferentParametersAreNotEquivalent()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo() {}
-}";
+            """
+            class Type1
+            {
+                void Goo() {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -413,16 +443,20 @@ class D
     public async Task TestMethodsWithDifferentTypeParameters()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo<A>(A a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo<A>(A a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo<B>(B a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo<B>(B a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -440,16 +474,20 @@ class D
     public async Task TestMethodsWithSameParameters()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -467,16 +505,20 @@ class D
     public async Task TestMethodsWithDifferentParameterNames()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(int b) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int b) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -494,16 +536,20 @@ class D
     public async Task TestMethodsAreEquivalentOutToRef()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(out int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(out int a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(ref int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(ref int a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -519,16 +565,20 @@ class D
     public async Task TestMethodsNotEquivalentRemoveOut()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(out int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(out int a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(int a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -544,16 +594,20 @@ class D
     public async Task TestMethodsAreEquivalentIgnoreParams()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(params int[] a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(params int[] a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(int[] a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int[] a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -571,16 +625,20 @@ class D
     public async Task TestMethodsNotEquivalentDifferentParameterTypes()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(int[] a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(int[] a) {}
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(string[] a) {}
-}";
+            """
+            class Type1
+            {
+                void Goo(string[] a) {}
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -596,25 +654,27 @@ class D
     public async Task TestMethodsAcrossLanguages()
     {
         var csharpCode1 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    T Goo<T>(IList<T> list, int a) {}
-    void Bar() { }
-}";
+            class Type1
+            {
+                T Goo<T>(IList<T> list, int a) {}
+                void Bar() { }
+            }
+            """;
 
         var vbCode1 =
-@"
-Imports System.Collections.Generic
+            """
+            Imports System.Collections.Generic
 
-class Type1
-    function Goo(of U)(list as IList(of U), a as Integer) as U
-    end function
-    sub Quux()
-    end sub
-end class";
+            class Type1
+                function Goo(of U)(list as IList(of U), a as Integer) as U
+                end function
+                sub Quux()
+                end sub
+            end class
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateVisualBasic(vbCode1);
         var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -641,25 +701,27 @@ end class";
     public async Task TestMethodsInGenericTypesAcrossLanguages()
     {
         var csharpCode1 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1<X>
-{
-    T Goo<T>(IList<T> list, X a) {}
-    void Bar(X x) { }
-}";
+            class Type1<X>
+            {
+                T Goo<T>(IList<T> list, X a) {}
+                void Bar(X x) { }
+            }
+            """;
 
         var vbCode1 =
-@"
-Imports System.Collections.Generic
+            """
+            Imports System.Collections.Generic
 
-class Type1(of M)
-    function Goo(of U)(list as IList(of U), a as M) as U
-    end function
-    sub Bar(x as Object)
-    end sub
-end class";
+            class Type1(of M)
+                function Goo(of U)(list as IList(of U), a as M) as U
+                end function
+                sub Bar(x as Object)
+                end sub
+            end class
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateVisualBasic(vbCode1);
         var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -686,11 +748,13 @@ end class";
     public async Task TestObjectAndDynamicAreNotEqualNormally()
     {
         var csharpCode1 =
-@"class Type1
-{
-    object field1;
-    dynamic field2;
-}";
+            """
+            class Type1
+            {
+                object field1;
+                dynamic field2;
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -706,16 +770,20 @@ end class";
     public async Task TestObjectAndDynamicAreEqualInSignatures()
     {
         var csharpCode1 =
-@"class Type1
-{
-    void Goo(object o1) { }
-}";
+            """
+            class Type1
+            {
+                void Goo(object o1) { }
+            }
+            """;
 
         var csharpCode2 =
-@"class Type1
-{
-    void Goo(dynamic o1) { }
-}";
+            """
+            class Type1
+            {
+                void Goo(dynamic o1) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -735,22 +803,24 @@ end class";
     public async Task TestUnequalGenericsInSignatures()
     {
         var csharpCode1 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    void Goo(IList<int> o1) { }
-}";
+            class Type1
+            {
+                void Goo(IList<int> o1) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    void Goo(IList<string> o1) { }
-}";
+            class Type1
+            {
+                void Goo(IList<string> o1) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -768,22 +838,24 @@ class Type1
     public async Task TestGenericsWithDynamicAndObjectInSignatures()
     {
         var csharpCode1 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    void Goo(IList<object> o1) { }
-}";
+            class Type1
+            {
+                void Goo(IList<object> o1) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    void Goo(IList<dynamic> o1) { }
-}";
+            class Type1
+            {
+                void Goo(IList<dynamic> o1) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -803,22 +875,24 @@ class Type1
     public async Task TestDynamicAndUnrelatedTypeInSignatures()
     {
         var csharpCode1 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    void Goo(dynamic o1) { }
-}";
+            class Type1
+            {
+                void Goo(dynamic o1) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Type1
-{
-    void Goo(string o1) { }
-}";
+            class Type1
+            {
+                void Goo(string o1) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -836,20 +910,21 @@ class Type1
     public async Task TestNamespaces()
     {
         var csharpCode1 =
-@"namespace Outer
-{
-    namespace Inner
-    {
-        class Type
-        {
-        }
-    }
+            """
+            namespace Outer
+            {
+                namespace Inner
+                {
+                    class Type
+                    {
+                    }
+                }
 
-    class Type
-    {
-    }
-}
-";
+                class Type
+                {
+                }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode1);
@@ -907,26 +982,27 @@ class Type1
     public async Task TestNamedTypesEquivalent()
     {
         var csharpCode1 =
-@"
-class Type1
-{
-}
+            """
+            class Type1
+            {
+            }
 
-class Type2<X>
-{
-}
-";
+            class Type2<X>
+            {
+            }
+            """;
 
         var csharpCode2 =
-@"
-class Type1
-{
-  void Goo();
-}
+            """
+            class Type1
+            {
+              void Goo();
+            }
 
-class Type2<Y>
-{
-}";
+            class Type2<Y>
+            {
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -953,17 +1029,19 @@ class Type2<Y>
     public async Task TestNamedTypesDifferentIfNameChanges()
     {
         var csharpCode1 =
-@"
-class Type1
-{
-}";
+            """
+            class Type1
+            {
+            }
+            """;
 
         var csharpCode2 =
-@"
-class Type2
-{
-  void Goo();
-}";
+            """
+            class Type2
+            {
+              void Goo();
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -978,17 +1056,19 @@ class Type2
     public async Task TestNamedTypesDifferentIfTypeKindChanges()
     {
         var csharpCode1 =
-@"
-struct Type1
-{
-}";
+            """
+            struct Type1
+            {
+            }
+            """;
 
         var csharpCode2 =
-@"
-class Type1
-{
-  void Goo();
-}";
+            """
+            class Type1
+            {
+              void Goo();
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1003,17 +1083,19 @@ class Type1
     public async Task TestNamedTypesDifferentIfArityChanges()
     {
         var csharpCode1 =
-@"
-class Type1
-{
-}";
+            """
+            class Type1
+            {
+            }
+            """;
 
         var csharpCode2 =
-@"
-class Type1<T>
-{
-  void Goo();
-}";
+            """
+            class Type1<T>
+            {
+              void Goo();
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1028,23 +1110,25 @@ class Type1<T>
     public async Task TestNamedTypesDifferentIfContainerDifferent()
     {
         var csharpCode1 =
-@"
-class Outer
-{
-    class Type1
-    {
-    }
-}";
+            """
+            class Outer
+            {
+                class Type1
+                {
+                }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class Other
-{
-    class Type1
-    {
-        void Goo();
-    }
-}";
+            """
+            class Other
+            {
+                class Type1
+                {
+                    void Goo();
+                }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1061,20 +1145,22 @@ class Other
     public async Task TestAliasedTypes1()
     {
         var csharpCode1 =
-@"
-using i = System.Int32;
+            """
+            using i = System.Int32;
 
-class Type1
-{
-    void Goo(i o1) { }
-}";
+            class Type1
+            {
+                void Goo(i o1) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class Type1
-{
-    void Goo(int o1) { }
-}";
+            """
+            class Type1
+            {
+                void Goo(int o1) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1094,18 +1180,20 @@ class Type1
     public async Task TestRefVersusOut()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M(out int i) { }
-}";
+            """
+            class C
+            {
+                void M(out int i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M(ref int i) { }
-}";
+            """
+            class C
+            {
+                void M(ref int i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1134,18 +1222,20 @@ class C
     public async Task TestTuples1()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M((int, int) i) { }
-}";
+            """
+            class C
+            {
+                void M((int, int) i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M(int i) { }
-}";
+            """
+            class C
+            {
+                void M(int i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1164,18 +1254,20 @@ class C
     public async Task TestTuples2()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M((int, int) i) { }
-}";
+            """
+            class C
+            {
+                void M((int, int) i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M(System.ValueTuple<int> i) { }
-}";
+            """
+            class C
+            {
+                void M(System.ValueTuple<int> i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1194,18 +1286,20 @@ class C
     public async Task TestTuples3()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M((int, int) i) { }
-}";
+            """
+            class C
+            {
+                void M((int, int) i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M(System.ValueTuple<int, int> i) { }
-}";
+            """
+            class C
+            {
+                void M(System.ValueTuple<int, int> i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1225,18 +1319,20 @@ class C
     public async Task TestTuples4()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M((int a, int b) i) { }
-}";
+            """
+            class C
+            {
+                void M((int a, int b) i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M(System.ValueTuple<int, int> i) { }
-}";
+            """
+            class C
+            {
+                void M(System.ValueTuple<int, int> i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1256,18 +1352,20 @@ class C
     public async Task TestTuples5()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M((int a, int b) i) { }
-}";
+            """
+            class C
+            {
+                void M((int a, int b) i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M((int, int) i) { }
-}";
+            """
+            class C
+            {
+                void M((int, int) i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1288,18 +1386,20 @@ class C
     public async Task TestTuples6()
     {
         var csharpCode1 =
-@"
-class C
-{
-    void M((int a, int b) i) { }
-}";
+            """
+            class C
+            {
+                void M((int a, int b) i) { }
+            }
+            """;
 
         var csharpCode2 =
-@"
-class C
-{
-    void M((int a, int b, int c) i) { }
-}";
+            """
+            class C
+            {
+                void M((int a, int b, int c) i) { }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1317,26 +1417,28 @@ class C
     {
         // Both are nullable enabled.  So `T?` should not be equal to `T` unless we are ignoring nullability.
         var csharpCode1 =
-@"
-#nullable enable
-class T
-{
-    string? A;
-    string[]? B;
-    dynamic? C;
-    dynamic?[]? D;
-}";
+            """
+            #nullable enable
+            class T
+            {
+                string? A;
+                string[]? B;
+                dynamic? C;
+                dynamic?[]? D;
+            }
+            """;
 
         var csharpCode2 =
-@"
-#nullable enable
-class T
-{
-    string A;
-    string[] B;
-    dynamic C;
-    dynamic[] D;
-}";
+            """
+            #nullable enable
+            class T
+            {
+                string A;
+                string[] B;
+                dynamic C;
+                dynamic[] D;
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1381,26 +1483,28 @@ class T
         // type without nullability.
 
         var csharpCode1 =
-@"
-#nullable disable
-class T
-{
-    string A;
-    string[] B;
-    dynamic C;
-    dynamic[] D;
-}";
+            """
+            #nullable disable
+            class T
+            {
+                string A;
+                string[] B;
+                dynamic C;
+                dynamic[] D;
+            }
+            """;
 
         var csharpCode2 =
-@"
-#nullable enable
-class T
-{
-    string A;
-    string[] B;
-    dynamic C;
-    dynamic[] D;
-}";
+            """
+            #nullable enable
+            class T
+            {
+                string A;
+                string[] B;
+                dynamic C;
+                dynamic[] D;
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1444,26 +1548,28 @@ class T
         // One side is nullable disabled. One side definitely annotated.  Treat as different.
 
         var csharpCode1 =
-@"
-#nullable disable
-class T
-{
-    string A;
-    string[] B;
-    dynamic C;
-    dynamic[] D;
-}";
+            """
+            #nullable disable
+            class T
+            {
+                string A;
+                string[] B;
+                dynamic C;
+                dynamic[] D;
+            }
+            """;
 
         var csharpCode2 =
-@"
-#nullable enable
-class T
-{
-    string? A;
-    string?[] B;
-    dynamic? C;
-    dynamic?[] D;
-}";
+            """
+            #nullable enable
+            class T
+            {
+                string? A;
+                string?[] B;
+                dynamic? C;
+                dynamic?[] D;
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1507,26 +1613,28 @@ class T
         // One side is nullable disabled. One side definitely annotated.  Treat as different.
 
         var csharpCode1 =
-@"
-#nullable disable
-class T
-{
-    string A;
-    string[] B;
-    dynamic C;
-    dynamic[] D;
-}";
+            """
+            #nullable disable
+            class T
+            {
+                string A;
+                string[] B;
+                dynamic C;
+                dynamic[] D;
+            }
+            """;
 
         var csharpCode2 =
-@"
-#nullable enable
-class T
-{
-    string? A;
-    string[]? B;
-    dynamic? C;
-    dynamic[]? D;
-}";
+            """
+            #nullable enable
+            class T
+            {
+                string? A;
+                string[]? B;
+                dynamic? C;
+                dynamic[]? D;
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
@@ -1567,55 +1675,55 @@ class T
     [Fact]
     public async Task TestCSharpReducedExtensionMethodsAreEquivalent()
     {
-        var code = @"
-class Zed {}
+        var code = """
+            class Zed {}
 
-public static class Extensions
-{
-   public static void NotGeneric(this Zed z, int data) { }
-   public static void GenericThis<T>(this T me, int data) where T : Zed { }
-   public static void GenericNotThis<T>(this Zed z, T data) { }
-   public static void GenericThisAndMore<T,S>(this T me, S data) where T : Zed { }
-   public static void GenericThisAndOther<T>(this T me, T data) where T : Zed { } 
-}
+            public static class Extensions
+            {
+               public static void NotGeneric(this Zed z, int data) { }
+               public static void GenericThis<T>(this T me, int data) where T : Zed { }
+               public static void GenericNotThis<T>(this Zed z, T data) { }
+               public static void GenericThisAndMore<T,S>(this T me, S data) where T : Zed { }
+               public static void GenericThisAndOther<T>(this T me, T data) where T : Zed { } 
+            }
 
-class Test
-{    
-    void NotGeneric() 
-    {
-        Zed z;
-        int n;
-        z.NotGeneric(n);
-    }
+            class Test
+            {    
+                void NotGeneric() 
+                {
+                    Zed z;
+                    int n;
+                    z.NotGeneric(n);
+                }
 
-    void GenericThis() 
-    {
-        Zed z;
-        int n;
-        z.GenericThis(n);
-    }
+                void GenericThis() 
+                {
+                    Zed z;
+                    int n;
+                    z.GenericThis(n);
+                }
 
-    void GenericNotThis() 
-    {
-        Zed z;
-        int n;
-        z.GenericNotThis(n);
-    }
+                void GenericNotThis() 
+                {
+                    Zed z;
+                    int n;
+                    z.GenericNotThis(n);
+                }
 
-    void GenericThisAndMore() 
-    {
-        Zed z;
-        int n;
-        z.GenericThisAndMore(n);
-    }
+                void GenericThisAndMore() 
+                {
+                    Zed z;
+                    int n;
+                    z.GenericThisAndMore(n);
+                }
 
-    void GenericThisAndOther() 
-    {
-        Zed z;
-        z.GenericThisAndOther(z);
-    } 
-}
-";
+                void GenericThisAndOther() 
+                {
+                    Zed z;
+                    z.GenericThisAndOther(z);
+                } 
+            }
+            """;
         using var workspace1 = TestWorkspace.CreateCSharp(code);
         using var workspace2 = TestWorkspace.CreateCSharp(code);
         var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
@@ -1631,65 +1739,65 @@ class Test
     [Fact]
     public async Task TestVisualBasicReducedExtensionMethodsAreEquivalent()
     {
-        var code = @"
-Imports System.Runtime.CompilerServices
+        var code = """
+            Imports System.Runtime.CompilerServices
 
-Class Zed
-End Class
+            Class Zed
+            End Class
 
-Module Extensions
-   <Extension>
-   Public Sub NotGeneric(z As Zed, data As Integer) 
-   End Sub
+            Module Extensions
+               <Extension>
+               Public Sub NotGeneric(z As Zed, data As Integer) 
+               End Sub
 
-   <Extension>
-   Public Sub GenericThis(Of T As Zed)(m As T, data as Integer) 
-   End Sub
+               <Extension>
+               Public Sub GenericThis(Of T As Zed)(m As T, data as Integer) 
+               End Sub
 
-   <Extension>
-   Public Sub GenericNotThis(Of T)(z As Zed, data As T)
-   End Sub
+               <Extension>
+               Public Sub GenericNotThis(Of T)(z As Zed, data As T)
+               End Sub
 
-   <Extension>
-   Public Sub GenericThisAndMore(Of T As Zed, S)(m As T, data As S)
-   End Sub
+               <Extension>
+               Public Sub GenericThisAndMore(Of T As Zed, S)(m As T, data As S)
+               End Sub
 
-   <Extension>
-   Public Sub GenericThisAndOther(Of T As Zed)(m As T, data As T)
-   End Sub
-End Module
+               <Extension>
+               Public Sub GenericThisAndOther(Of T As Zed)(m As T, data As T)
+               End Sub
+            End Module
 
-Class Test
-    Sub NotGeneric() 
-        Dim z As Zed
-        Dim n As Integer
-        z.NotGeneric(n)
-    End Sub
+            Class Test
+                Sub NotGeneric() 
+                    Dim z As Zed
+                    Dim n As Integer
+                    z.NotGeneric(n)
+                End Sub
 
-    Sub GenericThis() 
-        Dim z As Zed
-        Dim n As Integer
-        z.GenericThis(n)
-    End Sub
+                Sub GenericThis() 
+                    Dim z As Zed
+                    Dim n As Integer
+                    z.GenericThis(n)
+                End Sub
 
-    Sub GenericNotThis() 
-        Dim z As Zed
-        Dim n As Integer
-        z.GenericNotThis(n)
-    End Sub
+                Sub GenericNotThis() 
+                    Dim z As Zed
+                    Dim n As Integer
+                    z.GenericNotThis(n)
+                End Sub
 
-    Sub GenericThisAndMore() 
-        Dim z As Zed
-        Dim n As Integer
-        z.GenericThisAndMore(n)
-    End Sub
+                Sub GenericThisAndMore() 
+                    Dim z As Zed
+                    Dim n As Integer
+                    z.GenericThisAndMore(n)
+                End Sub
 
-    Sub GenericThisAndOther() 
-        Dim z As Zed
-        z.GenericThisAndOther(z)
-    End Sub
-End Class
-";
+                Sub GenericThisAndOther() 
+                    Dim z As Zed
+                    z.GenericThisAndOther(z)
+                End Sub
+            End Class
+            """;
         using var workspace1 = TestWorkspace.CreateVisualBasic(code);
         using var workspace2 = TestWorkspace.CreateVisualBasic(code);
         var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
@@ -1706,12 +1814,14 @@ End Class
     public async Task TestDifferentModules()
     {
         var csharpCode =
-@"namespace N
-{
-    namespace M
-    {
-    }
-}";
+            """
+            namespace N
+            {
+                namespace M
+                {
+                }
+            }
+            """;
 
         using var workspace1 = TestWorkspace.CreateCSharp(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "GooModule"));
         using var workspace2 = TestWorkspace.CreateCSharp(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule"));
@@ -1786,44 +1896,43 @@ End Class
     [Fact]
     public void CustomModifiers_Methods1()
     {
-        const string ilSource = @"
-.class public C
-{
-  .method public instance int32 [] modopt([mscorlib]System.Int64) F(         // 0
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b)
-  {
-      ldnull     
-      throw
-  }
-
-  .method public instance int32 [] modopt([mscorlib]System.Boolean) F(       // 1
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b)
-  {
-      ldnull     
-      throw
- }
-
-  .method public instance int32[] F(                                         // 2
-      int32 a, 
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b)
-  {
-      ldnull     
-      throw
-  }
-
-  .method public instance int32[] F(                                         // 3
-      int32 a, 
-      int32 b)
-  {
-      ldnull     
-      throw
-  }
-}
-";
         MetadataReference r1, r2;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+        using (var tempAssembly = IlasmUtilities.CreateTempAssembly("""
+            .class public C
+            {
+              .method public instance int32 [] modopt([mscorlib]System.Int64) F(         // 0
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b)
+              {
+                  ldnull     
+                  throw
+              }
+
+              .method public instance int32 [] modopt([mscorlib]System.Boolean) F(       // 1
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b)
+              {
+                  ldnull     
+                  throw
+             }
+
+              .method public instance int32[] F(                                         // 2
+                  int32 a, 
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b)
+              {
+                  ldnull     
+                  throw
+              }
+
+              .method public instance int32[] F(                                         // 3
+                  int32 a, 
+                  int32 b)
+              {
+                  ldnull     
+                  throw
+              }
+            }
+            """))
         {
             var bytes = File.ReadAllBytes(tempAssembly.Path);
             r1 = MetadataReference.CreateFromImage(bytes);

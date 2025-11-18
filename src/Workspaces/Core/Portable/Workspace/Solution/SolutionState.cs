@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -35,8 +37,15 @@ internal sealed partial class SolutionState
 {
     public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
-    // the version of the workspace this solution is from
-    public int WorkspaceVersion { get; }
+    /// <summary>
+    /// The content version of the workspace this solution is from.  This monotonically increases in the
+    /// workspace whenever the content of its <see cref="SolutionState"/> snapshot changes.  Importantly,
+    /// this does not change when the SolutionState stays the same, but the workspace's <see cref="Solution.CompilationState"/>'s
+    /// <see cref="SourceGeneratorExecutionVersionMap"/> changes.  That ensures that requests from the host
+    /// to rerun source generators do not block subsequent requests to update the solution's content in
+    /// <see cref="Workspace.TryApplyChanges(Solution)"/>.
+    /// </summary>
+    public int ContentVersion { get; }
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
     public SolutionOptionSet Options { get; }
@@ -58,11 +67,12 @@ internal sealed partial class SolutionState
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty.WithComparers(FilePathComparer);
+    // Mapping from file path to the set of documents that are related to it.
+    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
-        int workspaceVersion,
+        int solutionStateContentVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
@@ -70,12 +80,12 @@ internal sealed partial class SolutionState
         IReadOnlyList<AnalyzerReference> analyzerReferences,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions,
         ImmutableDictionary<string, int> projectCountByLanguage,
-        ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
+        ImmutableArray<ProjectState> projectStates,
         ProjectDependencyGraph dependencyGraph,
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
         WorkspaceKind = workspaceKind;
-        WorkspaceVersion = workspaceVersion;
+        ContentVersion = solutionStateContentVersion;
         SolutionAttributes = solutionAttributes;
         Services = services;
         ProjectIds = projectIds;
@@ -83,7 +93,7 @@ internal sealed partial class SolutionState
         AnalyzerReferences = analyzerReferences;
         FallbackAnalyzerOptions = fallbackAnalyzerOptions;
         ProjectCountByLanguage = projectCountByLanguage;
-        ProjectStates = idToProjectStateMap;
+        SortedProjectStates = projectStates;
         _dependencyGraph = dependencyGraph;
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
@@ -108,7 +118,7 @@ internal sealed partial class SolutionState
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
-            workspaceVersion: 0,
+            solutionStateContentVersion: 0,
             services,
             solutionAttributes,
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -116,7 +126,7 @@ internal sealed partial class SolutionState
             analyzerReferences,
             fallbackAnalyzerOptions,
             projectCountByLanguage: ImmutableDictionary<string, int>.Empty,
-            idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
+            projectStates: [],
             dependencyGraph: ProjectDependencyGraph.Empty,
             lazyAnalyzers: null)
     {
@@ -126,7 +136,11 @@ internal sealed partial class SolutionState
 
     public SolutionInfo.SolutionAttributes SolutionAttributes { get; }
 
-    public ImmutableDictionary<ProjectId, ProjectState> ProjectStates { get; }
+    /// <summary>
+    /// Provides project states contained by the solution.
+    /// Ordered by <see cref="ProjectState.Id"/>'s <see cref="ProjectId.Id"/> value.
+    /// </summary>
+    public ImmutableArray<ProjectState> SortedProjectStates { get; }
 
     /// <summary>
     /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -145,20 +159,24 @@ internal sealed partial class SolutionState
 
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
+    /// Ordering determined by the order the projects were added to the solution.
     /// </summary>
     public IReadOnlyList<ProjectId> ProjectIds { get; }
 
     private void CheckInvariants()
     {
         // Run these quick checks all the time.  We need to know immediately if we violate these.
-        Contract.ThrowIfFalse(ProjectStates.Count == ProjectIds.Count);
-        Contract.ThrowIfFalse(ProjectStates.Count == _dependencyGraph.ProjectIds.Count);
+        Contract.ThrowIfFalse(SortedProjectStates.Length == ProjectIds.Count);
+        Contract.ThrowIfFalse(SortedProjectStates.Length == _dependencyGraph.ProjectIds.Count);
 
         // Only run this in debug builds; even the .SetEquals() call across all projects can be expensive when there's a lot of them.
 #if DEBUG
         // project ids must be the same:
-        Debug.Assert(ProjectStates.Keys.SetEquals(ProjectIds));
-        Debug.Assert(ProjectStates.Keys.SetEquals(_dependencyGraph.ProjectIds));
+        Debug.Assert(SortedProjectStates.Select(static state => state.Id).SetEquals(ProjectIds));
+        Debug.Assert(SortedProjectStates.Select(static state => state.Id).SetEquals(_dependencyGraph.ProjectIds));
+
+        // project states must be sorted by Id:
+        Debug.Assert(SortedProjectStates.IsSorted());
 #endif
     }
 
@@ -169,12 +187,12 @@ internal sealed partial class SolutionState
         SolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions>? fallbackAnalyzerOptions = null,
-        ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
+        ImmutableArray<ProjectState>? projectStates = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {
         solutionAttributes ??= SolutionAttributes;
         projectIds ??= ProjectIds;
-        idToProjectStateMap ??= ProjectStates;
+        projectStates ??= SortedProjectStates;
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
         fallbackAnalyzerOptions ??= FallbackAnalyzerOptions;
@@ -189,7 +207,7 @@ internal sealed partial class SolutionState
             analyzerReferencesEqual &&
             fallbackAnalyzerOptions == FallbackAnalyzerOptions &&
             projectCountByLanguage == ProjectCountByLanguage &&
-            idToProjectStateMap == ProjectStates &&
+            projectStates == SortedProjectStates &&
             dependencyGraph == _dependencyGraph)
         {
             return this;
@@ -197,7 +215,9 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            WorkspaceVersion,
+            // Note: we pass along this version for now.  The workspace will actually fork us once more
+            // when it determines the content version it is moving to.
+            ContentVersion,
             Services,
             solutionAttributes,
             projectIds,
@@ -205,7 +225,7 @@ internal sealed partial class SolutionState
             analyzerReferences,
             fallbackAnalyzerOptions,
             projectCountByLanguage,
-            idToProjectStateMap,
+            projectStates.Value,
             dependencyGraph,
             analyzerReferencesEqual ? _lazyAnalyzers : null);
     }
@@ -215,13 +235,17 @@ internal sealed partial class SolutionState
     /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
     /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
     /// </summary>
-    public SolutionState WithNewWorkspace(
-        string? workspaceKind,
-        int workspaceVersion,
-        SolutionServices services)
+    public SolutionState WithNewWorkspaceFrom(Solution oldSolution)
     {
+        var workspaceKind = oldSolution.WorkspaceKind;
+        var services = oldSolution.Services;
+
+        var solutionStateContentVersion = oldSolution.SolutionState == this
+            ? oldSolution.SolutionStateContentVersion // If the solution state is the same, we can keep the same version.
+            : oldSolution.SolutionStateContentVersion + 1; // Otherwise, increment the version.
+
         if (workspaceKind == WorkspaceKind &&
-            workspaceVersion == WorkspaceVersion &&
+            solutionStateContentVersion == ContentVersion &&
             services == Services)
         {
             return this;
@@ -231,7 +255,7 @@ internal sealed partial class SolutionState
         // get locked-in by document states and project states when first constructed.
         return new SolutionState(
             workspaceKind,
-            workspaceVersion,
+            solutionStateContentVersion,
             services,
             SolutionAttributes,
             ProjectIds,
@@ -239,7 +263,7 @@ internal sealed partial class SolutionState
             AnalyzerReferences,
             FallbackAnalyzerOptions,
             ProjectCountByLanguage,
-            ProjectStates,
+            SortedProjectStates,
             _dependencyGraph,
             _lazyAnalyzers);
     }
@@ -251,7 +275,7 @@ internal sealed partial class SolutionState
     {
         // this may produce a version that is out of sync with the actual Document versions.
         var latestVersion = VersionStamp.Default;
-        foreach (var project in this.ProjectStates.Values)
+        foreach (var project in this.SortedProjectStates)
         {
             latestVersion = project.Version.GetNewerVersion(latestVersion);
         }
@@ -263,7 +287,7 @@ internal sealed partial class SolutionState
     /// True if the solution contains a project with the specified project ID.
     /// </summary>
     public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
-        => projectId != null && ProjectStates.ContainsKey(projectId);
+        => projectId != null && GetProjectState(projectId) != null;
 
     /// <summary>
     /// True if the solution contains the document in one of its projects
@@ -308,7 +332,30 @@ internal sealed partial class SolutionState
         => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredState(documentId);
 
     public ProjectState? GetProjectState(ProjectId projectId)
-        => ProjectStates.TryGetValue(projectId, out var state) ? state : null;
+        => GetProjectState(SortedProjectStates, projectId);
+
+    /// <summary>
+    /// Searches for the project state with the specified project id in the given project states.
+    /// </summary>
+    /// <remarks>Requires the input array to be sorted by Id</remarks>
+    private static ProjectState? GetProjectState(ImmutableArray<ProjectState> sortedProjectStates, ProjectId projectId)
+    {
+        var index = GetProjectStateIndex(sortedProjectStates, projectId);
+
+        return index >= 0 ? sortedProjectStates[index] : null;
+    }
+
+    /// <summary>
+    /// Searches for the project state with the specified project id in the given project states and
+    /// returns it's index if found, otherwise -1.
+    /// </summary>
+    /// <remarks>Requires the input array to be sorted by Id</remarks>
+    private static int GetProjectStateIndex(ImmutableArray<ProjectState> sortedProjectStates, ProjectId projectId)
+    {
+        var index = sortedProjectStates.BinarySearch(projectId, static (projectState, projectId) => projectState.Id.CompareTo(projectId));
+
+        return index >= 0 ? index : -1;
+    }
 
     public ProjectState GetRequiredProjectState(ProjectId projectId)
     {
@@ -374,19 +421,23 @@ internal sealed partial class SolutionState
 
             using var _1 = ArrayBuilder<ProjectId>.GetInstance(ProjectIds.Count + projectStates.Count, out var newProjectIdsBuilder);
             using var _2 = PooledHashSet<ProjectId>.GetInstance(out var addedProjectIds);
-            var newStateMapBuilder = ProjectStates.ToBuilder();
+            using var _3 = ArrayBuilder<ProjectState>.GetInstance(SortedProjectStates.Length + projectStates.Count, out var newSortedProjectStatesBuilder);
 
             newProjectIdsBuilder.AddRange(ProjectIds);
+            newSortedProjectStatesBuilder.AddRange(SortedProjectStates);
 
             foreach (var projectState in projectStates)
             {
                 addedProjectIds.Add(projectState.Id);
                 newProjectIdsBuilder.Add(projectState.Id);
-                newStateMapBuilder.Add(projectState.Id, projectState);
+                newSortedProjectStatesBuilder.Add(projectState);
             }
 
+            // Sort so project states are sorted by ProjectId
+            newSortedProjectStatesBuilder.Sort();
+
             var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
-            var newStateMap = newStateMapBuilder.ToImmutable();
+            var newProjectStates = newSortedProjectStatesBuilder.ToImmutableAndClear();
 
             // TODO: it would be nice to update these graphs without so much forking.
             var newDependencyGraph = _dependencyGraph;
@@ -400,19 +451,19 @@ internal sealed partial class SolutionState
 
             // It's possible that another project already in newStateMap has a reference to this project that we're adding,
             // since we allow dangling references like that. If so, we'll need to link those in too.
-            foreach (var (projectId, newState) in newStateMap)
+            foreach (var newState in newProjectStates)
             {
                 foreach (var projectReference in newState.ProjectReferences)
                 {
                     if (addedProjectIds.Contains(projectReference.ProjectId))
-                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(projectId, [projectReference]);
+                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Id, [projectReference]);
                 }
             }
 
             return Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
-                idToProjectStateMap: newStateMap,
+                projectStates: newProjectStates,
                 projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, langaugeCountDeltas),
                 dependencyGraph: newDependencyGraph);
         }
@@ -438,27 +489,17 @@ internal sealed partial class SolutionState
         projectIdsSet.AddRange(projectIds);
 
         var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
-
-        var newStateMapBuilder = ProjectStates.ToBuilder();
-        foreach (var projectId in projectIds)
-            newStateMapBuilder.Remove(projectId);
-        var newStateMap = newStateMapBuilder.ToImmutable();
-
-        // Note: it would be nice to not cause N forks of the dependency graph here.
-        var newDependencyGraph = _dependencyGraph;
-        foreach (var projectId in projectIds)
-            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
+        var newProjectStates = SortedProjectStates.WhereAsArray(static (p, projectIdsSet) => !projectIdsSet.Contains(p.Id), projectIdsSet);
+        var newDependencyGraph = _dependencyGraph.WithProjectsRemoved(projectIds);
 
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
-        {
-            AddLanguageCountDelta(ref languageCountDeltas, ProjectStates[projectId].Language, amount: -1);
-        }
+            AddLanguageCountDelta(ref languageCountDeltas, GetProjectState(projectId)!.Language, amount: -1);
 
         return this.Branch(
             solutionAttributes: newSolutionAttributes,
             projectIds: newProjectIds,
-            idToProjectStateMap: newStateMap,
+            projectStates: newProjectStates,
             projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, languageCountDeltas),
             dependencyGraph: newDependencyGraph);
     }
@@ -761,7 +802,7 @@ internal sealed partial class SolutionState
 
         ProjectDependencyGraph newDependencyGraph;
         if (newProject.ContainsReferenceToProject(projectReference.ProjectId) ||
-            !ProjectStates.ContainsKey(projectReference.ProjectId))
+            !ContainsProject(projectReference.ProjectId))
         {
             // Two cases:
             // 1) The project contained multiple non-equivalent references to the project,
@@ -905,23 +946,23 @@ internal sealed partial class SolutionState
             return this;
         }
 
-        var newProjectStatesMap = ProjectStates.ToImmutableDictionary(
-            keySelector: static entry => entry.Key,
-            elementSelector: entry =>
-            {
-                // If the new options are specified for the project language we use them,
-                // otherwise we clear the options for the project.
-                if (!options.TryGetValue(entry.Value.Language, out var languageOptions))
-                {
-                    languageOptions = StructuredAnalyzerConfigOptions.Empty;
-                }
+        using var _ = ArrayBuilder<ProjectState>.GetInstance(SortedProjectStates.Length, out var statesBuilder);
 
-                return entry.Value.WithFallbackAnalyzerOptions(languageOptions);
-            });
+        foreach (var projectState in SortedProjectStates)
+        {
+            // If the new options are specified for the project language we use them,
+            // otherwise we clear the options for the project.
+            if (!options.TryGetValue(projectState.Language, out var languageOptions))
+            {
+                languageOptions = StructuredAnalyzerConfigOptions.Empty;
+            }
+
+            statesBuilder.Add(projectState.WithFallbackAnalyzerOptions(languageOptions));
+        }
 
         return Branch(
             fallbackAnalyzerOptions: options,
-            idToProjectStateMap: newProjectStatesMap);
+            projectStates: statesBuilder.ToImmutableAndClear());
     }
 
     /// <summary>
@@ -1151,13 +1192,14 @@ internal sealed partial class SolutionState
     {
         var projectId = newProjectState.Id;
 
-        Contract.ThrowIfFalse(ProjectStates.ContainsKey(projectId));
-        var newStateMap = ProjectStates.SetItem(projectId, newProjectState);
+        var projectStateIndex = GetProjectStateIndex(SortedProjectStates, projectId);
+        Contract.ThrowIfFalse(projectStateIndex >= 0);
+        var newProjectStates = SortedProjectStates.SetItem(projectStateIndex, newProjectState);
 
         newDependencyGraph ??= _dependencyGraph;
 
         var newSolutionState = this.Branch(
-            idToProjectStateMap: newStateMap,
+            projectStates: newProjectStates,
             dependencyGraph: newDependencyGraph);
 
         return new(newSolutionState, oldProjectState, newProjectState);
@@ -1169,16 +1211,12 @@ internal sealed partial class SolutionState
         if (string.IsNullOrEmpty(filePath))
             return [];
 
-        return ImmutableInterlocked.GetOrAdd(
-            ref _lazyFilePathToRelatedDocumentIds,
-            filePath,
-            static (filePath, @this) => ComputeDocumentIdsWithFilePath(@this, filePath),
-            this);
+        return _lazyFilePathToRelatedDocumentIds.GetOrAdd(filePath, ComputeDocumentIdsWithFilePath, this);
 
-        static ImmutableArray<DocumentId> ComputeDocumentIdsWithFilePath(SolutionState @this, string filePath)
+        static ImmutableArray<DocumentId> ComputeDocumentIdsWithFilePath(string filePath, SolutionState @this)
         {
             using var result = TemporaryArray<DocumentId>.Empty;
-            foreach (var (projectId, projectState) in @this.ProjectStates)
+            foreach (var projectState in @this.SortedProjectStates)
                 projectState.AddDocumentIdsWithFilePath(ref result.AsRef(), filePath);
 
             return result.ToImmutableAndClear();
@@ -1187,11 +1225,11 @@ internal sealed partial class SolutionState
 
     public static ProjectDependencyGraph CreateDependencyGraph(
         IReadOnlyList<ProjectId> projectIds,
-        ImmutableDictionary<ProjectId, ProjectState> projectStates)
+        ImmutableArray<ProjectState> sortedNewProjectStates)
     {
-        var map = projectStates.Values.Select(state => KeyValuePairUtil.Create(
+        var map = sortedNewProjectStates.Select(state => KeyValuePair.Create(
                 state.Id,
-                state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
+                state.ProjectReferences.Where(pr => GetProjectState(sortedNewProjectStates, pr.ProjectId) != null).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
 
         return new ProjectDependencyGraph([.. projectIds], map);
@@ -1256,14 +1294,15 @@ internal sealed partial class SolutionState
         {
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                if (relatedDocumentId != documentId)
+                // Match the linear search behavior below and do not return documents from the same project.
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
                     return relatedDocumentId;
             }
 
             return null;
         }
 
-        var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
+        var relatedProject = relatedProjectIdHint is null ? null : GetProjectState(relatedProjectIdHint);
         Contract.ThrowIfTrue(relatedProject == projectState);
         if (relatedProject != null)
         {
@@ -1273,7 +1312,7 @@ internal sealed partial class SolutionState
         }
 
         // Wasn't in cache, do the linear search.
-        foreach (var (_, siblingProjectState) in this.ProjectStates)
+        foreach (var siblingProjectState in this.SortedProjectStates)
         {
             // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
             if (siblingProjectState == projectState || siblingProjectState == relatedProject)

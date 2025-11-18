@@ -212,19 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static bool IsSourceParameterWithEnumeratorCancellationAttribute(this ParameterSymbol parameter)
-        {
-            switch (parameter)
-            {
-                case SourceComplexParameterSymbolBase source:
-                    return source.HasEnumeratorCancellationAttribute;
-                case SynthesizedComplexParameterSymbol synthesized:
-                    return synthesized.HasEnumeratorCancellationAttribute;
-                default:
-                    return false;
-            }
-        }
-
         /// <summary>
         /// Returns true if all type parameter references within the given
         /// type belong to containingSymbol or its containing types.
@@ -831,6 +818,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(symbol is MethodSymbol or PropertySymbol);
             return symbol is MethodSymbol method ? method.OverloadResolutionPriority : ((PropertySymbol)symbol).OverloadResolutionPriority;
+        }
+
+        internal static bool IsExtensionParameter(this ParameterSymbol parameter)
+        {
+            return parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
+        }
+
+        internal static bool IsExtensionParameterImplementation(this ParameterSymbol parameter)
+        {
+            Debug.Assert(parameter.IsDefinition);
+            return parameter.ContainingSymbol is SourceExtensionImplementationMethodSymbol implementationMethod
+                && !implementationMethod.UnderlyingMethod.IsStatic
+                && parameter.Ordinal == 0;
         }
     }
 }

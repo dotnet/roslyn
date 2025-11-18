@@ -69,7 +69,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     Assert.Equal(0, m.OverloadResolutionPriority);
                 }
             }
-        };
+        }
     }
 
     [Theory, CombinatorialData]
@@ -2006,9 +2006,9 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             ";
 
         var expectedDiagnostics = new[] {
-            // (4,17): error CS0034: Operator '+' is ambiguous on operands of type 'C1' and 'C2'
+            // (4,20): error CS9342: Operator resolution is ambiguous between the following members: 'C1.operator +(C1, C2)' and 'C2.operator +(C1, C2)'
             //             _ = c1 + c2;
-            Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 + c2").WithArguments("+", "C1", "C2").WithLocation(4, 17)
+            Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C1.operator +(C1, C2)", "C2.operator +(C1, C2)").WithLocation(4, 20)
         };
 
         CreateCompilation([executable, source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);

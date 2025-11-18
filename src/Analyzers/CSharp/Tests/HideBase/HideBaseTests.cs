@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
-public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public HideBaseTests(ITestOutputHelper logger)
        : base(logger)
@@ -25,9 +25,8 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
         => (null, new HideBaseCodeFixProvider());
 
     [Fact]
-    public async Task TestAddNewToProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddNewToProperty()
+        => TestInRegularAndScriptAsync(
             """
             class Application
             {
@@ -50,12 +49,10 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
                 public static new App Current { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddNewToMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddNewToMethod()
+        => TestInRegularAndScriptAsync(
             """
             class Application
             {
@@ -86,12 +83,10 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddNewToField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddNewToField()
+        => TestInRegularAndScriptAsync(
             """
             class Application
             {
@@ -114,12 +109,10 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
                 public new int Test;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18391")]
-    public async Task TestAddNewToConstant()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddNewToConstant()
+        => TestInRegularAndScriptAsync(
             """
             class Application
             {
@@ -142,12 +135,10 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
                 public new const int Test = Application.Test + 1;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14455")]
-    public async Task TestAddNewToConstantInternalFields()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddNewToConstantInternalFields()
+        => TestInRegularAndScriptAsync(
             """
             class A { internal const int i = 0; }
             class B : A { [|internal const int i = 1;|] }
@@ -156,11 +147,10 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
             class A { internal const int i = 0; }
             class B : A { internal new const int i = 1; }
             """);
-    }
 
     [Fact]
     public async Task TestAddNewToDisorderedModifiers()
-        => await TestInRegularAndScript1Async(
+        => await TestInRegularAndScriptAsync(
             """
             class Application
             {
@@ -186,7 +176,7 @@ public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnostic
 
     [Fact]
     public async Task TestAddNewToOrderedModifiersWithTrivia()
-        => await TestInRegularAndScript1Async(
+        => await TestInRegularAndScriptAsync(
             """
             class Application
             {

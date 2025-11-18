@@ -35,7 +35,9 @@
 [$RootKey$\Services\{8df9750d-069b-4b81-973a-152e97420c5c}]
 @="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "Name"="Visual Basic TempPE Compiler Factory Service"
-"IsAsyncQueryable"=dword:00000001
+"IsAsyncQueryable"=dword:00000000
+"IsCacheable"=dword:00000001
+"IsFreeThreaded"=dword:00000001
 
 [$RootKey$\AutomationProperties\TextEditor\Basic-Specific]
 @="#104"
@@ -65,14 +67,6 @@
 //     Code Style (category)
 //       General
 //       Naming
-//     IntelliSense
-
-
-[$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\IntelliSense]
-@="#112"
-"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-"Page"="{04460a3b-1b5f-4402-bc6d-89a4f6f0a8d7}"
-"Keywords"="#312"
 
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style\General]
 @="#111"
@@ -195,4 +189,4 @@
 [$RootKey$\SettingsManifests\{574fc912-f74f-4b4e-92c3-f695c208a2bb}]
 @="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage"
 "ManifestPath"="$PackageFolder$\UnifiedSettings\visualBasicSettings.registration.json"
-"CacheTag"=qword:A051BA2C3046E62E
+"CacheTag"=qword:1717B568132C1E1B

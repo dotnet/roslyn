@@ -59,36 +59,26 @@ internal sealed class ObjectAndWithInitializerCompletionProvider() : AbstractObj
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
         if (tree.IsInNonUserCode(position, cancellationToken))
-        {
             return false;
-        }
 
         var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
         token = token.GetPreviousTokenIfTouchingWord(position);
 
         if (token.Parent == null)
-        {
             return false;
-        }
 
         if (token.Parent.Parent is not ExpressionSyntax expression)
-        {
             return false;
-        }
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression, cancellationToken).ConfigureAwait(false);
         var initializedType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
         if (initializedType == null)
-        {
             return false;
-        }
 
         var enclosingSymbol = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
         // Non-exclusive if initializedType can be initialized as a collection.
         if (initializedType.CanSupportCollectionInitializer(enclosingSymbol))
-        {
             return false;
-        }
 
         // By default, only our member names will show up.
         return true;
@@ -99,27 +89,21 @@ internal sealed class ObjectAndWithInitializerCompletionProvider() : AbstractObj
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-    protected override Tuple<ITypeSymbol, Location>? GetInitializedType(
+    protected override (ITypeSymbol type, Location location, bool isObjectInitializer)? GetInitializedType(
         Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
         var tree = semanticModel.SyntaxTree;
         if (tree.IsInNonUserCode(position, cancellationToken))
-        {
             return null;
-        }
 
         var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
         token = token.GetPreviousTokenIfTouchingWord(position);
 
         if (token.Kind() is not SyntaxKind.CommaToken and not SyntaxKind.OpenBraceToken)
-        {
             return null;
-        }
 
         if (token.Parent == null || token.Parent.Parent == null)
-        {
             return null;
-        }
 
         // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression or WithExpression
         if (token.Kind() == SyntaxKind.CommaToken &&
@@ -130,11 +114,9 @@ internal sealed class ObjectAndWithInitializerCompletionProvider() : AbstractObj
 
         var type = GetInitializedType(token, document, semanticModel, cancellationToken);
         if (type is null)
-        {
             return null;
-        }
 
-        return Tuple.Create(type, token.GetLocation());
+        return (type, token.GetLocation(), token.Parent.Kind() is not SyntaxKind.WithInitializerExpression);
     }
 
     private static ITypeSymbol? GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

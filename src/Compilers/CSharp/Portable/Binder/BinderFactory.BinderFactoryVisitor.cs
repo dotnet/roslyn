@@ -466,13 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return WellKnownMemberNames.DestructorName;
                     case SyntaxKind.OperatorDeclaration:
                         var operatorDeclaration = (OperatorDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, baseMethodDeclarationSyntax.Modifiers, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
                     case SyntaxKind.ConversionOperatorDeclaration:
                         var conversionDeclaration = (ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, baseMethodDeclarationSyntax.Modifiers, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
                     case SyntaxKind.MethodDeclaration:
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, baseMethodDeclarationSyntax.Modifiers, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(baseMethodDeclarationSyntax.Kind());
                 }
@@ -491,13 +491,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.PropertyDeclaration:
                         var propertyDecl = (PropertyDeclarationSyntax)basePropertyDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, propertyDecl.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, basePropertyDeclarationSyntax.Modifiers, explicitInterfaceSpecifierSyntax, propertyDecl.Identifier.ValueText);
                     case SyntaxKind.IndexerDeclaration:
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, WellKnownMemberNames.Indexer);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, basePropertyDeclarationSyntax.Modifiers, explicitInterfaceSpecifierSyntax, WellKnownMemberNames.Indexer);
                     case SyntaxKind.EventDeclaration:
                     case SyntaxKind.EventFieldDeclaration:
                         var eventDecl = (EventDeclarationSyntax)basePropertyDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, eventDecl.Modifiers, explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(basePropertyDeclarationSyntax.Kind());
                 }
@@ -598,25 +598,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (kind is SymbolKind.Method or SymbolKind.Property)
+                    if (kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
                     {
                         if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
                             return true;
                         }
 
-                        // If this is a partial member, the member represents the defining part,
-                        // not the implementation (member.Locations includes both parts). If the
-                        // span is in fact in the implementation, return that member instead.
-                        if (sym switch
-#pragma warning disable format
-                            {
-                                MethodSymbol method => (Symbol)method.PartialImplementationPart,
-                                SourcePropertySymbol property => property.PartialImplementationPart,
-                                _ => throw ExceptionUtilities.UnexpectedValue(sym)
-                            }
-#pragma warning restore format
-                            is { } implementation)
+                        // If this is a partial member, the member represents the defining part, not the implementation.
+                        // If the span is in fact in the implementation, return that member instead.
+                        if (sym.GetPartialImplementationPart() is { } implementation)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
@@ -790,6 +781,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 resultBinder = new WithClassTypeParametersBinder(typeSymbol, resultBinder);
                             }
+
+                            if (typeSymbol.IsExtension)
+                            {
+                                resultBinder = new WithExtensionParameterBinder(typeSymbol, resultBinder);
+                            }
                         }
                     }
 
@@ -817,6 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
+                => VisitTypeDeclarationCore(node);
+
+            public override Binder VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
             public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
@@ -1214,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case XmlNameAttributeElementKind.Parameter:
                             case XmlNameAttributeElementKind.ParameterReference:
-                                result = GetParameterNameAttributeValueBinder(memberSyntax, result);
+                                result = GetParameterNameAttributeValueBinder(memberSyntax, isParamRef: elementKind == XmlNameAttributeElementKind.ParameterReference, nextBinder: result);
                                 break;
                             case XmlNameAttributeElementKind.TypeParameter:
                                 result = GetTypeParameterNameAttributeValueBinder(memberSyntax, includeContainingSymbols: false, nextBinder: result);
@@ -1235,16 +1234,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// We're in a &lt;param&gt; or &lt;paramref&gt; element, so we want a binder that can see
             /// the parameters of the associated member and nothing else.
             /// </summary>
-            private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, Binder nextBinder)
+            private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, bool isParamRef, Binder nextBinder)
             {
                 if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
+
+                    if (isParamRef && method.TryGetInstanceExtensionParameter(out var _))
+                    {
+                        nextBinder = new WithExtensionParameterBinder(method.ContainingType, nextBinder);
+                    }
+
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
-
-                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
+                else if (memberSyntax is ExtensionBlockDeclarationSyntax extensionDeclaration)
+                {
+                    Binder outerBinder = VisitCore(memberSyntax);
+                    SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
+                    Debug.Assert(type.IsExtension);
+                    return new WithExtensionParameterBinder(type, nextBinder);
+                }
+                else if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
                 {
                     _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
@@ -1269,6 +1280,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ImmutableArray<ParameterSymbol> parameters = property.Parameters;
 
+                    if (isParamRef && property.TryGetInstanceExtensionParameter(out var _))
+                    {
+                        nextBinder = new WithExtensionParameterBinder(property.ContainingType, nextBinder);
+                    }
+
                     // BREAK: Dev11 also allows "value" for readonly properties, but that doesn't
                     // make sense and we don't have a symbol.
                     if ((object)property.SetMethod != null)
@@ -1279,8 +1295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (parameters.Any())
                     {
-                        return new WithParametersBinder(parameters, nextBinder);
+                        nextBinder = new WithParametersBinder(parameters, nextBinder);
                     }
+
+                    return nextBinder;
                 }
                 else if (memberKind == SyntaxKind.DelegateDeclaration)
                 {

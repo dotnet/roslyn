@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// A dummy singleton analyzer. Its only purpose is to represent file content load failures in maps that are keyed by <see cref="DiagnosticAnalyzer"/>.
+/// A dummy singleton analyzer. Its only purpose is to represent file content load failures in maps that are keyed by
+/// <see cref="DiagnosticAnalyzer"/>.
 /// </summary>
-internal sealed class FileContentLoadAnalyzer : DiagnosticAnalyzer
+internal sealed class FileContentLoadAnalyzer : DocumentDiagnosticAnalyzer
 {
-    internal static readonly FileContentLoadAnalyzer Instance = new();
+    public static readonly FileContentLoadAnalyzer Instance = new();
 
     private FileContentLoadAnalyzer()
     {
@@ -22,9 +23,23 @@ internal sealed class FileContentLoadAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => [WorkspaceDiagnosticDescriptors.ErrorReadingFileContent];
 
-#pragma warning disable RS1026 // Enable concurrent execution
-#pragma warning disable RS1025 // Configure generated code analysis
-    public sealed override void Initialize(AnalysisContext context) { }
-#pragma warning restore RS1025 // Configure generated code analysis
-#pragma warning restore RS1026 // Enable concurrent execution
+    public override int Priority => -4;
+
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(
+        TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+    {
+        var exceptionMessage = await textDocument.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).ConfigureAwait(false);
+        if (exceptionMessage is null)
+            return [];
+
+        var location = tree is null
+            ? textDocument.FilePath is null ? Location.None : Location.Create(textDocument.FilePath, textSpan: default, lineSpan: default)
+            : tree.GetLocation(span: default);
+
+        var filePath = textDocument.FilePath;
+        var display = filePath ?? "<no path>";
+
+        return [Diagnostic.Create(
+            WorkspaceDiagnosticDescriptors.ErrorReadingFileContent, location, display, exceptionMessage)];
+    }
 }

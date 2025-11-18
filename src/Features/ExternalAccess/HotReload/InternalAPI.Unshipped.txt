@@ -1,0 +1,52 @@
+#nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.CapabilitiesChanged() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.CommitUpdate() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.DiscardUpdate() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.EndSession() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.GetTestAccessor() -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.TestAccessor
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.GetUpdatesAsync(Microsoft.CodeAnalysis.Solution! solution, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.ProjectId!, Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.RunningProjectInfo>! runningProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates>!
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.HotReloadService(Microsoft.CodeAnalysis.Host.HostWorkspaceServices! services, System.Collections.Immutable.ImmutableArray<string!> capabilities) -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.HotReloadService(Microsoft.CodeAnalysis.Host.SolutionServices! services, System.Func<System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<string!>>>! capabilitiesProvider) -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.RunningProjectInfo
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.RunningProjectInfo.RestartWhenChangesHaveNoEffect.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.RunningProjectInfo.RestartWhenChangesHaveNoEffect.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.RunningProjectInfo.RunningProjectInfo() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.StartSessionAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status.Blocked = 2 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status.NoChangesToApply = 0 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status.ReadyToApply = 1 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.TestAccessor
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.TestAccessor.EncService.get -> Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService!
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.TestAccessor.SessionId.get -> Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.TestAccessor.TestAccessor() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.TestAccessor.TestAccessor(Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService! instance) -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.Update() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.Update(System.Guid moduleId, Microsoft.CodeAnalysis.ProjectId! projectId, System.Collections.Immutable.ImmutableArray<byte> ilDelta, System.Collections.Immutable.ImmutableArray<byte> metadataDelta, System.Collections.Immutable.ImmutableArray<byte> pdbDelta, System.Collections.Immutable.ImmutableArray<int> updatedTypes, System.Collections.Immutable.ImmutableArray<string!> requiredCapabilities) -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.PersistentDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.PersistentDiagnostics.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectsToRebuild.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectId!>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectsToRebuild.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectsToRedeploy.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectId!>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectsToRedeploy.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectsToRestart.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.ProjectId!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectId!>>!
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectsToRestart.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectUpdates.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.ProjectUpdates.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Status.get -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Status
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Status.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.TransientDiagnostics.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.ProjectId! project, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics)>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.TransientDiagnostics.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Updates() -> void
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ILDelta -> System.Collections.Immutable.ImmutableArray<byte>
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.MetadataDelta -> System.Collections.Immutable.ImmutableArray<byte>
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ModuleId -> System.Guid
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.PdbDelta -> System.Collections.Immutable.ImmutableArray<byte>
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ProjectId -> Microsoft.CodeAnalysis.ProjectId!
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.RequiredCapabilities -> System.Collections.Immutable.ImmutableArray<string!>
+readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.UpdatedTypes -> System.Collections.Immutable.ImmutableArray<int>
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.GetTargetFramework(Microsoft.CodeAnalysis.Project! project) -> string?
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.WithProjectInfo(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ProjectInfo! info) -> Microsoft.CodeAnalysis.Solution!

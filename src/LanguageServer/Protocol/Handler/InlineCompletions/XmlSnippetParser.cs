@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// internal representation of an XML snippet.
 /// </summary>
 [Export(typeof(XmlSnippetParser)), Shared]
-internal partial class XmlSnippetParser
+internal sealed partial class XmlSnippetParser
 {
     /// <summary>
     /// Cache to hold onto the parsed XML for a particular snippet.
@@ -48,7 +47,7 @@ internal partial class XmlSnippetParser
         ParsedXmlSnippet? parsedSnippet = null;
         try
         {
-            logger.LogInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
+            logger.LogDebug($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
@@ -101,7 +100,7 @@ internal partial class XmlSnippetParser
         return snippet;
     }
 
-    internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+    internal TestAccessor GetTestAccessor() => new(this);
 
     internal readonly struct TestAccessor
     {

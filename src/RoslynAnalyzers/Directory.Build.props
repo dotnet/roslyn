@@ -1,0 +1,45 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <RoslynAnalyzersProject>true</RoslynAnalyzersProject>
+    <AssetsDir>$(MSBuildThisFileDirectory)assets\</AssetsDir>
+
+    <!-- Set 'NoDefaultExcludes' to ensure that we can package .editorconfig files into our analyzer NuGet packages -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Do not ship packages by default -->
+    <IsShippingPackage>false</IsShippingPackage>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Enable flow-analysis feature flag (can be removed when we move to Microsoft.CodeAnalysis 3.0 or larger) -->
+    <Features>$(Features);flow-analysis</Features>
+
+    <DefineConstants Condition="'$(LEGACY_CODE_METRICS_MODE)' == 'true'">$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <!-- Since SourceBuild uses project references and brings additional nullability annotations, -->
+    <!-- suppressions were added that are unncessary when building against older Roslyn packages. -->
+    <NoWarn>$(NoWarn);IDE0079</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
+    <!-- When building in source build mode, treat this set of warnings not as errors.-->
+    <!-- Some crefs reference internal APIs not present in the reference package. -->
+    <NoWarn>$(NoWarn);CS1574;CS8602</NoWarn>
+    <!-- Source build reference assemblies are not correctly annotated.
+      https://github.com/dotnet/source-build/issues/3531 -->
+    <NoWarn>$(NoWarn);CS8603</NoWarn>
+  </PropertyGroup>
+</Project>

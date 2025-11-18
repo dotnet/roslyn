@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar;
 
 internal abstract partial class RoslynNavigationBarItem
 {
-    public class GenerateMethod(string text, Glyph glyph, SymbolKey destinationTypeSymbolId, SymbolKey methodToReplicateSymbolId) : AbstractGenerateCodeItem(RoslynNavigationBarItemKind.GenerateMethod, text, glyph, destinationTypeSymbolId), IEquatable<GenerateMethod>
+    public sealed class GenerateMethod(string text, Glyph glyph, SymbolKey destinationTypeSymbolId, SymbolKey methodToReplicateSymbolId) : AbstractGenerateCodeItem(RoslynNavigationBarItemKind.GenerateMethod, text, glyph, destinationTypeSymbolId), IEquatable<GenerateMethod>
     {
         public readonly SymbolKey MethodToReplicateSymbolKey = methodToReplicateSymbolId;
 

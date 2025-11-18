@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentSyncSelector
+internal sealed class NotebookDocumentSyncSelector
 {
     /// <summary>
     /// The notebook to be synced. If a string

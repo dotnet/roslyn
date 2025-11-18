@@ -1,17 +1,17 @@
 #nullable enable
 [RSEXPERIMENTAL001]Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Dispose() -> void
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseLeadingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseNextToken() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseTrailingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result result) -> void
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.ContextualKind.get -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Result() -> void
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
-[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.SkipForwardTo(int position) -> void
-[RSEXPERIMENTAL003]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(Microsoft.CodeAnalysis.Text.SourceText! sourceText, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions? options = null) -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser!
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Dispose() -> void
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseLeadingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseNextToken() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseTrailingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result result) -> void
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.ContextualKind.get -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Result() -> void
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.SkipForwardTo(int position) -> void
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(Microsoft.CodeAnalysis.Text.SourceText! sourceText, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions? options = null) -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser!
 ~Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 ~Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 ~Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax

@@ -32,7 +32,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -111,7 +110,7 @@ namespace Microsoft.Cci
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
-            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
+            _signatureIndex = new SegmentedDictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
             this.Context = context;
             this.messageProvider = messageProvider;
@@ -443,7 +442,7 @@ namespace Microsoft.Cci
         private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>(ReferenceEqualityComparer.Instance);
 
         // We need to keep track of both the index of the signature and the actual blob to support VB static local naming scheme.
-        private readonly Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
+        private readonly SegmentedDictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
 
         private readonly Dictionary<IMarshallingInformation, BlobHandle> _marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, BlobHandle>();
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
@@ -535,7 +534,7 @@ namespace Microsoft.Cci
         protected IEnumerable<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef)
         {
             INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
-            if (nestedTypeDef == null)
+            if (nestedTypeDef == null || !nestedTypeDef.InheritsEnclosingTypeTypeParameters)
             {
                 if (typeDef.IsGeneric)
                 {
@@ -545,44 +544,44 @@ namespace Microsoft.Cci
                 return null;
             }
 
-            return this.GetConsolidatedTypeParameters(typeDef, typeDef);
-        }
+            return getConsolidatedTypeParameters(typeDef, typeDef);
 
-        private List<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef, ITypeDefinition owner)
-        {
-            List<IGenericTypeParameter> result = null;
-            INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
-            if (nestedTypeDef != null)
+            List<IGenericTypeParameter> getConsolidatedTypeParameters(ITypeDefinition typeDef, ITypeDefinition owner)
             {
-                result = this.GetConsolidatedTypeParameters(nestedTypeDef.ContainingTypeDefinition, owner);
-            }
-
-            if (typeDef.GenericParameterCount > 0)
-            {
-                ushort index = 0;
-                if (result == null)
+                List<IGenericTypeParameter> result = null;
+                INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
+                if (nestedTypeDef != null && nestedTypeDef.InheritsEnclosingTypeTypeParameters)
                 {
-                    result = new List<IGenericTypeParameter>();
-                }
-                else
-                {
-                    index = (ushort)result.Count;
+                    result = getConsolidatedTypeParameters(nestedTypeDef.ContainingTypeDefinition, owner);
                 }
 
-                if (typeDef == owner && index == 0)
+                if (typeDef.GenericParameterCount > 0)
                 {
-                    result.AddRange(typeDef.GenericParameters);
-                }
-                else
-                {
-                    foreach (IGenericTypeParameter genericParameter in typeDef.GenericParameters)
+                    ushort index = 0;
+                    if (result == null)
                     {
-                        result.Add(new InheritedTypeParameter(index++, owner, genericParameter));
+                        result = new List<IGenericTypeParameter>();
+                    }
+                    else
+                    {
+                        index = (ushort)result.Count;
+                    }
+
+                    if (typeDef == owner && index == 0)
+                    {
+                        result.AddRange(typeDef.GenericParameters);
+                    }
+                    else
+                    {
+                        foreach (IGenericTypeParameter genericParameter in typeDef.GenericParameters)
+                        {
+                            result.Add(new InheritedTypeParameter(index++, owner, genericParameter));
+                        }
                     }
                 }
-            }
 
-            return result;
+                return result;
+            }
         }
 
         protected ImmutableArray<IParameterDefinition> GetParametersToEmit(IMethodDefinition methodDef)
@@ -1141,7 +1140,7 @@ namespace Microsoft.Cci
 
             signatureBlob = builder.ToImmutableArray();
             result = metadata.GetOrAddBlob(signatureBlob);
-            _signatureIndex.Add(methodReference, KeyValuePairUtil.Create(result, signatureBlob));
+            _signatureIndex.Add(methodReference, KeyValuePair.Create(result, signatureBlob));
             builder.Free();
             return result;
         }
@@ -1287,7 +1286,7 @@ namespace Microsoft.Cci
             var blob = builder.ToImmutableArray();
             var result = metadata.GetOrAddBlob(blob);
 
-            _signatureIndex.Add(propertyDef, KeyValuePairUtil.Create(result, blob));
+            _signatureIndex.Add(propertyDef, KeyValuePair.Create(result, blob));
             builder.Free();
             return result;
         }
@@ -1454,7 +1453,7 @@ namespace Microsoft.Cci
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
-            return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
+            return symbolOpt?.GetFirstLocationOrNone() ?? Location.None;
         }
 
         internal TypeAttributes GetTypeAttributes(ITypeDefinition typeDef)
@@ -1720,7 +1719,6 @@ namespace Microsoft.Cci
             Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
             PopulateEncTables(typeSystemRowCounts);
 
-            Debug.Assert(mappedFieldDataBuilder == null);
             Debug.Assert(managedResourceDataBuilder == null);
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
@@ -1743,9 +1741,13 @@ namespace Microsoft.Cci
             try
             {
                 ilBuilder.WriteContentTo(ilStream);
+
+                // in EnC delta FieldRVA data are appended to the IL stream:
+                mappedFieldDataBuilder?.WriteContentTo(ilStream);
+
                 metadataBuilder.WriteContentTo(metadataStream);
             }
-            catch (Exception e) when (!(e is OperationCanceledException))
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 throw new PeWritingException(e);
             }
@@ -1845,7 +1847,10 @@ namespace Microsoft.Cci
                 _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisData);
             }
 
-            PopulateTypeSystemTables(methodBodyOffsets, out mappedFieldDataBuilder, out managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
+            // in EnC delta the FieldRVA data is stored to IL stream following all the method bodies:
+            int mappedFieldDataStartOffset = IsFullMetadata ? 0 : ilBuilder.Count;
+
+            PopulateTypeSystemTables(methodBodyOffsets, mappedFieldDataStartOffset, out mappedFieldDataBuilder, out managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
             dynamicAnalysisData?.Free();
         }
 #nullable disable
@@ -1908,7 +1913,7 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateTypeSystemTables(int[] methodBodyOffsets, out PooledBlobBuilder? mappedFieldDataWriter, out PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
+        private void PopulateTypeSystemTables(int[] methodBodyOffsets, int mappedFieldDataStartOffset, out PooledBlobBuilder? mappedFieldDataWriter, out PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -1922,7 +1927,7 @@ namespace Microsoft.Cci
             this.PopulateExportedTypeTableRows();
             this.PopulateFieldLayoutTableRows();
             this.PopulateFieldMarshalTableRows();
-            this.PopulateFieldRvaTableRows(out mappedFieldDataWriter);
+            this.PopulateFieldRvaTableRows(mappedFieldDataStartOffset, out mappedFieldDataWriter);
             this.PopulateFieldTableRows();
             this.PopulateFileTableRows();
             this.PopulateGenericParameters(sortedGenericParameters);
@@ -2112,12 +2117,6 @@ namespace Microsoft.Cci
         {
             foreach (var parent in parentList)
             {
-                if (parent.IsEncDeleted)
-                {
-                    // Custom attributes are not needed for EnC definition deletes
-                    continue;
-                }
-
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
@@ -2222,7 +2221,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            var exportedTypes = module.GetExportedTypes(Context.Diagnostics);
+            var exportedTypes = module.GetExportedTypes(Context);
             if (exportedTypes.Length == 0)
             {
                 return;
@@ -2330,9 +2329,9 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateFieldRvaTableRows(out PooledBlobBuilder? mappedFieldDataWriter)
+        private void PopulateFieldRvaTableRows(int mappedFieldDataStartOffset, out PooledBlobBuilder? mappedFieldDataBuilder)
         {
-            mappedFieldDataWriter = null;
+            mappedFieldDataBuilder = null;
 
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
             {
@@ -2341,19 +2340,26 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                mappedFieldDataWriter ??= PooledBlobBuilder.GetInstance();
+                if (mappedFieldDataBuilder == null)
+                {
+                    mappedFieldDataBuilder = PooledBlobBuilder.GetInstance();
+
+                    // insert alignment bytes as needed:
+                    var alignedStartOffset = BitArithmeticUtilities.Align(mappedFieldDataStartOffset, ManagedPEBuilder.MappedFieldDataAlignment);
+                    mappedFieldDataBuilder.WriteBytes(0, alignedStartOffset - mappedFieldDataStartOffset);
+                }
 
                 // The compiler always aligns each RVA data field to an 8-byte boundary; this accommodates the alignment
                 // needs for all primitive types, regardless of which type is actually being used, at the expense of
                 // potentially wasting up to 7 bytes per field if the alignment needs are less. In the future, this
                 // potentially could be tightened to align each field only as much as is actually required by that
                 // field, saving a few bytes per field.
-                int offset = mappedFieldDataWriter.Count;
+                int offset = mappedFieldDataStartOffset + mappedFieldDataBuilder.Count;
                 Debug.Assert(offset % ManagedPEBuilder.MappedFieldDataAlignment == 0, "Expected last write to end at alignment boundary");
                 Debug.Assert(ManagedPEBuilder.MappedFieldDataAlignment == 8, "Expected alignment to be 8");
 
-                mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
-                mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
+                mappedFieldDataBuilder.WriteBytes(fieldDef.MappedData);
+                mappedFieldDataBuilder.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 
                 metadata.AddFieldRelativeVirtualAddress(
                     field: GetFieldDefinitionHandle(fieldDef),
@@ -2640,6 +2646,12 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
+                // do not emit MethodSemantics entries for deleted properties - the existing ones do not need updating
+                if (propertyDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetPropertyDefIndex(propertyDef);
                 foreach (IMethodReference accessorMethod in propertyDef.GetAccessors(Context))
                 {
@@ -2666,6 +2678,12 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
+                // do not emit MethodSemantics entries for deleted events - the existing ones do not need updating
+                if (eventDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {
@@ -3818,9 +3836,7 @@ namespace Microsoft.Cci
             {
                 if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
-                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
-                    // Tracked by https://github.com/dotnet/runtime/issues/80812
-                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    encoder.TypedReference();
                     return;
                 }
 
@@ -4123,7 +4139,7 @@ namespace Microsoft.Cci
         private int GetNumberOfInheritedTypeParameters(ITypeReference type)
         {
             INestedTypeReference nestedType = type.AsNestedTypeReference;
-            if (nestedType == null)
+            if (nestedType == null || !nestedType.InheritsEnclosingTypeTypeParameters)
             {
                 return 0;
             }
@@ -4140,6 +4156,12 @@ namespace Microsoft.Cci
             while (nestedType != null)
             {
                 result += nestedType.GenericParameterCount;
+
+                if (!nestedType.InheritsEnclosingTypeTypeParameters)
+                {
+                    return result;
+                }
+
                 type = nestedType.GetContainingType(Context);
                 nestedType = type.AsNestedTypeReference;
             }

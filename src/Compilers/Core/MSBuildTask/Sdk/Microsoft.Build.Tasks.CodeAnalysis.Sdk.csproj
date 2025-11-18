@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <DefineConstants>$(DefineConstants);SDK_TASK;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+
+    <!--
+         This task is the same as the MSBuild version but for net472 only. Our NRT setup does 
+         not enable nullable warnings for net472 when the project is multi-targeted which means
+         there are a number of nullable warnings when they are enabled for net472. 
+
+         Fixing that code to be nullable free makes the code read significantly worse hence 
+         this project just disables nullable warnings on net472 as the MSBuild version does
+    -->
+    <DisableNullableWarnings>true</DisableNullableWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\CSharp\csc\csc.rsp" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\VisualBasic\vbc\vbc.rsp" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+</Project>

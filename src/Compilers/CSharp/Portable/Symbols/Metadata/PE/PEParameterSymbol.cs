@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return value;
         }
 
-        internal override ConstantValue? ExplicitDefaultConstantValue
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -568,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _lazyDefaultValue;
             }
         }
+
+        internal sealed override ConstantValue? DefaultValueFromAttributes => null;
 
         private ConstantValue? GetDefaultDecimalOrDateTimeValue()
         {
@@ -756,22 +758,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     && !HasCallerMemberNameAttribute
                     && ContainingAssembly.TypeConversions.HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
-                if (isCallerArgumentExpression)
+                int index = -1;
+                if (isCallerArgumentExpression
+                    && _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName)
+                    && parameterName is not null)
                 {
-                    _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
-                    var parameters = ContainingSymbol.GetParameters();
-                    for (int i = 0; i < parameters.Length; i++)
-                    {
-                        if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                        {
-                            _lazyCallerArgumentExpressionParameterIndex = i;
-                            return i;
-                        }
-                    }
+                    index = SourceComplexParameterSymbolBase.GetCallerArgumentExpressionParameterIndex(this, parameterName);
                 }
 
-                _lazyCallerArgumentExpressionParameterIndex = -1;
-                return -1;
+                _lazyCallerArgumentExpressionParameterIndex = index;
+                return index;
             }
         }
 
@@ -868,6 +864,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return default;
             }
+            else if (ContainingSymbol is MethodSymbol { Name: WellKnownMemberNames.ExtensionMarkerMethodName }
+                && ContainingType is PENamedTypeSymbol { IsExtension: true } containingPE
+                && containingPE.GetMarkerMethodSymbol() is MethodSymbol markerMethod
+                && (object)markerMethod == ContainingSymbol)
+            {
+                return default;
+            }
 
             if (paramNames.IsEmpty)
             {
@@ -882,16 +885,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 switch (name)
                 {
                     case null:
-                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }:
+                    case "" when !ContainingSymbol.RequiresInstanceReceiver()
+                                 || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }
+                                 || ContainingSymbol.IsExtensionBlockMember():
                         // Invalid data, bail
                         builder.Free();
                         return default;
 
                     case "":
+                        Debug.Assert(!ContainingSymbol.IsExtensionBlockMember());
                         builder.Add(BoundInterpolatedStringArgumentPlaceholder.InstanceParameter);
                         break;
 
                     default:
+                        if (ContainingSymbol is { IsStatic: false, ContainingSymbol: NamedTypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName } }
+                            && string.Equals(extensionParameterName, name, StringComparison.Ordinal))
+                        {
+                            builder.Add(BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver);
+                            break;
+                        }
+
                         var param = parameters.FirstOrDefault(static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), name);
                         if (param is not null && (object)param != this)
                         {
@@ -933,6 +946,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<CustomModifier>.Empty;
             }
         }
+
+        internal sealed override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
 
         internal override bool IsMetadataIn
         {
@@ -1045,6 +1060,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<SyntaxReference>.Empty;
             }
         }
+
+        internal sealed override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
 
         internal sealed override ScopedKind EffectiveScope => _packedFlags.Scope;
 

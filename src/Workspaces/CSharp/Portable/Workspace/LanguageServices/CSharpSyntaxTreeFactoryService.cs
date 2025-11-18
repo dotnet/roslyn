@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
-internal partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
+internal sealed partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
 {
     private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 

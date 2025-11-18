@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -66,7 +65,7 @@ internal sealed partial class FindReferencesSearchEngine
             var options = engine._options;
 
             // Start by mapping the initial symbol to the appropriate source symbol in originating project if possible.
-            var searchSymbols = MapToAppropriateSymbols(solution, symbols, cancellationToken);
+            var searchSymbols = await MapToAppropriateSymbolsAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
 
             // If the caller doesn't want any cascading then just return an appropriate set that will just point at
             // only the search symbol and won't cascade to any related symbols, linked symbols, or inheritance
@@ -90,17 +89,17 @@ internal sealed partial class FindReferencesSearchEngine
                 : new BidirectionalSymbolSet(engine, initialSymbols, upSymbols, includeImplementationsThroughDerivedTypes);
         }
 
-        private static MetadataUnifyingSymbolHashSet MapToAppropriateSymbols(
+        private static async ValueTask<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
             Solution solution, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
         {
             var result = new MetadataUnifyingSymbolHashSet();
             foreach (var symbol in symbols)
-                result.AddIfNotNull(TryMapToAppropriateSymbol(solution, symbol, cancellationToken));
+                result.AddIfNotNull(await TryMapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false));
 
             return result;
         }
 
-        private static ISymbol? TryMapToAppropriateSymbol(
+        private static async ValueTask<ISymbol?> TryMapToAppropriateSymbolAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Never search for an alias.  Always search for it's target.  Note: if the caller was
@@ -110,14 +109,9 @@ internal sealed partial class FindReferencesSearchEngine
 
             if (searchSymbol is IAliasSymbol aliasSymbol)
             {
-                // We currently only support searching for aliases to normal named types or namespaces. In the
-                // future it would be nice to support searching for aliases to any arbitrary type.
-                //
-                // Tracked with: https://github.com/dotnet/roslyn/issues/67640
-                if (aliasSymbol.Target is INamedTypeSymbol or INamespaceSymbol)
+                // We currently only support searching for aliases to normal named types or namespaces.
+                if (aliasSymbol.Target is INamedTypeSymbol { IsTupleType: false } or INamespaceSymbol)
                     searchSymbol = aliasSymbol.Target;
-                else
-                    return null;
             }
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
@@ -133,7 +127,7 @@ internal sealed partial class FindReferencesSearchEngine
             // source definition as the 'truth' of a symbol versus seeing it projected into dependent cross language
             // projects as a metadata symbol.  If there is no source symbol, then continue to just use the metadata
             // symbol as the one to be looking for.
-            var sourceSymbol = SymbolFinder.FindSourceDefinition(searchSymbol, solution, cancellationToken);
+            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, solution, cancellationToken).ConfigureAwait(false);
             return sourceSymbol ?? searchSymbol;
         }
 
@@ -210,7 +204,7 @@ internal sealed partial class FindReferencesSearchEngine
 
             async Task<ISymbol?> TryMapAndAddLinkedSymbolsAsync(ISymbol symbol)
             {
-                var mapped = TryMapToAppropriateSymbol(solution, symbol, cancellationToken);
+                var mapped = await TryMapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
                 if (mapped is null)
                     return null;
 

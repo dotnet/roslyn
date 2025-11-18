@@ -4,12 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -7717,7 +7717,7 @@ End Module
  -IL_0017:  nop
  -IL_0018:  ret
 }
-", sequencePoints:="M1.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <Fact>
@@ -13708,14 +13708,14 @@ End Class
             Dim i As Integer
 
             For i = 0 To count - 1
-                builder.Append(i + 1)
+                builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(" * ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") + ")
             Next
 
-            builder.Append(i + 1)
+            builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
 
             Return builder.ToString()
         End Function
@@ -13787,16 +13787,16 @@ End Class
 
             For i = 0 To count - 1
                 builder.Append("a(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(")")
                 builder.Append(" AndAlso ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") OrElse ")
             Next
 
             builder.Append("a(")
-            builder.Append(i)
+            builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
             builder.Append(")")
 
             Return builder.ToString()

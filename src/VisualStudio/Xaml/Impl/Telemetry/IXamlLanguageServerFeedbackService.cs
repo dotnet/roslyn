@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
+
+/// <summary>
+/// Service that collects data for Telemetry in XamlLanguageServer
+/// </summary>
+internal interface IXamlLanguageServerFeedbackService
 {
     /// <summary>
-    /// Service that collects data for Telemetry in XamlLanguageServer
+    /// Create a RequestScope of a request of given documentId
     /// </summary>
-    internal interface IXamlLanguageServerFeedbackService
-    {
-        /// <summary>
-        /// Create a RequestScope of a request of given documentId
-        /// </summary>
-        IRequestScope CreateRequestScope(DocumentId? documentId, string methodName);
-    }
+    IRequestScope CreateRequestScope(DocumentId? documentId, string methodName);
 }

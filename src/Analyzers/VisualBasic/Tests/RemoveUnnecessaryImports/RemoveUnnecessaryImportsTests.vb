@@ -30,8 +30,8 @@ End Module|]",
     Sub Main(args As DateTime())
     End Sub
 End Module",
-parseOptions:=TestOptions.Regular,
-compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System")}))
+New TestParameters(parseOptions:=TestOptions.Regular,
+compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System")})))
         End Function
 
         <Fact>
@@ -46,7 +46,7 @@ End Module|]")
 
         <Fact>
         Public Async Function TestNoImports() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -62,7 +62,7 @@ End Module")
 
         <Fact>
         Public Async Function TestNoImportsWithCopyright() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|' Copyright (c) Somebody.
 
 Imports System
@@ -83,7 +83,7 @@ End Module")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27006")>
         Public Async Function TestReferencesWithCopyrightAndGroupings() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|' Copyright (c) Somebody.
 
 Imports System.Collections.Generic
@@ -110,7 +110,7 @@ End Module")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27006")>
         Public Async Function TestReferencesWithCopyrightAndPreservableTrivia() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|' Copyright (c) Somebody.
 
 Imports System.Collections.Generic
@@ -138,7 +138,7 @@ End Module")
 
         <Fact>
         Public Async Function TestSimpleTypeName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -157,7 +157,7 @@ End Module")
 
         <Fact>
         Public Async Function TestGenericTypeName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -176,7 +176,7 @@ End Module")
 
         <Fact>
         Public Async Function TestNamespaceName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -195,7 +195,7 @@ End Module")
 
         <Fact>
         Public Async Function TestAliasName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -215,7 +215,7 @@ End Module")
 
         <Fact>
         Public Async Function TestExtensionMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -234,7 +234,7 @@ End Module")
 
         <Fact>
         Public Async Function TestModuleMember() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -266,7 +266,7 @@ End Module")
 
         <Fact>
         Public Async Function TestInvalidCodeRemovesImports() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Module Program
@@ -286,7 +286,7 @@ End Module")
 
         <Fact>
         Public Async Function TestExcludedCodeIsIgnored() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Module Program
     Sub Main()
@@ -306,7 +306,7 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
         Public Async Function TestCommentsAroundImportsStatement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>'c1
 [|Imports System.Configuration 'c2
 Imports System, System.Collections.Generic 'c3
@@ -368,7 +368,7 @@ End Class|]")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         Public Async Function TestImportsSurroundedByDirectives() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "#If True Then
 [|Imports System.Collections.Generic
 #End If
@@ -382,7 +382,7 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         Public Async Function TestRemovingUnbindableImports() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports gibberish
 Module Program
 End Module|]",
@@ -392,7 +392,7 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
         Public Async Function TestPreservePrecedingComments() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>' c1
 [|Imports System 'c2
 ' C3
@@ -408,7 +408,7 @@ End Module</Text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         Public Async Function TestDirective1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>#If True Then
 [|Imports System.Collections.Generic
 #End If
@@ -424,7 +424,7 @@ End Module</Text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         Public Async Function TestDirective2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>#If True Then
 [|Imports System
 Imports System.Collections.Generic
@@ -444,7 +444,7 @@ End Module</Text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         Public Async Function TestImportsClauseRemoval1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System, goo, System.Collections.Generic
 Module Program
     Sub Main(args As String())
@@ -471,7 +471,7 @@ End Namespace")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         Public Async Function TestImportsClauseRemoval2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System, System.Collections.Generic, goo
 Module Program
     Sub Main(args As String())
@@ -497,7 +497,7 @@ End Namespace")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         Public Async Function TestImportsClauseRemoval3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports goo, System, System.Collections.Generic
 Module Program
     Sub Main(args As String())
@@ -524,7 +524,7 @@ End Namespace")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         Public Async Function TestUnbindableNamespace() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports gibberish
 Module Program
 End Module|]",
@@ -534,7 +534,7 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541780")>
         Public Async Function TestRemoveClause() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System, goo, System.Collections.Generic
 Module Program
     Sub Main(args As String())
@@ -561,7 +561,7 @@ End Namespace")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         Public Async Function TestRemoveClauseWithExplicitLC1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports A _
  , B
 Module Program
@@ -595,7 +595,7 @@ End Namespace")
 
         <Fact>
         Public Async Function TestRemoveClauseWithExplicitLC2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports B _
  , A
 Module Program
@@ -629,7 +629,7 @@ End Namespace")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         Public Async Function TestRemoveClauseWithExplicitLC3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports A _
     , B _
     , C
@@ -682,7 +682,7 @@ End Namespace</Text>.NormalizedValue)
 
         <Fact>
         Public Async Function TestTypeImports() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports Goo
 
 Module Program
@@ -726,7 +726,7 @@ End Class|]</Text>.NormalizedValue)
 
         <Fact>
         Public Async Function TestAlias() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports F = SomeNS
 
 Module Program
@@ -769,7 +769,7 @@ End Namespace|]</Text>.NormalizedValue)
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541809")>
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
         Public Async Function TestImportsOnSameLine1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports A : Imports B
 
 Module Program
@@ -808,7 +808,7 @@ End Namespace</Text>.NormalizedValue)
 
         <Fact>
         Public Async Function TestImportsOnSameLine2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports A : Imports B
 Imports C
 
@@ -891,7 +891,7 @@ End Class|]") 'TODO (tomat): modules not yet supported in script
 
         <Fact>
         Public Async Function TestUnusedTypeImportIsRemoved() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports SomeNS.Goo
 
 Module Program
@@ -989,7 +989,7 @@ End Class|]</Text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
         Public Async Function TestRemoveSuperfluousNewLines1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -1008,7 +1008,7 @@ End Module</Text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
         Public Async Function TestRemoveSuperfluousNewLines2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text><![CDATA[[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -1034,7 +1034,7 @@ End Module]]></Text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542895")>
         Public Async Function TestRegressionFor10326() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System.ComponentModel
 <Goo(GetType(Category))>
 Class Category
@@ -1079,7 +1079,7 @@ diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan4() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <text>
 #Const A = 1
 Imports System
@@ -1095,7 +1095,7 @@ Class C : Dim x As Action : End Class</text>.NormalizedValue)
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545831")>
         Public Async Function TestImplicitElementAtOrDefault() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 <Text><![CDATA[[|Option Strict On
 
 Imports System
@@ -1165,7 +1165,7 @@ End Namespace]]></Text>.NormalizedValue)
 
         <Fact>
         Public Async Function TestImportsInPPRegionWithoutOtherMembers() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|
 #If True
 Imports System
@@ -1187,7 +1187,7 @@ End Class|]")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleImport() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System.Threading.Tasks
 
 Imports System|]
@@ -1210,7 +1210,7 @@ End Class
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleImports() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System.Threading.Tasks
 Imports System.Collections.Generic
 
@@ -1234,7 +1234,7 @@ End Class
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_NotAllFirstGroupIsDeleted() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System.Threading.Tasks
 Imports System.Collections.Generic
 
@@ -1262,7 +1262,7 @@ End Class
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_AllLastGroupIsDeleted() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 
 Imports System.Threading.Tasks
@@ -1320,8 +1320,20 @@ Namespace Bar
     End Class
 End Namespace
 ",
-parseOptions:=TestOptions.Regular,
-compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System"), GlobalImport.Parse("Goo"), GlobalImport.Parse("Bar")}))
+New TestParameters(parseOptions:=TestOptions.Regular,
+compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System"), GlobalImport.Parse("Goo"), GlobalImport.Parse("Bar")})))
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78799")>
+        Public Async Function TestExplicitSelectionOfFullImportStatement() As Task
+            Await TestAsync(
+"[|Imports System.Collections.Generic|]
+
+Class C
+End Class",
+"Class C
+End Class",
+New TestParameters(TestOptions.Regular))
         End Function
     End Class
 End Namespace

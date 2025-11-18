@@ -152,19 +152,25 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                // 0.cs(9,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (1, 4) { x: 3 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(9, 22),
-                // (10,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                // 0.cs(10,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (3, 1) { y: 4 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 1) { y: 4 }").WithArguments("(int x, int y)").WithLocation(10, 22),
-                // (11,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                // 0.cs(11,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (3, 4) { x: 1 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(11, 22),
-                // (13,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                // 0.cs(12,38): hidden CS9335: The pattern is redundant.
+                //         Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(12, 38),
+                // 0.cs(13,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (1, 4) { x: 3 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(13, 22),
-                // (15,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                // 0.cs(14,39): hidden CS9335: The pattern is redundant.
+                //         Check(false, p is (3, 1) { x: 3 });
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(14, 39),
+                // 0.cs(15,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (3, 4) { x: 1 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(15, 22)
                 );
@@ -193,6 +199,12 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
+                // 0.cs(9,38): hidden CS9335: The pattern is redundant.
+                //         Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(9, 38),
+                // 0.cs(10,39): hidden CS9335: The pattern is redundant.
+                //         Check(false, p is (3, 1) { x: 3 });
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(10, 39)
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
         }
@@ -269,12 +281,11 @@ class Program
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(_, _)").WithLocation(12, 18)
                     );
             }
-            void testGoodCase(string s1, string s2)
+            void testGoodCase(string s1, string s2, params DiagnosticDescription[] expected)
             {
                 var source = string.Format(sourceTemplate, s1, s2, string.Empty);
                 var compilation = CreatePatternCompilation(source);
-                compilation.VerifyDiagnostics(
-                    );
+                compilation.VerifyDiagnostics(expected);
             }
             var c1 = "case (true, _):";
             var c2 = "case (false, false):";
@@ -285,12 +296,18 @@ class Program
             testErrorCase(c1, c3, c2);
             testErrorCase(c3, c2, c1);
             testErrorCase(c2, c1, c3);
-            testGoodCase(c1, c2);
+            testGoodCase(c1, c2,
+                // 0.cs(10,19): hidden CS9335: The pattern is redundant.
+                //             case (false, false):
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 19));
             testGoodCase(c1, c3);
             testGoodCase(c2, c3);
             testGoodCase(c2, c1);
             testGoodCase(c3, c1);
-            testGoodCase(c3, c2);
+            testGoodCase(c3, c2,
+                // 0.cs(10,26): hidden CS9335: The pattern is redundant.
+                //             case (false, false):
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 26));
         }
 
         [Fact]
@@ -848,28 +865,28 @@ namespace N
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,21): error CS0029: Cannot implicitly convert type '(int, int)' to 'N.var'
+                // 0.cs(9,21): error CS0029: Cannot implicitly convert type '(int, int)' to 'N.var'
                 //             var t = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "N.var").WithLocation(9, 21),
-                // (10,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
+                // 0.cs(10,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(10, 32),
-                // (10,36): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(10,36): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 36),
-                // (10,36): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(10, 36),
+                // 0.cs(10,36): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(10, 36),
-                // (11,33): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
+                // 0.cs(11,33): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
-                // (11,37): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(11,37): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 37),
-                // (11,37): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 37),
+                // 0.cs(11,37): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(11, 37),
-                // (12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
+                // 0.cs(12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var x); }                           // error 3
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
                 );
@@ -2181,9 +2198,9 @@ public class C {
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                // (4,21): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21),
                 // (4,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
                 //         _ = this is (a: 1);
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
@@ -2203,10 +2220,10 @@ public class C {
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (4,22): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                // (4,22): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 22),
-                // (4,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22),
+                // (4,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
                 //         _ = this is C(a: 1);
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 22)
                 );
@@ -3242,7 +3259,7 @@ public class C
   // sequence point: }
   IL_0048:  ret
 }
-", source: source, sequencePoints: "C.M");
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
@@ -3408,7 +3425,7 @@ public class C
   IL_005d:  ldnull
   IL_005e:  throw
 }
-", source: source, sequencePoints: "C.M");
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]

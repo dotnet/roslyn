@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -992,9 +991,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Special Case: If the RHS is a pointer conversion, then the assignment functions as
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
-                if (CanScheduleToStack(localSymbol) &&
+                else if (CanScheduleToStack(localSymbol) &&
                     assignmentLocal.Type.IsPointerOrFunctionPointer() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
+                {
+                    ShouldNotSchedule(localSymbol);
+                }
+
+                // If this is a pointer-to-ref assignment, keep the local so GC knows to re-track it.
+                // We don't need to do this for implicitly synthesized locals because working with pointers in an unsafe context does not guarantee any GC tracking,
+                // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
+                else if (localSymbol.RefKind != RefKind.None &&
+                    localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    right.Kind == BoundKind.PointerIndirectionOperator)
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -1524,7 +1533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                Debug.Assert(!binary.OperatorKind.IsDynamic());
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.BinaryOperatorMethod, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1558,7 +1568,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
+                Debug.Assert(!node.OperatorKind.IsDynamic());
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.BinaryOperatorMethod, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -2099,7 +2110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                Debug.Assert(!binary.OperatorKind.IsDynamic());
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.BinaryOperatorMethod, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {

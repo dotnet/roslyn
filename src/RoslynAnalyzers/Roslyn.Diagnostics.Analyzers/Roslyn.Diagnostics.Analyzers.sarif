@@ -1,0 +1,396 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Roslyn.Diagnostics.Analyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0006": {
+          "id": "RS0006",
+          "shortDescription": "Do not mix attributes from different versions of MEF",
+          "fullDescription": "Do not mix attributes from different versions of MEF.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0023": {
+          "id": "RS0023",
+          "shortDescription": "Parts exported with MEFv2 must be marked with 'SharedAttribute'",
+          "fullDescription": "Part exported with MEFv2 must be marked with the 'SharedAttribute'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0032": {
+          "id": "RS0032",
+          "shortDescription": "Test exports should not be discoverable",
+          "fullDescription": "Test exports should not be discoverable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": false,
+            "typeName": "TestExportsShouldNotBeDiscoverable",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0033": {
+          "id": "RS0033",
+          "shortDescription": "Importing constructor should be marked with 'ObsoleteAttribute'",
+          "fullDescription": "Importing constructor should be marked with 'ObsoleteAttribute'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "ImportingConstructorShouldBeObsolete",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0034": {
+          "id": "RS0034",
+          "shortDescription": "Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'",
+          "fullDescription": "Exported parts should be marked with 'ImportingConstructorAttribute'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "ExportedPartsShouldHaveImportingConstructor",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0040": {
+          "id": "RS0040",
+          "shortDescription": "Defaultable types should have defaultable fields",
+          "fullDescription": "Defaultable types should have defaultable fields.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "DefaultableTypeShouldHaveDefaultableFieldsAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0043": {
+          "id": "RS0043",
+          "shortDescription": "Do not call 'GetTestAccessor()'",
+          "fullDescription": "'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": true,
+            "typeName": "DoNotCallGetTestAccessor",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0049": {
+          "id": "RS0049",
+          "shortDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable",
+          "fullDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "TemporaryArrayAsRefAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Roslyn.Diagnostics.CSharp.Analyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0001": {
+          "id": "RS0001",
+          "shortDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0002": {
+          "id": "RS0002",
+          "shortDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0019": {
+          "id": "RS0019",
+          "shortDescription": "'SymbolDeclaredEvent' must be generated for source symbols",
+          "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": false,
+            "typeName": "CSharpSymbolDeclaredEventAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0038": {
+          "id": "RS0038",
+          "shortDescription": "Prefer null literal",
+          "fullDescription": "Use 'null' instead of 'default' for nullable types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": true,
+            "typeName": "PreferNullLiteral",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpDoNotCopyValue",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0046": {
+          "id": "RS0046",
+          "shortDescription": "Avoid the 'Opt' suffix",
+          "fullDescription": "Avoid the 'Opt' suffix in a nullable-enabled code.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpAvoidOptSuffixForNullableEnableCode",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0062": {
+          "id": "RS0062",
+          "shortDescription": "Do not capture primary constructor parameters",
+          "fullDescription": "Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": false,
+            "typeName": "DoNotCapturePrimaryConstructorParametersAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "RS0063": {
+          "id": "RS0063",
+          "shortDescription": "Do not use interpolated strings with 'Debug.Assert'",
+          "fullDescription": "'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": false,
+            "typeName": "CSharpDoNotUseDebugAssertForInterpolatedStrings",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0001": {
+          "id": "RS0001",
+          "shortDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0002": {
+          "id": "RS0002",
+          "shortDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0004": {
+          "id": "RS0004",
+          "shortDescription": "Invoke the correct property to ensure correct use site diagnostics",
+          "fullDescription": "Invoke the correct property to ensure correct use site diagnostics",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "Usage",
+            "isEnabledByDefault": false,
+            "typeName": "BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0019": {
+          "id": "RS0019",
+          "shortDescription": "'SymbolDeclaredEvent' must be generated for source symbols",
+          "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": false,
+            "typeName": "BasicSymbolDeclaredEventAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "VisualBasicDoNotCopyValue",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

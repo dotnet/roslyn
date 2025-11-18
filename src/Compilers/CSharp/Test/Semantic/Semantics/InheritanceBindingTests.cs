@@ -7023,11 +7023,11 @@ class Class7 : Interface
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "INterface").WithArguments("INterface"),
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "INterface").WithArguments("INterface"),
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Class1.Method<T, U>(long, int)"),
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Class4.Method<T>(long, int)"),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "Method").WithArguments("Class4.Method<T>(long, int)", "void", "Interface.Method<T>(long, int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class51", "Interface.Method<T>(long, int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class1", "Interface.Method<T>(long, int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class4", "Interface.Method<T>(long, int)"),
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Class41.Property"),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Class41.Property", "int", "Interface3.Property"),
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Class2.Method(long, int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class2", "Interface.Method<T>(long, int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface3").WithArguments("Class41", "Interface3.Property"),
@@ -7320,9 +7320,9 @@ public class Test
                 // (27,27): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Derived1<U, T>'
                 //     public class Derived2<T> : Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Derived1<U, T>").WithLocation(27, 27),
-                // (37,28): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Derived1<U, T>'
+                // (37,28): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Derived1<U, T>.Derived2<T>'
                 //         public void Method<T>(List<List<int>> A, List<List<T>>[] B, List<long> C, Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<List<int>, T> D)
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Derived1<U, T>").WithLocation(37, 28),
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Derived1<U, T>.Derived2<T>").WithLocation(37, 28),
                 // (27,32): error CS0535: 'Derived1<U, T>.Derived2<T>' does not implement interface member 'Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Method<K>(System.Collections.Generic.List<System.Collections.Generic.List<int>>, System.Collections.Generic.List<System.Collections.Generic.List<T>>[], System.Collections.Generic.List<long>, Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<System.Collections.Generic.List<int>, K>)'
                 //     public class Derived2<T> : Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>").WithArguments("Derived1<U, T>.Derived2<T>", "Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Method<K>(System.Collections.Generic.List<System.Collections.Generic.List<int>>, System.Collections.Generic.List<System.Collections.Generic.List<T>>[], System.Collections.Generic.List<long>, Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<System.Collections.Generic.List<int>, K>)").WithLocation(27, 32),
@@ -7437,8 +7437,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<K, T>)"),
                 // (51,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived5' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<T>.Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5", "Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)"),
-                // (72,75): error CS0539: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property' in explicit interface declaration is not a member of interface
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property"),
+                // (72,75): error CS9333: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property': type must be 'System.Collections.Generic.List<T>' to match implemented member 'Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property'
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property", "System.Collections.Generic.List<T>", "Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>, T>.Property"),
                 // (76,72): error CS0539: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Method<K>(System.Collections.Generic.List<T>, U[], System.Collections.Generic.List<System.Collections.Generic.List<u>>, System.Collections.Generic.Dictionary<T, K>)' in explicit interface declaration is not a member of interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Method<K>(System.Collections.Generic.List<T>, U[], System.Collections.Generic.List<System.Collections.Generic.List<u>>, System.Collections.Generic.Dictionary<T, K>)"),
                 // (70,46): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>' does not implement interface member 'Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>, T>.Method<Z>(System.Collections.Generic.List<T>, U[], System.Collections.Generic.List<System.Collections.Generic.List<U>>, System.Collections.Generic.Dictionary<T, Z>)'
@@ -7469,8 +7469,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<Y>.Inner<int>.Interface<long, X>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<Y>.Inner<int>.Interface<long, X>.Method<Z>(Y, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<X, Z>)"),
                 // (21,45): error CS0535: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>' does not implement interface member 'Outer<Y>.Inner<int>.Interface<long, X>.Property'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<Y>.Inner<int>.Interface<long, X>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<Y>.Inner<int>.Interface<long, X>.Property"),
-                // (34,48): error CS0539: 'Outer<T>.Inner<U>.Derived3.Property' in explicit interface declaration is not a member of interface
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Outer<T>.Inner<U>.Derived3.Property"),
+                // (34,48): error CS9333: 'Outer<T>.Inner<U>.Derived3.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<long, string>.Property'
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived3.Property", "T", "Outer<T>.Inner<U>.Interface<long, string>.Property"),
                 // (38,60): error CS0539: 'Outer<T>.Inner<U>.Derived3.Method<K>(T, K[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, K>)' in explicit interface declaration is not a member of interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived3.Method<K>(T, K[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, K>)"),
                 // (32,35): error CS0535: 'Outer<T>.Inner<U>.Derived3' does not implement interface member 'Outer<T>.Inner<U>.Interface<long, string>.Method<Z>(T, U[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, Z>)'
@@ -7726,8 +7726,8 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
                 // (44,15): error CS0540: 'Outer<T>.Inner<U>.Derived4.Property': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<T, U>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "Outer<T>.Inner<U>.Interface<T, U>"),
-                // (44,31): error CS0539: 'Outer<T>.Inner<U>.Derived4.Property' in explicit interface declaration is not a member of interface
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Property"),
+                // (44,31): error CS9333: 'Outer<T>.Inner<U>.Derived4.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<T, U>.Property'
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "T", "Outer<T>.Inner<U>.Interface<T, U>.Property"),
                 // (48,18): error CS0540: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)': containing type does not implement interface 'Outer<T>.Inner<T>.Interface<T, U>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)", "Outer<T>.Inner<T>.Interface<T, U>"),
                 // (48,43): error CS0539: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)' in explicit interface declaration is not a member of interface
@@ -7742,8 +7742,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Inner<int>.Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived1", "Outer<T>.Inner<int>.Interface<long, string>.Property"),
                 // (23,19): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': containing type does not implement interface 'Outer<T>.Inner<int>.Interface<long, Y>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "Outer<T>.Inner<int>.Interface<long, Y>"),
-                // (23,49): error CS0539: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property' in explicit interface declaration is not a member of interface
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property"),
+                // (23,49): error CS9333: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<int>.Interface<long, Y>.Property'
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "T", "Outer<T>.Inner<int>.Interface<long, Y>.Property"),
                 // (27,22): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)': containing type does not implement interface 'Outer<T>.Inner<long>.Interface<long, Y>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<long>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)", "Outer<T>.Inner<long>.Interface<long, Y>"),
                 // (27,53): error CS0539: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)' in explicit interface declaration is not a member of interface
@@ -7915,16 +7915,16 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
 // (20,27): warning CS0473: Explicit interface implementation 'Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
 //     void I1<Int32, Int32>.Method<V>(int x, Func<int, int, V> v, int z) { }
-Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)"),
-// (29,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)' and 'I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)'
+Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)").WithLocation(20, 27),
+// (29,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' and 'I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)'
 //         i.Method<string>(1, x, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"),
-// (32,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)' and 'I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)'
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)", "I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)").WithLocation(29, 11),
+// (32,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' and 'I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)'
 //         i.Method<string>(1, x, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"),
-// (35,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)' and 'I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)'
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)", "I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)").WithLocation(32, 11),
+// (35,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' and 'I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)'
 //         i.Method<string>(1, x, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"));
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)", "I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)").WithLocation(35, 11));
         }
 
         [Fact]
@@ -8012,13 +8012,13 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
 // (25,16): warning CS0108: 'ImplicitInBase.Method(int, System.Func<int, int>, params int[])' hides inherited member 'Base.Method(int, System.Func<int, int>, int[])'. Use the new keyword if hiding was intended.
 //     public int Method(int x, Func<int, int> v, params int[] y) { Console.WriteLine("int Method(int x, Func<int, int> v, params int[] y)"); return 0; }
-Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])"),
-// (34,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method(T, U[])' and 'I1<T, U>.Method(U, params T[])'
+Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])").WithLocation(25, 16),
+// (34,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method(int, int[])' and 'I1<int, int>.Method(int, params int[])'
 //         i.Method(x, new int[] { x, x, x }); i.Method(x, x, x, x);
-Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, U[])", "I1<T, U>.Method(U, params T[])"),
-// (35,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method(T, System.Func<T, U>, U[])' and 'I1<T, U>.Method(U, System.Func<T, U>, params U[])'
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<int, int>.Method(int, int[])", "I1<int, int>.Method(int, params int[])").WithLocation(34, 11),
+// (35,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method(int, System.Func<int, int>, int[])' and 'I1<int, int>.Method(int, System.Func<int, int>, params int[])'
 //         i.Method(x, y, new int[] { x, x, x }); i.Method(x, y, x, x, x);
-Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, System.Func<T, U>, U[])", "I1<T, U>.Method(U, System.Func<T, U>, params U[])"));
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<int, int>.Method(int, System.Func<int, int>, int[])", "I1<int, int>.Method(int, System.Func<int, int>, params int[])").WithLocation(35, 11));
         }
 
         [Fact]
@@ -9819,6 +9819,138 @@ partial class Partial : Generic<Argument>, ITest
 ";
             CreateCompilation(source1 + source2).VerifyDiagnostics();
             CreateCompilation(source2 + source1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitInterfaceMemberTypeOrReturnTypeMismatch()
+        {
+            var source1 =
+@"
+    interface I1
+    {
+        public int M1();
+        public int M2 { get; set; }
+        public event System.Action M3;
+    }
+
+    class C1 : I1
+    {
+        object I1.M1() { return null; }
+        object I1.M2 { get; set; }
+        event System.Action<object> I1.M3 { add { } remove { } }
+    }
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (9,16): error CS0535: 'C1' does not implement interface member 'I1.M1()'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M1()").WithLocation(9, 16),
+                // (9,16): error CS0535: 'C1' does not implement interface member 'I1.M2'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M2").WithLocation(9, 16),
+                // (9,16): error CS0535: 'C1' does not implement interface member 'I1.M3'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M3").WithLocation(9, 16),
+                // (11,19): error CS9334: 'C1.M1()': return type must be 'int' to match implemented member 'I1.M1()'
+                //         object I1.M1() { return null; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M1").WithArguments("C1.M1()", "int", "I1.M1()").WithLocation(11, 19),
+                // (12,19): error CS9333: 'C1.M2': type must be 'int' to match implemented member 'I1.M2'
+                //         object I1.M2 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M2").WithArguments("C1.M2", "int", "I1.M2").WithLocation(12, 19),
+                // (13,40): error CS9333: 'C1.M3': type must be 'System.Action' to match implemented member 'I1.M3'
+                //         event System.Action<object> I1.M3 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M3").WithArguments("C1.M3", "System.Action", "I1.M3").WithLocation(13, 40)
+                );
+        }
+
+        [Fact]
+        public void ExplicitInterfaceMemberNullableTypeOrReturnTypeMismatch()
+        {
+            var source1 =
+@"
+    #nullable enable
+    interface I1
+    {
+        public int? M1();
+        public int? M2 { get; set; }
+        public event System.Action? M3;
+    }
+
+    class C1 : I1
+    {
+        object I1.M1() { return null!; }
+        object I1.M2 { get; set; } = null!;
+        event System.Action<object> I1.M3 { add { } remove { } }
+    }
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M1()'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M1()").WithLocation(10, 16),
+                // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M2'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M2").WithLocation(10, 16),
+                // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M3'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M3").WithLocation(10, 16),
+                // (12,19): error CS9334: 'C1.M1()': return type must be 'int?' to match implemented member 'I1.M1()'
+                //         object I1.M1() { return null; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M1").WithArguments("C1.M1()", "int?", "I1.M1()").WithLocation(12, 19),
+                // (13,19): error CS9333: 'C1.M2': type must be 'int?' to match implemented member 'I1.M2'
+                //         object I1.M2 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M2").WithArguments("C1.M2", "int?", "I1.M2").WithLocation(13, 19),
+                // (14,40): error CS9333: 'C1.M3': type must be 'System.Action?' to match implemented member 'I1.M3'
+                //         event System.Action<object> I1.M3 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M3").WithArguments("C1.M3", "System.Action?", "I1.M3").WithLocation(14, 40)
+                );
+        }
+
+        [Fact]
+        public void DuplicateExplicitInterfaceMemberReturnTypeMismatch()
+        {
+            var ilSource =
+@"
+    .class interface public auto ansi abstract beforefieldinit I
+    {
+        // Methods
+        .method public hidebysig newslot abstract virtual 
+            instance int32 M () cil managed 
+        {
+        } // end of method I::M
+
+        .method public hidebysig newslot abstract virtual 
+            instance string M () cil managed 
+        {
+        } // end of method I::M
+    } // end of class I
+";
+
+            var source1 =
+@"
+    class C1 : I
+    {
+        int I.M() { return 0; }
+        string I.M() { return null; }
+        object I.M() { return null; }
+    }
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource,
+                                                       options: TestOptions.DebugDll,
+                                                       parseOptions: TestOptions.Regular,
+                                                       targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (6,18): error CS9334: 'C1.M()': return type must be 'string' to match implemented member 'I.M()'
+                //         object I.M() { return null; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M").WithArguments("C1.M()", "string", "I.M()").WithLocation(6, 18)
+                );
         }
     }
 }

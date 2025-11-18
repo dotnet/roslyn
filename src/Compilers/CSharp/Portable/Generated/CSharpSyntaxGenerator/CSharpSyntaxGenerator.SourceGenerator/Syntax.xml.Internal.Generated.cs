@@ -9877,6 +9877,7 @@ internal sealed partial class InterpolationFormatClauseSyntax : CSharpSyntaxNode
         => new InterpolationFormatClauseSyntax(this.Kind, this.colonToken, this.formatStringToken, GetDiagnostics(), annotations);
 }
 
+/// <summary>Represents a global statement in a compilation unit. Each statement at the top level of a compilation unit is wrapped in a GlobalStatementSyntax node. Global statements are top-level statements that can appear in a C# program or script. In regular C# programs (C# 9.0+), they are synthesized into a Main method. In C# scripts, they are executed as top-level code.</summary>
 internal sealed partial class GlobalStatementSyntax : MemberDeclarationSyntax
 {
     internal readonly GreenNode? attributeLists;
@@ -16509,7 +16510,7 @@ internal abstract partial class BaseTypeDeclarationSyntax : MemberDeclarationSyn
     }
 
     /// <summary>Gets the identifier.</summary>
-    public abstract SyntaxToken Identifier { get; }
+    public abstract SyntaxToken? Identifier { get; }
 
     /// <summary>Gets the base type list.</summary>
     public abstract BaseListSyntax? BaseList { get; }
@@ -16524,7 +16525,7 @@ internal abstract partial class BaseTypeDeclarationSyntax : MemberDeclarationSyn
     public abstract SyntaxToken? SemicolonToken { get; }
 }
 
-/// <summary>Base class for type declaration syntax (class, struct, interface, record).</summary>
+/// <summary>Base class for type declaration syntax (class, struct, interface, record, extension).</summary>
 internal abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSyntax
 {
     internal TypeDeclarationSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
@@ -16537,7 +16538,7 @@ internal abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSynta
     {
     }
 
-    /// <summary>Gets the type keyword token ("class", "struct", "interface", "record").</summary>
+    /// <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension").</summary>
     public abstract SyntaxToken Keyword { get; }
 
     public abstract TypeParameterListSyntax? TypeParameterList { get; }
@@ -18107,6 +18108,236 @@ internal sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSyn
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         => new EnumMemberDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.identifier, this.equalsValue, GetDiagnostics(), annotations);
+}
+
+/// <summary>Extension block syntax.</summary>
+internal sealed partial class ExtensionBlockDeclarationSyntax : TypeDeclarationSyntax
+{
+    internal readonly GreenNode? attributeLists;
+    internal readonly GreenNode? modifiers;
+    internal readonly SyntaxToken keyword;
+    internal readonly TypeParameterListSyntax? typeParameterList;
+    internal readonly ParameterListSyntax? parameterList;
+    internal readonly GreenNode? constraintClauses;
+    internal readonly SyntaxToken? openBraceToken;
+    internal readonly GreenNode? members;
+    internal readonly SyntaxToken? closeBraceToken;
+    internal readonly SyntaxToken? semicolonToken;
+
+    internal ExtensionBlockDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 10;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        if (parameterList != null)
+        {
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+        }
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        if (openBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+        }
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        if (closeBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+        if (semicolonToken != null)
+        {
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+    }
+
+    internal ExtensionBlockDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 10;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        if (parameterList != null)
+        {
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+        }
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        if (openBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+        }
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        if (closeBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+        if (semicolonToken != null)
+        {
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+    }
+
+    internal ExtensionBlockDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+      : base(kind)
+    {
+        this.SlotCount = 10;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        if (parameterList != null)
+        {
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+        }
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        if (openBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+        }
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        if (closeBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+        if (semicolonToken != null)
+        {
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+    }
+
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override SyntaxToken Keyword => this.keyword;
+    public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+    public override ParameterListSyntax? ParameterList => this.parameterList;
+    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override SyntaxToken? OpenBraceToken => this.openBraceToken;
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            1 => this.modifiers,
+            2 => this.keyword,
+            3 => this.typeParameterList,
+            4 => this.parameterList,
+            5 => this.constraintClauses,
+            6 => this.openBraceToken,
+            7 => this.members,
+            8 => this.closeBraceToken,
+            9 => this.semicolonToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExtensionBlockDeclarationSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionBlockDeclaration(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExtensionBlockDeclaration(this);
+
+    public ExtensionBlockDeclarationSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    {
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+        {
+            var newNode = SyntaxFactory.ExtensionBlockDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new ExtensionBlockDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.parameterList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new ExtensionBlockDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.parameterList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 }
 
 /// <summary>Base list syntax.</summary>
@@ -21618,10 +21849,10 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
     internal readonly GreenNode? attributeLists;
     internal readonly GreenNode? modifiers;
     internal readonly TypeSyntax? type;
-    internal readonly SyntaxToken identifier;
+    internal readonly SyntaxToken? identifier;
     internal readonly EqualsValueClauseSyntax? @default;
 
-    internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken? identifier, EqualsValueClauseSyntax? @default, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 5;
@@ -21640,8 +21871,11 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
-        this.AdjustFlagsAndWidth(identifier);
-        this.identifier = identifier;
+        if (identifier != null)
+        {
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+        }
         if (@default != null)
         {
             this.AdjustFlagsAndWidth(@default);
@@ -21649,7 +21883,7 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
         }
     }
 
-    internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default, SyntaxFactoryContext context)
+    internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken? identifier, EqualsValueClauseSyntax? @default, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
@@ -21669,8 +21903,11 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
-        this.AdjustFlagsAndWidth(identifier);
-        this.identifier = identifier;
+        if (identifier != null)
+        {
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+        }
         if (@default != null)
         {
             this.AdjustFlagsAndWidth(@default);
@@ -21678,7 +21915,7 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
         }
     }
 
-    internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+    internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken? identifier, EqualsValueClauseSyntax? @default)
       : base(kind)
     {
         this.SlotCount = 5;
@@ -21697,8 +21934,11 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
-        this.AdjustFlagsAndWidth(identifier);
-        this.identifier = identifier;
+        if (identifier != null)
+        {
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+        }
         if (@default != null)
         {
             this.AdjustFlagsAndWidth(@default);
@@ -21712,7 +21952,7 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
     public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public override TypeSyntax? Type => this.type;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken? Identifier => this.identifier;
     public EqualsValueClauseSyntax? Default => this.@default;
 
     internal override GreenNode? GetSlot(int index)
@@ -22418,6 +22658,118 @@ internal sealed partial class NameMemberCrefSyntax : MemberCrefSyntax
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         => new NameMemberCrefSyntax(this.Kind, this.name, this.parameters, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class ExtensionMemberCrefSyntax : MemberCrefSyntax
+{
+    internal readonly SyntaxToken extensionKeyword;
+    internal readonly TypeArgumentListSyntax? typeArgumentList;
+    internal readonly CrefParameterListSyntax parameters;
+    internal readonly SyntaxToken dotToken;
+    internal readonly MemberCrefSyntax member;
+
+    internal ExtensionMemberCrefSyntax(SyntaxKind kind, SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(extensionKeyword);
+        this.extensionKeyword = extensionKeyword;
+        if (typeArgumentList != null)
+        {
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
+        }
+        this.AdjustFlagsAndWidth(parameters);
+        this.parameters = parameters;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(member);
+        this.member = member;
+    }
+
+    internal ExtensionMemberCrefSyntax(SyntaxKind kind, SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(extensionKeyword);
+        this.extensionKeyword = extensionKeyword;
+        if (typeArgumentList != null)
+        {
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
+        }
+        this.AdjustFlagsAndWidth(parameters);
+        this.parameters = parameters;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(member);
+        this.member = member;
+    }
+
+    internal ExtensionMemberCrefSyntax(SyntaxKind kind, SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+      : base(kind)
+    {
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(extensionKeyword);
+        this.extensionKeyword = extensionKeyword;
+        if (typeArgumentList != null)
+        {
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
+        }
+        this.AdjustFlagsAndWidth(parameters);
+        this.parameters = parameters;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(member);
+        this.member = member;
+    }
+
+    public SyntaxToken ExtensionKeyword => this.extensionKeyword;
+    public TypeArgumentListSyntax? TypeArgumentList => this.typeArgumentList;
+    public CrefParameterListSyntax Parameters => this.parameters;
+    public SyntaxToken DotToken => this.dotToken;
+    public MemberCrefSyntax Member => this.member;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.extensionKeyword,
+            1 => this.typeArgumentList,
+            2 => this.parameters,
+            3 => this.dotToken,
+            4 => this.member,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExtensionMemberCrefSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionMemberCref(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExtensionMemberCref(this);
+
+    public ExtensionMemberCrefSyntax Update(SyntaxToken extensionKeyword, TypeArgumentListSyntax typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+        if (extensionKeyword != this.ExtensionKeyword || typeArgumentList != this.TypeArgumentList || parameters != this.Parameters || dotToken != this.DotToken || member != this.Member)
+        {
+            var newNode = SyntaxFactory.ExtensionMemberCref(extensionKeyword, typeArgumentList, parameters, dotToken, member);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new ExtensionMemberCrefSyntax(this.Kind, this.extensionKeyword, this.typeArgumentList, this.parameters, this.dotToken, this.member, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new ExtensionMemberCrefSyntax(this.Kind, this.extensionKeyword, this.typeArgumentList, this.parameters, this.dotToken, this.member, GetDiagnostics(), annotations);
 }
 
 /// <summary>
@@ -26365,6 +26717,114 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
         => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 }
 
+internal sealed partial class IgnoredDirectiveTriviaSyntax : DirectiveTriviaSyntax
+{
+    internal readonly SyntaxToken hashToken;
+    internal readonly SyntaxToken colonToken;
+    internal readonly SyntaxToken? content;
+    internal readonly SyntaxToken endOfDirectiveToken;
+    internal readonly bool isActive;
+
+    internal IgnoredDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(hashToken);
+        this.hashToken = hashToken;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        if (content != null)
+        {
+            this.AdjustFlagsAndWidth(content);
+            this.content = content;
+        }
+        this.AdjustFlagsAndWidth(endOfDirectiveToken);
+        this.endOfDirectiveToken = endOfDirectiveToken;
+        this.isActive = isActive;
+    }
+
+    internal IgnoredDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(hashToken);
+        this.hashToken = hashToken;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        if (content != null)
+        {
+            this.AdjustFlagsAndWidth(content);
+            this.content = content;
+        }
+        this.AdjustFlagsAndWidth(endOfDirectiveToken);
+        this.endOfDirectiveToken = endOfDirectiveToken;
+        this.isActive = isActive;
+    }
+
+    internal IgnoredDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(hashToken);
+        this.hashToken = hashToken;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        if (content != null)
+        {
+            this.AdjustFlagsAndWidth(content);
+            this.content = content;
+        }
+        this.AdjustFlagsAndWidth(endOfDirectiveToken);
+        this.endOfDirectiveToken = endOfDirectiveToken;
+        this.isActive = isActive;
+    }
+
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ColonToken => this.colonToken;
+    public SyntaxToken? Content => this.content;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.hashToken,
+            1 => this.colonToken,
+            2 => this.content,
+            3 => this.endOfDirectiveToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IgnoredDirectiveTriviaSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIgnoredDirectiveTrivia(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIgnoredDirectiveTrivia(this);
+
+    public IgnoredDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken != this.HashToken || colonToken != this.ColonToken || content != this.Content || endOfDirectiveToken != this.EndOfDirectiveToken)
+        {
+            var newNode = SyntaxFactory.IgnoredDirectiveTrivia(hashToken, colonToken, content, endOfDirectiveToken, isActive);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new IgnoredDirectiveTriviaSyntax(this.Kind, this.hashToken, this.colonToken, this.content, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new IgnoredDirectiveTriviaSyntax(this.Kind, this.hashToken, this.colonToken, this.content, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+}
+
 internal sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
 {
     internal readonly SyntaxToken hashToken;
@@ -26654,6 +27114,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
@@ -26689,6 +27150,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -26727,6 +27189,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 }
 
@@ -26902,6 +27365,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
     public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
     public virtual void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
@@ -26937,6 +27401,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -26975,6 +27440,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 }
 
@@ -27490,6 +27956,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
     public override CSharpSyntaxNode VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Identifier), (EqualsValueClauseSyntax)Visit(node.EqualsValue));
 
+    public override CSharpSyntaxNode VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+
     public override CSharpSyntaxNode VisitBaseList(BaseListSyntax node)
         => node.Update((SyntaxToken)Visit(node.ColonToken), VisitList(node.Types));
 
@@ -27594,6 +28063,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitNameMemberCref(NameMemberCrefSyntax node)
         => node.Update((TypeSyntax)Visit(node.Name), (CrefParameterListSyntax)Visit(node.Parameters));
+
+    public override CSharpSyntaxNode VisitExtensionMemberCref(ExtensionMemberCrefSyntax node)
+        => node.Update((SyntaxToken)Visit(node.ExtensionKeyword), (TypeArgumentListSyntax)Visit(node.TypeArgumentList), (CrefParameterListSyntax)Visit(node.Parameters), (SyntaxToken)Visit(node.DotToken), (MemberCrefSyntax)Visit(node.Member));
 
     public override CSharpSyntaxNode VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
         => node.Update((SyntaxToken)Visit(node.ThisKeyword), (CrefBracketedParameterListSyntax)Visit(node.Parameters));
@@ -27708,6 +28180,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ExclamationToken), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
+
+    public override CSharpSyntaxNode VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node)
+        => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ColonToken), (SyntaxToken)Visit(node.Content), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
 
     public override CSharpSyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.NullableKeyword), (SyntaxToken)Visit(node.SettingToken), (SyntaxToken)Visit(node.TargetToken), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
@@ -31416,6 +31891,43 @@ internal partial class ContextAwareSyntax
         return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue, this.context);
     }
 
+    public ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
+        if (openBraceToken != null)
+        {
+            switch (openBraceToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
+        }
+        if (closeBraceToken != null)
+        {
+            switch (closeBraceToken.Kind)
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
+        }
+        if (semicolonToken != null)
+        {
+            switch (semicolonToken.Kind)
+            {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(semicolonToken));
+            }
+        }
+#endif
+
+        return new ExtensionBlockDeclarationSyntax(SyntaxKind.ExtensionBlockDeclaration, attributeLists.Node, modifiers.Node, keyword, typeParameterList, parameterList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+    }
+
     public BaseListSyntax BaseList(SyntaxToken colonToken, CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
     {
 #if DEBUG
@@ -31740,7 +32252,18 @@ internal partial class ContextAwareSyntax
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -32059,15 +32582,18 @@ internal partial class ContextAwareSyntax
         return result;
     }
 
-    public ParameterSyntax Parameter(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+    public ParameterSyntax Parameter(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken? identifier, EqualsValueClauseSyntax? @default)
     {
 #if DEBUG
-        if (identifier == null) throw new ArgumentNullException(nameof(identifier));
-        switch (identifier.Kind)
+        if (identifier != null)
         {
-            case SyntaxKind.IdentifierToken:
-            case SyntaxKind.ArgListKeyword: break;
-            default: throw new ArgumentException(nameof(identifier));
+            switch (identifier.Kind)
+            {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.ArgListKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(identifier));
+            }
         }
 #endif
 
@@ -32185,6 +32711,20 @@ internal partial class ContextAwareSyntax
         return result;
     }
 
+    public ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+#if DEBUG
+        if (extensionKeyword == null) throw new ArgumentNullException(nameof(extensionKeyword));
+        if (extensionKeyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken == null) throw new ArgumentNullException(nameof(dotToken));
+        if (dotToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+#endif
+
+        return new ExtensionMemberCrefSyntax(SyntaxKind.ExtensionMemberCref, extensionKeyword, typeArgumentList, parameters, dotToken, member, this.context);
+    }
+
     public IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
     {
 #if DEBUG
@@ -32244,7 +32784,18 @@ internal partial class ContextAwareSyntax
             case SyntaxKind.GreaterThanToken:
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword: break;
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
 #endif
@@ -32951,6 +33502,29 @@ internal partial class ContextAwareSyntax
 #endif
 
         return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive, this.context);
+    }
+
+    public IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+#if DEBUG
+        if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
+        if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+        if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+        if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (content != null)
+        {
+            switch (content.Kind)
+            {
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(content));
+            }
+        }
+        if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
+        if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+#endif
+
+        return new IgnoredDirectiveTriviaSyntax(SyntaxKind.IgnoredDirectiveTrivia, hashToken, colonToken, content, endOfDirectiveToken, isActive, this.context);
     }
 
     public NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken? targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
@@ -36684,6 +37258,43 @@ internal static partial class SyntaxFactory
         return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue);
     }
 
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
+        if (openBraceToken != null)
+        {
+            switch (openBraceToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
+        }
+        if (closeBraceToken != null)
+        {
+            switch (closeBraceToken.Kind)
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
+        }
+        if (semicolonToken != null)
+        {
+            switch (semicolonToken.Kind)
+            {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(semicolonToken));
+            }
+        }
+#endif
+
+        return new ExtensionBlockDeclarationSyntax(SyntaxKind.ExtensionBlockDeclaration, attributeLists.Node, modifiers.Node, keyword, typeParameterList, parameterList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+    }
+
     public static BaseListSyntax BaseList(SyntaxToken colonToken, CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
     {
 #if DEBUG
@@ -37008,7 +37619,18 @@ internal static partial class SyntaxFactory
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -37327,15 +37949,18 @@ internal static partial class SyntaxFactory
         return result;
     }
 
-    public static ParameterSyntax Parameter(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+    public static ParameterSyntax Parameter(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken? identifier, EqualsValueClauseSyntax? @default)
     {
 #if DEBUG
-        if (identifier == null) throw new ArgumentNullException(nameof(identifier));
-        switch (identifier.Kind)
+        if (identifier != null)
         {
-            case SyntaxKind.IdentifierToken:
-            case SyntaxKind.ArgListKeyword: break;
-            default: throw new ArgumentException(nameof(identifier));
+            switch (identifier.Kind)
+            {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.ArgListKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(identifier));
+            }
         }
 #endif
 
@@ -37453,6 +38078,20 @@ internal static partial class SyntaxFactory
         return result;
     }
 
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+#if DEBUG
+        if (extensionKeyword == null) throw new ArgumentNullException(nameof(extensionKeyword));
+        if (extensionKeyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken == null) throw new ArgumentNullException(nameof(dotToken));
+        if (dotToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+#endif
+
+        return new ExtensionMemberCrefSyntax(SyntaxKind.ExtensionMemberCref, extensionKeyword, typeArgumentList, parameters, dotToken, member);
+    }
+
     public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
     {
 #if DEBUG
@@ -37512,7 +38151,18 @@ internal static partial class SyntaxFactory
             case SyntaxKind.GreaterThanToken:
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword: break;
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
 #endif
@@ -38219,6 +38869,29 @@ internal static partial class SyntaxFactory
 #endif
 
         return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive);
+    }
+
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+#if DEBUG
+        if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
+        if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+        if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+        if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (content != null)
+        {
+            switch (content.Kind)
+            {
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(content));
+            }
+        }
+        if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
+        if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+#endif
+
+        return new IgnoredDirectiveTriviaSyntax(SyntaxKind.IgnoredDirectiveTrivia, hashToken, colonToken, content, endOfDirectiveToken, isActive);
     }
 
     public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken? targetToken, SyntaxToken endOfDirectiveToken, bool isActive)

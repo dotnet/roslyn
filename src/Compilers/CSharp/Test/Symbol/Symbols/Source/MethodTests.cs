@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2110,10 +2111,7 @@ partial class C
     async partial void M() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-              // (15,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-              //     async partial void M() { }
-              Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
@@ -2266,9 +2264,6 @@ static class C
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
@@ -2290,9 +2285,6 @@ static class C
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
                 // (4,35): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
@@ -2583,6 +2575,55 @@ public partial class C
 
             Assert.False(partialImpl.IsPartialDefinition);
             Assert.False(partialImplConstructed.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22598")]
+        public void PartialMethodsLocationsAndSyntaxReferences()
+        {
+            var source1 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM();
+                    }
+                }
+                """;
+
+            var source2 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM() { }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([(source1, "source1"), (source2, "source2")]);
+            comp.VerifyDiagnostics();
+
+            var method = (IMethodSymbol)comp.GetSymbolsWithName("PartialM").Single();
+
+            // For partial methods, Locations and DeclaringSyntaxReferences contain only one location
+            Assert.Equal(1, method.Locations.Length);
+            Assert.Equal(1, method.DeclaringSyntaxReferences.Length);
+
+            // The single location is the definition part
+            Assert.True(method.IsPartialDefinition);
+            Assert.Null(method.PartialDefinitionPart);
+            Assert.NotNull(method.PartialImplementationPart);
+
+            // To get all locations, you need to use PartialImplementationPart
+            var implementationPart = method.PartialImplementationPart;
+            Assert.Equal(1, implementationPart.Locations.Length);
+            Assert.Equal(1, implementationPart.DeclaringSyntaxReferences.Length);
+
+            // Verify the locations are different
+            Assert.NotEqual(method.Locations[0], implementationPart.Locations[0]);
+
+            Assert.Equal("source1", method.Locations[0].SourceTree.FilePath);
+            Assert.Equal("source2", implementationPart.Locations[0].SourceTree.FilePath);
         }
     }
 }

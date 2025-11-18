@@ -15,21 +15,18 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
 
     protected override string DefaultPropertyBlockText => "{ get; set; }";
 
-    public override async Task InsertSnippetInReadonlyStructTest()
-    {
-        // Ensure we don't generate redundant `set` accessor when executed in readonly struct
-        await VerifyPropertyAsync("""
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79954")]
+    public override Task InsertSnippetInReadonlyStructTest()
+        => VerifyPropertyAsync("""
             readonly struct MyStruct
             {
                 $$
             }
-            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
-    }
+            """, "public required {|0:int|} {|1:MyProperty|} { get; init; }");
 
-    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
-    {
-        // Ensure we don't generate redundant `set` accessor when executed in readonly struct
-        await VerifyPropertyAsync("""
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79954")]
+    public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
+        => VerifyPropertyAsync("""
             partial struct MyStruct
             {
                 $$
@@ -38,16 +35,11 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             readonly partial struct MyStruct
             {
             }
-            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
-    }
+            """, "public required {|0:int|} {|1:MyProperty|} { get; init; }");
 
-    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
-    {
-        // Even though there is no `partial` modifier on the first declaration
-        // compiler still treats the whole type as partial since it is more likely that
-        // the user's intent was to have a partial type and they just forgot the modifier.
-        // Thus we still recognize that as `readonly` context and don't generate a setter
-        await VerifyPropertyAsync("""
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79954")]
+    public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
+        => VerifyPropertyAsync("""
             struct MyStruct
             {
                 $$
@@ -56,46 +48,39 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             readonly partial struct MyStruct
             {
             }
-            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
-    }
+            """, "public required {|0:int|} {|1:MyProperty|} { get; init; }");
 
-    public override async Task VerifySnippetInInterfaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public override Task VerifySnippetInInterfaceTest()
+        => VerifySnippetIsAbsentAsync("""
             interface MyInterface
             {
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("public")]
     [InlineData("internal")]
     [InlineData("protected internal")]
-    public override async Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
-    {
-        await VerifyPropertyAsync($$"""
+    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
+        => VerifyPropertyAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
             """, $$"""required {|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
-    }
 
     [Theory]
     [InlineData("private")]
     [InlineData("protected")]
     [InlineData("private protected")]
-    public async Task NoSnippetAfterWrongAccessibilityModifierTest(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoSnippetAfterWrongAccessibilityModifierTest(string modifier)
+        => VerifySnippetIsAbsentAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
             """);
-    }
 
     protected override Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
         => VerifyPropertyAsync(markup, $$"""public required {|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");

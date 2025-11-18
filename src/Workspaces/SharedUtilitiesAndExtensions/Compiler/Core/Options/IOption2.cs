@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Options;
 /// set of interface members.
 /// </summary>
 internal interface IOption2 : IEquatable<IOption2?>
-#if !CODE_STYLE
+#if WORKSPACE
     , IOption
 #endif
 {
     OptionDefinition Definition { get; }
     IPublicOption? PublicOption { get; }
 
-#if CODE_STYLE
+#if !WORKSPACE
     bool IsPerLanguage { get; }
 #endif
 }

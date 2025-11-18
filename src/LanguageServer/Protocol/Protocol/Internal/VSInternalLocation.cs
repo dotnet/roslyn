@@ -2,42 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System;
+using System.Text.Json.Serialization;
+using Roslyn.Text.Adornments;
+
+/// <summary>
+/// Extension class for <see cref="Protocol.Location"/>.  Used to relay reference text information with colorization.
+/// </summary>
+internal sealed class VSInternalLocation : VSLocation
 {
-    using System;
-    using Roslyn.Text.Adornments;
-    using System.Text.Json.Serialization;
+    private object? textValue = null;
 
     /// <summary>
-    /// Extension class for <see cref="Protocol.Location"/>.  Used to relay reference text information with colorization.
+    /// Gets or sets the text value for a location reference. Must be of type <see cref="ImageElement"/> or <see cref="ContainerElement"/> or <see cref="ClassifiedTextElement"/> or <see cref="string"/>.
     /// </summary>
-    internal class VSInternalLocation : VSLocation
+    [JsonPropertyName("_vs_text")]
+    [JsonConverter(typeof(ObjectContentConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object? Text
     {
-        private object? textValue = null;
-
-        /// <summary>
-        /// Gets or sets the text value for a location reference. Must be of type <see cref="ImageElement"/> or <see cref="ContainerElement"/> or <see cref="ClassifiedTextElement"/> or <see cref="string"/>.
-        /// </summary>
-        [JsonPropertyName("_vs_text")]
-        [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Text
+        get
         {
-            get
-            {
-                return this.textValue;
-            }
+            return this.textValue;
+        }
 
-            set
+        set
+        {
+            if (value is ImageElement or ContainerElement or ClassifiedTextElement or string)
             {
-                if (value is ImageElement || value is ContainerElement || value is ClassifiedTextElement || value is string)
-                {
-                    this.textValue = value;
-                }
-                else
-                {
-                    throw new InvalidOperationException($"{value?.GetType()} is an invalid type.");
-                }
+                this.textValue = value;
+            }
+            else
+            {
+                throw new InvalidOperationException($"{value?.GetType()} is an invalid type.");
             }
         }
     }

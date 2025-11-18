@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Simplification.Simplifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 
-internal class MemberAccessExpressionSimplifier : AbstractMemberAccessExpressionSimplifier<
+internal sealed class MemberAccessExpressionSimplifier : AbstractMemberAccessExpressionSimplifier<
     ExpressionSyntax,
     MemberAccessExpressionSyntax,
     ThisExpressionSyntax>

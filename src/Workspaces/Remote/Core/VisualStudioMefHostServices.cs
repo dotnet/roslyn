@@ -9,87 +9,86 @@ using System.Collections.Immutable;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+/// <summary>
+/// Provides host services imported via VS MEF.
+/// </summary>
+internal sealed class VisualStudioMefHostServices : HostServices, IMefHostExportProvider
 {
-    /// <summary>
-    /// Provides host services imported via VS MEF.
-    /// </summary>
-    internal sealed class VisualStudioMefHostServices : HostServices, IMefHostExportProvider
+    // the export provider for the MEF composition
+    private readonly ExportProvider _exportProvider;
+
+    // accumulated cache for exports
+    private ImmutableDictionary<ExportKey, IEnumerable> _exportsMap
+        = ImmutableDictionary<ExportKey, IEnumerable>.Empty;
+
+    private VisualStudioMefHostServices(ExportProvider exportProvider)
     {
-        // the export provider for the MEF composition
-        private readonly ExportProvider _exportProvider;
+        Contract.ThrowIfNull(exportProvider);
+        _exportProvider = exportProvider;
+    }
 
-        // accumulated cache for exports
-        private ImmutableDictionary<ExportKey, IEnumerable> _exportsMap
-            = ImmutableDictionary<ExportKey, IEnumerable>.Empty;
+    public static VisualStudioMefHostServices Create(ExportProvider exportProvider)
+        => new(exportProvider);
 
-        private VisualStudioMefHostServices(ExportProvider exportProvider)
+    /// <summary>
+    /// Creates a new <see cref="HostWorkspaceServices"/> associated with the specified workspace.
+    /// </summary>
+    protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
+        => new MefWorkspaceServices(this, workspace);
+
+    /// <summary>
+    /// Gets all the MEF exports of the specified type with the specified metadata.
+    /// </summary>
+    public IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>()
+    {
+        var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, typeof(TMetadata).AssemblyQualifiedName!);
+        if (!_exportsMap.TryGetValue(key, out var exports))
         {
-            Contract.ThrowIfNull(exportProvider);
-            _exportProvider = exportProvider;
-        }
-
-        public static VisualStudioMefHostServices Create(ExportProvider exportProvider)
-            => new(exportProvider);
-
-        /// <summary>
-        /// Creates a new <see cref="HostWorkspaceServices"/> associated with the specified workspace.
-        /// </summary>
-        protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-            => new MefWorkspaceServices(this, workspace);
-
-        /// <summary>
-        /// Gets all the MEF exports of the specified type with the specified metadata.
-        /// </summary>
-        public IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>()
-        {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, typeof(TMetadata).AssemblyQualifiedName!);
-            if (!_exportsMap.TryGetValue(key, out var exports))
+            exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
             {
-                exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
-                {
-                    return _exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray();
-                });
-            }
-
-            return (IEnumerable<Lazy<TExtension, TMetadata>>)exports;
+                return _exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray();
+            });
         }
 
-        /// <summary>
-        /// Gets all the MEF exports of the specified type.
-        /// </summary>
-        public IEnumerable<Lazy<TExtension>> GetExports<TExtension>()
+        return (IEnumerable<Lazy<TExtension, TMetadata>>)exports;
+    }
+
+    /// <summary>
+    /// Gets all the MEF exports of the specified type.
+    /// </summary>
+    public IEnumerable<Lazy<TExtension>> GetExports<TExtension>()
+    {
+        var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, "");
+        if (!_exportsMap.TryGetValue(key, out var exports))
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, "");
-            if (!_exportsMap.TryGetValue(key, out var exports))
-            {
-                exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
-                    _exportProvider.GetExports<TExtension>().ToImmutableArray());
-            }
-
-            return (IEnumerable<Lazy<TExtension>>)exports;
+            exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
+                _exportProvider.GetExports<TExtension>().ToImmutableArray());
         }
 
-        private readonly struct ExportKey : IEquatable<ExportKey>
+        return (IEnumerable<Lazy<TExtension>>)exports;
+    }
+
+    private readonly struct ExportKey : IEquatable<ExportKey>
+    {
+        internal readonly string ExtensionTypeName;
+        internal readonly string MetadataTypeName;
+
+        public ExportKey(string extensionTypeName, string metadataTypeName)
         {
-            internal readonly string ExtensionTypeName;
-            internal readonly string MetadataTypeName;
-
-            public ExportKey(string extensionTypeName, string metadataTypeName)
-            {
-                ExtensionTypeName = extensionTypeName;
-                MetadataTypeName = metadataTypeName;
-            }
-
-            public bool Equals(ExportKey other)
-                => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 &&
-                   string.Compare(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
-
-            public override bool Equals(object? obj)
-                => obj is ExportKey key && Equals(key);
-
-            public override int GetHashCode()
-                => Hash.Combine(MetadataTypeName.GetHashCode(), ExtensionTypeName.GetHashCode());
+            ExtensionTypeName = extensionTypeName;
+            MetadataTypeName = metadataTypeName;
         }
+
+        public bool Equals(ExportKey other)
+            => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 &&
+               string.Compare(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
+
+        public override bool Equals(object? obj)
+            => obj is ExportKey key && Equals(key);
+
+        public override int GetHashCode()
+            => Hash.Combine(MetadataTypeName.GetHashCode(), ExtensionTypeName.GetHashCode());
     }
 }

@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the arity of this method, or the number of type parameters it takes.
+        ''' Returns the arity of this method. Arity is the number of type parameters a method declares.
         ''' A non-generic method has zero arity.
         ''' </summary>
         Public MustOverride ReadOnly Property Arity As Integer
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Source: Returns whether this method is an iterator; i.e., does it have the Iterator modifier?
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsIterator As Boolean
+        Public MustOverride ReadOnly Property IsIterator As Boolean Implements IMethodSymbol.IsIterator
 
         ''' <summary>
         ''' Indicates whether the accessor is marked with the 'init' modifier.
@@ -826,6 +826,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ReduceExtensionMethod(instanceType, proximity:=0, useSiteInfo, languageVersion)
         End Function
 
+        Public Function ReduceExtensionMember(receiverType As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.ReduceExtensionMember
+            Return Nothing
+        End Function
+
         ''' <summary>
         ''' Proximity level of a reduced extension method.
         ''' </summary>
@@ -1235,6 +1239,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitMethod(Me)
         End Function
+
+        Public ReadOnly Property AssociatedExtensionImplementation As IMethodSymbol Implements IMethodSymbol.AssociatedExtensionImplementation
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 

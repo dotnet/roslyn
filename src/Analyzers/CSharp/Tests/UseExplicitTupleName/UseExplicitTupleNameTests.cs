@@ -17,12 +17,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseExplicitTupleNameCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
-public class UseExplicitTupleNameTests
+public sealed class UseExplicitTupleNameTests
 {
     [Fact]
-    public async Task TestNamedTuple1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNamedTuple1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -41,12 +40,10 @@ public class UseExplicitTupleNameTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInArgument()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestInArgument()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -69,12 +66,10 @@ public class UseExplicitTupleNameTests
                 void Goo(int i) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamedTuple2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNamedTuple2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -93,7 +88,6 @@ public class UseExplicitTupleNameTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingOnMatchingName1()
@@ -130,9 +124,8 @@ public class UseExplicitTupleNameTests
     }
 
     [Fact]
-    public async Task TestWrongCasing()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWrongCasing()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -151,12 +144,10 @@ public class UseExplicitTupleNameTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -177,12 +168,10 @@ public class UseExplicitTupleNameTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -201,12 +190,12 @@ public class UseExplicitTupleNameTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFalseOptionImplicitTuple()
-    {
-        var code = """
+    public Task TestFalseOptionImplicitTuple()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -215,22 +204,18 @@ public class UseExplicitTupleNameTests
                     var v2 = v1.Item1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             Options =
             {
                 { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFalseOptionExplicitTuple()
-    {
-        var code = """
+    public Task TestFalseOptionExplicitTuple()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -239,17 +224,12 @@ public class UseExplicitTupleNameTests
                     var v2 = v1.i;
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             Options =
             {
                 { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
             }
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestOnRestField()

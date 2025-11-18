@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.CodeAnalysis.ErrorReporting;
 
 [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
-internal partial class VisualStudioErrorReportingService : IErrorReportingService
+internal sealed partial class VisualStudioErrorReportingService : IErrorReportingService
 {
     private readonly IThreadingContext _threadingContext;
     private readonly IVsService<IVsActivityLog> _activityLog;
@@ -49,11 +49,18 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
         LogGlobalErrorToActivityLog(message, stackTrace);
         _infoBar.ShowInfoBarMessageFromAnyThread(message, items);
 
-        Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
+        Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, (m, args) =>
         {
+            var (message, featureName) = args;
             m["Message"] = message;
             m["FeatureName"] = featureName.ToString();
-        }));
+
+            if (exception is not null)
+            {
+                m["ExceptionType"] = exception.GetType().Name;
+                m["ExceptionStackTrace"] = stackTrace;
+            }
+        }, (message, featureName)));
     }
 
     public void ShowDetailedErrorInfo(Exception exception)

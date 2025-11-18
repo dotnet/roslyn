@@ -35,9 +35,8 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
             """
             using System;
 
@@ -52,12 +51,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -83,12 +80,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -114,12 +109,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedInMethod()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedInMethod()
+        => TestMissingAsync(
             """
             class C
             {
@@ -129,12 +122,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
             """
             using System;
 
@@ -146,12 +137,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -177,12 +166,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -208,12 +195,10 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74137")]
-    public async Task TestNotWithPreprocessorDirectives()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithPreprocessorDirectives()
+        => TestMissingAsync(
             """
             app.UseSwaggerUI(c [||]=>
             {
@@ -224,5 +209,4 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
             #endif
             });
             """, parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
 }

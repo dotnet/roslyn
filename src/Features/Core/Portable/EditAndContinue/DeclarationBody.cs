@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Differencing;
 using Roslyn.Utilities;
 
@@ -48,7 +49,7 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     }
 
     /// <summary>
-    /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="MemberBody.GetActiveTokens"/>)
+    /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="MemberBody.GetActiveTokens()"/>)
     /// and its span covers the entire <see cref="MemberBody.Envelope"/>.
     /// May include descendant nodes or tokens that do not belong to the body.
     /// </summary>

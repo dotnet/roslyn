@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -12,11 +13,8 @@ internal abstract partial class AbstractSymbolDisplayService
 {
     protected abstract partial class AbstractSymbolDescriptionBuilder
     {
-        private void FixAllStructuralTypes(ISymbol firstSymbol)
+        private StructuralTypeDisplayInfo GetStructuralTypeDisplayInfo(ISymbol firstSymbol)
         {
-            // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
-            // Structural Types: section to display their info.
-
             var directStructuralTypes =
                 from parts in _groupMap.Values
                 from part in parts
@@ -32,11 +30,19 @@ internal abstract partial class AbstractSymbolDisplayService
             var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
                 firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
-            if (info.TypesParts.Count > 0)
-                AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
+            return info;
+        }
+
+        private void FixAllStructuralTypes(StructuralTypeDisplayInfo typeDisplayInfo)
+        {
+            // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
+            // Structural Types: section to display their info.
+
+            if (typeDisplayInfo.TypesParts.Count > 0)
+                AddToGroup(SymbolDescriptionGroups.StructuralTypes, typeDisplayInfo.TypesParts);
 
             foreach (var (group, parts) in _groupMap.ToArray())
-                _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
+                _groupMap[group] = typeDisplayInfo.ReplaceStructuralTypes(parts, _semanticModel, _position);
         }
     }
 }

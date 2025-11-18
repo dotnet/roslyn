@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExp
 
         <Fact>
         Public Async Function TestSimpleCase() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -46,7 +46,7 @@ end class")
 
         <Fact>
         Public Async Function TestSimpleNegatedCase() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -105,7 +105,7 @@ end class")
 
         <Fact>
         Public Async Function TestNotWithTrueTrue() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -132,7 +132,7 @@ end class")
 
         <Fact>
         Public Async Function TestNotWithFalseFalse() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -159,7 +159,7 @@ end class")
 
         <Fact>
         Public Async Function TestWhenTrueIsTrueAndWhenFalseIsUnknown() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -186,7 +186,7 @@ end class")
 
         <Fact>
         Public Async Function TestWhenTrueIsFalseAndWhenFalseIsUnknown() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -213,7 +213,7 @@ end class")
 
         <Fact>
         Public Async Function TestWhenTrueIsUnknownAndWhenFalseIsTrue() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -240,7 +240,7 @@ end class")
 
         <Fact>
         Public Async Function TestWhenTrueIsUnknownAndWhenFalseIsFalse() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -267,7 +267,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -290,7 +290,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -313,7 +313,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -336,7 +336,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType4() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 

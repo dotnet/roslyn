@@ -523,7 +523,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal readonly struct CheckConstraintsArgs
         {
-            public readonly CSharpCompilation CurrentCompilation;
+#nullable enable
+            public readonly CSharpCompilation? CurrentCompilation;
+#nullable disable
             public readonly ConversionsBase Conversions;
             public readonly bool IncludeNullability;
             public readonly Location Location;
@@ -590,7 +592,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.Kind == SymbolKind.PointerType)
             {
-                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+#nullable enable
+                if (args.CurrentCompilation is not null)
+                {
+                    Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+                }
+#nullable disable
             }
             return false; // continue walking types
         }
@@ -710,8 +717,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CheckConstraints(this NamedTypeSymbol type, in CheckConstraintsArgs args)
         {
-            Debug.Assert(args.CurrentCompilation is object);
-
             if (!RequiresChecking(type))
             {
                 return true;
@@ -734,6 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnosticsBuilder.Free();
 
+#nullable enable
             // we only check for distinct interfaces when the type is not from source, as we
             // trust that types that are from source have already been checked by the compiler
             // to prevent this from happening in the first place.
@@ -742,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = false;
                 args.Diagnostics.Add(ErrorCode.ERR_BogusType, args.Location, type);
             }
-
+#nullable disable
             return result;
         }
 
@@ -796,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 // some implemented interfaces are related
 // will have to instantiate interfaces and check
 hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates<NamedTypeSymbol>(SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
         }
 
         public static bool CheckConstraints(
@@ -851,12 +857,12 @@ hasRelatedInterfaces:
         }
 
         public static bool CheckMethodConstraints(
-            MethodSymbol method,
-            in CheckConstraintsArgs args,
-            ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
-            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            BitVector skipParameters = default(BitVector))
+           MethodSymbol method,
+           in CheckConstraintsArgs args,
+           ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+           ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
+           ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+           BitVector skipParameters = default(BitVector))
         {
             return CheckConstraints(
                 method,
@@ -872,8 +878,9 @@ hasRelatedInterfaces:
 
         /// <summary>
         /// Check type parameter constraints for the containing type or method symbol.
+        /// For extension members, also checks constraints for the containing extension.
         /// </summary>
-        /// <param name="containingSymbol">The generic type or method.</param>
+        /// <param name="constructedContainingSymbol">The generic type or method.</param>
         /// <param name="args">Arguments for constraints checking.</param>
         /// <param name="substitution">The map from type parameters to type arguments.</param>
         /// <param name="typeParameters">Containing symbol type parameters.</param>
@@ -886,7 +893,7 @@ hasRelatedInterfaces:
         /// depends on a type parameter from this set, do not verify this type constraint.</param>
         /// <returns>True if the constraints were satisfied, false otherwise.</returns>
         public static bool CheckConstraints(
-            this Symbol containingSymbol,
+            this Symbol constructedContainingSymbol,
             in CheckConstraintsArgs args,
             TypeMap substitution,
             ImmutableArray<TypeParameterSymbol> typeParameters,
@@ -898,25 +905,39 @@ hasRelatedInterfaces:
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt = null)
         {
             Debug.Assert(typeParameters.Length == typeArguments.Length);
-            Debug.Assert(typeParameters.Length > 0);
             Debug.Assert(!args.Conversions.IncludeNullability || (nullabilityDiagnosticsBuilderOpt != null));
 
-            int n = typeParameters.Length;
             bool succeeded = true;
 
-            for (int i = 0; i < n; i++)
+            if (typeParameters.Length > 0 && substitution is not null)
             {
-                if (skipParameters[i])
-                {
-                    continue;
-                }
+                // The type parameters must be original definitions of type parameters from the containing symbol.
+                Debug.Assert(typeParameters.All(tp => ReferenceEquals(tp.ContainingSymbol, constructedContainingSymbol.OriginalDefinition)));
 
-                if (!CheckConstraints(containingSymbol, in args, substitution, typeParameters[i], typeArguments[i], diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt,
-                                      ref useSiteDiagnosticsBuilder,
-                                      ignoreTypeConstraintsDependentOnTypeParametersOpt))
+                int n = typeParameters.Length;
+
+                for (int i = 0; i < n; i++)
                 {
-                    succeeded = false;
+                    if (skipParameters[i])
+                    {
+                        continue;
+                    }
+
+                    if (!CheckConstraints(constructedContainingSymbol, in args, substitution, typeParameters[i], typeArguments[i], diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt,
+                                          ref useSiteDiagnosticsBuilder,
+                                          ignoreTypeConstraintsDependentOnTypeParametersOpt))
+                    {
+                        succeeded = false;
+                    }
                 }
+            }
+
+            if (constructedContainingSymbol.IsExtensionBlockMember() && constructedContainingSymbol.ContainingType is { Arity: > 0 } extension
+                && extension.TypeSubstitution is not null)
+            {
+                succeeded &= CheckConstraints(extension, in args,
+                    extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
+                    diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder);
             }
 
             return succeeded;
@@ -943,7 +964,8 @@ hasRelatedInterfaces:
             {
                 if (typeParameter.AllowsRefLikeType)
                 {
-                    if (args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
+#nullable enable
+                    if (args.CurrentCompilation is not null && args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
                     {
                         if (MessageID.IDS_FeatureAllowsRefStructConstraint.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
                         {
@@ -955,6 +977,7 @@ hasRelatedInterfaces:
                             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics))));
                         }
                     }
+#nullable disable
                 }
                 else
                 {
@@ -996,6 +1019,7 @@ hasRelatedInterfaces:
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics)
                 {
+#nullable enable
                     // When there is no compilation, we are being invoked through the API IMethodSymbol.ReduceExtensionMethod(...).
                     // In that case we consider the unmanaged constraint to be satisfied as if we were compiling with the latest
                     // language version.  The net effect of this is that in some IDE scenarios completion might consider an
@@ -1009,6 +1033,7 @@ hasRelatedInterfaces:
                             return false;
                         }
                     }
+#nullable disable
                 }
             }
 
@@ -1026,7 +1051,7 @@ hasRelatedInterfaces:
         // Any new locals added to this method are likely going to cause EndToEndTests.Constraints to overflow. Break new locals out into
         // another function.
         private static bool CheckConstraints(
-            Symbol containingSymbol,
+            Symbol constructedContainingSymbol,
             in CheckConstraintsArgs args,
             TypeMap substitution,
             TypeParameterSymbol typeParameter,
@@ -1039,14 +1064,14 @@ hasRelatedInterfaces:
             Debug.Assert(substitution != null);
 
             // The type parameters must be original definitions of type parameters from the containing symbol.
-            Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition));
+            Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, constructedContainingSymbol.OriginalDefinition));
 
             if (typeArgument.Type.IsErrorType())
             {
                 return true;
             }
 
-            if (!CheckBasicConstraints(containingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder))
+            if (!CheckBasicConstraints(constructedContainingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder))
             {
                 return false;
             }
@@ -1072,7 +1097,7 @@ hasRelatedInterfaces:
 
             foreach (var constraintType in constraintTypes)
             {
-                CheckConstraintType(containingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteInfo, constraintType, ref hasError);
+                CheckConstraintType(constructedContainingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteInfo, constraintType, ref hasError);
             }
             constraintTypes.Free();
 
@@ -1082,7 +1107,7 @@ hasRelatedInterfaces:
             }
 
             // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(containingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
+            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
             {
                 return false;
             }
@@ -1188,9 +1213,11 @@ hasRelatedInterfaces:
             }
             else
             {
+#nullable enable
                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(args.CurrentCompilation, constraintType.Type, typeArgument.Type);
                 constraintTypeErrorArgument = distinguisher.First;
                 typeArgumentErrorArgument = distinguisher.Second;
+#nullable disable
             }
 
             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), constraintTypeErrorArgument, typeParameter, typeArgumentErrorArgument))));
@@ -1570,7 +1597,7 @@ hasRelatedInterfaces:
 
         public static bool RequiresChecking(MethodSymbol method)
         {
-            if (!method.IsGenericMethod)
+            if (method.GetMemberArityIncludingExtension() == 0)
             {
                 return false;
             }
@@ -1586,7 +1613,8 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            Debug.Assert(method.ConstructedFrom != method);
+            Debug.Assert(method.ConstructedFrom != method
+                || (method.IsExtensionBlockMember() && !method.ContainingType.IsDefinition));
             return true;
         }
 

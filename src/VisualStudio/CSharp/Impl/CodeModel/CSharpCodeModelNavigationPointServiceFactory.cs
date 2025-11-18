@@ -12,21 +12,20 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
-{
-    [ExportLanguageServiceFactory(typeof(ICodeModelNavigationPointService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeModelNavigationPointServiceFactory()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            // This interface is implemented by the ICodeModelService as well, so just grab the other one and return it
-            return provider.GetService<ICodeModelService>();
-        }
+[ExportLanguageServiceFactory(typeof(ICodeModelNavigationPointService), LanguageNames.CSharp), Shared]
+internal sealed partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCodeModelNavigationPointServiceFactory()
+    {
+    }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices provider)
+    {
+        // This interface is implemented by the ICodeModelService as well, so just grab the other one and return it
+        return provider.GetService<ICodeModelService>();
     }
 }

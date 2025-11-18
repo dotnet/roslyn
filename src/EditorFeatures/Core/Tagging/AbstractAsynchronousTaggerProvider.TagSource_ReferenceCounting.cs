@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 

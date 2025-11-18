@@ -4,6 +4,8 @@
   <PropertyGroup>
     <_RoslynTargetDirectoryName>net472</_RoslynTargetDirectoryName>   
     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
+    <RoslynCompilerType>Custom</RoslynCompilerType>
+    <RoslynAssembliesPath Condition="'$(RoslynAssembliesPath)' == ''">$(_RoslynTasksDirectory)</RoslynAssembliesPath>
     <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">true</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>

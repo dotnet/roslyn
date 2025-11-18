@@ -37,7 +37,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
     {
         var rule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-            property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
+            property.IsStatic ? Modifiers.Static : Modifiers.None,
             Accessibility.Private,
             cancellationToken).ConfigureAwait(false);
 
@@ -132,16 +132,19 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
             return propertyDeclaration;
 
         // if there is a get accessors only, we can move the expression body to the property
-        if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
-            propertyDeclaration.AccessorList.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
-        {
-            var getAccessor = propertyDeclaration.AccessorList.Accessors[0];
-            if (getAccessor.ExpressionBody != null)
+        if (propertyDeclaration is
             {
-                return propertyDeclaration.WithExpressionBody(getAccessor.ExpressionBody)
-                    .WithSemicolonToken(getAccessor.SemicolonToken)
-                    .WithAccessorList(null);
-            }
+                Initializer: null,
+                AccessorList.Accessors: [AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration)
+                {
+                    ExpressionBody: { } expressionBody,
+                    SemicolonToken: var semicolonToken
+                }],
+            })
+        {
+            return propertyDeclaration.WithExpressionBody(expressionBody)
+                .WithSemicolonToken(semicolonToken)
+                .WithAccessorList(null);
         }
 
         return propertyDeclaration;

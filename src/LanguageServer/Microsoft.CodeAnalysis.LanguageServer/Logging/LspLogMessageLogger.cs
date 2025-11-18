@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
@@ -14,23 +13,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 /// Implements an ILogger that seamlessly switches from a fallback logger
 /// to LSP log messages as soon as the server initializes.
 /// </summary>
-internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration) : ILogger
+internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration, IExternalScopeProvider? externalScopeProvider) : ILogger
 {
     private readonly Lazy<ILogger> _fallbackLogger = new(() => fallbackLoggerFactory.CreateLogger(categoryName));
+    private readonly IExternalScopeProvider? _externalScopeProvider = externalScopeProvider;
 
-    public IDisposable BeginScope<TState>(TState state) where TState : notnull
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsEnabled(LogLevel logLevel)
-    {
-        return serverConfiguration.LogConfiguration.GetLogLevel() <= logLevel;
-    }
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _externalScopeProvider?.Push(state);
+    public bool IsEnabled(LogLevel logLevel) => serverConfiguration.LogConfiguration.GetLogLevel() <= logLevel;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        if (!IsEnabled(logLevel))
+        if (!IsEnabled(logLevel) || logLevel == LogLevel.None)
         {
             return;
         }
@@ -56,22 +49,44 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
                 message += " " + exceptionString;
         }
 
-        if (message != null && logLevel != LogLevel.None)
+        string messagePrefix = "";
+
+        var logMethod = Methods.WindowLogMessageName;
+
+        _externalScopeProvider?.ForEachScope((scope, _) =>
         {
-            message = $"[{categoryName}] {message}";
-            try
+            if (scope is LspLoggingScope lspLoggingScope)
             {
-                var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
+                if (lspLoggingScope.Context is not null)
                 {
-                    Message = message,
-                    MessageType = LogLevelToMessageType(logLevel),
-                }, CancellationToken.None);
+                    messagePrefix += $"[{lspLoggingScope.Context}] ";
+                }
+
+                if (lspLoggingScope.Language is not null)
+                {
+                    logMethod = lspLoggingScope.Language switch
+                    {
+                        LanguageInfoProvider.RazorLanguageName => "razor/log",
+                        _ => logMethod,
+                    };
+                }
             }
-            catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+        }, state);
+
+        messagePrefix += $"[{categoryName}]";
+
+        try
+        {
+            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(logMethod, new LogMessageParams()
             {
-                // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a log notification
-                // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
-            }
+                Message = $"{messagePrefix} {message}",
+                MessageType = LogLevelToMessageType(logLevel),
+            }, CancellationToken.None);
+        }
+        catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+        {
+            // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a log notification
+            // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
         }
     }
 
@@ -79,7 +94,8 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
     {
         return logLevel switch
         {
-            LogLevel.Trace => MessageType.Log,
+            // Count "Trace" as "Debug", as right now the VS Code LSP client doesn't have a concept of "trace", and using a generic "Log" puts no severity at all which is even more confusing.
+            LogLevel.Trace => MessageType.Debug,
             LogLevel.Debug => MessageType.Debug,
             LogLevel.Information => MessageType.Info,
             LogLevel.Warning => MessageType.Warning,

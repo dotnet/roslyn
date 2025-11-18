@@ -209,6 +209,12 @@ internal static class IDEDiagnosticIds
 
     public const string UseImplicitlyTypedLambdaExpressionDiagnosticId = "IDE0350";
 
+    public const string SimplifyPropertyAccessorDiagnosticId = "IDE0360";
+
+    public const string RemoveUnnecessaryNullableWarningSuppression = "IDE0370";
+
+    public const string RemoveUnnecessaryUnsafeModifier = "IDE0380";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -230,4 +236,7 @@ internal static class IDEDiagnosticIds
     public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
     public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
+
+    // 3000 range for copilot features.
+    public const string CopilotImplementNotImplementedExceptionDiagnosticId = "IDE3000";
 }

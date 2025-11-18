@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
-internal class ReiteratedVersionSnapshotTracker
+internal sealed class ReiteratedVersionSnapshotTracker
 {
     /// <summary>
     /// tracking text buffer

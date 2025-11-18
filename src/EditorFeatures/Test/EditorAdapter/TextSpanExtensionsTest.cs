@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter;
 
 [UseExportProvider]
-public class TextSpanExtensionsTest
+public sealed class TextSpanExtensionsTest
 {
     [Fact]
     public void ConvertToSpan()

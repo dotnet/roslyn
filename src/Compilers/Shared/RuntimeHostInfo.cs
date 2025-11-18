@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.IO.Pipes;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,37 +19,47 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsDesktopRuntime => !IsCoreClrRuntime;
 
-        /// <summary>
-        /// This gets information about invoking a tool on the current runtime. This will attempt to 
-        /// execute a tool as an EXE when on desktop and using dotnet when on CoreClr.
-        /// </summary>
-        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetProcessInfo(string toolFilePathWithoutExtension, string commandLineArguments)
-        {
+        internal static bool IsCoreClrRuntime =>
 #if NET
-            // First check for an app host file and return that if it's available.
-            var appHostSuffix = PlatformInformation.IsWindows ? ".exe" : "";
-            var appFilePath = $"{toolFilePathWithoutExtension}{appHostSuffix}";
-            if (File.Exists(appFilePath))
+            true;
+#else
+            false;
+#endif
+
+        internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
+        internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
+
+        /// <summary>
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
+        /// </summary>
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger)
+        {
+            var dotNetPath = GetDotNetPathOrDefault();
+
+            // Resolve symlinks to dotnet
+            try
             {
-                return (appFilePath, commandLineArguments, appFilePath);
+                var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+                if (resolvedPath != null)
+                {
+                    dotNetPath = resolvedPath.FullName;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex]);
+                return null;
             }
 
-            // Fallback to the dotnet exec path if there is no apphost
-            var toolFilePath = $"{toolFilePathWithoutExtension}.dll";
-            var dotnetFilePath = GetDotNetPathOrDefault();
-            commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-            return (dotnetFilePath, commandLineArguments, toolFilePath);
-#else
-            var toolFilePath = $"{toolFilePathWithoutExtension}.exe";
-            return (toolFilePath, commandLineArguments, toolFilePath);
-#endif
+            var directoryName = Path.GetDirectoryName(dotNetPath);
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                return null;
+            }
+
+            return directoryName;
         }
-
-#if NET
-
-        internal static bool IsCoreClrRuntime => true;
-
-        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
         /// <summary>
         /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
@@ -58,14 +68,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string GetDotNetPathOrDefault()
         {
-            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is string pathToDotNet)
+            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
                 return pathToDotNet;
             }
 
+            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
+            {
+                return pathToDotNetExperimental;
+            }
+
             var (fileName, sep) = PlatformInformation.IsWindows
-                ? ("dotnet.exe", ';')
-                : ("dotnet", ':');
+                ? ("dotnet.exe", new char[] { ';' })
+                : ("dotnet", new char[] { ':' });
 
             var path = Environment.GetEnvironmentVariable("PATH") ?? "";
             foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
@@ -87,10 +102,7 @@ namespace Microsoft.CodeAnalysis
             return fileName;
         }
 
-#else
-
-        internal static bool IsCoreClrRuntime => false;
-
-#endif
+        internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
+            $@"exec ""{toolFilePath}"" {commandLineArguments}";
     }
 }

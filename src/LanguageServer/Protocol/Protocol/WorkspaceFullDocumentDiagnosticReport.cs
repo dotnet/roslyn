@@ -4,7 +4,6 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
-using System;
 using System.Text.Json.Serialization;
 
 /// <summary>
@@ -15,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
 [Kind(DocumentDiagnosticReportKind.Full)]
-internal class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
+internal sealed class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the URI associated with this diagnostic report.
@@ -23,7 +22,7 @@ internal class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticRep
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri
+    public DocumentUri Uri
     {
         get;
         set;

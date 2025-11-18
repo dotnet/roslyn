@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -96,7 +95,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
 
             result.Add(new InlineHint(
                 span, taggedText, textChange, ranking: InlineHintsConstants.TypeRanking,
-                InlineHintHelpers.GetDescriptionFunction(spanStart, type.GetSymbolKey(cancellationToken), displayOptions)));
+                InlineHintHelpers.GetDescriptionFunction(spanStart, type, displayOptions)));
         }
 
         return result.ToImmutableAndClear();

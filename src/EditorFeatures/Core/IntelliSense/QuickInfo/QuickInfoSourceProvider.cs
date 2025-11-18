@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 [Name("RoslynQuickInfoProvider")]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class QuickInfoSourceProvider(
+internal sealed partial class QuickInfoSourceProvider(
     IThreadingContext threadingContext,
     IUIThreadOperationExecutor operationExecutor,
     IAsynchronousOperationListenerProvider listenerProvider,

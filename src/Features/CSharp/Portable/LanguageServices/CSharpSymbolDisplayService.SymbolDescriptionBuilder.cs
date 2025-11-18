@@ -249,16 +249,17 @@ internal sealed partial class CSharpSymbolDisplayService
             return [];
         }
 
-        protected override void AddCaptures(ISymbol symbol)
+        protected override void AddCaptures(SemanticModel semanticModel, ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
         {
-            if (symbol is IMethodSymbol method && method.ContainingSymbol.IsKind(SymbolKind.Method))
+            if (symbol is IMethodSymbol { ContainingSymbol.Kind: SymbolKind.Method } method)
             {
-                var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-                if (syntax.IsKind(SyntaxKind.LocalFunctionStatement) || syntax is AnonymousFunctionExpressionSyntax)
-                {
-                    AddCaptures(syntax);
-                }
+                var syntax = method.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == semanticModel.SyntaxTree)?.GetSyntax();
+                if (syntax is LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
+                    AddCaptures(semanticModel, syntax, typeDisplayInfo);
             }
         }
+
+        protected override string GetCommentText(SyntaxTrivia trivia)
+            => trivia.ToFullString()["//".Length..];
     }
 }

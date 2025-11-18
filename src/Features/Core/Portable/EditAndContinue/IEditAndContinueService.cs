@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,13 +19,12 @@ internal interface IEditAndContinueWorkspaceService : IWorkspaceService
 internal interface IEditAndContinueService
 {
     ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
-    ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, IImmutableSet<ProjectId> runningProjects, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
+    ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
 
     void CommitSolutionUpdate(DebuggingSessionId sessionId);
     void DiscardSolutionUpdate(DebuggingSessionId sessionId);
-    void UpdateBaselines(DebuggingSessionId sessionId, Solution solution, ImmutableArray<ProjectId> rebuiltProjects);
 
-    ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
+    DebuggingSessionId StartDebuggingSession(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics);
     void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState);
     void EndDebuggingSession(DebuggingSessionId sessionId);
 

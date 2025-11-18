@@ -27,8 +27,8 @@ internal sealed class DocumentationCommentCommandHandler(
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
     CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
-            : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
-                editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager)
+        : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
+            editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager)
 {
     protected override string ExteriorTriviaText => "///";
 }

@@ -2,15 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.BuildTasks;
-using Xunit;
-using Moq;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {

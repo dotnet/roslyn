@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer
         Inherits AbstractAddRequiredParenthesesDiagnosticAnalyzer(Of
             ExpressionSyntax, BinaryExpressionSyntax, SyntaxKind)
 
@@ -62,6 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
 
         Protected Overrides Function IsBinaryLike(node As ExpressionSyntax) As Boolean
             Return TypeOf node Is BinaryExpressionSyntax
+        End Function
+
+        Protected Overrides Function IsAsExpression(node As BinaryExpressionSyntax) As Boolean
+            ' VB does not have an 'as' node that is a binary-expression like C# does. Instead, it is TryCast(a, b)
+            ' which is not a binary expression and never needs extra parentheses.
+            Return False
         End Function
     End Class
 End Namespace

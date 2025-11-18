@@ -1,0 +1,497 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../RoslynDiagnosticsAnalyzersResources.resx">
+    <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="translated">Adicionar o atributo 'Shared'</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="translated">Aplicar a característica ao tipo contentor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">Remover o sufixo 'Opt'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">Evite o sufixo 'Opt' em um código habilitado para anulável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">Evite o sufixo 'Opt' em um código habilitado para anulável</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">Evite o sufixo 'Opt'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorDescription">
+        <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
+        <target state="translated">Esta é uma refatoração que simplifica o processo de criação de acessadores de teste usando o padrão 'TestAccessor'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorMessage">
+        <source>Create test accessor</source>
+        <target state="translated">Criar acessador de teste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorTitle">
+        <source>Create test accessor</source>
+        <target state="translated">Criar acessador de teste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
+        <source>Defaultable types should have defaultable fields.</source>
+        <target state="translated">Os tipos usados como padrão devem ter campos usados como padrão.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
+        <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
+        <target state="translated">O tipo usado como padrão '{0}' tem um campo não usado como padrão ou a propriedade automática '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
+        <source>Defaultable types should have defaultable fields</source>
+        <target state="translated">Os tipos usados como padrão devem ter campos usados como padrão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorDescription">
+        <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="translated">'GetTestAccessor()' é um método auxiliar reservado para testes. O código de produção não deve chamar este membro.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorMessage">
+        <source>Do not call 'GetTestAccessor()' from production code</source>
+        <target state="translated">Não chamar o 'GetTestAccessor()' no código de produção</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorTitle">
+        <source>Do not call 'GetTestAccessor()'</source>
+        <target state="translated">Não chamar o 'GetTestAccessor()'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
+        <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
+        <target state="translated">Os parâmetros do construtor primário não devem ser capturados implicitamente. Atribua-os manualmente aos campos no início do tipo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
+        <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
+        <target state="translated">O parâmetro do construtor primário '{0}' não deve ser capturado implicitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
+        <source>Do not capture primary constructor parameters</source>
+        <target state="translated">Não capturar parâmetros de construtor primário</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
+        <source>Avoid nullable wrapper.</source>
+        <target state="translated">Evite o wrapper anulável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
+        <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
+        <target state="translated">Não encapsular o tipo não copiável '{0}' na operação '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueDescription">
+        <source>Do not copy value.</source>
+        <target state="translated">Não copie o valor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueMessage">
+        <source>Do not copy value</source>
+        <target state="translated">Não copiar o valor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">Não é possível atribuir um valor de uma referência a um tipo não copiável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Não é possível atribuir um valor de uma referência ao tipo não copiável '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="translated">As propriedades automáticas sempre copiam valores, portanto, elas não podem ser declarados com tipos não copiáveis.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">A propriedade automática '{1}' não pode ter o tipo não copiável '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoBoxingDescription">
+        <source>Do not box non-copyable value types.</source>
+        <target state="translated">Não demarque tipos de valor não copiáveis.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoBoxingMessage">
+        <source>Do not box non-copyable type '{0}'</source>
+        <target state="translated">Não demarcar o tipo não copiável '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="translated">Um campo com um tipo não copiável não pode ser membro de um tipo copiável. O tipo contentor pode ser convertido em não copiável ou em um tipo de referência ou o campo pode ser removido ou convertido em um tipo copiável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">O campo copiável '{1}' não pode ter o tipo não copiável '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">Não é possível retornar um valor de uma referência a um tipo não copiável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Não é possível retornar um valor de uma referência ao tipo não copiável '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoUnboxingDescription">
+        <source>Do not unbox non-copyable value types.</source>
+        <target state="translated">Não converta tipos de valor não copiáveis.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoUnboxingMessage">
+        <source>Do not unbox non-copyable type '{0}'</source>
+        <target state="translated">Não converter o tipo não copiável '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueTitle">
+        <source>Do not copy value</source>
+        <target state="translated">Não copiar o valor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
+        <source>Unsupported use of non-copyable type.</source>
+        <target state="translated">Não há suporte para o uso do tipo não copiável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
+        <source>Unsupported use of non-copyable type '{0}' in '{1}' operation</source>
+        <target state="translated">Não há suporte para o uso do tipo não copiável '{0}' na operação '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
+        <source>Use 'RoslynDebug.Assert'.</source>
+        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
+        <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
+        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
+        <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
+        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
+        <source>Do not use interpolated strings with 'Debug.Assert'</source>
+        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
+        <source>Explicitly define the importing constructor</source>
+        <target state="translated">Definir explicitamente o construtor de importação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
+        <source>Add 'ImportingConstructor' attribute</source>
+        <target state="translated">Adicionar atributo 'ImportingConstructor'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
+        <source>Make constructor public</source>
+        <target state="translated">Tornar o construtor público</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
+        <target state="translated">As partes exportadas devem ser marcadas com 'ImportingConstructorAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
+        <source>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</source>
+        <target state="translated">'{0}' é exportado pelo MEF e deve ter um único construtor de importação público da forma correta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
+        <source>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</source>
+        <target state="translated">As peças exportadas devem ter um construtor público marcado com 'ImportingConstructorAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingDescription">
+        <source>Expose member for testing.</source>
+        <target state="translated">Exponha o membro para teste.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingMessage">
+        <source>Expose member for testing</source>
+        <target state="translated">Expor membro para teste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingTitle">
+        <source>Expose member for testing</source>
+        <target state="translated">Expor membro para teste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixNumberedComments">
+        <source>Fix numbered comments</source>
+        <target state="translated">Corrigir comentários numerados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="translated">Defina 'ObsoleteAttribute.Error' como 'true'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
+        <source>Use correct 'ObsoleteAttribute' message.</source>
+        <target state="translated">Use a mensagem 'ObsoleteAttribute' correta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
+        <source>Add 'ObsoleteAttribute'</source>
+        <target state="translated">Adicionar 'ObsoleteAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
+        <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
+        <target state="translated">Configure 'ObsoleteAttribute' para o construtor de importação.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="translated">Defina 'ObsoleteAttribute.Error' como 'true'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
+        <target state="translated">O construtor de importação deve ser marcado com 'ObsoleteAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="translated">O construtor de importação deve ser marcado com 'ObsoleteAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="translated">O construtor de importação deve ser marcado com 'ObsoleteAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">Colocar a instrução na linha seguinte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">A propriedade 'Type.FullName' nunca é nula quando a sintaxe 'typeof(T).FullName' é usada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralCodeFix">
+        <source>Use 'null' instead of 'default'</source>
+        <target state="translated">Use 'null' em vez de 'default'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralDescription">
+        <source>Use 'null' instead of 'default' for nullable types.</source>
+        <target state="translated">Use 'null' em vez de 'default' para tipos que permitem valor nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralMessage">
+        <source>Use 'null' instead of 'default' for nullable types</source>
+        <target state="translated">Use 'null' em vez de 'default' para tipos que permitem valor nulo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralTitle">
+        <source>Prefer null literal</source>
+        <target state="translated">Preferir literal nulo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RelaxTestNamingSuppressorJustification">
+        <source>Asynchronous test methods do not require the 'Async' suffix</source>
+        <target state="translated">Os métodos de teste assíncronos não exigem o sufixo 'Async'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run iterations">
+        <source>Run iterations</source>
+        <target state="translated">Executar iterações</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
+        <source>Apply 'PartNotDiscoverableAttribute'</source>
+        <target state="translated">Aplicar 'PartNotDiscoverableAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
+        <source>Test exports should not be discoverable.</source>
+        <target state="translated">As exportações de teste não devem ser detectáveis.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
+        <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
+        <target state="translated">'{0}' é exportado para fins de teste e deve ser marcado como 'PartNotDiscoverableAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
+        <source>Test exports should not be discoverable</source>
+        <target state="translated">As exportações de teste não devem ser detectáveis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="translated">Usar 'SpecializedCollections.EmptyEnumerable()'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/D</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="translated">Usar 'SpecializedCollections.EmptyEnumerable()'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="translated">Usar 'SpecializedCollections.SingletonEnumerable()'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/D</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="translated">Usar 'SpecializedCollections.SingletonEnumerable()'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="translated">Invoque a propriedade correta para assegurar o uso correto de diagnósticos do site</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/D</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="translated">Invoque a propriedade correta para assegurar o uso correto de diagnósticos do site</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="translated">Não use um 'CodeAction.Create' genérico para criar o 'CodeAction'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/D</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="translated">Não use um 'CodeAction.Create' genérico para criar o 'CodeAction'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="translated">Substitua 'Object.Equals(object)' ao implementar 'IEquatable'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/D</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="translated">Substitua 'Object.Equals(object)' ao implementar 'IEquatable'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="translated">'SymbolDeclaredEvent' precisa ser gerado para símbolos de origem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
+        <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
+        <target state="translated">A fila de eventos de compilação deve gerar eventos declarados por símbolo para todos os símbolos de origem declarados. Portanto, cada tipo de símbolo de origem ou um de seus tipos base deve gerar um evento declarado por símbolo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="translated">'SymbolDeclaredEvent' precisa ser gerado para símbolos de origem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
+        <source>Do not mix attributes from different versions of MEF</source>
+        <target state="translated">Não combinar atributos de versões diferentes de MEF</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
+        <source>Do not mix attributes from different versions of MEF.</source>
+        <target state="translated">Não combine os atributos de versões diferentes do MEF.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
+        <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
+        <target state="translated">O atributo '{0}' vem de uma versão diferente de MEF do que o atributo de exportação em '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
+        <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
+        <target state="translated">As partes exportadas com MEFv2 precisam ser marcadas como 'SharedAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
+        <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
+        <target state="translated">A parte exportada com MEFv2 precisa ser marcada com 'SharedAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
+        <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
+        <target state="translated">'{0}' é exportado com MEFv2 e, portanto, precisa ser marcado com 'SharedAttribute'</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Renamer;
 
-public class CSharpRenamerTests : RenamerTests
+public sealed class CSharpRenamerTests : RenamerTests
 {
     protected override string LanguageName => LanguageNames.CSharp;
 
@@ -149,8 +149,8 @@ public class CSharpRenamerTests : RenamerTests
             }
         }
         """,
-    documentPath: @"Test\Path\Document.cs",
-    documentName: @"Document.cs");
+        documentPath: @"Test\Path\Document.cs",
+        documentName: @"Document.cs");
 
     [Fact]
     public Task CSharp_RenameDocument_RenameNamespace()
@@ -171,9 +171,9 @@ public class CSharpRenamerTests : RenamerTests
             }
         }
         """,
-    documentPath: @"Test\Path\Document.cs",
-    documentName: @"Document.cs",
-    newDocumentPath: @"Test\Path\After\Test\Document.cs");
+        documentPath: @"Test\Path\Document.cs",
+        documentName: @"Document.cs",
+        newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
     [Fact]
     public Task CSharp_RenameDocument_RenameMultipleNamespaces()
@@ -208,9 +208,9 @@ public class CSharpRenamerTests : RenamerTests
            }
        }
        """,
-   documentPath: @"Test\Path\Document.cs",
-   documentName: @"Document.cs",
-   newDocumentPath: @"Test\Path\After\Test\Document.cs");
+       documentPath: @"Test\Path\Document.cs",
+       documentName: @"Document.cs",
+       newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
     [Fact]
     public Task CSharp_RenameDocument_RenameMultipleNamespaces2()
@@ -259,9 +259,9 @@ public class CSharpRenamerTests : RenamerTests
            }
        }
        """,
-   documentPath: @"Test\Path\Document.cs",
-   documentName: @"Document.cs",
-   newDocumentPath: @"Test\Path\After\Test\Document.cs");
+       documentPath: @"Test\Path\Document.cs",
+       documentName: @"Document.cs",
+       newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
     [Fact]
     public Task CSharp_RenameDocument_RenameMultipleNamespaces3()
@@ -310,9 +310,9 @@ public class CSharpRenamerTests : RenamerTests
            }
        }
        """,
-   documentPath: @"Test\Path\Document.cs",
-   documentName: @"Document.cs",
-   newDocumentPath: @"Test\Path\After\Test\Document.cs");
+       documentPath: @"Test\Path\Document.cs",
+       documentName: @"Document.cs",
+       newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
     [Fact]
     public Task CSharp_RenameDocument_RenameMultipleNamespaces_Nested()
@@ -376,9 +376,9 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
             }
         }
         """,
-    documentPath: @"Test\Path\Document.cs",
-    documentName: @"Document.cs",
-    newDocumentPath: @"Test\Document.cs");
+        documentPath: @"Test\Path\Document.cs",
+        documentName: @"Document.cs",
+        newDocumentPath: @"Test\Document.cs");
 
     [Fact]
     public Task CSharp_RenameDocument_RenameNamespaceAndClass()
@@ -399,21 +399,15 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
             }
         }
         """,
-    documentPath: @"Test\Path\C2.cs",
-    documentName: @"C.cs",
-    newDocumentName: @"C2",
-    newDocumentPath: @"Test\C2.cs");
+        documentPath: @"Test\Path\C2.cs",
+        documentName: @"C.cs",
+        newDocumentName: @"C2",
+        newDocumentPath: @"Test\C2.cs");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46580")]
     public Task CSharp_RenameDocument_MappedDocumentHasNoResults()
-    {
-        var documentName = "Component1.razor";
-        var documentText =
-            """
+        => TestRenameMappedFile("""
             <h3>Component1</h3>
             @code {}
-            """;
-
-        return TestRenameMappedFile(documentText, documentName, newDocumentName: "MyComponent.razor");
-    }
+            """, "Component1.razor", newDocumentName: "MyComponent.razor");
 }

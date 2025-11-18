@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType;
@@ -783,7 +782,7 @@ internal sealed class CSharpGenerateTypeService() :
         return CodeGenerationSymbolFactory.CreatePropertySymbol(
             attributes: [],
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             explicitInterfaceImplementations: default,
             name: propertyName.Identifier.ValueText,
             type: propertyType,

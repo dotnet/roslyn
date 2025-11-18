@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
@@ -31,45 +32,45 @@ namespace BuildValidator
         {
             System.Diagnostics.Trace.Listeners.Clear();
 
-            var assembliesPath = new CliOption<string[]>("--assembliesPath")
+            var assembliesPath = new Option<string[]>("--assembliesPath")
             {
                 Description = BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times,
                 Required = true,
                 Arity = ArgumentArity.OneOrMore,
             };
-            var exclude = new CliOption<string[]>("--exclude")
+            var exclude = new Option<string[]>("--exclude")
             {
                 Description = BuildValidatorResources.Assemblies_to_be_excluded_substring_match,
                 Arity = ArgumentArity.ZeroOrMore,
             };
-            var source = new CliOption<string>("--sourcePath")
+            var source = new Option<string>("--sourcePath")
             {
                 Description = BuildValidatorResources.Path_to_sources_to_use_in_rebuild,
                 Required = true,
             };
-            var referencesPath = new CliOption<string[]>("--referencesPath")
+            var referencesPath = new Option<string[]>("--referencesPath")
             {
                 Description = BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times,
                 Arity = ArgumentArity.ZeroOrMore,
             };
-            var verbose = new CliOption<bool>("--verbose")
+            var verbose = new Option<bool>("--verbose")
             {
                 Description = BuildValidatorResources.Output_verbose_log_information
             };
-            var quiet = new CliOption<bool>("--quiet")
+            var quiet = new Option<bool>("--quiet")
             {
                 Description = BuildValidatorResources.Do_not_output_log_information_to_console
             };
-            var debug = new CliOption<bool>("--debug")
+            var debug = new Option<bool>("--debug")
             {
                 Description = BuildValidatorResources.Output_debug_info_when_rebuild_is_not_equal_to_the_original
             };
-            var debugPath = new CliOption<string?>("--debugPath")
+            var debugPath = new Option<string?>("--debugPath")
             {
                 Description = BuildValidatorResources.Path_to_output_debug_info
             };
 
-            var rootCommand = new CliRootCommand
+            var rootCommand = new RootCommand
             {
                 assembliesPath,
                 exclude,
@@ -373,7 +374,7 @@ namespace BuildValidator
             var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUtf8), new { documents = (Dictionary<string, string>?)null })?.documents
                 ?? throw new InvalidOperationException("Failed to deserialize source links.");
 
-            var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();
+            var sourceLinks = documents.SelectAsArray(makeSourceLink);
 
             if (sourceLinks.IsDefault)
             {

@@ -18,71 +18,70 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyCodeRefactoringProvider();
 
     private OptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
         };
 
     private OptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.None },
         };
 
     private OptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
         };
 
     private OptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.None },
         };
 
     [Fact]
-    public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccessorWantsExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUpdatePropertyIfPropertyWantsBlockAndAccessorWantsExpression()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -102,12 +101,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody2()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -121,12 +118,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -146,12 +141,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -171,12 +164,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -199,12 +190,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferExpressionBodyForPropertyIfPropertyAndAccessorBothPreferExpressions()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferExpressionBodyForPropertyIfPropertyAndAccessorBothPreferExpressions()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -224,12 +213,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -237,12 +224,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -257,12 +242,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -277,12 +260,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedForPropertyIfUserPrefersBlockPropertiesAndHasBlockProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedForPropertyIfUserPrefersBlockPropertiesAndHasBlockProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -297,12 +278,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferForPropertyIfPropertyPrefersBlockButCouldBecomeExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferForPropertyIfPropertyPrefersBlockButCouldBecomeExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -316,12 +295,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
-    public async Task TestAccessorListFormatting()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAccessorListFormatting()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -341,12 +318,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedWithSelectionInsideExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedWithSelectionInsideExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -369,12 +344,10 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedWithSelectionOutsideExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedWithSelectionOutsideExpressionBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -388,5 +361,4 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
-    }
 }

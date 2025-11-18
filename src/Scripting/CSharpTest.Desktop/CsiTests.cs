@@ -7,6 +7,7 @@
 extern alias PortableTestUtils;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting;
@@ -91,7 +92,7 @@ Environment.Exit(0)
             var dir = Temp.CreateDirectory();
             dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
 
-            var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("LIB", dir.Path) });
+            var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePair.Create("LIB", dir.Path) });
 
             // error CS0006: Metadata file 'C.dll' could not be found
             Assert.True(result.Errors.StartsWith("error CS0006", StringComparison.Ordinal));

@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// MEF will dispose of these services when the container is disposed of.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false), MetadataAttribute]
-internal class ExportStatelessLspServiceAttribute : AbstractExportLspServiceAttribute
-{
-    public ExportStatelessLspServiceAttribute(
-        Type serviceType, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
-        : base(serviceType, contractName, contractType: typeof(ILspService), isStateless: true, serverKind)
-    {
-    }
-}
+internal class ExportStatelessLspServiceAttribute(
+    Type serviceType, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
+    : AbstractExportLspServiceAttribute(
+        serviceType, contractName, contractType: typeof(ILspService), isStateless: true, serverKind);

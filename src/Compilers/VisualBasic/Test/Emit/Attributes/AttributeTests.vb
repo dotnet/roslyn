@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
-Imports System.Resources
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -3223,6 +3222,111 @@ Public Delegate Function D(<C>a As Integer, <C>ByRef b As Integer) As <B> Intege
 
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
+        End Sub
+
+        <Fact>
+        Public Sub MetadataUpdateDeletedAttribute_ErrorWhenManuallyApplied()
+            Dim source As String = "
+<Assembly: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+<Module: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+
+Namespace System.Runtime.CompilerServices
+    <MetadataUpdateDeleted> Class TestClass(Of T)
+        <MetadataUpdateDeleted> Sub New()
+            field = 1
+            RaiseEvent E1()
+        End Sub
+
+        <MetadataUpdateDeleted> Public field As Integer
+
+        <MetadataUpdateDeleted> Property P As Integer
+            <MetadataUpdateDeleted> Get
+                Return 1
+            End Get
+            <MetadataUpdateDeleted> Set
+            End Set
+        End Property
+
+        <MetadataUpdateDeleted> ReadOnly Property Item(a As Integer) As Integer
+            Get
+                Return a
+            End Get
+        End Property
+
+        <MetadataUpdateDeleted> Function M(<MetadataUpdateDeleted> x As Integer) _
+            As <MetadataUpdateDeleted> Integer
+            Return x
+        End Function
+
+        <MetadataUpdateDeleted> Public Event E1 As Action
+
+        <MetadataUpdateDeleted> Public Custom Event E2 As Action
+            <MetadataUpdateDeleted> AddHandler(value As Action) : End AddHandler
+            <MetadataUpdateDeleted> RemoveHandler(value As Action) : End RemoveHandler
+            <MetadataUpdateDeleted> RaiseEvent() : End RaiseEvent
+        End Event
+    End Class
+
+    <AttributeUsage(AttributeTargets.All, AllowMultiple:=False, Inherited:=False)>
+    Public NotInheritable Class MetadataUpdateDeletedAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+"
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+"BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+<Assembly: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+<Module: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+    <MetadataUpdateDeleted> Class TestClass(Of T)
+     ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Sub New()
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Public field As Integer
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Property P As Integer
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> Get
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> Set
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> ReadOnly Property Item(a As Integer) As Integer
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Function M(<MetadataUpdateDeleted> x As Integer) _
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Function M(<MetadataUpdateDeleted> x As Integer) _
+                                            ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            As <MetadataUpdateDeleted> Integer
+                ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Public Event E1 As Action
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Public Custom Event E2 As Action
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> AddHandler(value As Action) : End AddHandler
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> RemoveHandler(value As Action) : End RemoveHandler
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> RaiseEvent() : End RaiseEvent
+             ~~~~~~~~~~~~~~~~~~~~~
+")
         End Sub
 
 #End Region

@@ -6,21 +6,20 @@
 
 using System.Runtime.InteropServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
+
+[ComImport]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("3E596484-D2E4-461a-A876-254C4F097EBB")]
+internal interface IMethodXML
 {
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("3E596484-D2E4-461a-A876-254C4F097EBB")]
-    internal interface IMethodXML
-    {
-        [return: MarshalAs(UnmanagedType.BStr)]
-        string GetXML();
+    [return: MarshalAs(UnmanagedType.BStr)]
+    string GetXML();
 
-        [PreserveSig]
-        int SetXML([MarshalAs(UnmanagedType.BStr)] string bstrXML);
+    [PreserveSig]
+    int SetXML([MarshalAs(UnmanagedType.BStr)] string bstrXML);
 
-        /// <param name="ppUnk">Really a TextPoint.</param>
-        [PreserveSig]
-        int GetBodyPoint([MarshalAs(UnmanagedType.IUnknown)] out object ppUnk);
-    }
+    /// <param name="ppUnk">Really a TextPoint.</param>
+    [PreserveSig]
+    int GetBodyPoint([MarshalAs(UnmanagedType.IUnknown)] out object ppUnk);
 }

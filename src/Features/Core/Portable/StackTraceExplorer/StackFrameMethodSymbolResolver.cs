@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,8 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
 internal sealed class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
 {
-    public override Task<IMethodSymbol?> TryGetBestMatchAsync(Project project,
+    public override Task<IMethodSymbol?> TryGetBestMatchAsync(
+        Project project,
         INamedTypeSymbol type,
         StackFrameSimpleNameNode methodNode,
         StackFrameParameterList methodArguments,
@@ -24,8 +24,7 @@ internal sealed class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolR
         var candidateMethods = type
             .GetMembers()
             .OfType<IMethodSymbol>()
-            .Where(m => m.Name == methodName)
-            .ToImmutableArray();
+            .Where(m => m.Name == methodName);
 
         var match = TryGetBestMatch(candidateMethods, methodTypeArguments, methodArguments);
         return Task.FromResult(match);

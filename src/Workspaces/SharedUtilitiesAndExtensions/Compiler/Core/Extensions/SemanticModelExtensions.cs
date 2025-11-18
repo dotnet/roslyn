@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Humanizer;
 #endif
 
@@ -141,28 +141,23 @@ internal static partial class SemanticModelExtensions
 
         // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
         if (pluralize && TryGeneratePluralizedNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
-        {
             return typeArgumentParameterName;
-        }
 
         // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
         if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
-        {
             return Pluralize(type.CreateParameterName(capitalize));
-        }
+
+        if (type is IPointerTypeSymbol pointerType)
+            return GenerateNameFromType(semanticModel, pointerType.PointedAtType, syntaxFacts, capitalize);
+
+        if (type.IsNullable(out var underlyingType))
+            return GenerateNameFromType(semanticModel, underlyingType, syntaxFacts, capitalize);
 
         // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
         // plural forms
-        if (type.IsSpecialType() ||
-            type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
-            type.TypeKind == TypeKind.Pointer)
-        {
-            return capitalize ? DefaultBuiltInParameterName.ToUpper() : DefaultBuiltInParameterName;
-        }
-        else
-        {
-            return type.CreateParameterName(capitalize);
-        }
+        return type.IsSpecialType()
+            ? capitalize ? DefaultBuiltInParameterName.ToUpper() : DefaultBuiltInParameterName
+            : type.CreateParameterName(capitalize);
     }
 
     private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
@@ -204,7 +199,7 @@ internal static partial class SemanticModelExtensions
 
     public static string Pluralize(string word)
     {
-#if CODE_STYLE
+#if !WORKSPACE
         return word;
 #else
         return word.Pluralize();

@@ -109,7 +109,6 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--
@@ -481,7 +480,7 @@
     <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
 
-  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -496,11 +495,20 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
+
+    <!-- Used as an operand to bind TrueFalseOperandConversion -->
+    <Field Name="TrueFalseOperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case
+    If the node survives lowering, this property in it must be null.
+    -->
+    <Field Name="TrueFalseOperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
@@ -509,7 +517,7 @@
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
+  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -686,13 +694,19 @@
     <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
-  <Node Name="BoundAwaitableInfo" Base="BoundNode">
+  <Node Name="BoundAwaitableInfo" Base="BoundNode" HasValidate="true">
     <!-- Used to refer to the awaitable expression in GetAwaiter -->
     <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow" />
     <Field Name="IsDynamic" Type="bool"/>
     <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
     <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
     <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
+    <!-- Refers to the runtime async helper call we use for awaiting. Either this is an instance of a BoundCall of an AsyncHelpers.Await method, and 
+         GetAwaiter, IsCompleted, and GetResult are null, or this is an instance of a AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter BoundCall, and the other
+         fields are not null. -->
+    <Field Name="RuntimeAsyncAwaitCall" Type="BoundCall?" Null="allow"/>
+    <!-- Never null when RuntimeAsyncAwaitCall is not null -->
+    <Field Name="RuntimeAsyncAwaitCallPlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow"/>
   </Node>
 
   <Node Name="BoundAwaitExpression" Base="BoundExpression">
@@ -718,7 +732,7 @@
   <!-- Instrumentation info attached to BoundBlock -->
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
     <!-- Local variables with scope that cover the entire block including the instrumentation prologue and epilogue. -->
-    <Field Name="Locals" Type="OneOrMany&lt;LocalSymbol&gt;" Null="disallow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="disallow"/>
     <!-- Optional prologue emitted in front of any instructions of the block, so that it always executes. -->
     <Field Name="Prologue" Type="BoundStatement?" Null="allow"/>
     <!--
@@ -730,7 +744,7 @@
   
   <!-- Represents the raw metadata RowId value for a method definition.
        Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
-  <Node Name="BoundMethodDefIndex" Base="BoundExpression">
+  <Node Name="BoundMethodDefIndex" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Method" Type="MethodSymbol"/>
@@ -902,10 +916,6 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
-    <!--The set of method symbols from which this conversion's method was chosen.
-        Only kept in the tree if the conversion was an error and overload resolution
-        was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <!--
@@ -1037,7 +1047,7 @@
   -->
   <Node Name="BoundBlock" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="LocalFunctions" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     <Field Name="HasUnsafeModifier" Type="bool" Null="NotApplicable"/>
     
     <!-- Optional block-level instrumentation info -->
@@ -1121,7 +1131,8 @@
     void Foo() { }
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
-    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
+    <!-- Must be a LocalFunctionSymbol until the node reaches LocalRewriter -->
+    <Field Name="Symbol" Type="MethodSymbol"/>
     <Field Name="BlockBody" Type="BoundBlock?"/>
     <Field Name="ExpressionBody" Type="BoundBlock?"/>
   </Node>
@@ -1137,7 +1148,7 @@
     <Field Name="Flavor" Type="NoOpStatementFlavor"/>
   </Node>
 
-  <Node Name="BoundReturnStatement" Base="BoundStatement">
+  <Node Name="BoundReturnStatement" Base="BoundStatement" HasValidate="true">
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
     <!--
@@ -1165,11 +1176,11 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
@@ -1177,11 +1188,11 @@
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundSwitchLabel?"/>
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="BreakLabel" Type="LabelSymbol"/>
   </Node>
 
   <!-- Part of a lowered integral switch statement. This evaluates Value, and then branches
@@ -1219,8 +1230,8 @@
   </Node>
 
   <AbstractNode Name="BoundLoopStatement" Base="BoundStatement">
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-    <Field Name="ContinueLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="BreakLabel" Type="LabelSymbol"/>
+    <Field Name="ContinueLabel" Type="LabelSymbol"/>
   </AbstractNode>
 
   <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
@@ -1272,7 +1283,6 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
@@ -1811,7 +1821,7 @@
     <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCall" Base="BoundExpression">
+  <Node Name="BoundCall" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -1827,7 +1837,17 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
+
+    <!--
+    Result kind for the invocation. Never LookupResultKind.MemberGroup or LookupResultKind.StaticInstanceMismatch.
+    If the value is something other than LookupResultKind.Viable, then the node represents a bad invocation,
+    the consistency among information stored in other properties is not guaranteed, and the Method property might
+    be set to an ErrorMethodSymbol. A special care should be taken when dealing with such nodes. It is recommended
+    to treat them similar to BoundBadExpressions nodes, unless there is a good reason to have more complicated
+    error recovery. 
+    -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
     <!--The set of method symbols from which this call's method was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best method.-->
@@ -2287,8 +2307,9 @@
 
   <Node Name="BoundLambda" Base="BoundExpression">
     <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
+    <!-- Must be a LambdaSymbol until the node reaches LocalRewriter -->
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
-    <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
+    <Field Name="Symbol" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic&lt;AssemblySymbol&gt;"/>
@@ -2507,7 +2528,8 @@
            Left.InputType is the InputType 
            Right.InputType is the Left.NarrowedType 
   -->
-  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true">
+  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true" SkipInNullabilityRewriter="true">
+    <!-- When true, denotes an 'or' pattern. When false, denotes an 'and' pattern. -->
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>

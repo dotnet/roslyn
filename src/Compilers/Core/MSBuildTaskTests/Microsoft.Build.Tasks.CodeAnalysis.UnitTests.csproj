@@ -13,9 +13,21 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference" />
+    <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference" />
+    <ProjectReference Include="..\..\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
-    <ProjectReference Include="..\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
@@ -28,6 +40,8 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Basic.CompilerLog.Util" />
+    <PackageReference Include="MessagePack" VersionOverride="3.1.4" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
@@ -53,5 +67,21 @@
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragment>
+  </Target>
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CommandLineCompilerReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <_CommandLineCompilerReferenceOutputPath>@(CommandLineCompilerReference->'%(RootDir)%(Directory)*.*')</_CommandLineCompilerReferenceOutputPath>
+      <_LinkPrefix Condition="'$(TargetFramework)' != 'net472'">bincore\</_LinkPrefix>
+    </PropertyGroup>
+    <ItemGroup>
+      <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
+      <_CommandLineCompilerReferenceKey Include="@(_CommandLineCompilerReferenceContent->'%(Filename)%(Extension)')" Original="%(Identity)" KeepDuplicates="false" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(_CommandLineCompilerReferenceKey)">
+      <Output TaskParameter="Filtered" ItemName="_CommandLineCompilerReferenceDeduplicated" />
+    </RemoveDuplicates>
+    <ItemGroup>
+      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="$(_LinkPrefix)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 </Project>

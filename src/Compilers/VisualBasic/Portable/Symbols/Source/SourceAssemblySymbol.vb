@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -516,12 +517,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetNetModuleAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
             EnsureNetModuleAttributesAreBound()
             Return _lazyNetModuleAttributesBag
-        End Function
-
-        Private Function GetNetModuleAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Dim attributesBag = Me.GetNetModuleAttributesBag()
-            Debug.Assert(attributesBag.IsSealed)
-            Return attributesBag.Attributes
         End Function
 
         Friend Function GetNetModuleDecodedWellKnownAttributeData() As CommonAssemblyWellKnownAttributeData

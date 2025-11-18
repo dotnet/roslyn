@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-internal class CombinedProvider<T>(ImmutableArray<ISettingsProvider<T>> providers) : ISettingsProvider<T>
+internal sealed class CombinedProvider<T>(ImmutableArray<ISettingsProvider<T>> providers) : ISettingsProvider<T>
 {
     private readonly ImmutableArray<ISettingsProvider<T>> _providers = providers;
 
@@ -24,13 +26,11 @@ internal class CombinedProvider<T>(ImmutableArray<ISettingsProvider<T>> provider
 
     public ImmutableArray<T> GetCurrentDataSnapshot()
     {
-        var snapShot = ImmutableArray<T>.Empty;
+        using var _ = ArrayBuilder<T>.GetInstance(out var builder);
         foreach (var provider in _providers)
-        {
-            snapShot = snapShot.Concat(provider.GetCurrentDataSnapshot());
-        }
+            builder.AddRange(provider.GetCurrentDataSnapshot());
 
-        return snapShot;
+        return builder.ToImmutableAndClear();
     }
 
     public void RegisterViewModel(ISettingsEditorViewModel model)

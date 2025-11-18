@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -23,18 +24,14 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
 [ExportDeclarationNameRecommender(nameof(DeclarationNameRecommender)), Shared]
-internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecommender
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRecommender
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DeclarationNameRecommender()
-    { }
-
     public async Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
         CompletionContext completionContext,
         Document document,
@@ -71,9 +68,35 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         if (!IsValidType(nameInfo.Type))
             return default;
 
-        var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: []);
+        var compilation = semanticModel.Compilation;
+        var originalType = nameInfo.Type;
 
+        var (type, plural) = UnwrapType(originalType, compilation, wasPlural: false, seenTypes: []);
         var baseNames = NameGenerator.GetBaseNames(type, plural);
+
+        // Check if the original type is a Func<..., T> and add special suggestions
+        if (originalType is INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments: [.., var returnType] })
+        {
+            using var result = TemporaryArray<ImmutableArray<string>>.Empty;
+
+            // Add standalone suggestions
+            result.Add(["Factory"]);
+            result.Add(["Selector"]);
+
+            // Get names based on the original Func type itself (e.g., "func" for Func<T>)
+            result.AddRange(baseNames);
+
+            // Also unwrap the return type and get names from it
+            var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
+            var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
+
+            // Add return type base names with "Factory" suffix
+            foreach (var baseName in returnTypeBaseNames)
+                result.Add([.. baseName, "Factory"]);
+
+            return result.ToImmutableAndClear();
+        }
+
         return baseNames;
     }
 
@@ -217,27 +240,19 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
 
         foreach (var kind in declarationInfo.PossibleSymbolKinds)
         {
-            ProcessRules(rules, firstMatchOnly: true, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
-            ProcessRules(supplementaryRules, firstMatchOnly: false, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
+            ProcessRules(rules, firstMatchOnly: true, kind);
+            ProcessRules(supplementaryRules, firstMatchOnly: false, kind);
         }
 
-        static void ProcessRules(
+        void ProcessRules(
             ImmutableArray<NamingRule> rules,
             bool firstMatchOnly,
-            SymbolSpecification.SymbolKindOrTypeKind kind,
-            ImmutableArray<ImmutableArray<string>> baseNames,
-            NameDeclarationInfo declarationInfo,
-            CSharpSyntaxContext context,
-            ArrayBuilder<(string, Glyph)> result,
-            ISemanticFactsService semanticFactsService,
-            PooledHashSet<string> seenBaseNames,
-            PooledHashSet<string> seenUniqueNames,
-            CancellationToken cancellationToken)
+            SymbolSpecification.SymbolKindOrTypeKind kind)
         {
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)
             {
-                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
+                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers.Modifiers, declarationInfo.DeclaredAccessibility))
                 {
                     foreach (var baseName in baseNames)
                     {
@@ -254,9 +269,9 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
                                 context.TargetToken.GetRequiredParent(),
                                 container: null,
                                 baseName: name,
-                                filter: s => IsRelevantSymbolKind(s),
+                                filter: IsRelevantSymbolKind,
                                 usedNames: [],
-                                cancellationToken: cancellationToken);
+                                cancellationToken);
 
                             if (seenUniqueNames.Add(uniqueName.Text))
                             {
@@ -330,9 +345,5 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
     /// Only relevant if symbol could cause a conflict with a local variable.
     /// </summary>
     private static bool IsRelevantSymbolKind(ISymbol symbol)
-    {
-        return symbol.Kind is SymbolKind.Local or
-            SymbolKind.Parameter or
-            SymbolKind.RangeVariable;
-    }
+        => symbol.Kind is SymbolKind.Local or SymbolKind.Parameter or SymbolKind.RangeVariable;
 }

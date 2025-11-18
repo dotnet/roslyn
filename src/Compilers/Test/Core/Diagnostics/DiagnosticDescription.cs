@@ -433,9 +433,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_startPosition != null)
             {
                 sb.Append(".WithLocation(");
-                sb.Append(_startPosition.Value.Line + 1);
+                sb.Append((_startPosition.Value.Line + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 sb.Append(", ");
-                sb.Append(_startPosition.Value.Character + 1);
+                sb.Append((_startPosition.Value.Character + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 sb.Append(')');
             }
 
@@ -515,7 +515,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
-            var e = actual.GetEnumerator();
+            bool isNonEmpty = GetPrettyDiagnostics(assertText, actual, includeDiagnosticMessagesAsComments, indentDepth, includeDefaultSeverity, includeEffectiveSeverity);
+            if (isNonEmpty)
+            {
+                assertText.AppendLine();
+            }
+
+            assertText.AppendLine("Diff:");
+
+            var unmatchedExpectedText = ArrayBuilder<string>.GetInstance();
+            foreach (var d in unmatchedExpected)
+            {
+                unmatchedExpectedText.Add(GetDiagnosticDescription(d, indentDepth));
+            }
+
+            var unmatchedActualText = ArrayBuilder<string>.GetInstance();
+            IEnumerator<Diagnostic> e = unmatchedActual.GetEnumerator();
+            for (i = 0; e.MoveNext(); i++)
+            {
+                Diagnostic d = e.Current;
+                var diffDescription = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
+                unmatchedActualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
+            }
+
+            assertText.Append(DiffUtil.DiffReport(unmatchedExpectedText, unmatchedActualText, separator: Environment.NewLine));
+
+            unmatchedExpectedText.Free();
+            unmatchedActualText.Free();
+
+            expectedText.Free();
+
+            return assertText.ToString();
+        }
+
+        internal static bool GetPrettyDiagnostics(StringBuilder assertText, IEnumerable<Diagnostic> diagnostics, bool includeDiagnosticMessagesAsComments, int indentDepth, bool includeDefaultSeverity, bool includeEffectiveSeverity)
+        {
+            IEnumerator<Diagnostic> e = diagnostics.GetEnumerator();
+            int i = 0;
             for (i = 0; e.MoveNext(); i++)
             {
                 Diagnostic d = e.Current;
@@ -547,36 +583,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
                 assertText.Append(GetDiagnosticDescription(description, indentDepth));
             }
-            if (i > 0)
-            {
-                assertText.AppendLine();
-            }
 
-            assertText.AppendLine("Diff:");
-
-            var unmatchedExpectedText = ArrayBuilder<string>.GetInstance();
-            foreach (var d in unmatchedExpected)
-            {
-                unmatchedExpectedText.Add(GetDiagnosticDescription(d, indentDepth));
-            }
-
-            var unmatchedActualText = ArrayBuilder<string>.GetInstance();
-            e = unmatchedActual.GetEnumerator();
-            for (i = 0; e.MoveNext(); i++)
-            {
-                Diagnostic d = e.Current;
-                var diffDescription = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
-                unmatchedActualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
-            }
-
-            assertText.Append(DiffUtil.DiffReport(unmatchedExpectedText, unmatchedActualText, separator: Environment.NewLine));
-
-            unmatchedExpectedText.Free();
-            unmatchedActualText.Free();
-
-            expectedText.Free();
-
-            return assertText.ToString();
+            return i > 0;
         }
 
         private static IEnumerable<Diagnostic> Sort(IEnumerable<Diagnostic> diagnostics)

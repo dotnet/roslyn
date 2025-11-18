@@ -10,82 +10,82 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
+namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
+
+internal sealed class GlassTestsHotReloadService
 {
-    internal sealed class GlassTestsHotReloadService
+    private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
+       (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+
+    private readonly IManagedHotReloadService _debuggerService;
+
+    private readonly IEditAndContinueService _encService;
+    private DebuggingSessionId _sessionId;
+
+    public GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
     {
-        private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-           (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+        _debuggerService = debuggerService;
+    }
 
-        private readonly IManagedHotReloadService _debuggerService;
+#pragma warning disable IDE0060 // Remove unused parameter
+    public Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+#pragma warning restore IDE0060
+    {
+        var newSessionId = _encService.StartDebuggingSession(
+            solution,
+            new ManagedHotReloadServiceBridge(_debuggerService),
+            NullPdbMatchingSourceTextProvider.Instance,
+            reportDiagnostics: false);
 
-        private readonly IEditAndContinueService _encService;
-        private DebuggingSessionId _sessionId;
+        Contract.ThrowIfFalse(_sessionId == default, "Session already started");
+        _sessionId = newSessionId;
 
-        public GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
-        {
-            _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
-            _debuggerService = debuggerService;
-        }
+        return Task.CompletedTask;
+    }
 
-        public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(
-                solution,
-                new ManagedHotReloadServiceBridge(_debuggerService),
-                NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: true,
-                reportDiagnostics: false,
-                cancellationToken).ConfigureAwait(false);
+    private DebuggingSessionId GetSessionId()
+    {
+        var sessionId = _sessionId;
+        Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            Contract.ThrowIfFalse(_sessionId == default, "Session already started");
-            _sessionId = newSessionId;
-        }
+        return sessionId;
+    }
 
-        private DebuggingSessionId GetSessionId()
-        {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+    public void EnterBreakState()
+    {
+        _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: true);
+    }
 
-            return sessionId;
-        }
+    public void ExitBreakState()
+    {
+        _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: false);
+    }
 
-        public void EnterBreakState()
-        {
-            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: true);
-        }
+    public void OnCapabilitiesChanged()
+    {
+        _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: null);
+    }
 
-        public void ExitBreakState()
-        {
-            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: false);
-        }
+    public void CommitSolutionUpdate()
+    {
+        _encService.CommitSolutionUpdate(GetSessionId());
+    }
 
-        public void OnCapabilitiesChanged()
-        {
-            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: null);
-        }
+    public void DiscardSolutionUpdate()
+    {
+        _encService.DiscardSolutionUpdate(GetSessionId());
+    }
 
-        public void CommitSolutionUpdate()
-        {
-            _encService.CommitSolutionUpdate(GetSessionId());
-        }
+    public void EndDebuggingSession()
+    {
+        _encService.EndDebuggingSession(GetSessionId());
+        _sessionId = default;
+    }
 
-        public void DiscardSolutionUpdate()
-        {
-            _encService.DiscardSolutionUpdate(GetSessionId());
-        }
-
-        public void EndDebuggingSession()
-        {
-            _encService.EndDebuggingSession(GetSessionId());
-            _sessionId = default;
-        }
-
-        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: [], s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
-            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), [], []);
-        }
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+        return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), projectInstancesToRebuild: [], projectInstancesToRestart: []);
     }
 }

@@ -411,7 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
-                case ErrorCode.WRN_AsyncLacksAwaits:
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
@@ -566,11 +565,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.WRN_PartialMemberSignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
+                case ErrorCode.WRN_RedundantPattern:
                     return 1;
                 default:
                     return 0;
@@ -638,6 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
+                or ErrorCode.ERR_NonTaskMainCantBeAsync
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -830,6 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialWrongConstraints
                 or ErrorCode.ERR_NoImplicitConvCast
                 or ErrorCode.ERR_PartialMisplaced
+                or ErrorCode.ERR_MisplacedExtension
                 or ErrorCode.ERR_ImportedCircularBase
                 or ErrorCode.ERR_UseDefViolationOut
                 or ErrorCode.ERR_ArraySizeInDeclaration
@@ -961,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IdentityConversion
                 or ErrorCode.ERR_ConversionNotInvolvingContainedType
                 or ErrorCode.ERR_DuplicateConversionInClass
-                or ErrorCode.ERR_OperatorsMustBeStatic
+                or ErrorCode.ERR_OperatorsMustBeStaticAndPublic
                 or ErrorCode.ERR_BadIncDecSignature
                 or ErrorCode.ERR_BadUnaryOperatorSignature
                 or ErrorCode.ERR_BadBinaryOperatorSignature
@@ -1483,7 +1486,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadAwaitInQuery
                 or ErrorCode.ERR_BadAwaitInLock
                 or ErrorCode.ERR_TaskRetNoObjectRequired
-                or ErrorCode.WRN_AsyncLacksAwaits
                 or ErrorCode.ERR_FileNotFound
                 or ErrorCode.WRN_FileAlreadyIncluded
                 or ErrorCode.ERR_NoFileSpec
@@ -1547,7 +1549,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
-                or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_CantConvAsyncAnonFuncReturns
                 or ErrorCode.ERR_BadAwaiterPattern
                 or ErrorCode.ERR_BadSpecialByRefParameter
@@ -1726,6 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InvalidPathMap
                 or ErrorCode.ERR_PublicSignButNoKey
                 or ErrorCode.ERR_TooManyUserStrings
+                or ErrorCode.ERR_TooManyUserStrings_RestartRequired
                 or ErrorCode.ERR_PeWritingFailure
                 or ErrorCode.WRN_AttributeIgnoredWhenPublicSigning
                 or ErrorCode.ERR_OptionMustBeAbsolutePath
@@ -1806,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSourceCodeKind
                 or ErrorCode.ERR_BadDocumentationMode
                 or ErrorCode.ERR_BadLanguageVersion
-                or ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList
+                or ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone
                 or ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable
                 or ErrorCode.ERR_ExpressionTreeContainsOutVariable
                 or ErrorCode.ERR_VarInvocationLvalueReserved
@@ -1866,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EscapeStackAlloc
                 or ErrorCode.ERR_RefReturnThis
                 or ErrorCode.ERR_OutAttrOnInParam
-                or ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3
+                or ErrorCode.ERR_PredefinedTypeAmbiguous
                 or ErrorCode.ERR_InvalidVersionFormatDeterministic
                 or ErrorCode.ERR_AttributeCtorInParameter
                 or ErrorCode.WRN_FilterIsConstantFalse
@@ -2072,7 +2074,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement
                 or ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements
                 or ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType
-                or ErrorCode.ERR_SimpleProgramDisallowsMainType
                 or ErrorCode.ERR_SimpleProgramNotAnExecutable
                 or ErrorCode.ERR_UnsupportedCallingConvention
                 or ErrorCode.ERR_InvalidFunctionPointerCallingConvention
@@ -2464,8 +2465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyMissingAccessor
                 or ErrorCode.ERR_PartialPropertyUnexpectedAccessor
                 or ErrorCode.ERR_PartialPropertyInitMismatch
-                or ErrorCode.ERR_PartialPropertyTypeDifference
-                or ErrorCode.WRN_PartialPropertySignatureDifference
+                or ErrorCode.ERR_PartialMemberTypeDifference
+                or ErrorCode.WRN_PartialMemberSignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
                 or ErrorCode.WRN_FieldIsAmbiguous
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
@@ -2481,6 +2482,72 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
                 or ErrorCode.ERR_ImplicitlyTypedParamsParameter
                 or ErrorCode.ERR_VariableDeclarationNamedField
+                or ErrorCode.ERR_PartialMemberMissingImplementation
+                or ErrorCode.ERR_PartialMemberMissingDefinition
+                or ErrorCode.ERR_PartialMemberDuplicateDefinition
+                or ErrorCode.ERR_PartialMemberDuplicateImplementation
+                or ErrorCode.ERR_PartialEventInitializer
+                or ErrorCode.ERR_PartialConstructorInitializer
+                or ErrorCode.ERR_ExtensionDisallowsName
+                or ErrorCode.ERR_ExtensionDisallowsMember
+                or ErrorCode.ERR_BadExtensionContainingType
+                or ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue
+                or ErrorCode.ERR_ReceiverParameterOnlyOne
+                or ErrorCode.ERR_ExtensionResolutionFailed
+                or ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionParameter
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_InvalidExtensionParameterReference
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_UnderspecifiedExtension
+                or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess
+                or ErrorCode.ERR_PPIgnoredFollowsToken
+                or ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram
+                or ErrorCode.ERR_PPIgnoredFollowsIf
+                or ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne
+                or ErrorCode.ERR_InExtensionParameterMustBeValueType
+                or ErrorCode.ERR_ProtectedInExtension
+                or ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter
+                or ErrorCode.ERR_InitInExtension
+                or ErrorCode.ERR_ModifierOnUnnamedReceiverParameter
+                or ErrorCode.ERR_ExtensionTypeNameDisallowed
+                or ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition
+                or ErrorCode.ERR_OperatorsMustBePublic
+                or ErrorCode.ERR_OperatorMustReturnVoid
+                or ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch
+                or ErrorCode.ERR_OperatorMismatchOnOverride
+                or ErrorCode.ERR_BadCompoundAssignmentOpArgs
+                or ErrorCode.ERR_PPShebangInProjectBasedProgram
+                or ErrorCode.ERR_NameofExtensionMember
+                or ErrorCode.ERR_BadExtensionUnaryOperatorSignature
+                or ErrorCode.ERR_BadExtensionIncDecSignature
+                or ErrorCode.ERR_BadExtensionBinaryOperatorSignature
+                or ErrorCode.ERR_BadExtensionShiftOperatorSignature
+                or ErrorCode.ERR_OperatorInExtensionOfStaticClass
+                or ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind
+                or ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType
+                or ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator
+                or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
+                or ErrorCode.ERR_MemberNameSameAsExtendedType
+                or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_ExtensionBlockCollision
+                or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
+                or ErrorCode.ERR_AttributeCannotBeAppliedManually
+                or ErrorCode.ERR_BadSpreadInCatchFilter
+                or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
+                or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
+                or ErrorCode.HDN_RedundantPattern
+                or ErrorCode.WRN_RedundantPattern
+                or ErrorCode.HDN_RedundantPatternStackGuard
+                or ErrorCode.ERR_BadVisBaseType
+                or ErrorCode.ERR_AmbigExtension
+                or ErrorCode.ERR_SingleInapplicableBinaryOperator
+                or ErrorCode.ERR_SingleInapplicableUnaryOperator
+                or ErrorCode.ERR_AmbigOperator
+                or ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

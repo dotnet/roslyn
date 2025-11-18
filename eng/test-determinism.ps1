@@ -29,7 +29,10 @@ $script:skipList = @(
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
 
   # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
-  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key"
+  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key",
+
+  # Work around resx issues https://github.com/dotnet/roslyn/issues/77544
+  "Text.Analyzers.dll.key"
 )
 
 function Run-Build([string]$rootDir, [string]$logFileName) {
@@ -42,7 +45,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
   $stopWatch.Stop()
   Write-Host "Cleaning took $($stopWatch.Elapsed)"
 
-  $solution = Join-Path $rootDir "Roslyn.sln"
+  $solution = Join-Path $rootDir "Roslyn.slnx"
 
   $toolsetBuildProj = InitializeToolset
 
@@ -53,8 +56,6 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
   $logFilePath = Join-Path $LogDir $logFileName
 
   Stop-Processes
-
-  $restoreUseStaticGraphEvaluation = $true
 
   Write-Host "Building $solution using $bootstrapDir"
   MSBuild $toolsetBuildProj `
@@ -70,7 +71,6 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
      /p:RunAnalyzersDuringBuild=false `
-     /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
      /bl:$logFilePath
 
   Stop-Processes

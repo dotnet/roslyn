@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -42,13 +41,25 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
     protected override bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
         => node.CanAddUsingDirectives(allowInHiddenRegions, cancellationToken);
 
-    protected override bool CanAddImportForMethod(
+    protected override bool CanAddImportForMember(
         string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)
     {
         nameNode = null;
 
         switch (diagnosticId)
         {
+            case CS0117:
+                // We have a name off a type.  like int.X
+                //
+                // This can only add usings for modern static extension methods.  This is only allowed in the `type.Name` case, nothing else.
+                if (node.Parent is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) simpleMemberAccess ||
+                    simpleMemberAccess.Name != node)
+                {
+                    return false;
+                }
+
+                break;
+
             case CS7036:
             case CS0308:
             case CS0428:
@@ -605,42 +616,16 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         return (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
     }
 
-    protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-    {
-        var leftExpression = syntaxFacts.IsMemberAccessExpression(expression)
-            ? syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
-            : syntaxFacts.GetTargetOfMemberBinding(expression);
-        if (leftExpression == null)
-        {
-            if (expression.IsKind(SyntaxKind.CollectionInitializerExpression))
-            {
-                leftExpression = expression.GetAncestor<ObjectCreationExpressionSyntax>();
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        var semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken);
-        var leftExpressionType = semanticInfo.Type;
-
-        return IsViableExtensionMethod(method, leftExpressionType);
-    }
-
-    protected override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
+    protected override bool IsAddMethodContext(
+        SyntaxNode node, SemanticModel semanticModel, out SyntaxNode objectCreationExpression)
     {
         if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
         {
-            var objectCreationExpressionSyntax = node.GetAncestor<ObjectCreationExpressionSyntax>();
-            if (objectCreationExpressionSyntax == null)
-            {
-                return false;
-            }
-
-            return true;
+            objectCreationExpression = node.GetAncestor<ObjectCreationExpressionSyntax>();
+            return objectCreationExpression != null;
         }
 
+        objectCreationExpression = null;
         return false;
     }
 }

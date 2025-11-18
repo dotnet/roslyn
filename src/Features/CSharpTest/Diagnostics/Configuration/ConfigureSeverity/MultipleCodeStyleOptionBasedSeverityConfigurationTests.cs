@@ -30,15 +30,14 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class ErrorConfigurationTests : MultipleCodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class ErrorConfigurationTests : MultipleCodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 4;
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_Error()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_Empty_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -67,9 +66,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -102,16 +99,12 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_BothRulesExist_Error()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_BothRulesExist_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -147,9 +140,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -188,16 +179,12 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_OneRuleExists_Error()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_OneRuleExists_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -230,9 +217,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -268,16 +253,12 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_AllPossibleEntriesExist_Error()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_AllPossibleEntriesExist_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -316,9 +297,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -357,9 +336,6 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
     }
 }

@@ -14,15 +14,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertRegularStringToInterpolatedStringRefactoringProvider();
 
     [Fact]
-    public async Task TestMissingOnRegularStringWithNoBraces()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnRegularStringWithNoBraces()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -32,12 +31,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRegularStringWithBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnRegularStringWithBraces()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -56,12 +53,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRegularStringWithBracesAndEscapedCharacters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnRegularStringWithBracesAndEscapedCharacters()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -80,12 +75,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnInterpolatedString()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnInterpolatedString()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -96,12 +89,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVerbatimStringWithBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVerbatimStringWithBraces()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -122,12 +113,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVerbatimStringWithBracesAndEscapedQuotes()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVerbatimStringWithBracesAndEscapedQuotes()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -148,12 +137,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52243")]
-    public async Task TestMissingOnRegularStringWithBracesAssignedToConstBeforeCSharp10()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnRegularStringWithBracesAssignedToConstBeforeCSharp10()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -163,12 +150,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """, new(new CSharpParseOptions(LanguageVersion.CSharp9)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52243")]
-    public async Task TestOnRegularStringWithBracesAssignedToConstForCSharp10AndNewer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnRegularStringWithBracesAssignedToConstForCSharp10AndNewer()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -186,13 +171,11 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                     const string v = $"string {{";
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
-    }
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10)));
 
     [Fact]
-    public async Task TestMissingOnUnterminatedStringWithBraces()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnUnterminatedStringWithBraces()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -202,12 +185,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52243")]
-    public async Task TestMissingOnAttributeStringParameterWithBracesBeforeCSharp10()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnAttributeStringParameterWithBracesBeforeCSharp10()
+        => TestMissingInRegularAndScriptAsync(
             """
             [System.Diagnostics.DebuggerDisplay([||]"FirstName={FirstName}, LastName={LastName}")]
             public class C
@@ -216,12 +197,10 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 public string LastName { get; set; }
             }
             """, new(new CSharpParseOptions(LanguageVersion.CSharp9)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52243")]
-    public async Task TestOnAttributeStringParameterWithBracesForCSharp10AndNewer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnAttributeStringParameterWithBracesForCSharp10AndNewer()
+        => TestInRegularAndScriptAsync(
             """
             [System.Diagnostics.DebuggerDisplay([||]"FirstName={FirstName}, LastName={LastName}")]
             public class C
@@ -237,13 +216,11 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 public string FirstName { get; set; }
                 public string LastName { get; set; }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
-    }
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10)));
 
     [Fact]
-    public async Task TestMissingOnRegularStringWithBracesAndCursorOutOfBounds()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnRegularStringWithBracesAndCursorOutOfBounds()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class C
             {
@@ -253,5 +230,4 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
                 }
             }
             """);
-    }
 }

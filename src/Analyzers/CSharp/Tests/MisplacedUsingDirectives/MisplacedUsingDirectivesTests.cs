@@ -69,7 +69,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     private const string DelegateDefinition = @"public delegate void TestDelegate();";
 
     private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
-        => new(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
+        => new(options: new(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
 
     private Task TestDiagnosticMissingAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
@@ -93,7 +93,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
         };
         return TestInRegularAndScriptAsync(
-            initialMarkup, expectedMarkup, options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+            initialMarkup, expectedMarkup, new(options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)));
     }
 
     #region Test Preserve
@@ -103,30 +103,22 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// </summary>
     [Fact]
     public Task WhenPreserve_UsingsInNamespace_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
-    }
+            """, OutsidePreferPreservationOption);
 
     [Fact]
     public Task WhenPreserve_UsingsInNamespace_ValidUsingStatements_FileScopedNamespace()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             namespace TestNamespace;
 
             [|using System;
             using System.Threading;|]
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
-    }
+            """, OutsidePreferPreservationOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics, nor will
@@ -134,18 +126,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// </summary>
     [Fact]
     public Task WhenPreserve_UsingsInCompilationUnitAndNamespace_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             using System;
 
             namespace TestNamespace
             {
                 [|using System.Threading;|]
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
-    }
+            """, OutsidePreferPreservationOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are type definition present.
@@ -158,23 +146,18 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     [InlineData(EnumDefinition)]
     [InlineData(DelegateDefinition)]
     public Task WhenPreserve_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
-    {
-        var testCode = $"""
+        => TestDiagnosticMissingAsync($"""
             [|using System;|]
 
             {typeDefinition}
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
-    }
+            """, InsidePreferPreservationOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are attributes present.
     /// </summary>
     [Fact]
     public Task WhenPreserve_UsingsInCompilationUnitWithAttributes_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             [|using System.Reflection;|]
 
             [assembly: AssemblyVersion("1.0.0.0")]
@@ -184,10 +167,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 using System;
                 using System.Threading;
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
-    }
+            """, InsidePreferPreservationOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics, even if they could be
@@ -195,18 +175,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// </summary>
     [Fact]
     public Task WhenPreserve_UsingsInCompilationUnit_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             [|using System;
             using System.Threading;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
-    }
+            """, InsidePreferPreservationOption);
 
     #endregion
 
@@ -217,31 +193,23 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             [|using System;
             using System.Threading;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
-    }
+            """, OutsideNamespaceOption);
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements_FileScopedNamespace()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             [|using System;
             using System.Threading;|]
 
             namespace TestNamespace;
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
-    }
+            """, OutsideNamespaceOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are type definition present.
@@ -254,76 +222,60 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     [InlineData(EnumDefinition)]
     [InlineData(DelegateDefinition)]
     public Task WhenOutsidePreferred_UsingsInCompilationUnitWithMember_ValidUsingStatements(string typeDefinition)
-    {
-        var testCode = $"""
+        => TestDiagnosticMissingAsync($"""
             [|using System;|]
 
             {typeDefinition}
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
-    }
+            """, OutsideNamespaceOption);
 
     /// <summary>
     /// Verifies that using statements in a namespace produces the expected diagnostics.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved_FileScopedNamespace()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace TestNamespace;
 
             [|using System;
             using System.Threading;|]
-            """;
-        var fixedTestCode = """
+            """, """
 
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
             namespace TestNamespace;
 
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_SimplifiedUsingInNamespace_UsingsMovedAndExpanded()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace System
             {
                 [|using System;
                 using System.Threading;
                 using Reflection;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
             {|Warning:using System.Reflection;|}
@@ -331,45 +283,35 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace System
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the code fix will move the using directives when they are present in both the compilation unit and namespace.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInBoth_UsingsMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             using Microsoft.CodeAnalysis;
 
             namespace TestNamespace
             {
                 [|using System;|]
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             using Microsoft.CodeAnalysis;
             {|Warning:using System;|}
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_SimplifiedUsingAliasInNamespace_UsingsMovedAndExpanded()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace System.MyExtension
             {
                 [|using System.Threading;
@@ -377,8 +319,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 using Assembly = Reflection.Assembly;
                 using List = Collections.Generic.IList<int>;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System.Threading;|}
             {|Warning:using System.Reflection;|}
             {|Warning:using Assembly = System.Reflection.Assembly;|}
@@ -387,18 +328,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace System.MyExtension
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are attributes present.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitWithAttributes_UsingsMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             using System.Reflection;
 
             [assembly: AssemblyVersion("1.0.0.0")]
@@ -408,8 +345,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System.Reflection;
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
@@ -419,18 +355,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the file header of a file is properly preserved when moving using statements out of a namespace.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitHasFileHeader_UsingsMovedAndHeaderPreserved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -438,8 +370,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             {
                 [|using System;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -448,15 +379,11 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespaceWithCommentsAndCompilationUnitHasFileHeader_UsingsMovedWithCommentsAndHeaderPreserved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -468,8 +395,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 // Comment
                 using System;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
             // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
@@ -482,15 +408,11 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndSystemPlacedFirstIgnored()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace Foo
             {
                 [|using Microsoft.CodeAnalysis;
@@ -508,9 +430,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             {|Warning:using Microsoft.CodeAnalysis;|}
             {|Warning:using SystemAction = System.Action;|}
             {|Warning:using static System.Math;|}
@@ -528,15 +448,11 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndAlphaSortIgnored()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace Foo
             {
                 [|using Microsoft.CodeAnalysis;
@@ -554,9 +470,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             {|Warning:using Microsoft.CodeAnalysis;|}
             {|Warning:using SystemAction = System.Action;|}
             {|Warning:using static System.Math;|}
@@ -574,18 +488,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: false);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: false);
 
     /// <summary>
     /// Verifies that simplified using statements in nested namespace are expanded during the code fix operation.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInNestedNamespaces_UsingsMovedAndExpanded()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             using System;
 
             namespace System.Namespace
@@ -599,8 +509,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                     using Reflection;|]
                 }
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System;
             // Outer Comment
             {|Warning:using System.Threading;|}
@@ -613,18 +522,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that simplified using statements in multiple namespaces are expanded during the code fix operation.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndExpanded()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             using System;
 
             namespace System.Namespace
@@ -638,8 +543,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 // Another Comment
                 using Reflection;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System;
             // A Comment
             {|Warning:using System.Threading;|}
@@ -653,18 +557,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace System.OtherNamespace
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that simplified using statements in multiple namespaces are deduplicated during the code fix operation.
     /// </summary>
     [Fact]
     public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndDeduplicated()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             using System;
 
             namespace System.Namespace
@@ -680,8 +580,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 // Orphaned Comment 2
                 using System.Threading;|]
             }
-            """;
-        var fixedTestCode = """
+            """, """
             using System;
             // Orphaned Comment 1
             // A Comment
@@ -695,31 +594,56 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace B
             {
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenOutsidePreferred_MoveGlobalUsing1()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace N1
             {
                 [|global using System;|]
             }
-            """;
-        var fixedTestCode =
-            """
+            """, """
             {|Warning:global using System;|}
 
             namespace N1
             {
             }
-            """;
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
+    public Task WhenOutsidePreferred_AliasToLocalType_FileScopedNamespace()
+        => TestInRegularAndScriptAsync("""
+            namespace Goo;
+
+            [|using Alias = C;|]
+
+            class C;
+            """, """
+
+            {|Warning:using Alias = Goo.C;|}
+
+            namespace Goo;
+            class C;
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
+    public Task WhenOutsidePreferred_AliasToLocalType_BlockNamespace()
+        => TestInRegularAndScriptAsync("""
+            namespace Goo
+            {
+                [|using Alias = C;|]
+
+                class C;
+            }
+            """, """
+            {|Warning:using Alias = Goo.C;|}
+
+            namespace Goo
+            {
+                class C;
+            }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     #endregion
 
@@ -727,16 +651,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
                 using SCG = System.Collections.Generic;
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
 
@@ -744,15 +666,11 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             {
                 using SCG = System.Collections.Generic;
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_InnerType()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 [|using System;
@@ -763,8 +681,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
 
@@ -776,15 +693,11 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_AliasInMiddle()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 [|using System;
@@ -795,8 +708,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-        var fixedTestCode = """
+            """, """
             {|Warning:using System;|}
             {|Warning:using System.Threading;|}
 
@@ -808,10 +720,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
-    }
+            """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
 
     #endregion
 
@@ -822,30 +731,22 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInNamespace_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             namespace TestNamespace
             {
                 [|using System;
                 using System.Threading;|]
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
-    }
+            """, InsideNamespaceOption);
 
     [Fact]
     public Task WhenInsidePreferred_UsingsInNamespace_ValidUsingStatements_FileScopedNamespace()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             namespace TestNamespace;
 
             [|using System;
             using System.Threading;|]
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
-    }
+            """, InsideNamespaceOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are type definition present.
@@ -858,23 +759,18 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     [InlineData(EnumDefinition)]
     [InlineData(DelegateDefinition)]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
-    {
-        var testCode = $"""
+        => TestDiagnosticMissingAsync($"""
             [|using System;|]
 
             {typeDefinition}
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
-    }
+            """, InsideNamespaceOption);
 
     /// <summary>
     /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are attributes present.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithAttributes_ValidUsingStatements()
-    {
-        var testCode = """
+        => TestDiagnosticMissingAsync("""
             [|using System.Reflection;|]
 
             [assembly: AssemblyVersion("1.0.0.0")]
@@ -884,18 +780,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 using System;
                 using System.Threading;
             }
-            """;
-
-        return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
-    }
+            """, InsideNamespaceOption);
 
     /// <summary>
     /// Verifies that the code fix will move the using directives and not place System directives first.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsMovedAndSystemPlacedFirstIgnored()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;
             using SystemAction = System.Action;
             using static System.Math;
@@ -913,9 +805,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace Foo
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
@@ -933,18 +823,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the code fix will move the using directives and not sort them alphabetically.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsAndWithAlphaSortIgnored()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;
             using SystemAction = System.Action;
             using static System.Math;
@@ -962,9 +848,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace NamespaceName
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
@@ -982,18 +866,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: false);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: false);
 
     /// <summary>
     /// Verifies that the code fix will move the using directives, but will not move a file header comment separated by an new line.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeader_UsingsMovedNotHeader()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             // This is a file header.
             [|using Microsoft.CodeAnalysis;
             using System;|]
@@ -1001,74 +881,57 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             // This is a file header.
             namespace TestNamespace
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 {|Warning:using System;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the code fix will move the using directives when they are present in both the compilation unit and namespace.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;|]
 
             namespace TestNamespace
             {
                 using System;
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 using System;
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact]
-    public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespaec()
-    {
-        var testCode = """
+    public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespace()
+        => TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;|]
 
             namespace TestNamespace;
 
             using System;
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace;
+
             {|Warning:using Microsoft.CodeAnalysis;|}
 
             using System;
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the code fix will properly move separated trivia, but will not move a file header comment.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeaderAndTrivia_UsingsAndTriviaMovedNotHeader()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             // File Header
 
             // Leading Comment
@@ -1079,9 +942,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             // File Header
 
             namespace TestNamespace
@@ -1091,18 +952,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 {|Warning:using System;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that a code fix will not be offered for MisplacedUsing diagnostics when multiple namespaces are present.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithMultipleNamespaces_NoCodeFixOffered()
-    {
-        var testCode = """
+        => TestMissingAsync("""
             [|using System;|]
 
             namespace TestNamespace1
@@ -1115,18 +972,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace2
             {
             }
-            """;
-
-        return TestMissingAsync(testCode, InsideNamespaceOption);
-    }
+            """, InsideNamespaceOption);
 
     /// <summary>
     /// Verifies that the code fix will properly move pragmas.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithPragma_PragmaMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             #pragma warning disable 1573 // Comment
             [|using System;
             using System.Threading;|]
@@ -1134,27 +987,21 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
             #pragma warning disable 1573 // Comment
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the code fix will properly move regions.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithRegion_RegionMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             #region Comment
             #endregion Comment
             [|using System;
@@ -1163,9 +1010,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
                 #region Comment
@@ -1173,18 +1018,14 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
     /// Verifies that the code fix will properly move comment trivia.
     /// </summary>
     [Fact]
     public Task WhenInsidePreferred_UsingsInCompilationUnitWithCommentTrivia_TriviaMoved()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
 
             // Some comment
             [|using System;
@@ -1193,9 +1034,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedTestCode = """
+            """, """
             namespace TestNamespace
             {
 
@@ -1203,48 +1042,35 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenInsidePreferred_DoNotMoveGlobalUsings1()
-    {
-        var testCode = """
+        => TestMissingAsync("""
             [|global using System;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        return TestMissingAsync(testCode, InsideNamespaceOption);
-    }
+            """, InsideNamespaceOption);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenInsidePreferred_DoNotMoveGlobalUsings2()
-    {
-        var testCode = """
+        => TestInRegularAndScriptAsync("""
             [|global using System;
             using System.Threading;|]
 
             namespace TestNamespace
             {
             }
-            """;
-
-        var fixedCode = """
+            """, """
             global using System;
 
             namespace TestNamespace
             {
                 {|Warning:using System.Threading;|}
             }
-            """;
-
-        return TestInRegularAndScriptAsync(testCode, fixedCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
-    }
+            """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     #endregion
 }

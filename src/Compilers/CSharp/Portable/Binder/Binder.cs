@@ -749,6 +749,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool IsDisallowedExtensionInOlderLangVer(MethodSymbol symbol)
+        {
+            return symbol.IsExtensionBlockMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
+        }
+
+        internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
+        {
+            if (IsDisallowedExtensionInOlderLangVer(method))
+            {
+                MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
+            }
+        }
+
         internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
@@ -893,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null,
+            return new BoundBlock(statement.Syntax, locals, ImmutableArray<MethodSymbol>.CastUp(localFunctions), hasUnsafeModifier: false, instrumentation: null,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }

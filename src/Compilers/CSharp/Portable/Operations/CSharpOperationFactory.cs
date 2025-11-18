@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundCall.ConstantValueOpt;
             bool isImplicit = boundCall.WasCompilerGenerated;
 
-            if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
+            if (boundCall.IsErroneousNode)
             {
                 ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -1507,29 +1507,20 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
         {
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-            IMethodSymbol? operatorMethod = boundBinaryOperator.Method.GetPublicSymbol();
-            IMethodSymbol? unaryOperatorMethod = null;
-
-            // For dynamic logical operator MethodOpt is actually the unary true/false operator
-            if (boundBinaryOperator.Type.IsDynamic() &&
-                (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
-                operatorMethod?.Parameters.Length == 1)
-            {
-                unaryOperatorMethod = operatorMethod;
-                operatorMethod = null;
-            }
+            MethodSymbol? binaryOperatorMethod = boundBinaryOperator.BinaryOperatorMethod;
+            MethodSymbol? unaryOperatorMethod = boundBinaryOperator.LeftTruthOperatorMethod;
 
             SyntaxNode syntax = boundBinaryOperator.Syntax;
             ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundBinaryOperator.ConstantValueOpt;
             bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (boundBinaryOperator.Method is not null && SyntaxFacts.IsCheckedOperator(boundBinaryOperator.Method.Name));
+            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (binaryOperatorMethod is not null && SyntaxFacts.IsCheckedOperator(binaryOperatorMethod.Name));
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
             return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText,
-                                       operatorMethod,
-                                       GetConstrainedToTypeForOperator(boundBinaryOperator.Method, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
-                                       unaryOperatorMethod,
+                                       binaryOperatorMethod.GetPublicSymbol(),
+                                       GetConstrainedToTypeForOperator(binaryOperatorMethod, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
+                                       unaryOperatorMethod.GetPublicSymbol(),
                                        _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1988,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ILabelSymbol exitLabel = boundForEachStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundForEachStatement.Syntax;
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            bool isAsynchronous = boundForEachStatement.AwaitOpt != null;
+            bool isAsynchronous = boundForEachStatement.EnumeratorInfoOpt is { MoveNextAwaitableInfo: not null };
             return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, info, isAsynchronous, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
@@ -2494,7 +2485,7 @@ namespace Microsoft.CodeAnalysis.Operations
             var (placeholderKind, argumentIndex) = placeholder.ArgumentIndex switch
             {
                 >= 0 and var index => (InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, index),
-                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
+                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
                 BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => (InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument, NonArgumentIndex),
                 _ => throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex)
             };

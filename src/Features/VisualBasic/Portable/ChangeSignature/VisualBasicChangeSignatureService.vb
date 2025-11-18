@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
-Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
@@ -702,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     End If
 
                     If convertedType IsNot Nothing Then
-                        convertedType = If(SymbolFinder.FindSourceDefinition(convertedType, document.Project.Solution, cancellationToken), convertedType)
+                        convertedType = If(Await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(False), convertedType)
                     End If
 
                     If Equals(convertedType, symbol.ContainingType) Then
@@ -721,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                         End If
 
                         If nodeType IsNot Nothing Then
-                            nodeType = If(SymbolFinder.FindSourceDefinition(nodeType, document.Project.Solution, cancellationToken), nodeType)
+                            nodeType = If(Await SymbolFinder.FindSourceDefinitionAsync(nodeType, document.Project.Solution, cancellationToken).ConfigureAwait(False), nodeType)
                         End If
 
                         If Equals(nodeType, symbol.ContainingType) Then

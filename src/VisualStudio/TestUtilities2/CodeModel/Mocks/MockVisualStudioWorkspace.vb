@@ -5,15 +5,11 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
@@ -87,6 +83,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         Public Overrides Sub EnsureEditableDocuments(documents As IEnumerable(Of DocumentId))
             ' Nothing to do here
+        End Sub
+
+        Protected Overrides Sub SubscribeToSourceGeneratorImpactingEvents()
+            ' HACK: We override this method in unit tests to do nothing. The base type uses WhenActivated which can cause a leak if those handlers don't actually
+            ' run, and that API gives us no way to unsubscribe. Further; right now raising events to update the source generator versions
+            ' causes TryApplyChanges to also fail in unit tests because of https://github.com/dotnet/roslyn/issues/79587.
         End Sub
     End Class
 

@@ -10,23 +10,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
-{
-    internal partial class VisualStudioWorkspaceImpl
-    {
-        internal sealed class SolutionAnalyzerSetter(VisualStudioWorkspaceImpl workspace) : ISolutionAnalyzerSetterWorkspaceService
-        {
-            [ExportWorkspaceServiceFactory(typeof(ISolutionAnalyzerSetterWorkspaceService), [WorkspaceKind.Host]), Shared]
-            [method: ImportingConstructor]
-            [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            internal sealed class Factory() : IWorkspaceServiceFactory
-            {
-                public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                    => new SolutionAnalyzerSetter((VisualStudioWorkspaceImpl)workspaceServices.Workspace);
-            }
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-            public void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references)
-                => workspace.ProjectSystemProjectFactory.ApplyChangeToWorkspace(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
+internal partial class VisualStudioWorkspaceImpl
+{
+    internal sealed class SolutionAnalyzerSetter(VisualStudioWorkspaceImpl workspace) : ISolutionAnalyzerSetterWorkspaceService
+    {
+        [ExportWorkspaceServiceFactory(typeof(ISolutionAnalyzerSetterWorkspaceService), [WorkspaceKind.Host]), Shared]
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class Factory() : IWorkspaceServiceFactory
+        {
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                => new SolutionAnalyzerSetter((VisualStudioWorkspaceImpl)workspaceServices.Workspace);
         }
+
+        public void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references)
+            => workspace.ProjectSystemProjectFactory.ApplyChangeToWorkspace(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
     }
 }

@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Inlay hint registration options.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// </summary>
+/// <remarks>Since LSP 3.17</remarks>
+internal sealed class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
-    using System.Text.Json.Serialization;
+    /// <inheritdoc/>
+    [JsonPropertyName("documentSelector")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentFilter[]? DocumentSelector { get; set; }
 
-    /// <summary>
-    /// Inlay hint registration options.
-    /// <para>
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintRegistrationOptions">Language Server Protocol specification</see> for additional information.
-    /// </para>
-    /// </summary>
-    /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
-    {
-        /// <inheritdoc/>
-        [JsonPropertyName("documentSelector")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DocumentFilter[]? DocumentSelector { get; set; }
-
-        /// <inheritdoc/>
-        [JsonPropertyName("id")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Id { get; set; }
-    }
+    /// <inheritdoc/>
+    [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Id { get; set; }
 }

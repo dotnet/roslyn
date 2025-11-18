@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -24,7 +23,7 @@ internal static class SymbolCompletionItem
 
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-    private const char ProjectSeperatorChar = ';';
+    private const char ProjectSeparatorChar = ';';
 
     private static CompletionItem CreateWorker(
         string displayText,
@@ -50,9 +49,9 @@ internal static class SymbolCompletionItem
             builder.AddRange(properties);
 
         if (insertionText != null)
-            builder.Add(KeyValuePairUtil.Create(InsertionTextProperty, insertionText));
+            builder.Add(KeyValuePair.Create(InsertionTextProperty, insertionText));
 
-        builder.Add(KeyValuePairUtil.Create("ContextPosition", contextPosition.ToString()));
+        builder.Add(KeyValuePair.Create("ContextPosition", contextPosition.ToString()));
         AddSupportedPlatforms(builder, supportedPlatforms);
         symbolEncoder(symbols, builder);
 
@@ -79,17 +78,17 @@ internal static class SymbolCompletionItem
     }
 
     private static void AddSymbolEncoding(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
-        => properties.Add(KeyValuePairUtil.Create("Symbols", EncodeSymbols(symbols)));
+        => properties.Add(KeyValuePair.Create("Symbols", EncodeSymbols(symbols)));
 
     private static void AddSymbolInfo(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
     {
         var symbol = symbols[0];
         var isGeneric = symbol.GetArity() > 0;
-        properties.Add(KeyValuePairUtil.Create("SymbolKind", SmallNumberFormatter.ToString((int)symbol.Kind)));
-        properties.Add(KeyValuePairUtil.Create("SymbolName", symbol.Name));
+        properties.Add(KeyValuePair.Create("SymbolKind", SmallNumberFormatter.ToString((int)symbol.Kind)));
+        properties.Add(KeyValuePair.Create("SymbolName", symbol.Name));
 
         if (isGeneric)
-            properties.Add(KeyValuePairUtil.Create("IsGeneric", isGeneric.ToString()));
+            properties.Add(KeyValuePair.Create("IsGeneric", isGeneric.ToString()));
     }
 
     public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
@@ -104,6 +103,12 @@ internal static class SymbolCompletionItem
 
         return false;
     }
+
+    public static CompletionItem AddHasAccessibleNestedTypes(CompletionItem item)
+        => item.AddProperty("HasAccessibleNestedTypes", true.ToString());
+
+    public static bool GetHasAccessibleNestedTypes(CompletionItem item)
+        => item.TryGetProperty("HasAccessibleNestedTypes", out _);
 
     public static string EncodeSymbols(ImmutableArray<ISymbol> symbols)
     {
@@ -224,8 +229,8 @@ internal static class SymbolCompletionItem
     {
         if (supportedPlatforms != null)
         {
-            properties.Add(KeyValuePairUtil.Create("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id))));
-            properties.Add(KeyValuePairUtil.Create("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id))));
+            properties.Add(KeyValuePair.Create("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id))));
+            properties.Add(KeyValuePair.Create("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id))));
         }
     }
 
@@ -252,7 +257,7 @@ internal static class SymbolCompletionItem
 
         while (current < projectIds.Length)
         {
-            if (projectIds[current] == ProjectSeperatorChar)
+            if (projectIds[current] == ProjectSeparatorChar)
             {
                 if (start != current)
                 {

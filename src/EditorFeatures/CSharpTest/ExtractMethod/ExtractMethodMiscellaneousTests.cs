@@ -29,7 +29,7 @@ public sealed class ExtractMethodMiscellaneousTests
     [Fact]
     public void ServiceTest1()
     {
-        var markupCode = """
+        MarkupTestFile.GetSpan("""
             class A
             {
                 /* test */ [|public|] void Test(int i, int b, int c)
@@ -37,8 +37,7 @@ public sealed class ExtractMethodMiscellaneousTests
 
                 }
             }
-            """;
-        MarkupTestFile.GetSpan(markupCode, out var code, out var span);
+            """, out var code, out var span);
 
         var root = SyntaxFactory.ParseCompilationUnit(code);
         var result = CSharpSyntaxTriviaService.Instance.SaveTriviaAroundSelection(root, span);
@@ -53,8 +52,7 @@ public sealed class ExtractMethodMiscellaneousTests
 
         // restore trivia around it
         var rootWithTriviaRestored = result.RestoreTrivia(newRoot);
-
-        var expected = """
+        Assert.Equal("""
             class A
             {
                 /* test */ private void Test(int i, int b, int c)
@@ -62,15 +60,13 @@ public sealed class ExtractMethodMiscellaneousTests
 
                 }
             }
-            """;
-
-        Assert.Equal(expected, rootWithTriviaRestored.ToFullString());
+            """, rootWithTriviaRestored.ToFullString());
     }
 
     [Fact]
     public void ServiceTest2()
     {
-        var markupCode = """
+        MarkupTestFile.GetSpan("""
             class A
             {
 
@@ -82,8 +78,7 @@ public sealed class ExtractMethodMiscellaneousTests
             #endif
 
             }
-            """;
-        MarkupTestFile.GetSpan(markupCode, out var code, out var span);
+            """, out var code, out var span);
 
         var root = SyntaxFactory.ParseCompilationUnit(code);
         var result = CSharpSyntaxTriviaService.Instance.SaveTriviaAroundSelection(root, span);
@@ -98,8 +93,7 @@ public sealed class ExtractMethodMiscellaneousTests
 
         // restore trivia around it
         var rootWithTriviaRestored = result.RestoreTrivia(newRoot);
-
-        var expected = """
+        Assert.Equal("""
             class A
             {
 
@@ -111,27 +105,21 @@ public sealed class ExtractMethodMiscellaneousTests
             #endif
 
             }
-            """;
-
-        Assert.Equal(expected, rootWithTriviaRestored.ToFullString());
+            """, rootWithTriviaRestored.ToFullString());
     }
 
     [WpfFact]
-    public async Task TestExtractMethodCommandHandlerErrorMessage()
-    {
-        var markupCode = """
+    public Task TestExtractMethodCommandHandlerErrorMessage()
+        => TestCommandHandler("""
             class A
             {
                 [|void Method() {}|]
             }
-            """;
-
-        await TestCommandHandler(markupCode, result: null, expectNotification: true);
-    }
+            """, result: null, expectNotification: true);
 
     private static async Task TestCommandHandler(string markupCode, string? result, bool expectNotification)
     {
-        using var workspace = EditorTestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeaturesWpf);
+        using var workspace = EditorTestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeatures);
         var testDocument = workspace.Documents.Single();
 
         var view = testDocument.GetTextView();
@@ -156,13 +144,10 @@ public sealed class ExtractMethodMiscellaneousTests
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/65465")]
-    public async Task TestExtractLocalFunctionInTopLevelFromCommandHandler()
-    {
-        var markupCode = """
+    public Task TestExtractLocalFunctionInTopLevelFromCommandHandler()
+        => TestCommandHandler("""
             System.Console.WriteLine([|"string"|]);
-            """;
-
-        await TestCommandHandler(markupCode, """
+            """, """
             System.Console.WriteLine(NewMethod());
             
             static string NewMethod()
@@ -170,5 +155,4 @@ public sealed class ExtractMethodMiscellaneousTests
                 return "string";
             }
             """, expectNotification: false);
-    }
 }

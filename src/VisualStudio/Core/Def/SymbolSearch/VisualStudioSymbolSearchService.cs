@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class VisualStudioSymbolSearchService(
+internal sealed partial class VisualStudioSymbolSearchService(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider,
     VisualStudioWorkspaceImpl workspace,

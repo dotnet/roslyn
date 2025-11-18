@@ -132,8 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder)
         {
             if (!originalMethods.IsEmpty)
+            {
                 resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+            }
+            else
+            {
+                Debug.Assert(method.OriginalDefinition is ErrorMethodSymbol);
+            }
 
+            Debug.Assert(resultKind is not LookupResultKind.Viable);
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 
             return new BoundCall(
@@ -336,7 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
                 constantValueOpt: constantValueOpt,
-                originalUserDefinedConversionsOpt: default,
                 type: type)
             { WasCompilerGenerated = true };
         }
@@ -391,35 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: explicitCastInCode,
                 constantValueOpt: constantValueOpt,
                 conversionGroupOpt,
-                conversion.OriginalUserDefinedConversions,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         { }
-
-        public BoundConversion(
-            SyntaxNode syntax,
-            BoundExpression operand,
-            Conversion conversion,
-            bool isBaseConversion,
-            bool @checked,
-            bool explicitCastInCode,
-            ConstantValue? constantValueOpt,
-            ConversionGroup? conversionGroupOpt,
-            TypeSymbol type,
-            bool hasErrors = false) :
-            this(syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, originalUserDefinedConversionsOpt: default, type, hasErrors)
-        {
-        }
-
-        public BoundConversion Update(BoundExpression operand,
-                                      Conversion conversion,
-                                      bool isBaseConversion,
-                                      bool @checked,
-                                      bool explicitCastInCode,
-                                      ConstantValue? constantValueOpt,
-                                      ConversionGroup? conversionGroupOpt,
-                                      TypeSymbol type)
-            => Update(operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, this.OriginalUserDefinedConversionsOpt, type);
     }
 
     internal sealed partial class BoundBinaryOperator
@@ -479,50 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Update(OperatorKind, uncommonData, ResultKind, Left, Right, Type);
         }
-    }
-
-    internal sealed partial class BoundUserDefinedConditionalLogicalOperator
-    {
-        public BoundUserDefinedConditionalLogicalOperator(
-            SyntaxNode syntax,
-            BinaryOperatorKind operatorKind,
-            BoundExpression left,
-            BoundExpression right,
-            MethodSymbol logicalOperator,
-            MethodSymbol trueOperator,
-            MethodSymbol falseOperator,
-            TypeSymbol? constrainedToTypeOpt,
-            LookupResultKind resultKind,
-            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt,
-            TypeSymbol type,
-            bool hasErrors = false)
-            : this(
-                syntax,
-                operatorKind,
-                logicalOperator,
-                trueOperator,
-                falseOperator,
-                constrainedToTypeOpt,
-                resultKind,
-                originalUserDefinedOperatorsOpt,
-                left,
-                right,
-                type,
-                hasErrors)
-        {
-            Debug.Assert(operatorKind.IsUserDefined() && operatorKind.IsLogical());
-        }
-
-        public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind,
-                                                                 MethodSymbol logicalOperator,
-                                                                 MethodSymbol trueOperator,
-                                                                 MethodSymbol falseOperator,
-                                                                 TypeSymbol? constrainedToTypeOpt,
-                                                                 LookupResultKind resultKind,
-                                                                 BoundExpression left,
-                                                                 BoundExpression right,
-                                                                 TypeSymbol type)
-            => Update(operatorKind, logicalOperator, trueOperator, falseOperator, constrainedToTypeOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
     }
 
     internal sealed partial class BoundParameter
@@ -653,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBlock
     {
         public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
-            : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, hasUnsafeModifier: false, instrumentation: null, statements, hasErrors)
+            : this(syntax, locals, ImmutableArray<MethodSymbol>.Empty, hasUnsafeModifier: false, instrumentation: null, statements, hasErrors)
         {
         }
 

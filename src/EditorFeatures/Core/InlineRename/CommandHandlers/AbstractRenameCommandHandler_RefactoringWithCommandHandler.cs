@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -19,32 +18,32 @@ internal abstract partial class AbstractRenameCommandHandler :
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
-        => HandleRefactoringCommands(args, context);
+        => HandleRefactoringCommands();
 
     public CommandState GetCommandState(RemoveParametersCommandArgs args)
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
-        => HandleRefactoringCommands(args, context);
+        => HandleRefactoringCommands();
 
     public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
-        => HandleRefactoringCommands(args, context);
+        => HandleRefactoringCommands();
 
     public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
-        => HandleRefactoringCommands(args, context);
+        => HandleRefactoringCommands();
 
-    private bool HandleRefactoringCommands(EditorCommandArgs args, CommandExecutionContext context)
+    private bool HandleRefactoringCommands()
     {
         if (IsRenameCommitInProgress())
             return true;
 
-        CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext, placeCaretAtTheEndOfIdentifier: true);
+        CancelRenameSession();
         return false;
     }
 }

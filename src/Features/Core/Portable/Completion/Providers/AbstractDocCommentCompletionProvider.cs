@@ -23,12 +23,12 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
     // Tag names
     private static readonly ImmutableArray<string> s_listTagNames = [ListHeaderElementName, TermElementName, ItemElementName, DescriptionElementName];
     private static readonly ImmutableArray<string> s_listHeaderTagNames = [TermElementName, DescriptionElementName];
-    private static readonly ImmutableArray<string> s_nestedTagNames = [CElementName, CodeElementName, ParaElementName, ListElementName];
+    private static readonly ImmutableArray<string> s_nestedTagNames = [CElementName, CodeElementName, ParaElementName, ListElementName, BElementName, EmElementName, IElementName, StrongElementName, TtElementName];
     private static readonly ImmutableArray<string> s_topLevelRepeatableTagNames = [ExceptionElementName, IncludeElementName, PermissionElementName];
     private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = [SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName];
 
     private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string? tagClose)> s_tagMap =
-        new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string? tagClose)>()
+        new()
         {
             //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
             { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },

@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
-internal partial class VisualStudioDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     /// <summary>
     /// Loads VSIX analyzers into workspaces that provide <see cref="ISolutionAnalyzerSetterWorkspaceService"/> when they are loaded.
@@ -67,7 +67,8 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
 
         private static void LogWorkspaceAnalyzerCount(int analyzerCount)
         {
-            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m => m["AnalyzerCount"] = analyzerCount, LogLevel.Debug));
+            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(
+                static (m, analyzerCount) => m["AnalyzerCount"] = analyzerCount, analyzerCount, LogLevel.Debug));
         }
     }
 }

@@ -60,5 +60,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal("TestAnalyzer", analyzers(0).ToString)
             End Using
         End Sub
+
     End Class
 End Namespace

@@ -7,16 +7,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -36,19 +38,23 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap _referencesInILMap = new();
-        private readonly ItemTokenMap<string> _stringsInILMap = new();
+        private readonly Lazy<StringTokenMap> _stringsInILMap;
         private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new();
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
+        private ArrayMethods? _lazyArrayMethods;
+
+        // Calculated when emitting EnC deltas.
+        private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>>? _encDeletedMemberDefinitions;
 
         // Only set when running tests to allow inspection of the emitted data.
         internal CompilationTestData? TestData { get; private set; }
 
         internal EmitOptions EmitOptions { get; }
 
-        public CommonPEModuleBuilder(
+        protected CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions emitOptions,
             OutputKind outputKind,
@@ -64,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Emit
             OutputKind = outputKind;
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
+            _stringsInILMap = new Lazy<StringTokenMap>(() => new StringTokenMap(PreviousGeneration?.UserStringStreamLength ?? 0));
             EmitOptions = emitOptions;
         }
 
@@ -74,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Symbol changes when emitting EnC delta.
         /// </summary>
         public abstract SymbolChanges? EncSymbolChanges { get; }
+
+        /// <summary>
+        /// True if FieldRVA table is supported by the runtime.
+        /// </summary>
+        public abstract bool FieldRvaSupported { get; }
 
         /// <summary>
         /// Previous EnC generation baseline, or null if this is not EnC delta.
@@ -106,6 +118,27 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public abstract INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType();
 
+        /// <summary>
+        /// Creates definitions for deleted methods and properties based on symbol changes if emitting EnC delta.
+        /// Must be called before <see cref="PrivateImplementationDetails.Freeze"/>.
+        /// </summary>
+        public void CreateDeletedMemberDefinitions(DiagnosticBag diagnosticBag)
+        {
+            Debug.Assert(_encDeletedMemberDefinitions == null);
+
+            if (EncSymbolChanges != null)
+            {
+                var context = new EmitContext(this, diagnosticBag, metadataOnly: false, includePrivateMembers: true);
+                _encDeletedMemberDefinitions = DeltaMetadataWriter.CreateDeletedMemberDefs(context, EncSymbolChanges);
+            }
+        }
+
+        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>> GetDeletedMemberDefinitions()
+        {
+            Debug.Assert(_encDeletedMemberDefinitions != null);
+            return _encDeletedMemberDefinitions;
+        }
+
 #nullable disable
 
         /// <summary>
@@ -126,19 +159,36 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract IAssemblySymbolInternal CommonCorLibrary { get; }
         internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
         internal abstract void CompilationFinished();
+
+        /// <summary>
+        /// Returns all type members synthesized when compiling method bodies for this module.
+        /// </summary>
         internal abstract ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllSynthesizedMembers();
+
+        /// <summary>
+        /// Returns all delegates and anonymous templates synthesized when compiling method bodies for this module.
+        /// </summary>
+        internal abstract SynthesizedTypeMaps GetAllSynthesizedTypes();
+
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics);
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly);
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
-        internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
+#nullable enable
+        internal abstract Cci.ICustomAttribute? SynthesizeAttribute(WellKnownMember attributeConstructor);
+#nullable disable
+        public abstract Cci.IMethodReference GetInitArrayHelper();
+
+        public abstract Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
+        public abstract Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
+        public abstract Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
 
         /// <summary>
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
         /// followed by types forwarded to another assembly.
         /// </summary>
-        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
+        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(EmitContext context);
 
         /// <summary>
         /// Used to distinguish which style to pick while writing native PDB information.
@@ -176,9 +226,35 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
 
 #nullable enable
+        public ArrayMethods ArrayMethods
+        {
+            get
+            {
+                ArrayMethods? result = _lazyArrayMethods;
+
+                if (result == null)
+                {
+                    result = new ArrayMethods();
+
+                    if (Interlocked.CompareExchange(ref _lazyArrayMethods, result, null) != null)
+                    {
+                        result = _lazyArrayMethods;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
+        /// </summary>
+        public Cci.IFieldReference? TryGetOrCreateFieldForStringValue(string text, SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
+            => PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
+
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context);
 
-        public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsCore(EmitContext context)
+        public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(EmitContext context, bool includePrivateImplementationDetails)
         {
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {
@@ -200,14 +276,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return typeDef;
             }
 
-            var privateImpl = GetFrozenPrivateImplementationDetails();
-            if (privateImpl != null)
+            if (includePrivateImplementationDetails)
             {
-                yield return privateImpl;
-
-                foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
+                var privateImpl = GetFrozenPrivateImplementationDetails();
+                if (privateImpl != null)
                 {
-                    yield return typeDef;
+                    yield return privateImpl;
                 }
             }
         }
@@ -391,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public string[] CopyStrings()
         {
-            return _stringsInILMap.CopyItems();
+            return _stringsInILMap.Value.CopyValues();
         }
 
         public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -429,15 +503,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return _referencesInILMap.GetItem(token);
         }
 
-        public uint GetFakeStringTokenForIL(string str)
-        {
-            return _stringsInILMap.GetOrAddTokenFor(str);
-        }
+        public bool TryGetFakeStringTokenForIL(string str, out uint token)
+            => _stringsInILMap.Value.TryGetOrAddToken(str, out token);
 
         public string GetStringFromToken(uint token)
-        {
-            return _stringsInILMap.GetItem(token);
-        }
+            => _stringsInILMap.Value.GetValue(token);
 
         public ReadOnlySpan<object> ReferencesInIL()
         {
@@ -578,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Emit
     /// <summary>
     /// Common base class for C# and VB PE module builder.
     /// </summary>
-    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, ITokenDeferral
+    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder
         where TCompilation : Compilation
         where TSourceModuleSymbol : class, IModuleSymbolInternal
         where TAssemblySymbol : class, IAssemblySymbolInternal
@@ -593,7 +663,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly TCompilation Compilation;
 
         private PrivateImplementationDetails _lazyPrivateImplementationDetails;
-        private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
@@ -687,7 +756,7 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(typeReferenceIndexer, RootModuleType);
             yield return RootModuleType;
 
-            foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
+            foreach (var typeDef in GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: true))
             {
                 AddTopLevelType(names, typeDef);
                 VisitTopLevelType(typeReferenceIndexer, typeDef);
@@ -906,7 +975,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _synthesizedTypeMembers.GetOrAdd(container, _ => new SynthesizedDefinitions());
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
         {
             Debug.Assert(method != null);
 
@@ -919,7 +988,7 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.Methods.Enqueue(method);
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
         {
             Debug.Assert(property != null);
 
@@ -932,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.Properties.Enqueue(property);
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
         {
             Debug.Assert(field != null);
 
@@ -945,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.Fields.Enqueue(field);
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
         {
             Debug.Assert(nestedType != null);
 
@@ -1015,11 +1084,14 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
+        internal sealed override SynthesizedTypeMaps GetAllSynthesizedTypes()
+            => Compilation.CommonAnonymousTypeManager.GetSynthesizedTypeMaps();
+
         #endregion
 
         #region Token Mapping
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public sealed override Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             RoslynDebug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
@@ -1029,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.GetOrAddDataField(data, alignment);
         }
 
-        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public sealed override Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
@@ -1039,41 +1111,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
         }
 
-        public Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public sealed override Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
             var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
-        }
-
-        /// <summary>
-        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
-        /// </summary>
-        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
-        }
-
-        public abstract Cci.IMethodReference GetInitArrayHelper();
-
-        public ArrayMethods ArrayMethods
-        {
-            get
-            {
-                ArrayMethods result = _lazyArrayMethods;
-
-                if (result == null)
-                {
-                    result = new ArrayMethods();
-
-                    if (Interlocked.CompareExchange(ref _lazyArrayMethods, result, null) != null)
-                    {
-                        result = _lazyArrayMethods;
-                    }
-                }
-
-                return result;
-            }
         }
 
         #endregion

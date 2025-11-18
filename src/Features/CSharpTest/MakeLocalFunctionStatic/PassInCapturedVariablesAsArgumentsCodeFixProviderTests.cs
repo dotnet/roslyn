@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public PassInCapturedVariablesAsArgumentsCodeFixProviderTests(ITestOutputHelper logger)
       : base(logger)
@@ -30,9 +30,8 @@ public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCS
     private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
     [Fact]
-    public async Task TestMissingInCSharp7()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInCSharp7()
+        => TestMissingAsync(
             """
             class C
             {
@@ -47,12 +46,10 @@ public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCS
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharp72ParseOptions));
-    }
 
     [Fact]
-    public async Task TestMissingIfNoDiagnostic()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfNoDiagnostic()
+        => TestMissingAsync(
             """
             class C
             {
@@ -67,12 +64,10 @@ public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCS
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
-    public async Task TestAvailableIfCapturesThisParameter1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAvailableIfCapturesThisParameter1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -104,13 +99,11 @@ public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCS
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task ShouldTriggerForCSharp8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerForCSharp8()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -139,13 +132,11 @@ public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCS
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestMultipleVariables()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleVariables()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -175,13 +166,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestMultipleCalls()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleCalls()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -212,13 +201,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestMultipleCallsWithExistingParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleCallsWithExistingParameters()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -250,14 +237,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """
-, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestRecursiveCall()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRecursiveCall()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -289,13 +273,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestCallInArgumentList()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallInArgumentList()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -325,13 +307,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestCallsWithNamedArguments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallsWithNamedArguments()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -364,13 +344,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestCallsWithDafaultValue()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallsWithDafaultValue()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -403,13 +381,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestWarningAnnotation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWarningAnnotation()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -438,13 +414,11 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestNonCamelCaseCapture()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNonCamelCaseCapture()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -475,13 +449,11 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestFixAll()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -535,7 +507,6 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 }
 

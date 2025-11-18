@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -20,6 +19,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [Export(typeof(IEditAndContinueLogReporter))]
 internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
 {
+    private const string CategoryName = "Roslyn";
+
     private readonly AsyncBatchingWorkQueue<HotReloadLogMessage> _queue;
 
     [ImportingConstructor]
@@ -60,6 +61,6 @@ internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
         };
 
-        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel));
+        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel, category: CategoryName));
     }
 }

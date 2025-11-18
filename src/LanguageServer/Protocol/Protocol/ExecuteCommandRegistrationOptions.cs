@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#executeCommandRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class ExecuteCommandRegistrationOptions : ExecuteCommandOptions, ITextDocumentRegistrationOptions
+internal sealed class ExecuteCommandRegistrationOptions : ExecuteCommandOptions, ITextDocumentRegistrationOptions
 {
     /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]

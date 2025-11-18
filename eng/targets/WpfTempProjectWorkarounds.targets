@@ -1,7 +1,0 @@
-<Project>
-  <!--
-    Workaround for Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props 
-    target that doesn't work in WpfTempProjects because the OutDir is empty.
-  -->
-  <Target Name="IncludeGeneratedExtensionManifests" />
-</Project>

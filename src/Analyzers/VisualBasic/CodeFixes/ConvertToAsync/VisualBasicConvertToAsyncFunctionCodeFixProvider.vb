@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
         Public Sub New()
         End Sub
 
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            Return MyBase.GetFixAllProvider()
+        End Function
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return Ids
@@ -37,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
             Return String.Format(VisualBasicCodeFixesResources.Make_0_an_Async_Function, methodNode.Item2.BlockStatement)
         End Function
 
-        Protected Overrides Async Function GetRootInOtherSyntaxTreeAsync(node As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxTree, SyntaxNode))
+        Protected Overrides Async Function GetRootInOtherSyntaxTreeAsync(node As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of (SyntaxTree As SyntaxTree, root As SyntaxNode)?)
             Dim tuple = Await GetMethodFromExpressionAsync(node, semanticModel, cancellationToken).ConfigureAwait(False)
             If tuple Is Nothing Then
                 Return Nothing
@@ -47,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
             Dim methodBlock = tuple.Item2
 
             Dim newRoot = oldRoot.ReplaceNode(methodBlock, ConvertToAsyncFunction(methodBlock))
-            Return System.Tuple.Create(oldRoot.SyntaxTree, newRoot)
+            Return (oldRoot.SyntaxTree, newRoot)
         End Function
 
         Private Shared Async Function GetMethodFromExpressionAsync(oldNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, MethodBlockSyntax))

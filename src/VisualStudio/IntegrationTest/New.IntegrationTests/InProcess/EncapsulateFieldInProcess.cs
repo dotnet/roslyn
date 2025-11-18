@@ -10,7 +10,7 @@ using WindowsInput.Native;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class EncapsulateFieldInProcess
+internal sealed partial class EncapsulateFieldInProcess
 {
     public string DialogName => "Preview Changes - Encapsulate Field";
 

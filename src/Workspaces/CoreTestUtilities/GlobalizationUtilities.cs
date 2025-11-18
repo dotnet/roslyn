@@ -5,7 +5,8 @@
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
-internal class GlobalizationUtilities
+
+internal sealed class GlobalizationUtilities
 {
     /// <summary>
     /// The final ordering of kana depends on what globalization mode is being used.

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 /// All classification names must be explicitly mapped to an LSP semantic token type or
 /// a custom token type name defined here.
 /// </summary>
-internal class CustomLspSemanticTokenNames
+internal sealed class CustomLspSemanticTokenNames
 {
     public const string ExcludedCode = "excludedCode";
     public const string KeywordControl = "controlKeyword";

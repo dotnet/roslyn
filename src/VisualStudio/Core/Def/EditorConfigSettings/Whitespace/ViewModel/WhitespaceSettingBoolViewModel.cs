@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
-internal class WhitespaceSettingBoolViewModel
+internal sealed class WhitespaceSettingBoolViewModel
 {
     private readonly Setting _setting;
     private bool _isChecked;

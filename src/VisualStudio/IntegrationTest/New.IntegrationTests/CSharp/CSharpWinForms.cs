@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
@@ -33,7 +33,9 @@ public class CSharpWinForms : AbstractEditorTest
         await TestServices.SolutionExplorer.SaveFileAsync(project, "Form1.resx", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.cs", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"this.SomeButton.Name = ""SomeButton""", actualText);
+        Assert.Contains("""
+            this.SomeButton.Name = "SomeButton"
+            """, actualText);
         Assert.Contains(@"private System.Windows.Forms.Button SomeButton;", actualText);
     }
 
@@ -49,7 +51,9 @@ public class CSharpWinForms : AbstractEditorTest
         await TestServices.SolutionExplorer.CloseDesignerFileAsync(project, "Form1.cs", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.cs", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
+        Assert.Contains("""
+            this.SomeButton.Text = "NewButtonText"
+            """, actualText);
     }
 
     [IdeFact]
@@ -95,21 +99,23 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.Contains(@"this.SomeButton.Click += new System.EventHandler(this.ExecuteWhenButtonClicked);", designerActualText);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
         var codeFileActualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"    public partial class Form1 : Form
-    {
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        Assert.Contains("""
+                public partial class Form1 : Form
+                {
+                    public Form1()
+                    {
+                        InitializeComponent();
+                    }
 
-        private void ExecuteWhenButtonClicked(object sender, EventArgs e)
-        {
+                    private void ExecuteWhenButtonClicked(object sender, EventArgs e)
+                    {
 
-        }
-    }", codeFileActualText);
+                    }
+                }
+            """, codeFileActualText);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task RenameControl()
     {
         var project = ProjectName;
@@ -146,7 +152,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task RemoveEventHandler()
     {
         var project = ProjectName;
@@ -176,7 +182,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.GooHandler);", actualText);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task ChangeAccessibility()
     {
         var project = ProjectName;
@@ -205,34 +211,31 @@ public class CSharpWinForms : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
     }
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task DeleteControl()
     {
-        if (ExecutionConditionUtil.IsBitness64)
-        {
-            var project = ProjectName;
-            await TestServices.SolutionExplorer.OpenFileWithDesignerAsync(project, "Form1.cs", HangMitigatingCancellationToken);
-            await TestServices.Editor.AddWinFormButtonAsync("SomeButton", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.SaveFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.SaveFileAsync(project, "Form1.resx", HangMitigatingCancellationToken);
-            await TestServices.Editor.DeleteWinFormButtonAsync("SomeButton", HangMitigatingCancellationToken);
+        var project = ProjectName;
+        await TestServices.SolutionExplorer.OpenFileWithDesignerAsync(project, "Form1.cs", HangMitigatingCancellationToken);
+        await TestServices.Editor.AddWinFormButtonAsync("SomeButton", HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.SaveFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.SaveFileAsync(project, "Form1.resx", HangMitigatingCancellationToken);
+        await TestServices.Editor.DeleteWinFormButtonAsync("SomeButton", HangMitigatingCancellationToken);
 
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                [
-                    FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawlerLegacy,
-                    FeatureAttribute.DiagnosticService,
-                    FeatureAttribute.EditAndContinue,
-                    FeatureAttribute.ErrorSquiggles,
-                    FeatureAttribute.ErrorList,
-                ],
-                HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+            [
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawlerLegacy,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.EditAndContinue,
+                FeatureAttribute.ErrorSquiggles,
+                FeatureAttribute.ErrorList,
+            ],
+            HangMitigatingCancellationToken);
 
-            Assert.Empty(await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken));
-            await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.cs", HangMitigatingCancellationToken);
-            var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-            Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Name = ""SomeButton"";", actualText);
-            Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
-        }
+        Assert.Empty(await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken));
+        await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.cs", HangMitigatingCancellationToken);
+        var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
+        Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Name = ""SomeButton"";", actualText);
+        Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
     }
 }

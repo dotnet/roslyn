@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 

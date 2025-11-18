@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Build.Framework;
@@ -51,7 +52,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         private CancellationTokenSource? _sharedCompileCts;
-        internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
 
@@ -487,6 +487,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
         }
 
+        // Keeping this for a while to avoid failures if someone uses sdk targets that still set this.
+        public string? CompilerType
+        {
+            set { }
+            get { return null; }
+        }
+
         #endregion
 
         /// <summary>
@@ -499,7 +506,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
 
@@ -523,7 +531,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string? tempDirectory = Path.GetTempPath();
 
                 if (!UseSharedCompilation ||
-                    !IsManagedTool ||
+                    !UsingBuiltinTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
@@ -534,10 +542,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 logger.Log($"CommandLine = '{commandLineCommands}'");
                 logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
+                var clientDirectory = Path.GetDirectoryName(PathToBuiltInTool);
                 if (clientDirectory is null || tempDirectory is null)
                 {
-                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToManagedTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToBuiltInTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -811,7 +819,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             else
             {
                 logger.Log(message);
-                Log.LogMessage(message);
             }
         }
 
@@ -907,7 +914,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
-            commandLine.AppendFileNamesIfNotNull(Sources, " ");
+            // If transformation is needed (on Unix for paths that look like options),
+            // use the string[] overload. Otherwise use the ITaskItem[] overload to avoid allocation.
+            var transformedSources = GetTransformedSourcesForCommandLine(Sources);
+            if (transformedSources != null)
+            {
+                commandLine.AppendFileNamesIfNotNull(transformedSources, " ");
+            }
+            else
+            {
+                commandLine.AppendFileNamesIfNotNull(Sources, " ");
+            }
         }
 
         internal void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
@@ -1081,6 +1098,59 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
             }
+        }
+
+        /// <summary>
+        /// Transforms source file paths to avoid misinterpretation as command-line switches.
+        /// On Unix, source files that would be misinterpreted as options (e.g., those starting 
+        /// with '/' without another '/' after the first character) are transformed to start 
+        /// with '/./' to prevent them from being interpreted as switches.
+        /// This uses the same heuristic as the compiler's CommandLineParser.TryParseOption.
+        /// </summary>
+        /// <param name="sources">The source files to transform</param>
+        /// <returns>Array of source file paths as strings, or null if no transformation needed</returns>
+        private string[]? GetTransformedSourcesForCommandLine(ITaskItem[]? sources)
+        {
+            if (sources is null || sources.Length == 0)
+                return null;
+
+            // On Windows, no transformation is needed
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return null;
+
+            // Go over sources once and lazily initialize transformedSources if needed
+            string[]? transformedSources = null;
+            for (int i = 0; i < sources.Length; i++)
+            {
+                var itemSpec = sources[i].ItemSpec;
+
+                // Check if this path needs transformation using the compiler's heuristic:
+                // A path starting with '/' is treated as an option unless it contains 
+                // another '/' after the first character (e.g., "/dir/file.cs" is safe)
+                if (itemSpec.Length > 1 && itemSpec[0] == '/' && itemSpec.IndexOf('/', 1) < 0)
+                {
+                    // Lazy initialization: create the array on first transformation
+                    if (transformedSources == null)
+                    {
+                        transformedSources = new string[sources.Length];
+                        // Copy all items processed so far
+                        for (int j = 0; j < i; j++)
+                        {
+                            transformedSources[j] = sources[j].ItemSpec;
+                        }
+                    }
+
+                    // Transform this path to prevent misinterpretation as an option
+                    transformedSources[i] = "/." + itemSpec;
+                }
+                else if (transformedSources != null)
+                {
+                    // If we've already started transforming, copy this item as-is
+                    transformedSources[i] = itemSpec;
+                }
+            }
+
+            return transformedSources;
         }
 
         /// <summary>

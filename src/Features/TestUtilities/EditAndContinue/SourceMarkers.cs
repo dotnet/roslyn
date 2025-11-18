@@ -20,15 +20,19 @@ internal static class SourceMarkers
         "[<]  (?<IsEnd>/?)  (?<Name>(AS|ER|N|S|TS))[:]  (?<Id>[.0-9,]+)  (?<IsStartAndEnd>/?)  [>]", RegexOptions.IgnorePatternWhitespace);
 
     public static readonly Regex ExceptionRegionPattern = new(
-        @"[<]ER[:]      (?<Id>(?:[0-9]+[.][0-9]+[,]?)+)   [>]
-            (?<ExceptionRegion>.*)
-          [<][/]ER[:]   (\k<Id>)                          [>]",
+        """
+        [<]ER[:]      (?<Id>(?:[0-9]+[.][0-9]+[,]?)+)   [>]
+                    (?<ExceptionRegion>.*)
+                  [<][/]ER[:]   (\k<Id>)                          [>]
+        """,
         RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
     private static readonly Regex s_trackingStatementPattern = new(
-        @"[<]TS[:]    (?<Id>[0-9,]+) [>]
-            (?<TrackingStatement>.*)
-          [<][/]TS[:] (\k<Id>)       [>]",
+        """
+        [<]TS[:]    (?<Id>[0-9,]+) [>]
+                    (?<TrackingStatement>.*)
+                  [<][/]TS[:] (\k<Id>)       [>]
+        """,
         RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
     internal static string Clear(string source)

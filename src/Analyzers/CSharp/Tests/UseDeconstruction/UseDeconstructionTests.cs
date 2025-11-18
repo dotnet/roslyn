@@ -18,12 +18,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseDeconstructionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
-public class UseDeconstructionTests
+public sealed class UseDeconstructionTests
 {
     [Fact]
-    public async Task TestVar()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestVar()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -44,7 +43,6 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotIfNameInInnerScope()
@@ -88,9 +86,8 @@ public class UseDeconstructionTests
     }
 
     [Fact]
-    public async Task TestUpdateReference()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestUpdateReference()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -113,12 +110,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTupleType()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestTupleType()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -141,12 +136,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestVarInForEach()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestVarInForEach()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Collections.Generic;
 
             class C
@@ -173,12 +166,10 @@ public class UseDeconstructionTests
                 IEnumerable<(string name, int age)> GetPeople() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTupleTypeInForEach()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestTupleTypeInForEach()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Collections.Generic;
 
             class C
@@ -205,12 +196,10 @@ public class UseDeconstructionTests
                 IEnumerable<(string name, int age)> GetPeople() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -233,12 +222,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -269,12 +256,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll3()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -297,12 +282,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll4()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll4()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -325,7 +308,6 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotIfDefaultTupleNameWithVar()
@@ -346,9 +328,8 @@ public class UseDeconstructionTests
     }
 
     [Fact]
-    public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithUserNamesThatMatchDefaultTupleNameWithVar1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -369,12 +350,10 @@ public class UseDeconstructionTests
                 (string Item1, int Item2) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithUserNamesThatMatchDefaultTupleNameWithVar2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -397,7 +376,6 @@ public class UseDeconstructionTests
                 (string Item1, int Item2) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotIfDefaultTupleNameWithTupleType()
@@ -494,9 +472,8 @@ public class UseDeconstructionTests
     }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestTrivia1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -519,12 +496,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25260")]
-    public async Task TestNotWithDefaultLiteralInitializer()
-    {
-        await new VerifyCS.Test()
+    public Task TestNotWithDefaultLiteralInitializer()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class C
@@ -538,12 +513,10 @@ public class UseDeconstructionTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDefaultExpressionInitializer()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithDefaultExpressionInitializer()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -562,7 +535,6 @@ public class UseDeconstructionTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotWithImplicitConversionFromNonTuple()
@@ -587,9 +559,8 @@ public class UseDeconstructionTests
     }
 
     [Fact]
-    public async Task TestWithExplicitImplicitConversionFromNonTuple()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithExplicitImplicitConversionFromNonTuple()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 class Person
@@ -618,7 +589,6 @@ public class UseDeconstructionTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotWithImplicitConversionFromNonTupleInForEach()
@@ -643,9 +613,8 @@ public class UseDeconstructionTests
     }
 
     [Fact]
-    public async Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Linq;
             class C
             {
@@ -676,12 +645,10 @@ public class UseDeconstructionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithTupleLiteralConversion()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithTupleLiteralConversion()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -700,12 +667,10 @@ public class UseDeconstructionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithImplicitTupleConversion()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithImplicitTupleConversion()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M()
@@ -728,12 +693,10 @@ public class UseDeconstructionTests
                 (string name, int age) GetPerson() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithImplicitTupleConversionInForEach()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithImplicitTupleConversionInForEach()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Collections.Generic;
             class C
             {
@@ -758,12 +721,10 @@ public class UseDeconstructionTests
                 IEnumerable<(string name, int age)> GetPeople() => default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27251")]
-    public async Task TestEscapedContextualKeywordAsTupleName()
-    {
-        await new VerifyCS.Test()
+    public Task TestEscapedContextualKeywordAsTupleName()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -799,12 +760,10 @@ public class UseDeconstructionTests
                 """,
             CodeActionValidationMode = Testing.CodeActionValidationMode.None
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42770")]
-    public async Task TestPreserveAwait()
-    {
-        await new VerifyCS.Test
+    public Task TestPreserveAwait()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -854,12 +813,10 @@ public class UseDeconstructionTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66994")]
-    public async Task TestTopLevelDeconstruct1()
-    {
-        await new VerifyCS.Test()
+    public Task TestTopLevelDeconstruct1()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 (int A, int B) ints = (1, 1);
@@ -876,12 +833,10 @@ public class UseDeconstructionTests
             },
             LanguageVersion = LanguageVersion.CSharp9
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66994")]
-    public async Task TestTopLevelDeconstruct2()
-    {
-        await new VerifyCS.Test
+    public Task TestTopLevelDeconstruct2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 (int A, int B) [|ints|] = (1, 1);
@@ -911,5 +866,4 @@ public class UseDeconstructionTests
             },
             LanguageVersion = LanguageVersion.CSharp9
         }.RunAsync();
-    }
 }

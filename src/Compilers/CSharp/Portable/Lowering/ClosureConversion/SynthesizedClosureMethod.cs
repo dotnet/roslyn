@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod,
                    blockSyntax,
                    originalMethod.DeclaringSyntaxReferences[0].GetLocation(),
-                   originalMethod is LocalFunctionSymbol
+                   originalMethod is { MethodKind: MethodKind.LocalFunction }
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    MakeDeclarationModifiers(closureKind, originalMethod),
@@ -57,22 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ClosureKind.Singleton: // all type parameters on method (except the top level method's)
                 case ClosureKind.General: // only lambda's type parameters on method (rest on class)
                     RoslynDebug.Assert(!(lambdaFrame is null));
-                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(
-                        originalMethod,
+                    typeMap = lambdaFrame.TypeMap.WithAlphaRename(
+                        TypeMap.ConcatMethodTypeParameters(originalMethod, stopAt: lambdaFrame.OriginalContainingMethodOpt),
                         this,
-                        out typeParameters,
-                        out _,
-                        lambdaFrame.OriginalContainingMethodOpt);
+                        propagateAttributes: false,
+                        out typeParameters);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
                 case ClosureKind.Static:
                     RoslynDebug.Assert(lambdaFrame is null);
-                    typeMap = TypeMap.Empty.WithConcatAlphaRename(
-                        originalMethod,
+                    typeMap = TypeMap.Empty.WithAlphaRename(
+                        TypeMap.ConcatMethodTypeParameters(originalMethod, stopAt: null),
                         this,
-                        out typeParameters,
-                        out _,
-                        stopAt: null);
+                        propagateAttributes: false,
+                        out typeParameters);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(closureKind);
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureAttributesExist(compilationState);
 
             // static local functions should be emitted as static.
-            Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
+            Debug.Assert(originalMethod is not { MethodKind: MethodKind.LocalFunction } || !originalMethod.IsStatic || IsStatic);
         }
 
         private void EnsureAttributesExist(TypeCompilationState compilationState)
@@ -124,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
-            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for these methods because it is not a SynthesizedDelegateInvokeMethod
+
+            ParameterHelpers.EnsureParamCollectionAttributeExists(moduleBuilder, Parameters);
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {

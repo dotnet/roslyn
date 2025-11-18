@@ -3,25 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
-        Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String
-            Get
-                Return BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
-            End Get
-        End Property
+        Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String =
+            BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
 
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
         Public ReadOnly Property Option_Run_background_code_analysis_for As String =
             ServicesVSResources.Run_background_code_analysis_for_colon
-
-        Public ReadOnly Property Option_analyze_source_generated_files As String =
-             ServicesVSResources.Analyze_source_generated_files
 
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
             WorkspacesResources.None
@@ -74,9 +67,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.FullSolution
 
-        Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
-            ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
-
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             ServicesVSResources.Show_procedure_line_separators
 
@@ -119,17 +109,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suppress_hints_when_argument_matches_parameter_name As String =
             ServicesVSResources.Suppress_hints_when_argument_matches_parameter_name
 
-        Public ReadOnly Property Option_Display_diagnostics_inline_experimental As String =
-            ServicesVSResources.Display_diagnostics_inline_experimental
+        Public ReadOnly Property Option_Display_diagnostics_inline As String =
+            ServicesVSResources.Display_diagnostics_inline
 
         Public ReadOnly Property Option_at_the_end_of_the_line_of_code As String =
             ServicesVSResources.at_the_end_of_the_line_of_code
 
         Public ReadOnly Property Option_on_the_right_edge_of_the_editor_window As String =
             ServicesVSResources.on_the_right_edge_of_the_editor_window
-
-        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
-            BasicVSResources.Don_t_put_ByRef_on_custom_structure
 
         Public ReadOnly Property Option_EditorHelp As String =
             ServicesVSResources.Editor_Help
@@ -190,6 +177,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String =
             BasicVSResources.Generate_XML_documentation_comments_for
+
+        Public ReadOnly Property Option_GenerateXmlDocCommentsOnSingleLine As String =
+            ServicesVSResources.Generate_summary_on_single_line
+
+        Public ReadOnly Property Option_GenerateOnlySummaryTag As String =
+            ServicesVSResources.Generate_only_summary_tag
 
         Public ReadOnly Property Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments As String =
             BasicVSResources.Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments
@@ -307,21 +300,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_completion_list As String =
             ServicesVSResources.Show_completion_list
 
-        Public ReadOnly Property Option_Editor_Color_Scheme As String =
-            ServicesVSResources.Editor_Color_Scheme
-
-        Public ReadOnly Property Option_Color_Scheme_VisualStudio2019 As String =
-            ServicesVSResources.Visual_Studio_2019
-
-        Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
-            ServicesVSResources.Visual_Studio_2017
-
-        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As ColorSchemeName =
-            ColorSchemeName.VisualStudio2019
-
-        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As ColorSchemeName =
-            ColorSchemeName.VisualStudio2017
-
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer
 
@@ -346,27 +324,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Go_To_Definition As String =
             ServicesVSResources.Go_To_Definition
 
-        Public ReadOnly Property Option_Rename As String =
-            EditorFeaturesResources.Rename
-
-        Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
-            ServicesVSResources.Rename_asynchronously_experimental
-
-        Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
-            ServicesVSResources.Where_should_the_rename_UI_be_shown
-
-        Public ReadOnly Property Option_Show_UI_inline As String =
-            ServicesVSResources.Show_UI_inline
-
-        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
-            ServicesVSResources.Show_UI_as_dashboard_in_top_right
-
-        Public ReadOnly Property Document_Outline As String =
-            ServicesVSResources.Document_Outline
-
-        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
-            ServicesVSResources.Enable_document_outline_experimental_requires_restart
-
         Public ReadOnly Property Option_Source_Generators As String =
             ServicesVSResources.Source_Generators
 
@@ -378,8 +335,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
             ServicesVSResources.Balanced_Run_generators_after_saving_or_building
-
-        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators As String =
-            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators
     End Module
 End Namespace

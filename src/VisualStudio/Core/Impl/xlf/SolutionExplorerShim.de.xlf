@@ -102,11 +102,6 @@
         <target state="translated">Unterdrückt</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">Regelsatz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">{0} wird zur Berarbeitung ausgecheckt...</target>

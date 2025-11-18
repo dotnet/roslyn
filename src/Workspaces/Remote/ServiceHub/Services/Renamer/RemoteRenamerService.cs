@@ -24,7 +24,6 @@ internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.Servic
         SerializableSymbolAndProjectId symbolAndProjectId,
         string newName,
         SymbolRenameOptions options,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -36,7 +35,7 @@ internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.Servic
                 return null;
 
             var result = await Renamer.RenameSymbolAsync(
-                solution, symbol, newName, options, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                solution, symbol, newName, options, cancellationToken).ConfigureAwait(false);
 
             return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
@@ -72,7 +71,6 @@ internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.Servic
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations serializableLocations,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -87,7 +85,7 @@ internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.Servic
                 return null;
 
             var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-                locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                locations, replacementText, cancellationToken).ConfigureAwait(false);
             return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }

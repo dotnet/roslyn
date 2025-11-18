@@ -18,52 +18,48 @@ namespace Microsoft.CodeAnalysis.Formatting;
 internal sealed class ContextMutableIntervalTree<T, TIntrospector> : SimpleMutableIntervalTree<T, TIntrospector>
     where TIntrospector : struct, IIntervalIntrospector<T>
 {
-    private readonly Func<T, int, int, bool> _edgeExclusivePredicate;
-    private readonly Func<T, int, int, bool> _edgeInclusivePredicate;
-    private readonly Func<T, int, int, bool> _containPredicate;
-
     public ContextMutableIntervalTree(in TIntrospector introspector)
         : base(introspector, values: null)
     {
-        _edgeExclusivePredicate = ContainsEdgeExclusive;
-        _edgeInclusivePredicate = ContainsEdgeInclusive;
-        _containPredicate = (value, start, end) => IntervalTreeAlgorithms<T, ContextMutableIntervalTree<T, TIntrospector>>.Contains(value, start, end, in Introspector);
     }
 
     public T? GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
-        => GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
+        => GetSmallestContainingIntervalWorker(start, length, ContainsEdgeExclusive);
 
     public T? GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
-        => GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
+        => GetSmallestContainingIntervalWorker(start, length, ContainsEdgeInclusive);
 
     public T? GetSmallestContainingInterval(int start, int length)
-        => GetSmallestContainingIntervalWorker(start, length, _containPredicate);
+        => GetSmallestContainingIntervalWorker(start, length, Contains);
 
-    private bool ContainsEdgeExclusive(T value, int start, int length)
+    private static bool ContainsEdgeExclusive(T value, int start, int length, TIntrospector introspector)
     {
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisSpan = Introspector.GetSpan(value);
+        var thisSpan = introspector.GetSpan(value);
         var thisStart = thisSpan.Start;
         var thisEnd = thisSpan.End;
 
         return thisStart < otherStart && otherEnd < thisEnd;
     }
 
-    private bool ContainsEdgeInclusive(T value, int start, int length)
+    private static bool ContainsEdgeInclusive(T value, int start, int length, TIntrospector introspector)
     {
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisSpan = Introspector.GetSpan(value);
+        var thisSpan = introspector.GetSpan(value);
         var thisStart = thisSpan.Start;
         var thisEnd = thisSpan.End;
 
         return thisStart <= otherStart && otherEnd <= thisEnd;
     }
 
-    private T? GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, bool> predicate)
+    private static bool Contains(T value, int start, int length, TIntrospector introspector)
+        => IntervalTreeAlgorithms<T, ContextMutableIntervalTree<T, TIntrospector>>.Contains(value, start, length, introspector);
+
+    private T? GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, TIntrospector, bool> predicate)
     {
         var result = default(T);
         if (root == null || MaxEndValue(root) < start)
@@ -117,7 +113,7 @@ internal sealed class ContextMutableIntervalTree<T, TIntrospector> : SimpleMutab
             while (spineNodes.TryPop(out currentNode))
             {
                 // check whether current node meets condition
-                if (predicate(currentNode.Value, start, length))
+                if (predicate(currentNode.Value, start, length, Introspector))
                 {
                     // hold onto best answer
                     if (EqualityComparer<T?>.Default.Equals(result, default))

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-public class RegexPatternDetectorTests
+public sealed class RegexPatternDetectorTests
 {
     private static void Match(string value, RegexOptions? expectedOptions = null)
     {
@@ -26,7 +26,7 @@ public class RegexPatternDetectorTests
 
             if (expectedOptions != null)
             {
-                Assert.True(EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(captures!, out var actualOptions));
+                Assert.True(EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(captures, out var actualOptions));
                 Assert.Equal(expectedOptions.Value, actualOptions);
             }
         }

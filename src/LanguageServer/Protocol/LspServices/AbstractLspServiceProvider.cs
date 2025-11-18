@@ -9,18 +9,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class AbstractLspServiceProvider
+internal abstract class AbstractLspServiceProvider(
+    IEnumerable<Lazy<ILspService, LspServiceMetadataView>> specificLspServices,
+    IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> specificLspServiceFactories)
 {
-    private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _lspServices;
-    private readonly ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> _lspServiceFactories;
-
-    public AbstractLspServiceProvider(
-        IEnumerable<Lazy<ILspService, LspServiceMetadataView>> specificLspServices,
-        IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> specificLspServiceFactories)
-    {
-        _lspServices = [.. specificLspServices];
-        _lspServiceFactories = [.. specificLspServiceFactories];
-    }
+    private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _lspServices = [.. specificLspServices];
+    private readonly ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> _lspServiceFactories = [.. specificLspServiceFactories];
 
     public LspServices CreateServices(WellKnownLspServerKinds serverKind, FrozenDictionary<string, ImmutableArray<BaseService>> baseServices)
     {

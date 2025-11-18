@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal sealed class RpcServer
 {
     private readonly TextWriter _streamWriter;
-    private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
+    private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);
     private readonly TextReader _streamReader;
 
     private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
     private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
 
-    private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+    private readonly CancellationTokenSource _shutdownTokenSource = new();
 
     public RpcServer(PipeStream stream)
     {

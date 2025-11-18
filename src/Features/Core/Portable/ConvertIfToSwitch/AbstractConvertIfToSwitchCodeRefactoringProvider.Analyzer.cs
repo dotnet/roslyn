@@ -56,11 +56,12 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         /// <remarks>
         /// Note that this is initially unset until we find a non-constant expression.
         /// </remarks>
-        private SyntaxNode _switchTargetExpression = null!;
+        private TExpressionSyntax _switchTargetExpression = null!;
+
         /// <summary>
         /// Holds the type of the <see cref="_switchTargetExpression"/>
         /// </summary>
-        private ITypeSymbol? _switchTargetType = null!;
+        private ITypeSymbol? _switchTargetType = null;
         private readonly ISyntaxFacts _syntaxFacts = syntaxFacts;
 
         public Feature Features { get; } = features;
@@ -68,7 +69,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         public bool Supports(Feature feature)
             => (Features & feature) != 0;
 
-        public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
+        public (ImmutableArray<AnalyzedSwitchSection>, TExpressionSyntax TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
         {
             using var _ = ArrayBuilder<AnalyzedSwitchSection>.GetInstance(out var sections);
             if (!ParseIfStatementSequence(operations, sections, topLevel: true, out var defaultBodyOpt))
@@ -450,7 +451,9 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         {
             operation = operation.WalkDownConversion();
 
-            var expression = operation.Syntax;
+            if (operation.Syntax is not TExpressionSyntax expression)
+                return false;
+
             // If we have not figured the switch expression yet,
             // we will assume that the first expression is the one.
             if (_switchTargetExpression is null)

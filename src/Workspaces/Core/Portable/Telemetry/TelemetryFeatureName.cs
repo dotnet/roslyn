@@ -17,10 +17,11 @@ internal readonly struct TelemetryFeatureName
 
     // Local services:
 
-    public static readonly TelemetryFeatureName CodeFixProvider = GetClientFeatureName("CodeFixProvider");
-    public static readonly TelemetryFeatureName InlineRename = GetClientFeatureName("InlineRename");
+    public static readonly TelemetryFeatureName CodeFixProvider = GetClientFeatureName(nameof(CodeFixProvider));
+    public static readonly TelemetryFeatureName InlineRename = GetClientFeatureName(nameof(InlineRename));
     public static readonly TelemetryFeatureName LegacySuppressionFix = GetClientFeatureName("TelemetryFeatureName");
-    public static readonly TelemetryFeatureName VirtualMemoryNotification = GetClientFeatureName("VirtualMemoryNotification");
+    public static readonly TelemetryFeatureName VirtualMemoryNotification = GetClientFeatureName(nameof(VirtualMemoryNotification));
+    public static readonly TelemetryFeatureName Workspace = GetClientFeatureName(nameof(Workspace));
 
     private readonly string _name;
     private readonly string _kind;

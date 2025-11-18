@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -338,16 +339,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnosticInfo = diagnostics.Add(ErrorCode.ERR_BadSKknown, syntax.Location, syntax, symbol.Symbol.GetKindText(), MessageID.IDS_SK_TYPE.Localize());
-            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
+            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
         }
 
         /// <summary>
         /// The immediately containing namespace or named type, or the global
         /// namespace if containing symbol is neither a namespace or named type.
+        /// We don't want to use an extension declaration as the containing type
+        /// for error type symbols, as that causes cycles during symbol display.
         /// </summary>
-        private NamespaceOrTypeSymbol GetContainingNamespaceOrType(Symbol symbol)
+        private NamespaceOrTypeSymbol GetContainingNamespaceOrNonExtensionType(Symbol symbol)
         {
-            return symbol.ContainingNamespaceOrType() ?? this.Compilation.Assembly.GlobalNamespace;
+            if (symbol.ContainingNamespaceOrType() is { } containing
+                && containing is not NamedTypeSymbol { IsExtension: true })
+            {
+                return containing;
+            }
+
+            return this.Compilation.Assembly.GlobalNamespace;
         }
 
         internal Symbol BindNamespaceAliasSymbol(IdentifierNameSyntax node, BindingDiagnosticBag diagnostics)
@@ -1305,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for us.
                 Debug.Assert(lookupResult.Error != null);
                 type = new ExtendedErrorTypeSymbol(
-                    GetContainingNamespaceOrType(lookupResultSymbol),
+                    GetContainingNamespaceOrNonExtensionType(lookupResultSymbol),
                     ImmutableArray.Create<Symbol>(lookupResultSymbol),
                     lookupResult.Kind,
                     lookupResult.Error,
@@ -1351,8 +1360,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // BackCompat.  The compiler would previously suppress reporting errors for pointers in generic types.  This
             // was intended so you would get a specific error in CheckBasicConstraints.CheckBasicConstraints for a type
             // like (like `List<int*>`). i.e. you would get the error about an unsafe type not being a legal type argument,
-            // but not the error about not being in an unsafe context.  This had the unfortunate consequence though of 
-            // preventing the latter check for something like `List<int*[]>`.  Here, this is a legal generic type, but we 
+            // but not the error about not being in an unsafe context.  This had the unfortunate consequence though of
+            // preventing the latter check for something like `List<int*[]>`.  Here, this is a legal generic type, but we
             // still want to report the error that you need to be in an unsafe context.  So, to maintain compat, we only
             // do the suppression if you're on C# 11 and prior.  In later versions we do the correct check.
             var binder = !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias)
@@ -1434,48 +1443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(members.Count > 0);
 
-            BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
-
-            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensionMethods) != 0);
-
-            if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out ParameterSymbol parameter))
-            {
-                bool haveInstanceCandidates, haveStaticCandidates;
-                LookupResult tempLookupResult = null;
-
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                CheckWhatCandidatesWeHave(members, parameter.Type, plainName,
-                                          typeArguments.IsDefault ? 0 : typeArguments.Length,
-                                          ref tempLookupResult, ref useSiteInfo,
-                                          out haveInstanceCandidates, out haveStaticCandidates);
-                tempLookupResult?.Free();
-                diagnostics.Add(colorColorValueReceiver.Syntax, useSiteInfo);
-
-                if (haveInstanceCandidates)
-                {
-                    BindingDiagnosticBag discarded = null;
-                    if (haveStaticCandidates)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, colorColorValueReceiver.Syntax, parameter.Name, parameter.Type, parameter);
-                        discarded = BindingDiagnosticBag.GetInstance(diagnostics);
-                    }
-
-                    receiver = ReplaceTypeOrValueReceiver(receiver, useType: false, discarded ?? diagnostics);
-                    discarded?.Free();
-
-                    if (haveStaticCandidates)
-                    {
-                        // Wrap into bad expression with HasErrors in an attempt to suppress cascading diagnostics
-                        receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Ambiguous, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), receiver.Type, hasErrors: true).MakeCompilerGenerated();
-                    }
-                }
-                else
-                {
-                    Debug.Assert(haveStaticCandidates);
-                    receiver = ReplaceTypeOrValueReceiver(receiver, useType: true, diagnostics);
-                }
-            }
-
             switch (members[0].Kind)
             {
                 case SymbolKind.Method:
@@ -1503,25 +1470,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsPossiblyCapturingPrimaryConstructorParameterReference(BoundExpression colorColorValueReceiver, out ParameterSymbol parameterSymbol)
+        private BoundExpression CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(BoundExpression receiver, SyntaxNode right, string plainName,
+            ImmutableArray<TypeWithAnnotations> typeArguments, bool invoked, ArrayBuilder<Symbol> members, BindingDiagnosticBag diagnostics)
         {
-            if (colorColorValueReceiver is BoundParameter { ParameterSymbol: { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter } &&
-                IsInDeclaringTypeInstanceMember(primaryConstructor) &&
-                !InFieldInitializer &&
-                this.ContainingMember() != (object)primaryConstructor &&
-                !IsInsideNameof)
+            if (!isPossiblyCapturingPrimaryConstructorParameterReference(receiver, out ParameterSymbol parameter))
             {
-                parameterSymbol = parameter;
-                return true;
+                return receiver;
             }
 
-            parameterSymbol = null;
-            return false;
+            bool haveInstanceCandidates, haveStaticCandidates;
+            LookupResult tempLookupResult = null;
+
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            CheckWhatCandidatesWeHave(members, parameter.Type, plainName,
+                                      typeArguments.IsDefault ? 0 : typeArguments.Length,
+                                      invoked,
+                                      ref tempLookupResult, ref useSiteInfo,
+                                      out haveInstanceCandidates, out haveStaticCandidates);
+            tempLookupResult?.Free();
+            diagnostics.Add(receiver.Syntax, useSiteInfo);
+
+            if (haveInstanceCandidates)
+            {
+                BindingDiagnosticBag discarded = null;
+                if (haveStaticCandidates)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, receiver.Syntax, parameter.Name, parameter.Type, parameter);
+                    discarded = BindingDiagnosticBag.GetInstance(diagnostics);
+                }
+
+                receiver = ReplaceTypeOrValueReceiver(receiver, useType: false, discarded ?? diagnostics);
+                discarded?.Free();
+
+                if (haveStaticCandidates)
+                {
+                    // Wrap into bad expression with HasErrors in an attempt to suppress cascading diagnostics
+                    receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Ambiguous, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), receiver.Type, hasErrors: true).MakeCompilerGenerated();
+                }
+            }
+            else if (haveStaticCandidates)
+            {
+                receiver = ReplaceTypeOrValueReceiver(receiver, useType: true, diagnostics);
+            }
+            else
+            {
+                Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, right, receiver.Type, plainName);
+                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [receiver], receiver.Type, hasErrors: true).MakeCompilerGenerated();
+            }
+
+            return receiver;
+
+            bool isPossiblyCapturingPrimaryConstructorParameterReference(BoundExpression receiver, out ParameterSymbol parameterSymbol)
+            {
+                BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
+
+                if (colorColorValueReceiver is BoundParameter { ParameterSymbol: { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter } &&
+                    IsInDeclaringTypeInstanceMember(primaryConstructor) &&
+                    !InFieldInitializer &&
+                    this.ContainingMember() != (object)primaryConstructor &&
+                    !IsInsideNameof)
+                {
+                    parameterSymbol = parameter;
+                    return true;
+                }
+
+                parameterSymbol = null;
+                return false;
+            }
         }
 
         private void CheckWhatCandidatesWeHave(
             ArrayBuilder<Symbol> members, TypeSymbol receiverType,
-            string plainName, int arity,
+            string plainName, int arity, bool invoked,
             ref LookupResult lookupResult,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             out bool haveInstanceCandidates, out bool haveStaticCandidates)
@@ -1529,36 +1549,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(lookupResult?.IsClear != false);
             haveInstanceCandidates = members.Any(m => !m.IsStatic);
             haveStaticCandidates = members.Any(m => m.IsStatic);
-            Debug.Assert(haveStaticCandidates || haveInstanceCandidates);
 
-            if (!haveInstanceCandidates && members[0].Kind == SymbolKind.Method)
+            if (haveStaticCandidates && haveInstanceCandidates)
             {
-                // See if there could be extension methods in scope
-                foreach (var scope in new ExtensionMethodScopes(this))
-                {
-                    lookupResult ??= LookupResult.GetInstance();
-                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
+                // No additional information to be collected by inspecting extension candidates
+                return;
+            }
 
-                    if (lookupResult.IsMultiViable)
+            // look for applicable extensions in scope and whether they are instance or static
+            LookupOptions options = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+            if (invoked)
+            {
+                options |= LookupOptions.MustBeInvocableIfMember;
+            }
+
+            foreach (var scope in new ExtensionScopes(this))
+            {
+                lookupResult ??= LookupResult.GetInstance();
+
+                scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                    lookupResult, plainName, arity, options,
+                    originalBinder: this, useSiteInfo: ref useSiteInfo, classicExtensionUseSiteInfo: ref useSiteInfo);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    foreach (Symbol symbol in lookupResult.Symbols)
                     {
-                        foreach (var symbol in lookupResult.Symbols)
+                        if (symbol is MethodSymbol { IsExtensionMethod: true } extensionMethod)
                         {
-                            var method = (MethodSymbol)symbol;
-                            if (method.ReduceExtensionMethod(receiverType, Compilation) is not null)
+                            if (!haveInstanceCandidates
+                                && extensionMethod.ReduceExtensionMethod(receiverType, Compilation) is { } reduced)
                             {
                                 haveInstanceCandidates = true;
-                                break;
                             }
                         }
-                    }
+                        else
+                        {
+                            Debug.Assert(symbol.IsExtensionBlockMember());
+                            if (SourceNamedTypeSymbol.ReduceExtensionMember(this.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
+                            {
+                                if (compatibleSubstitutedMember.IsStatic)
+                                {
+                                    haveStaticCandidates = true;
+                                }
+                                else
+                                {
+                                    haveInstanceCandidates = true;
+                                }
+                            }
+                        }
 
-                    lookupResult.Clear();
-
-                    if (haveInstanceCandidates)
-                    {
-                        break;
+                        if (haveStaticCandidates && haveInstanceCandidates)
+                        {
+                            // No additional information to be collected by inspecting further scopes
+                            return;
+                        }
                     }
                 }
+
+                lookupResult.Clear();
             }
         }
 
@@ -1646,12 +1695,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal NamedTypeSymbol GetSpecialType(SpecialType typeId, BindingDiagnosticBag diagnostics, SyntaxNode node)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType typeId, BindingDiagnosticBag diagnostics, SyntaxNode node)
         {
             return GetSpecialType(this.Compilation, typeId, node, diagnostics);
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, ExtendedSpecialType typeId, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
@@ -1659,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, ExtendedSpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
@@ -1720,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // No need to track assemblies used by special members or types. They are coming from core library, which 
+            // No need to track assemblies used by special members or types. They are coming from core library, which
             // doesn't have any dependencies.
             return true;
         }
@@ -1788,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(compilation, type, diagnostics, node.Location);
         }
 
+#nullable enable
         internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location)
         {
             NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
@@ -1795,6 +1845,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUseSite(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
+
+        internal static bool TryGetOptionalWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location, [NotNullWhen(true)] out NamedTypeSymbol? typeSymbol)
+        {
+            typeSymbol = compilation.GetWellKnownType(type);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
+            var useSiteInfo = typeSymbol.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                typeSymbol = null;
+                return false;
+            }
+
+            // Ignore warnings
+            useSiteInfo = new UseSiteInfo<AssemblySymbol>(diagnosticInfo: null, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies);
+            diagnostics.Add(useSiteInfo, location);
+            return true;
+        }
+#nullable disable
 
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
@@ -2041,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // https://github.com/dotnet/roslyn/issues/62331
                             // some "single symbol" diagnostics are missed here for similar reasons
                             // that make us miss diagnostics when reporting WRN_SameFullNameThisAggAgg.
-                            // 
+                            //
                             return first;
                         }
 
@@ -2234,7 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new ExtendedErrorTypeSymbol(
-                            GetContainingNamespaceOrType(originalSymbols[0]),
+                            GetContainingNamespaceOrNonExtensionType(originalSymbols[0]),
                             originalSymbols,
                             LookupResultKind.Ambiguous,
                             info,
@@ -2252,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             wasError = true;
                             var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_SystemVoid);
                             diagnostics.Add(errorInfo, where.Location);
-                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
+                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
                         }
                         // Check for bad symbol.
                         else
@@ -2285,7 +2353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         wasError = true;
                                         diagnostics.Add(errorInfo, where.Location);
-                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
+                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
                                     }
                                 }
                             }
@@ -2341,7 +2409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bad type or namespace (or things expected as types/namespaces) are packaged up as error types, preserving the symbols and the result kind.
                     // We do this if there are multiple symbols too, because just returning one would be losing important information, and they might
                     // be of different kinds.
-                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
+                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
                 }
                 else
                 {

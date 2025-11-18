@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache) : CommonQuickInfoProvider
+internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider() : CommonQuickInfoProvider
 {
-    private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
-
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
         QuickInfoContext context,
         SyntaxToken token)
     {
         var document = context.Document;
-        return GetQuickinfoForPragmaWarning(document, token) ??
-            (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, context.CancellationToken).ConfigureAwait(false));
+        var cancellationToken = context.CancellationToken;
+        return
+            await GetQuickinfoForPragmaWarningAsync(document, token, cancellationToken).ConfigureAwait(false) ??
+            await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false);
     }
 
     protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -47,7 +47,8 @@ internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoC
         return Task.FromResult<QuickInfoItem?>(null);
     }
 
-    private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
+    private static async Task<QuickInfoItem?> GetQuickinfoForPragmaWarningAsync(
+        Document document, SyntaxToken token, CancellationToken cancellationToken)
     {
         var errorCodeNode = token.Parent switch
         {
@@ -83,10 +84,11 @@ internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoC
             return null;
         }
 
-        return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeNode.Span);
+        return await GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzersAsync(
+            document, errorCode, errorCodeNode.Span, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
+    private static async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
         Document document,
         SyntaxToken token,
         CancellationToken cancellationToken)
@@ -121,19 +123,22 @@ internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoC
             if (checkIdObject.HasValue && checkIdObject.Value is string checkId)
             {
                 var errorCode = checkId.ExtractErrorCodeFromCheckId();
-                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, suppressMessageCheckIdArgument.Span);
+                return await GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzersAsync(
+                    document, errorCode, suppressMessageCheckIdArgument.Span, cancellationToken).ConfigureAwait(false);
             }
         }
 
         return null;
     }
 
-    private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
-        string errorCode, TextSpan location)
+    private static async Task<QuickInfoItem?> GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzersAsync(
+        Document document, string errorCode, TextSpan location, CancellationToken cancellationToken)
     {
         var hostAnalyzers = document.Project.Solution.SolutionState.Analyzers;
-        var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, document.Project).Values;
-        var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
+        var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var groupedDiagnostics = await service.GetDiagnosticDescriptorsPerReferenceAsync(
+            document.Project, cancellationToken).ConfigureAwait(false);
+        var supportedDiagnostics = groupedDiagnostics.Values.SelectMany(d => d);
         var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
         if (diagnosticDescriptor != null)
         {
@@ -144,7 +149,7 @@ internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoC
     }
 
     private static QuickInfoItem CreateQuickInfo(TextSpan location, DiagnosticDescriptor descriptor,
-        params TextSpan[] relatedSpans)
+        params ReadOnlySpan<TextSpan> relatedSpans)
     {
         var description =
             descriptor.Title.ToStringOrNull() ??

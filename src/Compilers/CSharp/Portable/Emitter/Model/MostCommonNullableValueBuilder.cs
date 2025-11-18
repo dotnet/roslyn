@@ -12,8 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal struct MostCommonNullableValueBuilder
     {
+        /// <see cref="NullableAnnotationExtensions.ObliviousAttributeValue"/>
         private int _value0;
+
+        /// <see cref="NullableAnnotationExtensions.NotAnnotatedAttributeValue"/>
         private int _value1;
+
+        /// <see cref="NullableAnnotationExtensions.AnnotatedAttributeValue"/>
         private int _value2;
 
         internal byte? MostCommonValue

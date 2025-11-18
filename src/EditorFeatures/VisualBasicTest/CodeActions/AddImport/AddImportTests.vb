@@ -1178,7 +1178,7 @@ End Interface"
             Await TestAsync(
                 initialText,
                 expectedText,
-                parseOptions:=options)
+                New TestParameters(parseOptions:=options))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
@@ -1199,7 +1199,7 @@ End Interface"
             Await TestAsync(
                 initialText,
                 expectedText,
-                parseOptions:=options)
+                New TestParameters(parseOptions:=options))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
@@ -1254,7 +1254,7 @@ End Module
             Await TestAsync(
                 initialText,
                 expectedText,
-                parseOptions:=options)
+                New TestParameters(parseOptions:=options))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
@@ -1312,7 +1312,7 @@ End Module
             Await TestAsync(
                 initialText,
                 expectedText,
-                parseOptions:=options)
+                New TestParameters(parseOptions:=options))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
@@ -1349,7 +1349,7 @@ End Class
             Await TestAsync(
                 initialText,
                 expectedText,
-                parseOptions:=options)
+                New TestParameters(parseOptions:=options))
         End Function
 
         <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
@@ -1866,7 +1866,7 @@ Namespace Ext
         End Sub
     End Module
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")>
@@ -1907,7 +1907,7 @@ Namespace Ext
         End Sub
     End Module
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")>
@@ -1948,7 +1948,7 @@ Namespace Ext
         End Sub
     End Module
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")>
@@ -1989,7 +1989,7 @@ Namespace Ext
         End Sub
     End Module
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")>
@@ -2030,7 +2030,7 @@ Namespace Ext
         End Sub
     End Module
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")>
@@ -2085,7 +2085,7 @@ Namespace Ext2
         End Sub
     End Module
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")>
@@ -2140,8 +2140,7 @@ Namespace Ext2
         End Sub
     End Module
 End Namespace",
-index:=1,
-parseOptions:=Nothing)
+New TestParameters(index:=1, parseOptions:=Nothing))
         End Function
 
         <Theory, CombinatorialData>

@@ -4,16 +4,15 @@
 
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+internal interface IInitializeManager : ILspService
 {
-    internal interface IInitializeManager : ILspService
-    {
-        ClientCapabilities GetClientCapabilities();
+    ClientCapabilities GetClientCapabilities();
 
-        ClientCapabilities? TryGetClientCapabilities();
+    ClientCapabilities? TryGetClientCapabilities();
 
-        InitializeParams? TryGetInitializeParams();
+    InitializeParams? TryGetInitializeParams();
 
-        void SetInitializeParams(InitializeParams initializeParams);
-    }
+    void SetInitializeParams(InitializeParams initializeParams);
 }

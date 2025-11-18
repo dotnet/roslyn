@@ -23,16 +23,18 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList;
 
 [UseExportProvider]
-public class NoCompilationTaskListTests : AbstractTaskListTests
+public sealed class NoCompilationTaskListTests : AbstractTaskListTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
     {
         var workspace = EditorTestWorkspace.CreateWorkspace(XElement.Parse(
-$@"<Workspace>
-    <Project Language=""NoCompilation"">
-        <Document>{codeWithMarker}</Document>
-    </Project>
-</Workspace>"), composition: composition.AddParts(
+            $"""
+            <Workspace>
+                <Project Language="NoCompilation">
+                    <Document>{codeWithMarker}</Document>
+                </Project>
+            </Workspace>
+            """), composition: composition.AddParts(
             typeof(NoCompilationContentTypeDefinitions),
             typeof(NoCompilationContentTypeLanguageService),
             typeof(NoCompilationTaskListService)));
@@ -41,17 +43,13 @@ $@"<Workspace>
     }
 
     [Theory, CombinatorialData, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-    public async Task TodoCommentInNoCompilationProject(TestHost host)
-    {
-        var code = @"(* [|Message|] *)";
-
-        await TestAsync(code, host);
-    }
+    public Task TodoCommentInNoCompilationProject(TestHost host)
+        => TestAsync(@"(* [|Message|] *)", host);
 }
 
 [PartNotDiscoverable]
 [ExportLanguageService(typeof(ITaskListService), language: NoCompilationConstants.LanguageName), Shared]
-internal class NoCompilationTaskListService : ITaskListService
+internal sealed class NoCompilationTaskListService : ITaskListService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

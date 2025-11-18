@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class StackOverflowProbingTests : CSharpTestBase
 {
-#if NET
-    const string NativeIntDisplay = "nint";
-#else
-    const string NativeIntDisplay = "System.IntPtr";
-#endif
-
     private static readonly EmitOptions s_emitOptions = EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.StackOverflowProbing]);
 
     private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
@@ -79,7 +73,7 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
               IL_0011:  pop
               IL_0012:  ldsfld     "C.<>c C.<>c.<>9"
               IL_0017:  ldftn      "int C.<>c.<F>b__0_1()"
-              IL_001d:  newobj     "System.Func<int>..ctor(object, {{NativeIntDisplay}})"
+              IL_001d:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
               IL_0022:  dup
               IL_0023:  stsfld     "System.Func<int> C.<>c.<>9__0_1"
               IL_0028:  call       "void C.F(System.Func<int>)"

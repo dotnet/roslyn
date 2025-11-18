@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -997,7 +996,7 @@ Module M
         Print(s)
     End Sub
 End Module",
-parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet
+New TestParameters(parseOptions:=Nothing)) ' TODO (tomat): Modules nested in Script class not supported yet
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
@@ -1029,7 +1028,7 @@ Module M
         Print(s)
     End Sub
 End Module",
-parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet)
+New TestParameters(parseOptions:=Nothing)) ' TODO (tomat): Modules nested in Script class not supported yet)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542942")>
@@ -1351,7 +1350,7 @@ x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
 Public Property Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
-parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
+New TestParameters(parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script)))
         End Function
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         Public Async Function TestGenerateFieldInScript() As Task
@@ -1361,8 +1360,8 @@ x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
 Private Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
-parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-index:=1)
+New TestParameters(parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
+index:=1))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977580")>
@@ -3077,6 +3076,67 @@ Module Test
         Await Task.Delay(time)
     End Function
 End Module", index:=4)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
+        Public Async Function TestNotOfferedInEventAddAccessor() As Task
+            Await TestExactActionSetOfferedAsync(
+"Class C
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+            [|ev|] = value
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "ev"), String.Format(CodeFixesResources.Generate_property_0, "ev"), String.Format(CodeFixesResources.Generate_local_0, "ev")})
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
+        Public Async Function TestNotOfferedInEventRemoveAccessor() As Task
+            Await TestExactActionSetOfferedAsync(
+"Class C
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+            [|ev|] = value
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "ev"), String.Format(CodeFixesResources.Generate_property_0, "ev"), String.Format(CodeFixesResources.Generate_local_0, "ev")})
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
+        Public Async Function TestNotOfferedInPropertyGetAccessor() As Task
+            Await TestExactActionSetOfferedAsync(
+"Class C
+    Property P As Integer
+        Get
+            Return [|x|]
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "x"), String.Format(CodeFixesResources.Generate_read_only_field_0, "x"), String.Format(CodeFixesResources.Generate_property_0, "x"), String.Format(CodeFixesResources.Generate_local_0, "x")})
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
+        Public Async Function TestNotOfferedInPropertySetAccessor() As Task
+            Await TestExactActionSetOfferedAsync(
+"Class C
+    Property P As Integer
+        Get
+            Return 0
+        End Get
+        Set(value As Integer)
+            [|x|] = value
+        End Set
+    End Property
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "x"), String.Format(CodeFixesResources.Generate_property_0, "x"), String.Format(CodeFixesResources.Generate_local_0, "x")})
         End Function
     End Class
 End Namespace

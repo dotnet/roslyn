@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public const string TypeName = "HotReloadException";
         public const string CodeFieldName = "Code";
 
+        /// <summary>
+        /// The Hot Reload agent that's injected into the application needs to intercept creation of a runtime rude edit.
+        /// It uses reflection to set this action field.
+        /// </summary>
+        public const string CreatedActionFieldName = "Created";
+
         private readonly NamedTypeSymbol _baseType;
         private readonly NamespaceSymbol _namespace;
 
@@ -31,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedHotReloadExceptionSymbol(
             NamespaceSymbol containingNamespace,
             NamedTypeSymbol exceptionType,
+            NamedTypeSymbol actionOfTType,
             TypeSymbol stringType,
             TypeSymbol intType)
         {
@@ -40,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _members =
             [
                 new SynthesizedHotReloadExceptionConstructorSymbol(this, stringType, intType),
-                new SynthesizedFieldSymbol(this, intType, CodeFieldName, isPublic: true, isReadOnly: true, isStatic: false)
+                new SynthesizedFieldSymbol(this, intType, CodeFieldName, DeclarationModifiers.Public, isReadOnly: true, isStatic: false),
+                new SynthesizedFieldSymbol(this, actionOfTType.Construct(exceptionType), CreatedActionFieldName, DeclarationModifiers.Private, isReadOnly: false, isStatic: true)
             ];
         }
 
@@ -50,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public FieldSymbol CodeField
             => (FieldSymbol)_members[1];
 
+        public FieldSymbol CreatedActionField
+            => (FieldSymbol)_members[2];
+
         public override ImmutableArray<Symbol> GetMembers()
            => _members;
 
@@ -58,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 WellKnownMemberNames.InstanceConstructorName => [Constructor],
                 CodeFieldName => [CodeField],
+                CreatedActionFieldName => [CreatedActionField],
                 _ => []
             };
 
@@ -65,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _members.Select(static m => m.Name);
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
-            => [CodeField];
+            => [CodeField, CreatedActionField];
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => [];
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => [];
@@ -96,6 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
         public override bool IsStatic => false;
         public override bool IsRefLikeType => false;
+
+        internal override string? ExtensionGroupingName => null;
+        internal override string? ExtensionMarkerName => null;
+
         public override bool IsReadOnly => false;
         public override bool IsAbstract => false;
         public override bool IsSealed => true;
@@ -106,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
         internal override bool HasCompilerLoweringPreserveAttribute => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
         internal override bool HasSpecialName => false;
         internal override bool IsComImport => false;
         internal override bool IsWindowsRuntimeImport => false;

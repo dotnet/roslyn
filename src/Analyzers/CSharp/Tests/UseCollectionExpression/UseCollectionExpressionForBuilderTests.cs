@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForBuilderCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-public partial class UseCollectionExpressionForBuilderTests
+public sealed partial class UseCollectionExpressionForBuilderTests
 {
     private const string s_arrayBuilderApi = """
 
@@ -64,9 +64,8 @@ public partial class UseCollectionExpressionForBuilderTests
     ];
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestNotInCSharp11(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp11(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -84,12 +83,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestInCSharp12_Net70(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Net70(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -107,12 +104,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestInCSharp12_Net80(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12_Net80(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -141,12 +136,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestCast(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestCast(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -175,12 +168,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestIdentifierCast(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestIdentifierCast(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -199,12 +190,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestPassToArgument(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestPassToArgument(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -237,12 +226,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithCapacity_CreateBuilder()
-    {
-        await new VerifyCS.Test
+    public Task TestWithCapacity_CreateBuilder()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -275,12 +262,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithCapacity_ArrayBuilder1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithCapacity_ArrayBuilder1()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -313,12 +298,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithCapacity_ArrayBuilder2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithCapacity_ArrayBuilder2()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -351,12 +334,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestNotWithOtherBuilderUsage(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithOtherBuilderUsage(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -377,12 +358,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestNotWithNoBuilderMutation(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNoBuilderMutation(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -401,12 +380,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithForeach1(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach1(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -442,12 +419,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithForeach2(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach2(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -485,12 +460,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestWithForeach3(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach3(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -515,12 +488,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestWithForeach4(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach4(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -545,12 +516,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithForeach5(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach5(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -592,12 +561,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithForeach6(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach6(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -639,12 +606,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithForeach7(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithForeach7(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -686,12 +651,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory(Skip = "https://github.com/dotnet/roslyn/issues/70172"), MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
-    public async Task TestWithIfStatement1(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithIfStatement1(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -726,12 +689,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithIfStatement2(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithIfStatement2(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -768,12 +729,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory(Skip = "https://github.com/dotnet/roslyn/issues/70172"), MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
-    public async Task TestWithIfStatement3(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithIfStatement3(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -810,12 +769,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestWithIfStatement4(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestWithIfStatement4(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -856,12 +813,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestAddRange1(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestAddRange1(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -894,12 +849,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestAddRange2(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestAddRange2(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -932,12 +885,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestAddRange3(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestAddRange3(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -970,12 +921,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestAddRange4(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestAddRange4(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -995,13 +944,11 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
-    public async Task TestAddRange5(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestAddRange5(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1034,12 +981,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveToImmutable()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveToImmutable()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1072,12 +1017,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestToImmutableAndFree()
-    {
-        await new VerifyCS.Test
+    public Task TestToImmutableAndFree()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1110,12 +1053,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestToImmutableAndClear()
-    {
-        await new VerifyCS.Test
+    public Task TestToImmutableAndClear()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1148,12 +1089,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestToArray(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestToArray(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1186,12 +1125,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
-    public async Task TestNotWithOtherBuilderUsageAfter(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithOtherBuilderUsageAfter(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1212,12 +1149,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithOtherDisposableUsageAfter()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithOtherDisposableUsageAfter()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1238,12 +1173,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestTrivia1(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia1(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1278,12 +1211,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestMultiLine1(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine1(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1317,12 +1248,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestMultiLine2(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine2(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1360,12 +1289,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnFillWithValue()
-    {
-        await new VerifyCS.Test
+    public Task TestOnFillWithValue()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1383,12 +1310,10 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestGlobalStatement1(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement1(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1409,12 +1334,10 @@ public partial class UseCollectionExpressionForBuilderTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
-    public async Task TestGlobalStatement2(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement2(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1446,12 +1369,10 @@ public partial class UseCollectionExpressionForBuilderTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested1()
-    {
-        await new VerifyCS.Test
+    public Task TestNested1()
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1483,14 +1404,12 @@ public partial class UseCollectionExpressionForBuilderTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("\n")]
     [InlineData("\r\n")]
-    public async Task TestWithDifferentNewLines(string endOfLine)
-    {
-        await new VerifyCS.Test
+    public Task TestWithDifferentNewLines(string endOfLine)
+        => new VerifyCS.Test
         {
             TestCode = ($$"""
                 using System.Collections.Immutable;
@@ -1522,13 +1441,11 @@ public partial class UseCollectionExpressionForBuilderTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOn(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestInterfaceOn(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Generic;
@@ -1559,13 +1476,11 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOff(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestInterfaceOff(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Generic;
@@ -1588,13 +1503,11 @@ public partial class UseCollectionExpressionForBuilderTests
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
-    }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
-    public async Task TestComment(string pattern)
-    {
-        await new VerifyCS.Test
+    public Task TestComment(string pattern)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Immutable;
@@ -1625,5 +1538,4 @@ public partial class UseCollectionExpressionForBuilderTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 }

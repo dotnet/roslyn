@@ -82,6 +82,11 @@
         <target state="translated">埋め込みステートメントは独自の行に配置する必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">インデックスの作成を簡素化することができます</target>
@@ -172,6 +177,11 @@
         <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_accessor_can_be_simplified">
+        <source>Property accessor can be simplified</source>
+        <target state="new">Property accessor can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
         <target state="translated">プロパティ パターンは簡略化できます</target>
@@ -215,6 +225,11 @@
       <trans-unit id="Simplify_delegate_invocation">
         <source>Simplify delegate invocation</source>
         <target state="translated">デリゲートの呼び出しを簡略化する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_accessor">
+        <source>Simplify property accessor</source>
+        <target state="new">Simplify property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">

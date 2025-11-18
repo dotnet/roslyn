@@ -13,12 +13,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
-    {
-        var markup = """
+    public Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass$$
             {
@@ -26,15 +25,11 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
+            """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnField_ShouldFail()
-    {
-        var markup = """
+    public Task ReorderMethodParameters_InvokeOnField_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -44,22 +39,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
+            """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
 
     [Fact]
-    public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
-    {
-        var markup = @"class C { void $$M() { } }";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: true);
-    }
+    public Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"class C { void $$M() { } }", expectedSuccess: true);
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
-    {
-        var markup = """
+    public Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 public static C $$operator +(C a, C b)
@@ -67,8 +55,5 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     return null;
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
+            """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
 }

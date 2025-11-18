@@ -49,6 +49,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool ReportSuppressedDiagnostics => _reportSuppressedDiagnostics;
 
         /// <summary>
+        /// Callback to allow individual analyzers to have their own <see cref="AnalyzerConfigOptionsProvider"/>
+        /// distinct from the shared instance provided in <see cref="Options"/>.  If <see langword="null"/> then <see
+        /// cref="Options"/> will be used for all analyzers.
+        /// </summary>
+        internal readonly Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? GetAnalyzerConfigOptionsProvider;
+
+        /// <summary>
         /// Creates a new <see cref="CompilationWithAnalyzersOptions"/>.
         /// </summary>
         /// <param name="options">Options that are passed to analyzers.</param>
@@ -98,6 +105,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool logAnalyzerExecutionTime,
             bool reportSuppressedDiagnostics,
             Func<Exception, bool>? analyzerExceptionFilter)
+            : this(options, onAnalyzerException, concurrentAnalysis, logAnalyzerExecutionTime, reportSuppressedDiagnostics, analyzerExceptionFilter, getAnalyzerConfigOptionsProvider: null)
+        {
+        }
+
+        /// <inheritdoc cref="CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(AnalyzerOptions?, Action{Exception, DiagnosticAnalyzer, Diagnostic}?, bool, bool, bool, Func{Exception, bool}?)"/>
+        /// <param name="getAnalyzerConfigOptionsProvider">Callback to allow individual analyzers to have their own <see
+        /// cref="AnalyzerConfigOptionsProvider"/> distinct from the shared instance provided in <paramref
+        /// name="options"/>. If <see langword="null"/> then <paramref name="options"/> will be used for all
+        /// analyzers.</param>
+        public CompilationWithAnalyzersOptions(
+           AnalyzerOptions? options,
+           Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
+           bool concurrentAnalysis,
+           bool logAnalyzerExecutionTime,
+           bool reportSuppressedDiagnostics,
+           Func<Exception, bool>? analyzerExceptionFilter,
+           Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? getAnalyzerConfigOptionsProvider)
         {
             _options = options;
             _onAnalyzerException = onAnalyzerException;
@@ -105,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _concurrentAnalysis = concurrentAnalysis;
             _logAnalyzerExecutionTime = logAnalyzerExecutionTime;
             _reportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            this.GetAnalyzerConfigOptionsProvider = getAnalyzerConfigOptionsProvider;
         }
     }
 }

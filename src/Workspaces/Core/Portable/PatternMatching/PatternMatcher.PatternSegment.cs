@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
@@ -23,7 +20,7 @@ internal abstract partial class PatternMatcher
         // Information about the entire piece of text between the dots.  For example, if the 
         // text between the dots is 'Get-Keyword', then TotalTextChunk.Text will be 'Get-Keyword' and 
         // TotalTextChunk.CharacterSpans will correspond to 'G', 'et', 'K' and 'eyword'.
-        public TextChunk TotalTextChunk = new TextChunk(text, allowFuzzyMatching);
+        public TextChunk TotalTextChunk = new(text, allowFuzzyMatching);
 
         // Information about the subwords compromising the total word.  For example, if the 
         // text between the dots is 'Get-Keyword', then the subwords will be 'Get' and 'Keyword'

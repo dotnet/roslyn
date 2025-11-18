@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -27,7 +25,7 @@ internal partial class AbstractLegacyProject : IVsReportExternalErrors, IVsLangu
     int IVsLanguageServiceBuildErrorReporter2.ClearErrors()
         => _externalErrorReporter.ClearErrors();
 
-    int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors pErrors)
+    int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors? pErrors)
         => _externalErrorReporter.GetErrors(out pErrors);
 
     int IVsLanguageServiceBuildErrorReporter.ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)

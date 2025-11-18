@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-internal class SeverityViewModel
+internal sealed class SeverityViewModel
 {
     private static readonly string[] s_severities =
     [
@@ -25,17 +25,15 @@ internal class SeverityViewModel
 
     public string[] Severities => s_severities;
 
-    private string? _selectedSeverityValue;
-
     public string SelectedSeverityValue
     {
         get
         {
-            _selectedSeverityValue ??= Severities[_selectedSeverityIndex];
+            field ??= Severities[_selectedSeverityIndex];
 
-            return _selectedSeverityValue;
+            return field;
         }
-        set => _selectedSeverityValue = value;
+        set;
     }
 
     public bool IsConfigurable { get; private set; }

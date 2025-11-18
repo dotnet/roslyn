@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 
 namespace Microsoft.CodeAnalysis.Editor;
@@ -194,4 +191,22 @@ internal static class PredefinedCommandHandlerNames
     /// Command handler name for showing the Callstack Explorer tool window.
     /// </summary>
     public const string ShowCallstackExplorer = "Show Callstack Explorer";
+
+    /// <summary>
+    /// Command handler name for LSP Go To Definition.
+    /// This name is agreed upon externally and cannot be changed.
+    /// </summary>
+    public const string LspGoToDefinition = "LSP GoToDefinitionCommandHandler";
+
+    /// <summary>
+    /// Command handler name for LSP Find References.
+    /// This name is agreed upon externally and cannot be changed.
+    /// </summary>
+    public const string LspFindReferences = "LSP FindReferenceCommandHandler";
+
+    /// <summary>
+    /// Command handler name for LSP Go To Implementation.
+    /// This name is agreed upon externally and cannot be changed.
+    /// </summary>
+    public const string LspGoToImplementation = "LSP GoToImplementationCommandHandler";
 }

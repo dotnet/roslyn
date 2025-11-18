@@ -51,19 +51,19 @@ public static partial class SymbolFinder
 
         // First try finding exact overrides.  If that fails to find anything, look for overrides that loosely
         // match due to errors.
-        FindOverrides(allowLooseMatch: false);
+        await FindOverridesAsync(allowLooseMatch: false).ConfigureAwait(false);
         if (results.Count == 0)
-            FindOverrides(allowLooseMatch: true);
+            await FindOverridesAsync(allowLooseMatch: true).ConfigureAwait(false);
 
         return results.ToImmutableAndClear();
 
-        void FindOverrides(bool allowLooseMatch)
+        async ValueTask FindOverridesAsync(bool allowLooseMatch)
         {
             foreach (var type in derivedTypes)
             {
                 foreach (var m in type.GetMembers(symbol.Name))
                 {
-                    var sourceMember = FindSourceDefinition(m, solution, cancellationToken);
+                    var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                     var bestMember = sourceMember ?? m;
 
                     if (IsOverride(solution, bestMember, symbol, allowLooseMatch))
@@ -166,7 +166,7 @@ public static partial class SymbolFinder
                             {
                                 foreach (var interfaceMember in interfaceType.GetMembers(symbol.Name))
                                 {
-                                    var sourceMethod = FindSourceDefinition(interfaceMember, solution, cancellationToken);
+                                    var sourceMethod = await FindSourceDefinitionAsync(interfaceMember, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod ?? interfaceMember;
 
                                     var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
@@ -373,7 +373,7 @@ public static partial class SymbolFinder
             var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
             foreach (var implementation in implementations)
             {
-                var sourceDef = FindSourceDefinition(implementation, solution, cancellationToken);
+                var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
                 var bestDef = sourceDef ?? implementation;
                 if (IsAccessible(bestDef))
                     results.Add(bestDef.OriginalDefinition);

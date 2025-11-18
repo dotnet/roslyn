@@ -13,3 +13,7 @@ variables:
   value: 1
 - name: MSBUILDDEBUGPATH
   value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'
+- name: DOTNET_CLI_USE_MSBUILD_SERVER
+  value: 1
+- name: MSBUILDUSESERVER
+  value: 1

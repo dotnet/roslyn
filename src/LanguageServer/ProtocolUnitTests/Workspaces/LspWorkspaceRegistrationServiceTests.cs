@@ -8,7 +8,8 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
-public class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtocolTests
+
+public sealed class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtocolTests
 {
     public LspWorkspaceRegistrationServiceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -17,9 +18,8 @@ public class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtoc
     [Theory, CombinatorialData]
     public async Task TestDisposedWorkspaceDeregistered(bool mutatingLspWorkspace)
     {
-        var markup = "";
         TestWorkspaceRegistrationService registrationService;
-        await using (var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace))
+        await using (var testLspServer = await CreateTestLspServerAsync("", mutatingLspWorkspace))
         {
             registrationService = (TestWorkspaceRegistrationService)testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
         }

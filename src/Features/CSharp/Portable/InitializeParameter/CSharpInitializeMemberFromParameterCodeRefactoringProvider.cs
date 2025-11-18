@@ -4,12 +4,12 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.InitializeParameter;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter), Shared]
 [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]

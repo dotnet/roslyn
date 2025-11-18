@@ -24,7 +24,6 @@ internal sealed class MutableConflictResolution(
     string replacementText,
     bool replacementTextValid)
 {
-
     // List of All the Locations that were renamed and conflict-complexified
     public readonly List<RelatedLocation> RelatedLocations = [];
 
@@ -70,7 +69,8 @@ internal sealed class MutableConflictResolution(
         {
             if (renamedSpansTracker.IsDocumentChanged(documentId))
             {
-                var document = CurrentSolution.GetRequiredDocument(documentId);
+                var document = await CurrentSolution.GetRequiredDocumentAsync(
+                    documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // For the computeReplacementToken and computeReplacementNode functions, use 
@@ -83,7 +83,7 @@ internal sealed class MutableConflictResolution(
                     trivia: [],
                     computeReplacementTrivia: null);
 
-                intermediateSolution = intermediateSolution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
+                intermediateSolution = await WithDocumentSyntaxRootAsync(intermediateSolution, documentId, newRoot, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -163,5 +163,26 @@ internal sealed class MutableConflictResolution(
             documentToModifiedSpansMap,
             documentToComplexifiedSpansMap,
             documentToRelatedLocationsMap);
+    }
+
+    /// <summary>
+    /// Updates the syntax root of a document in the solution with a new syntax root.
+    /// </summary>
+    /// <remarks>
+    /// This method specifically is used to handle source generated documents, when that option is on, which need some extra
+    /// work before calling the normal WithDocumentSyntaxRoot method. If the option is not set, there should be no source generated
+    /// documents, and the method will complete synchronously.
+    /// </remarks>
+    internal static async ValueTask<Solution> WithDocumentSyntaxRootAsync(Solution solution, DocumentId documentId, SyntaxNode newRoot, CancellationToken cancellationToken)
+    {
+        // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution or WithDocumentSyntaxRoot
+        // won't work. Performing a rename in a source generated document is opt-in, so we can assume that we only hit this condition in
+        // scenarios that wanted it.
+        if (documentId.IsSourceGenerated)
+        {
+            _ = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+        }
+
+        return solution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
     }
 }

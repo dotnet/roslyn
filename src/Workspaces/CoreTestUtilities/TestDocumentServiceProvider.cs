@@ -10,70 +10,69 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+internal sealed class TestDocumentServiceProvider : IDocumentServiceProvider
 {
-    internal class TestDocumentServiceProvider : IDocumentServiceProvider
+    public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true, bool supportsMappingImportDirectives = false)
     {
-        public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true, bool supportsMappingImportDirectives = false)
+        DocumentOperationService = new TestDocumentOperationService()
         {
-            DocumentOperationService = new TestDocumentOperationService()
-            {
-                CanApplyChange = canApplyChange,
-                SupportDiagnostics = supportDiagnostics
-            };
+            CanApplyChange = canApplyChange,
+            SupportDiagnostics = supportDiagnostics
+        };
 
-            SpanMappingService = new TestSpanMappingService(supportsMappingImportDirectives);
+        SpanMappingService = new TestSpanMappingService(supportsMappingImportDirectives);
+    }
+
+    public IDocumentOperationService DocumentOperationService { get; }
+
+    public ISpanMappingService SpanMappingService { get; }
+
+    public TService? GetService<TService>() where TService : class, IDocumentService
+    {
+        if (DocumentOperationService is TService service)
+        {
+            return service;
+        }
+        else if (SpanMappingService is TService spanMappingService)
+        {
+            return spanMappingService;
         }
 
-        public IDocumentOperationService DocumentOperationService { get; }
+        return null;
+    }
 
-        public ISpanMappingService SpanMappingService { get; }
-
-        public TService? GetService<TService>() where TService : class, IDocumentService
+    private sealed class TestDocumentOperationService : IDocumentOperationService
+    {
+        public TestDocumentOperationService()
         {
-            if (DocumentOperationService is TService service)
-            {
-                return service;
-            }
-            else if (SpanMappingService is TService spanMappingService)
-            {
-                return spanMappingService;
-            }
-
-            return null;
         }
 
-        private class TestDocumentOperationService : IDocumentOperationService
-        {
-            public TestDocumentOperationService()
-            {
-            }
+        public bool CanApplyChange { get; set; }
+        public bool SupportDiagnostics { get; set; }
+    }
 
-            public bool CanApplyChange { get; set; }
-            public bool SupportDiagnostics { get; set; }
+    private sealed class TestSpanMappingService : ISpanMappingService
+    {
+        public TestSpanMappingService(bool supportsMappingImportDirectives)
+        {
+            SupportsMappingImportDirectives = supportsMappingImportDirectives;
         }
 
-        private class TestSpanMappingService : ISpanMappingService
+        public bool SupportsMappingImportDirectives { get; }
+
+        public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+            Document oldDocument,
+            Document newDocument,
+            CancellationToken cancellationToken)
         {
-            public TestSpanMappingService(bool supportsMappingImportDirectives)
-            {
-                SupportsMappingImportDirectives = supportsMappingImportDirectives;
-            }
+            throw new NotImplementedException();
+        }
 
-            public bool SupportsMappingImportDirectives { get; }
-
-            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
-                Document oldDocument,
-                Document newDocument,
-                CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+        public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

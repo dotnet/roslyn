@@ -4,15 +4,9 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -597,10 +591,13 @@ End Module")
 
             Dim compilation = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source.ToString()), {MscorlibRef, SystemRef, MsvbRef})
 
-            AssertTheseEmitDiagnostics(compilation,
-<expected>
-BC37255: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.
-</expected>)
+            Dim expectedDiagnostics =
+            {
+                Diagnostic(ERRID.ERR_TooManyUserStrings, """" & New String("K"c, 1000000) & """").WithLocation(13, 33),
+                Diagnostic(ERRID.ERR_TooManyUserStrings, """" & New String("L"c, 1000000) & """").WithLocation(14, 33)
+            }
+
+            CreateCompilation(source.ToString()).VerifyEmitDiagnostics(expectedDiagnostics)
         End Sub
 
 #End Region

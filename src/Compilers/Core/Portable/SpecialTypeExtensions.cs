@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -273,8 +274,6 @@ namespace Microsoft.CodeAnalysis
 
         public static SpecialType FromRuntimeTypeOfLiteralValue(object value)
         {
-            RoslynDebug.Assert(value != null);
-
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
@@ -371,7 +370,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static ulong ConvertUnderlyingValueToUInt64(this SpecialType enumUnderlyingType, object value)
         {
-            RoslynDebug.Assert(value != null);
             Debug.Assert(value.GetType().IsPrimitive);
 
             unchecked

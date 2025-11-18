@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -32,8 +31,8 @@ internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
         // Make sure that the syntax that we're looking at is actually a typeof expression and that
         // the parent syntax is a member access expression otherwise the syntax is not the kind of
         // expression that we want to analyze
-        return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax } typeofExpression &&
-            // nameof(System.Void) isn't allowed in C#.
-            typeofExpression is not { Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword } };
+        return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax }
+               // nameof(System.Void) isn't allowed in C#.
+               and not { Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword } };
     }
 }

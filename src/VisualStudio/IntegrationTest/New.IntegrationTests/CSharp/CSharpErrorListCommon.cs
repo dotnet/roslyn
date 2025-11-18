@@ -26,19 +26,21 @@ public abstract class CSharpErrorListCommon : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
     public virtual async Task ErrorList()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class C
-{
-    void M(P p)
-    {
-        System.Console.WriteLin();
-    }
+        await TestServices.Editor.SetTextAsync("""
 
-    static void Main(string[] args)
-    {
-    }
-}
-", HangMitigatingCancellationToken);
+            class C
+            {
+                void M(P p)
+                {
+                    System.Console.WriteLin();
+                }
+
+                static void Main(string[] args)
+                {
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new[] {
             "Class1.cs(4, 12): error CS0246: The type or namespace name 'P' could not be found (are you missing a using directive or an assembly reference?)",
@@ -65,15 +67,17 @@ class C
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
     public virtual async Task ErrorLevelWarning()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class C
-{
-    static void Main(string[] args)
-    {
-        int unused = 0;
-    }
-}
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    int unused = 0;
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new[] {
             "Class1.cs(6, 13): warning CS0219: The variable 'unused' is assigned but its value is never used",
@@ -88,16 +92,18 @@ class C
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
     public virtual async Task ErrorsDuringMethodBodyEditing()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class Program2
-{
-    static void Main(string[] args)
-    {
-        int aa = 7;
-        int a = aa;
-    }
-}
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class Program2
+            {
+                static void Main(string[] args)
+                {
+                    int aa = 7;
+                    int a = aa;
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new string[] { };
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
@@ -136,16 +142,18 @@ class Program2
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
     public virtual async Task ErrorsAfterClosingFile()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class Program2
-{
-    static void Main(string[] args)
-    {
-        int aa = 7;
-        int a = aa;
-    }
-}
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class Program2
+            {
+                static void Main(string[] args)
+                {
+                    int aa = 7;
+                    int a = aa;
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new string[] { };
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);

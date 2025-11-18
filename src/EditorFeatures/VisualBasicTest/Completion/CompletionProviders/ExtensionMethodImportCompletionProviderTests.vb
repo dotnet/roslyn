@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -202,7 +200,7 @@ Imports System.Runtime.CompilerServices
 Namespace NS
     Public Module Foo
         <Extension>
-        Public Function ExtentionMethod(x As Bar) As Boolean
+        Public Function ExtensionMethod(x As Bar) As Boolean
             Return True
         End Function
     End Module
@@ -222,7 +220,7 @@ Public Class Baz
 End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
-            Await VerifyItemIsAbsentAsync(markup, "ExtentionMethod", inlineDescription:="NS")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod", inlineDescription:="NS")
         End Function
 
         <InlineData(ReferenceType.None)>
@@ -237,7 +235,7 @@ Imports System.Runtime.CompilerServices
 Namespace NS
     Public Module Foo
         <Extension>
-        Public Function ExtentionMethod(x As Bar) As Boolean
+        Public Function ExtensionMethod(x As Bar) As Boolean
             Return True
         End Function
     End Module
@@ -257,17 +255,17 @@ Public Class Baz
 End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
-            Await VerifyItemIsAbsentAsync(markup, "ExtentionMethod", inlineDescription:="NS")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod", inlineDescription:="NS")
         End Function
 
-        <InlineData(ReferenceType.Project, "()", "ExtentionMethod2")>
-        <InlineData(ReferenceType.Project, "()()", "ExtentionMethod3")>
-        <InlineData(ReferenceType.Project, "(,)", "ExtentionMethod4")>
-        <InlineData(ReferenceType.Project, "()(,)", "ExtentionMethod5")>
-        <InlineData(ReferenceType.None, "()", "ExtentionMethod2")>
-        <InlineData(ReferenceType.None, "()()", "ExtentionMethod3")>
-        <InlineData(ReferenceType.None, "(,)", "ExtentionMethod4")>
-        <InlineData(ReferenceType.None, "()(,)", "ExtentionMethod5")>
+        <InlineData(ReferenceType.Project, "()", "ExtensionMethod2")>
+        <InlineData(ReferenceType.Project, "()()", "ExtensionMethod3")>
+        <InlineData(ReferenceType.Project, "(,)", "ExtensionMethod4")>
+        <InlineData(ReferenceType.Project, "()(,)", "ExtensionMethod5")>
+        <InlineData(ReferenceType.None, "()", "ExtensionMethod2")>
+        <InlineData(ReferenceType.None, "()()", "ExtensionMethod3")>
+        <InlineData(ReferenceType.None, "(,)", "ExtensionMethod4")>
+        <InlineData(ReferenceType.None, "()(,)", "ExtensionMethod5")>
         <Theory>
         Public Async Function TestExtensionMethodsForArrayType(refType As ReferenceType, rank As String, expectedName As String) As Task
 
@@ -278,23 +276,23 @@ Imports System.Runtime.CompilerServices
 Namespace NS
     Public Module Foo
         <Extension>
-        Public Function ExtentionMethod1(x As Integer) As Boolean
+        Public Function ExtensionMethod1(x As Integer) As Boolean
             Return True
         End Function
         <Extension>
-        Public Function ExtentionMethod2(x As Integer()) As Boolean
+        Public Function ExtensionMethod2(x As Integer()) As Boolean
             Return True
         End Function
         <Extension>
-        Public Function ExtentionMethod3(x As Integer()()) As Boolean
+        Public Function ExtensionMethod3(x As Integer()()) As Boolean
             Return True
         End Function
         <Extension>
-        Public Function ExtentionMethod4(x As Integer(,)) As Boolean
+        Public Function ExtensionMethod4(x As Integer(,)) As Boolean
             Return True
         End Function
         <Extension>
-        Public Function ExtentionMethod5(x As Integer()(,)) As Boolean
+        Public Function ExtensionMethod5(x As Integer()(,)) As Boolean
             Return True
         End Function
     End Module

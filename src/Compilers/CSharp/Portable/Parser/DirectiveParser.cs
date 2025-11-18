@@ -108,9 +108,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 default:
-                    if (lexer.Options.Kind == SourceCodeKind.Script && contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
+                    if (contextualKind == SyntaxKind.ExclamationToken)
                     {
+                        // Always parse as a shebang directive, but report an error if not at position 0
+                        if (hashPosition != 0 || hash.HasTrailingTrivia)
+                        {
+                            hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
+                        }
+
                         result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);
+                    }
+                    else if (contextualKind == SyntaxKind.ColonToken && !hash.HasTrailingTrivia)
+                    {
+                        result = this.ParseIgnoredDirective(hash, this.EatToken(SyntaxKind.ColonToken), isActive, isFollowingToken);
                     }
                     else
                     {
@@ -311,25 +321,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     triviaWidth += node.FullWidth;
                 }
 
-                //relative to leading trivia of eod
-                //could be negative if part of the error text comes from the trailing trivia of the keyword token
-                int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
+                // Relative to Start (not FullStart) of eod. Can be negative if part of the error text comes from the
+                // trailing trivia of the keyword token.
+                var triviaOffset = -triviaWidth;
 
                 string errorText = triviaBuilder.ToString();
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
+                eod = this.AddError(eod, offset: triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
 
                 if (isError)
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
                         string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+                        string assemblyPath = CommonCompiler.GetAssemblyLocation(typeof(CSharpCompiler));
                         var specified = this.Options.SpecifiedLanguageVersion;
                         var effective = specified.MapSpecifiedToEffectiveVersion();
 
                         var displayLanguageVersion = specified == effective ? specified.ToDisplayString() : $"{specified.ToDisplayString()} ({effective.ToDisplayString()})";
 
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
-                            displayLanguageVersion);
+                            displayLanguageVersion, assemblyPath);
                     }
                     else
                     {
@@ -675,10 +686,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
         {
-            // Shebang directives must appear at the first position in the file
-            // (before all other directives), so they should always be active.
-            Debug.Assert(isActive);
+            if (lexer.Options.Kind != SourceCodeKind.Script && !lexer.Options.FileBasedProgram)
+            {
+                exclamation = this.AddError(exclamation, ErrorCode.ERR_PPShebangInProjectBasedProgram);
+            }
+
             return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
+        }
+
+        private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
+        {
+            if (isActive)
+            {
+                if (!lexer.Options.FileBasedProgram)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
+                }
+
+                if (isFollowingToken)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
+                }
+
+                if (_context.SeenAnyIfDirectives)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                }
+            }
+
+            SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);
+            return SyntaxFactory.IgnoredDirectiveTrivia(hash, colon, content, endOfDirective, isActive);
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()

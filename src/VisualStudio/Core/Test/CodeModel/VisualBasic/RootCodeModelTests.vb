@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -111,7 +112,7 @@ End Namespace
                     Assert.NotNull(underlyingFileCodeModel)
 
                     Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
-                    Assert.Equal("C.vb", filePath)
+                    Assert.Equal(Path.Combine(TestWorkspace.RootDirectory, "C.vb"), filePath)
                 End Sub)
 
         End Sub
@@ -146,7 +147,7 @@ End Namespace
                     Assert.NotNull(underlyingFileCodeModel)
 
                     Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
-                    Assert.Equal("C.g.vb", filePath)
+                    Assert.Equal(Path.Combine(TestWorkspace.RootDirectory, "C.g.vb"), filePath)
                 End Sub)
 
         End Sub
@@ -187,7 +188,7 @@ End Namespace
                     Assert.NotNull(underlyingFileCodeModel)
 
                     Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
-                    Assert.Equal("C.vb", filePath)
+                    Assert.Equal(Path.Combine(TestWorkspace.RootDirectory, "C.vb"), filePath)
                 End Sub)
 
         End Sub
@@ -228,7 +229,7 @@ End Namespace
                     Assert.NotNull(underlyingFileCodeModel)
 
                     Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
-                    Assert.Equal("C.vb", filePath)
+                    Assert.Equal(Path.Combine(TestWorkspace.RootDirectory, "C.vb"), filePath)
                 End Sub)
 
         End Sub

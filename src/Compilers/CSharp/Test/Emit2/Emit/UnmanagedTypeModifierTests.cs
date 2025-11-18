@@ -1140,7 +1140,7 @@ namespace System
 }
 ";
 
-            var corlibWithoutUnmanagedTypeRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+            var corlibWithoutUnmanagedTypeRef = CreateEmptyCompilation(corlib_cs, assemblyName: "corlibWithoutUnmanagedTypeRef").EmitToImageReference();
 
             var refCode = @"
 namespace System.Runtime.InteropServices
@@ -1148,8 +1148,8 @@ namespace System.Runtime.InteropServices
     public class UnmanagedType {}
 }";
 
-            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
-            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
+            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }, assemblyName: "ref1").EmitToImageReference();
+            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }, assemblyName: "ref2").EmitToImageReference();
 
             var user = @"
 public class Test<T> where T : unmanaged
@@ -1158,9 +1158,9 @@ public class Test<T> where T : unmanaged
 
             CreateEmptyCompilation(user, references: new[] { ref1, ref2, corlibWithoutUnmanagedTypeRef })
                 .VerifyDiagnostics(
-                    // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                    // (2,32): error CS8356: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is declared in multiple referenced assemblies: 'ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                     // public class Test<T> where T : unmanaged
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType", "ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 32));
         }
 
         [Fact]

@@ -45,8 +45,6 @@ internal abstract class AbstractSpeculationAnalyzer<
     private readonly bool _skipVerificationForReplacedNode;
     private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
     private readonly bool _isNewSemanticModelSpeculativeModel;
-
-    private SyntaxNode? _lazySemanticRootOfOriginalExpression;
     private TExpressionSyntax? _lazyReplacedExpression;
     private SyntaxNode? _lazySemanticRootOfReplacedExpression;
     private SemanticModel? _lazySpeculativeSemanticModel;
@@ -87,7 +85,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         _failOnOverloadResolutionFailuresInOriginalCode = failOnOverloadResolutionFailuresInOriginalCode;
         _isNewSemanticModelSpeculativeModel = true;
         _lazyReplacedExpression = null;
-        _lazySemanticRootOfOriginalExpression = null;
+        SemanticRootOfOriginalExpression = null;
         _lazySemanticRootOfReplacedExpression = null;
         _lazySpeculativeSemanticModel = null;
     }
@@ -134,18 +132,21 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// field initializer, default parameter initializer or type syntax node.
     /// It serves as the root node for all semantic analysis for this syntax replacement.
     /// </summary>
+    [AllowNull]
     public SyntaxNode SemanticRootOfOriginalExpression
     {
         get
         {
-            if (_lazySemanticRootOfOriginalExpression == null)
+            if (field == null)
             {
-                _lazySemanticRootOfOriginalExpression = GetSemanticRootForSpeculation(this.OriginalExpression);
-                RoslynDebug.AssertNotNull(_lazySemanticRootOfOriginalExpression);
+                field = GetSemanticRootForSpeculation(this.OriginalExpression);
+                RoslynDebug.AssertNotNull(field);
             }
 
-            return _lazySemanticRootOfOriginalExpression;
+            return field;
         }
+
+        private set;
     }
 
     /// <summary>

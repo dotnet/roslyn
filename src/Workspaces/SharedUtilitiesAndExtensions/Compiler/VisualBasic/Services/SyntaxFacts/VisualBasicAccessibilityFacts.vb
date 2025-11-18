@@ -2,14 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-#Else
-Imports Microsoft.CodeAnalysis.Editing
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicAccessibilityFacts
@@ -94,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
             Dim tokens = GetModifierTokens(declaration)
             Dim acc As Accessibility
-            Dim mods As DeclarationModifiers
+            Dim mods As Modifiers
             Dim isDefault As Boolean
             GetAccessibilityAndModifiers(tokens, acc, mods, isDefault)
             Return acc
@@ -182,9 +177,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End Select
         End Function
 
-        Public Shared Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
+        Public Shared Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As Modifiers, ByRef isDefault As Boolean)
             accessibility = Accessibility.NotApplicable
-            modifiers = DeclarationModifiers.None
+            modifiers = Modifiers.None
             isDefault = False
 
             For Each token In modifierTokens
@@ -214,29 +209,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
                             accessibility = Accessibility.Protected
                         End If
                     Case SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Abstract
+                        modifiers = modifiers Or Modifiers.Abstract
                     Case SyntaxKind.ShadowsKeyword
-                        modifiers = modifiers Or DeclarationModifiers.[New]
+                        modifiers = modifiers Or Modifiers.[New]
                     Case SyntaxKind.OverridesKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Override
+                        modifiers = modifiers Or Modifiers.Override
                     Case SyntaxKind.OverridableKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Virtual
+                        modifiers = modifiers Or Modifiers.Virtual
                     Case SyntaxKind.SharedKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Static
+                        modifiers = modifiers Or Modifiers.Static
                     Case SyntaxKind.AsyncKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Async
+                        modifiers = modifiers Or Modifiers.Async
                     Case SyntaxKind.ConstKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Const
+                        modifiers = modifiers Or Modifiers.Const
                     Case SyntaxKind.ReadOnlyKeyword
-                        modifiers = modifiers Or DeclarationModifiers.ReadOnly
+                        modifiers = modifiers Or Modifiers.ReadOnly
                     Case SyntaxKind.WriteOnlyKeyword
-                        modifiers = modifiers Or DeclarationModifiers.WriteOnly
+                        modifiers = modifiers Or Modifiers.WriteOnly
                     Case SyntaxKind.NotInheritableKeyword, SyntaxKind.NotOverridableKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Sealed
+                        modifiers = modifiers Or Modifiers.Sealed
                     Case SyntaxKind.WithEventsKeyword
-                        modifiers = modifiers Or DeclarationModifiers.WithEvents
+                        modifiers = modifiers Or Modifiers.WithEvents
                     Case SyntaxKind.PartialKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Partial
+                        modifiers = modifiers Or Modifiers.Partial
                 End Select
             Next
         End Sub

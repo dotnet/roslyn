@@ -8,8 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -37,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+
+        private StrongBox<ParameterSymbol> _lazyExtensionParameter;
+        private ImmutableArray<(Cci.INestedTypeReference GroupingType, ImmutableArray<Cci.INestedTypeReference> MarkerTypes)> _lazyExtensionGroupingAndMarkerTypesForTypeForwarding;
 
         public RetargetingNamedTypeSymbol(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol underlyingType, TupleExtraData tupleData = null)
             : base(underlyingType, tupleData)
@@ -88,6 +97,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 // This is always the instance type, so the type arguments are the same as the type parameters.
                 return GetTypeParametersAsTypeArguments();
             }
+        }
+
+        internal sealed override ParameterSymbol ExtensionParameter
+        {
+            get
+            {
+                if (_lazyExtensionParameter is null)
+                {
+                    var extensionParameter = _underlyingType.ExtensionParameter is { } receiverParameter ? new RetargetingExtensionReceiverParameterSymbol(this, receiverParameter) : null;
+                    Interlocked.CompareExchange(ref _lazyExtensionParameter, new StrongBox<ParameterSymbol>(extensionParameter), null);
+                }
+
+                return _lazyExtensionParameter.Value;
+            }
+        }
+
+        public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            Debug.Assert(this.IsExtension);
+            Debug.Assert(method.IsDefinition);
+            Debug.Assert(method.ContainingType == (object)this);
+
+            var underlyingImplementation = _underlyingType.TryGetCorrespondingExtensionImplementationMethod(((RetargetingMethodSymbol)method).UnderlyingMethod);
+
+            if (underlyingImplementation is null)
+            {
+                return null;
+            }
+
+            return RetargetingTranslator.Retarget(underlyingImplementation);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -438,5 +477,110 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         internal override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
+
+        internal override string? ExtensionGroupingName
+            => _underlyingType.ExtensionGroupingName;
+
+        internal override string? ExtensionMarkerName
+            => _underlyingType.ExtensionMarkerName;
+
+        internal ImmutableArray<(Cci.INestedTypeReference GroupingType, ImmutableArray<Cci.INestedTypeReference> MarkerTypes)> GetExtensionGroupingAndMarkerTypesForTypeForwarding(EmitContext context)
+        {
+            if (_lazyExtensionGroupingAndMarkerTypesForTypeForwarding.IsDefault)
+            {
+                var builder = ArrayBuilder<(Cci.INestedTypeReference GroupingType, ImmutableArray<Cci.INestedTypeReference> MarkerTypes)>.GetInstance();
+                var markerTypes = ArrayBuilder<Cci.INestedTypeReference>.GetInstance();
+
+                ImmutableArray<INestedTypeDefinition> groupingTypes = ((SourceMemberContainerTypeSymbol)_underlyingType).GetExtensionGroupingInfo().GetGroupingTypes();
+
+                foreach (var groupingType in groupingTypes)
+                {
+                    var retargetedGroupingType = new ForwardedExtensionGroupingOrMarkerType(this.GetCciAdapter(), groupingType);
+                    markerTypes.Clear();
+
+                    foreach (var markerType in groupingType.GetNestedTypes(context))
+                    {
+                        markerTypes.Add(new ForwardedExtensionGroupingOrMarkerType(retargetedGroupingType, markerType));
+                    }
+
+                    builder.Add((retargetedGroupingType, markerTypes.ToImmutable()));
+                }
+
+                markerTypes.Free();
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyExtensionGroupingAndMarkerTypesForTypeForwarding, builder.ToImmutableAndFree());
+            }
+
+            return _lazyExtensionGroupingAndMarkerTypesForTypeForwarding;
+        }
+
+        /// <summary>
+        /// Used only to point to forwarded types and implements only API surface required to emit information about them.
+        /// </summary>
+        private sealed class ForwardedExtensionGroupingOrMarkerType : Cci.INestedTypeReference
+        {
+            private readonly Cci.ITypeReference _containingType;
+            private readonly Cci.INestedTypeReference _underlying;
+
+            public ForwardedExtensionGroupingOrMarkerType(Cci.ITypeReference containingType, Cci.INestedTypeReference underlying)
+            {
+                _containingType = containingType;
+                _underlying = underlying;
+            }
+
+            bool INestedTypeReference.InheritsEnclosingTypeTypeParameters => throw ExceptionUtilities.Unreachable();
+
+            ushort INamedTypeReference.GenericParameterCount => _underlying.GenericParameterCount;
+
+            bool INamedTypeReference.MangleName => _underlying.MangleName;
+
+            string? INamedTypeReference.AssociatedFileIdentifier => _underlying.AssociatedFileIdentifier;
+
+            bool ITypeReference.IsEnum => throw ExceptionUtilities.Unreachable();
+
+            bool ITypeReference.IsValueType => throw ExceptionUtilities.Unreachable();
+
+            Cci.PrimitiveTypeCode ITypeReference.TypeCode => throw ExceptionUtilities.Unreachable();
+
+            TypeDefinitionHandle ITypeReference.TypeDef => throw ExceptionUtilities.Unreachable();
+
+            IGenericMethodParameterReference? ITypeReference.AsGenericMethodParameterReference => null;
+
+            IGenericTypeInstanceReference? ITypeReference.AsGenericTypeInstanceReference => null;
+
+            IGenericTypeParameterReference? ITypeReference.AsGenericTypeParameterReference => null;
+
+            INamespaceTypeReference? ITypeReference.AsNamespaceTypeReference => null;
+
+            INestedTypeReference? ITypeReference.AsNestedTypeReference => this;
+
+            ISpecializedNestedTypeReference? ITypeReference.AsSpecializedNestedTypeReference => null;
+
+            string? INamedEntity.Name => _underlying.Name;
+
+            IDefinition? IReference.AsDefinition(EmitContext context) => null;
+
+            INamespaceTypeDefinition? ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
+
+            INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
+
+            ITypeDefinition? ITypeReference.AsTypeDefinition(EmitContext context) => null;
+
+            void IReference.Dispatch(MetadataVisitor visitor)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            ITypeReference ITypeMemberReference.GetContainingType(EmitContext context) => _containingType;
+
+            ISymbolInternal? IReference.GetInternalSymbol() => null;
+
+            ITypeDefinition? ITypeReference.GetResolvedType(EmitContext context) => null;
+        }
     }
 }

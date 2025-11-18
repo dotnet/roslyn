@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -149,7 +150,7 @@ internal static class MembersPuller
     {
         var member = analysisResult.Member;
         // We don't support generating static interface members, so we need to update to non-static before generating.
-        var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
+        var modifier = DeclarationModifiers.From(member).WithIsStatic(false).WithPartial(false);
         if (member is IPropertySymbol propertySymbol)
         {
             // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,

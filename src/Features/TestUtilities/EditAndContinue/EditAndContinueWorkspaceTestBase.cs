@@ -40,9 +40,9 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     private protected static readonly ActiveStatementSpanProvider s_noActiveSpans =
         (_, _, _) => new([]);
 
-    private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
+    private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetLatest;
 
-    private protected Func<Project, CompilationOutputs> _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
+    private protected readonly Dictionary<ProjectId, CompilationOutputs> _mockCompilationOutputs = [];
     private protected readonly List<string> _telemetryLog = [];
     private protected int _telemetryId;
 
@@ -84,11 +84,12 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static (Solution, Document) AddDefaultTestProject(
         Solution solution,
         string source,
+        TempDirectory? projectDirectory = null,
         ISourceGenerator? generator = null,
         string? additionalFileText = null,
         (string key, string value)[]? analyzerConfig = null)
     {
-        solution = AddDefaultTestProject(solution, [source], generator, additionalFileText, analyzerConfig);
+        solution = AddDefaultTestProject(solution, [source], projectDirectory, generator, additionalFileText, analyzerConfig);
         return (solution, solution.Projects.Single().Documents.Single());
     }
 
@@ -100,6 +101,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static Solution AddDefaultTestProject(
         Solution solution,
         string[] sources,
+        TempDirectory? projectDirectory = null,
         ISourceGenerator? generator = null,
         string? additionalFileText = null,
         (string key, string value)[]? analyzerConfig = null)
@@ -121,11 +123,15 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
         if (analyzerConfig != null)
         {
+            var fileName = "config";
+            var text = GetAnalyzerConfigText(analyzerConfig);
+            var filePath = GetFilePath(fileName, text.ToString());
+
             solution = solution.AddAnalyzerConfigDocument(
                 DocumentId.CreateNewId(project.Id),
                 name: "config",
-                GetAnalyzerConfigText(analyzerConfig),
-                filePath: Path.Combine(TempRoot.Root, "config"));
+                text,
+                filePath: filePath);
         }
 
         Document? document = null;
@@ -133,39 +139,43 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         foreach (var source in sources)
         {
             var fileName = $"test{i++}.cs";
+            var filePath = GetFilePath(fileName, source);
 
             document = solution.GetRequiredProject(project.Id).
-                AddDocument(fileName, CreateText(source), filePath: Path.Combine(TempRoot.Root, fileName));
+                AddDocument(fileName, CreateText(source), filePath: filePath);
 
             solution = document.Project.Solution;
         }
 
         Debug.Assert(document != null);
         return document.Project.Solution;
+
+        string GetFilePath(string fileName, string content)
+            => projectDirectory?.CreateFile(fileName).WriteAllText(content, Encoding.UTF8).Path ?? Path.Combine(TempRoot.Root, fileName);
     }
 
     internal EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
     {
         var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
         var accessor = service.GetTestAccessor();
-        accessor.SetOutputProvider(project => _mockCompilationOutputsProvider(project));
+
+        // Empty guid means project is not built.
+        accessor.SetOutputProvider(project => _mockCompilationOutputs.GetValueOrDefault(project.Id, null) ?? new MockCompilationOutputs(Guid.Empty));
+
         return service;
     }
 
-    internal async Task<DebuggingSession> StartDebuggingSessionAsync(
+    internal DebuggingSession StartDebuggingSession(
         EditAndContinueService service,
         Solution solution,
         CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
         IPdbMatchingSourceTextProvider? sourceTextProvider = null)
     {
-        var sessionId = await service.StartDebuggingSessionAsync(
+        var sessionId = service.StartDebuggingSession(
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: false,
-            reportDiagnostics: true,
-            CancellationToken.None);
+            reportDiagnostics: true);
 
         var session = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
@@ -206,20 +216,48 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static void EndDebuggingSession(DebuggingSession session)
         => session.EndSession(out _);
 
-    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
+    internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSession session,
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
-        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects: [], activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
-        return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
+        var runningProjects = solution.ProjectIds.ToImmutableDictionary(
+            keySelector: id => id,
+            elementSelector: id => new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
+
+        var results = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+
+        var hasTransientError = results.Diagnostics.SelectMany(pd => pd.Diagnostics).Any(d => d.IsEncDiagnostic() && d.Severity == DiagnosticSeverity.Error);
+
+        Assert.Equal(hasTransientError, results.ProjectsToRestart.Any());
+        Assert.Equal(hasTransientError, results.ProjectsToRebuild.Any());
+
+        return results;
     }
 
-    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<ProjectDiagnostics> actual)
+        => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}")).Order();
+
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> diagnostics)
+        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}")).Order();
+
+    internal static string InspectDiagnostic(Diagnostic actual)
+        => $"{Inspect(actual.Location)}: {actual.Severity} {actual.Id}: {actual.GetMessage()}";
+
+    internal static string Inspect(Location actual)
+        => actual.GetLineSpan() is { IsValid: true } span ? span.ToString() : "<no location>";
+
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<Diagnostic> actual)
         => actual.Select(InspectDiagnostic);
 
-    internal static string InspectDiagnostic(DiagnosticData diagnostic)
-        => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId!.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+    internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<DiagnosticData> actual)
+        => actual.Select(d => d.Id);
+
+    internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<ProjectDiagnostics> actual)
+        => InspectDiagnosticIds(actual.SelectMany(pd => pd.Diagnostics));
+
+    internal static IEnumerable<string> InspectDiagnosticIds(IEnumerable<Diagnostic> actual)
+        => actual.Select(d => d.Id);
 
     internal static Guid ReadModuleVersionId(Stream stream)
     {
@@ -229,77 +267,162 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return metadataReader.GetGuid(mvidHandle);
     }
 
-    internal Guid EmitAndLoadLibraryToDebuggee(string source, string? sourceFilePath = null, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default, string assemblyName = "")
-    {
-        var moduleId = EmitLibrary(source, sourceFilePath, encoding, checksumAlgorithm, assemblyName);
-        LoadLibraryToDebuggee(moduleId);
-        return moduleId;
-    }
+    internal Guid EmitAndLoadLibraryToDebuggee(Document document, TargetFramework targetFramework = DefaultTargetFramework)
+        => EmitAndLoadLibraryToDebuggee(document.Project, targetFramework);
 
-    internal void LoadLibraryToDebuggee(Guid moduleId, ManagedHotReloadAvailability availability = default)
-    {
-        _debuggerService.LoadedModules!.Add(moduleId, availability);
-    }
+    internal Guid EmitAndLoadLibraryToDebuggee(Project project, TargetFramework targetFramework = DefaultTargetFramework)
+        => LoadLibraryToDebuggee(EmitLibrary(project, targetFramework));
 
-    internal Guid EmitLibrary(
+    internal Guid EmitAndLoadLibraryToDebuggee(
+        ProjectId projectId,
         string source,
+        string language = LanguageNames.CSharp,
         string? sourceFilePath = null,
         Encoding? encoding = null,
         SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
-        string assemblyName = "",
+        string? assemblyName = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
+        => LoadLibraryToDebuggee(EmitLibrary(projectId, source, sourceFilePath, language, encoding, checksumAlgorithm, assemblyName, targetFramework: targetFramework));
+
+    internal Guid LoadLibraryToDebuggee(Guid moduleId, ManagedHotReloadAvailability availability = default)
+    {
+        _debuggerService.LoadedModules!.Add(moduleId, availability);
+        return moduleId;
+    }
+
+    internal Guid EmitLibrary(Project project, TargetFramework targetFramework = DefaultTargetFramework)
+        => EmitLibrary(
+            project.Id,
+            project.Documents.Select(d => (d.GetTextSynchronously(CancellationToken.None), d.FilePath ?? throw ExceptionUtilities.UnexpectedValue(null))),
+            project.Language,
+            project.AssemblyName,
+            targetFramework: targetFramework);
+
+    internal Guid EmitLibrary(
+        ProjectId projectId,
+        string source,
+        string? sourceFilePath = null,
+        string language = LanguageNames.CSharp,
+        Encoding? encoding = null,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        string? assemblyName = null,
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
         Project? generatorProject = null,
         string? additionalFileText = null,
-        IEnumerable<(string, string)>? analyzerOptions = null)
+        IEnumerable<(string, string)>? analyzerOptions = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
+        => EmitLibrary(
+            projectId,
+            [(source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs"))],
+            language,
+            encoding,
+            checksumAlgorithm,
+            assemblyName,
+            pdbFormat,
+            generatorProject,
+            additionalFileText,
+            analyzerOptions,
+            targetFramework);
+
+    internal Guid EmitLibrary(
+        ProjectId projectId,
+        (string content, string filePath)[] sources,
+        string language = LanguageNames.CSharp,
+        Encoding? encoding = null,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        string? assemblyName = null,
+        DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        Project? generatorProject = null,
+        string? additionalFileText = null,
+        IEnumerable<(string, string)>? analyzerOptions = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
     {
-        var sources = new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) };
-        return EmitLibrary(sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions);
+        return EmitLibrary(
+            projectId,
+            sources.Select(source => (CreateText(source.content, encoding, checksumAlgorithm), source.filePath)),
+            language,
+            assemblyName,
+            pdbFormat,
+            generatorProject,
+            additionalFileText,
+            analyzerOptions,
+            targetFramework);
+    }
+
+    internal static SourceText CreateText(string source, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
+    {
+        encoding ??= Encoding.UTF8;
+        return SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source)), encoding, checksumAlgorithm);
     }
 
     internal Guid EmitLibrary(
-        (string content, string filePath)[] sources,
-        Encoding? encoding = null,
-        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
-        string assemblyName = "",
+        ProjectId projectId,
+        IEnumerable<(SourceText text, string filePath)> sources,
+        string language = LanguageNames.CSharp,
+        string? assemblyName = null,
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
         Project? generatorProject = null,
         string? additionalFileText = null,
-        IEnumerable<(string, string)>? analyzerOptions = null)
+        IEnumerable<(string, string)>? analyzerOptions = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
     {
-        encoding ??= Encoding.UTF8;
+        Compilation compilation;
+        CSharpParseOptions? csParseOptions = null;
+        VisualBasic.VisualBasicParseOptions? vbParseOptions = null;
 
-        var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+        var references = TargetFrameworkUtil.GetReferences(targetFramework);
+        assemblyName ??= "TestAssembly";
 
-        var trees = sources.Select(source =>
+        if (language == LanguageNames.CSharp)
         {
-            var sourceText = SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source.content)), encoding, checksumAlgorithm);
-            return SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions, source.filePath);
-        });
-
-        Compilation compilation = CSharpTestBase.CreateCompilation(trees.ToArray(), options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: assemblyName);
+            csParseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+            var trees = sources.Select(source => SyntaxFactory.ParseSyntaxTree(source.text, csParseOptions, source.filePath));
+            compilation = CSharpCompilation.Create(assemblyName, trees, references, TestOptions.DebugDll);
+        }
+        else
+        {
+            vbParseOptions = VisualBasic.UnitTests.TestOptions.Regular;
+            var trees = sources.Select(source => VisualBasic.SyntaxFactory.ParseSyntaxTree(source.text, vbParseOptions, source.filePath));
+            compilation = VisualBasic.VisualBasicCompilation.Create(assemblyName, trees, references, VisualBasic.UnitTests.TestOptions.DebugDll);
+        }
 
         if (generatorProject != null)
         {
             var generators = generatorProject.AnalyzerReferences.SelectMany(r => r.GetGenerators(language: generatorProject.Language));
+            var driverOptions = new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
 
             var optionsProvider = (analyzerOptions != null) ? new EditAndContinueTestAnalyzerConfigOptionsProvider(analyzerOptions) : null;
             var additionalTexts = (additionalFileText != null) ? new[] { new InMemoryAdditionalText("additional_file", additionalFileText) } : null;
-            var generatorDriver = CSharpGeneratorDriver.Create(
-                generators,
-                additionalTexts,
-                parseOptions,
-                optionsProvider,
-                driverOptions: new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory()!));
+
+            GeneratorDriver generatorDriver;
+            if (language == LanguageNames.CSharp)
+            {
+                generatorDriver = CSharpGeneratorDriver.Create(
+                    generators,
+                    additionalTexts,
+                    csParseOptions,
+                    optionsProvider,
+                    driverOptions);
+            }
+            else
+            {
+                generatorDriver = VisualBasic.VisualBasicGeneratorDriver.Create(
+                    [.. generators],
+                    additionalTexts.ToImmutableArrayOrEmpty<AdditionalText>(),
+                    vbParseOptions,
+                    optionsProvider,
+                    driverOptions);
+            }
 
             generatorDriver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             generatorDiagnostics.Verify();
             compilation = outputCompilation;
         }
 
-        return EmitLibrary(compilation, pdbFormat);
+        return EmitLibrary(projectId, compilation, pdbFormat);
     }
 
-    internal Guid EmitLibrary(Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
     {
         var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
         var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
@@ -307,9 +430,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
         var moduleId = moduleMetadata.GetModuleVersionId();
 
-        // associate the binaries with the project (assumes a single project)
+        // Associate the binaries with the project.
+        // Note that in some scenarios the projectId may have already been associated with a moduleId,
+        // and the assembly file was overwritten with a new one.
 
-        _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
+        _mockCompilationOutputs[projectId] = new MockCompilationOutputs(moduleId)
         {
             OpenAssemblyStreamImpl = () =>
             {
@@ -342,7 +467,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     }
 
     internal static TextSpan GetSpan(string str, string substr)
-        => new TextSpan(str.IndexOf(substr), substr.Length);
+        => new(str.IndexOf(substr), substr.Length);
 
     internal static void VerifyReadersDisposed(IEnumerable<IDisposable> readers)
     {

@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -551,7 +549,7 @@ internal partial class DocumentState : TextDocumentState
         }
     }
 
-    private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
+    protected VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
     {
         RoslynDebug.Assert(TreeSource != null);
 
@@ -560,7 +558,7 @@ internal partial class DocumentState : TextDocumentState
             return newTextVersion;
         }
 
-        if (!TreeSource.TryGetValue(out var oldTreeAndVersion) || !oldTreeAndVersion!.Tree.TryGetRoot(out var oldRoot))
+        if (!TreeSource.TryGetValue(out var oldTreeAndVersion) || !oldTreeAndVersion.Tree.TryGetRoot(out var oldRoot))
         {
             return newTextVersion;
         }
@@ -568,21 +566,11 @@ internal partial class DocumentState : TextDocumentState
         return oldRoot.IsEquivalentTo(newRoot, topLevel: true) ? oldTreeAndVersion.Version : newTextVersion;
     }
 
-    internal override Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
-    {
-        if (TextAndVersionSource is TreeTextSource)
-        {
-            return SpecializedTasks.Null<Diagnostic>();
-        }
-
-        return base.GetLoadDiagnosticAsync(cancellationToken);
-    }
-
-    private VersionStamp GetNewerVersion()
+    protected VersionStamp GetNewerVersion()
     {
         if (TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
         {
-            return textAndVersion!.Version.GetNewerVersion();
+            return textAndVersion.Version.GetNewerVersion();
         }
 
         if (TreeSource != null && TreeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)

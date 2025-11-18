@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions;
 
-public class SyntaxTreeExtensionsTests
+public sealed class SyntaxTreeExtensionsTests
 {
     private static void VerifyWholeLineIsActive(SyntaxTree tree, int lineNumber)
     {

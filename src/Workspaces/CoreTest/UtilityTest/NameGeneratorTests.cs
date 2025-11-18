@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class NameGeneratorTests
+public sealed class NameGeneratorTests
 {
     [Fact]
     public void TestGenerateUniqueName()
@@ -58,16 +58,12 @@ public class NameGeneratorTests
     [Theory]
     [InlineData(new[] { "test", "Test", "test", "Test" }, new[] { "test1", "Test1", "test2", "Test2" })]
     public void EnsureUniquenessInPlaceCaseSensitive(string[] names, string[] expectedResult)
-    {
-        VerifyEnsureUniquenessInPlace(names, isFixed: null, canUse: null, isCaseSensitive: true, expectedResult);
-    }
+        => VerifyEnsureUniquenessInPlace(names, isFixed: null, canUse: null, isCaseSensitive: true, expectedResult);
 
     [Theory]
     [InlineData(new[] { "test", "Test", "test", "Test" }, new[] { "test1", "Test2", "test3", "Test4" })]
     public void EnsureUniquenessInPlaceNotCaseSensitive(string[] names, string[] expectedResult)
-    {
-        VerifyEnsureUniquenessInPlace(names, isFixed: null, canUse: null, isCaseSensitive: false, expectedResult);
-    }
+        => VerifyEnsureUniquenessInPlace(names, isFixed: null, canUse: null, isCaseSensitive: false, expectedResult);
 
     [Theory]
     [InlineData(new[] { "test", "test", "test" }, new[] { "test", "test", "test" })]
@@ -81,9 +77,7 @@ public class NameGeneratorTests
     [Theory]
     [InlineData(new[] { "test", "test", "test" }, new[] { "test1", "test2", "test3" })]
     public void EnsureUniquenessInPlaceNoneFixed(string[] names, string[] expectedResult)
-    {
-        VerifyEnsureUniquenessInPlace(names, isFixed: null, canUse: null, isCaseSensitive: true, expectedResult);
-    }
+        => VerifyEnsureUniquenessInPlace(names, isFixed: null, canUse: null, isCaseSensitive: true, expectedResult);
 
     [Theory]
     [InlineData(new[] { "test", "test", "test" }, new[] { "test10", "test11", "test12" })]

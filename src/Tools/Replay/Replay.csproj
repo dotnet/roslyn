@@ -1,22 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <SignAssembly>false</SignAssembly>
+    <DefineConstants>$(DefineConstants);ROSLYN_NO_INDEXRANGE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\CommandLine\BuildProtocol.cs" />
-    <Compile Include="..\..\Compilers\Core\CommandLine\CompilerServerLogger.cs" />
-    <Compile Include="..\..\Compilers\Core\CommandLine\NativeMethods.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
-    <Compile Include="..\..\Compilers\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" />
-    <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" />
-
     <ProjectReference Include="..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj">
       <Aliases>csc</Aliases>
     </ProjectReference>
@@ -27,11 +18,20 @@
       <Aliases>vbcscompiler</Aliases>
     </ProjectReference>
 
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="MSBuild.StructuredLogger" />
     <PackageReference Include="Basic.CompilerLog.Util" />
+    <PackageReference Include="MessagePack" VersionOverride="3.1.4" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 
   <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />
 </Project>

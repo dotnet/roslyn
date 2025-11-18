@@ -13,48 +13,47 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+[UseExportProvider]
+public sealed class SourceTextSerializationTests
 {
-    [UseExportProvider]
-    public class SourceTextSerializationTests
+    [Fact]
+    public void TestSourceTextSerialization()
     {
-        [Fact]
-        public void TestSourceTextSerialization()
+        using var workspace = new AdhocWorkspace();
+        var textService = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
+
+        var maxSize = SourceTextExtensions.SourceTextLengthThreshold * 3;
+        var sb = new StringBuilder(0, maxSize);
+
+        for (var i = 0; i < maxSize; i++)
         {
-            using var workspace = new AdhocWorkspace();
-            var textService = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
+            var originalText = CreateSourceText(sb, i);
 
-            var maxSize = SourceTextExtensions.SourceTextLengthThreshold * 3;
-            var sb = new StringBuilder(0, maxSize);
+            using var stream = SerializableBytes.CreateWritableStream();
 
-            for (var i = 0; i < maxSize; i++)
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                var originalText = CreateSourceText(sb, i);
-
-                using var stream = SerializableBytes.CreateWritableStream();
-
-                using (var writer = new ObjectWriter(stream, leaveOpen: true))
-                {
-                    originalText.WriteTo(writer, CancellationToken.None);
-                }
-
-                stream.Position = 0;
-
-                using var reader = ObjectReader.TryGetReader(stream);
-                var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, originalText.ChecksumAlgorithm, CancellationToken.None);
-
-                Assert.Equal(originalText.ToString(), recovered.ToString());
-            }
-        }
-
-        private static SourceText CreateSourceText(StringBuilder sb, int size)
-        {
-            for (var i = sb.Length; i < size; i++)
-            {
-                sb.Append((char)('0' + (i % 10)));
+                originalText.WriteTo(writer, CancellationToken.None);
             }
 
-            return SourceText.From(sb.ToString());
+            stream.Position = 0;
+
+            using var reader = ObjectReader.TryGetReader(stream);
+            var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, originalText.ChecksumAlgorithm, CancellationToken.None);
+
+            Assert.Equal(originalText.ToString(), recovered.ToString());
         }
+    }
+
+    private static SourceText CreateSourceText(StringBuilder sb, int size)
+    {
+        for (var i = sb.Length; i < size; i++)
+        {
+            sb.Append((char)('0' + (i % 10)));
+        }
+
+        return SourceText.From(sb.ToString());
     }
 }

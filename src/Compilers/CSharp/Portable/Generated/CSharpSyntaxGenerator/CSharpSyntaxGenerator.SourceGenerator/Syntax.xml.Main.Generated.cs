@@ -525,6 +525,9 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
     public virtual TResult? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a ExtensionBlockDeclarationSyntax node.</summary>
+    public virtual TResult? VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
     public virtual TResult? VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
@@ -629,6 +632,9 @@ public partial class CSharpSyntaxVisitor<TResult>
 
     /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
     public virtual TResult? VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ExtensionMemberCrefSyntax node.</summary>
+    public virtual TResult? VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
     public virtual TResult? VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -743,6 +749,9 @@ public partial class CSharpSyntaxVisitor<TResult>
 
     /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
     public virtual TResult? VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a IgnoredDirectiveTriviaSyntax node.</summary>
+    public virtual TResult? VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
     public virtual TResult? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
@@ -1260,6 +1269,9 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
     public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a ExtensionBlockDeclarationSyntax node.</summary>
+    public virtual void VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
     public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
@@ -1364,6 +1376,9 @@ public partial class CSharpSyntaxVisitor
 
     /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
     public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ExtensionMemberCrefSyntax node.</summary>
+    public virtual void VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
     public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -1478,6 +1493,9 @@ public partial class CSharpSyntaxVisitor
 
     /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
     public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a IgnoredDirectiveTriviaSyntax node.</summary>
+    public virtual void VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
     public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
@@ -1995,6 +2013,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.EqualsValue));
 
+    public override SyntaxNode? VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
+
     public override SyntaxNode? VisitBaseList(BaseListSyntax node)
         => node.Update(VisitToken(node.ColonToken), VisitList(node.Types));
 
@@ -2099,6 +2120,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitNameMemberCref(NameMemberCrefSyntax node)
         => node.Update((TypeSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), (CrefParameterListSyntax?)Visit(node.Parameters));
+
+    public override SyntaxNode? VisitExtensionMemberCref(ExtensionMemberCrefSyntax node)
+        => node.Update(VisitToken(node.ExtensionKeyword), (TypeArgumentListSyntax?)Visit(node.TypeArgumentList), (CrefParameterListSyntax?)Visit(node.Parameters) ?? throw new ArgumentNullException("parameters"), VisitToken(node.DotToken), (MemberCrefSyntax?)Visit(node.Member) ?? throw new ArgumentNullException("member"));
 
     public override SyntaxNode? VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
         => node.Update(VisitToken(node.ThisKeyword), (CrefBracketedParameterListSyntax?)Visit(node.Parameters));
@@ -2213,6 +2237,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
         => node.Update(VisitToken(node.HashToken), VisitToken(node.ExclamationToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
+
+    public override SyntaxNode? VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node)
+        => node.Update(VisitToken(node.HashToken), VisitToken(node.ColonToken), VisitToken(node.Content), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
     public override SyntaxNode? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
         => node.Update(VisitToken(node.HashToken), VisitToken(node.NullableKeyword), VisitToken(node.SettingToken), VisitToken(node.TargetToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
@@ -3195,14 +3222,6 @@ public static partial class SyntaxFactory
         if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
         return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
     }
-
-    /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterSyntax parameter, BlockSyntax? block, ExpressionSyntax? expressionBody)
-        => SyntaxFactory.SimpleLambdaExpression(attributeLists, modifiers, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
-
-    /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter)
-        => SyntaxFactory.SimpleLambdaExpression(default, default(SyntaxTokenList), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
     /// <summary>Creates a new RefExpressionSyntax instance.</summary>
     public static RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
@@ -5146,6 +5165,39 @@ public static partial class SyntaxFactory
     public static EnumMemberDeclarationSyntax EnumMemberDeclaration(string identifier)
         => SyntaxFactory.EnumMemberDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Identifier(identifier), default);
 
+    /// <summary>Creates a new ExtensionBlockDeclarationSyntax instance.</summary>
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    {
+        if (keyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
+        switch (openBraceToken.Kind())
+        {
+            case SyntaxKind.OpenBraceToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(openBraceToken));
+        }
+        switch (closeBraceToken.Kind())
+        {
+            case SyntaxKind.CloseBraceToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(closeBraceToken));
+        }
+        switch (semicolonToken.Kind())
+        {
+            case SyntaxKind.SemicolonToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(semicolonToken));
+        }
+        return (ExtensionBlockDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionBlockDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+    }
+
+    /// <summary>Creates a new ExtensionBlockDeclarationSyntax instance.</summary>
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+        => SyntaxFactory.ExtensionBlockDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeParameterList, parameterList, constraintClauses, default, members, default, default);
+
+    /// <summary>Creates a new ExtensionBlockDeclarationSyntax instance.</summary>
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration()
+        => SyntaxFactory.ExtensionBlockDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, default, default, default, default, default, default);
+
     /// <summary>Creates a new BaseListSyntax instance.</summary>
     public static BaseListSyntax BaseList(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
     {
@@ -5395,7 +5447,18 @@ public static partial class SyntaxFactory
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -5718,15 +5781,12 @@ public static partial class SyntaxFactory
         switch (identifier.Kind())
         {
             case SyntaxKind.IdentifierToken:
-            case SyntaxKind.ArgListKeyword: break;
+            case SyntaxKind.ArgListKeyword:
+            case SyntaxKind.None: break;
             default: throw new ArgumentException(nameof(identifier));
         }
-        return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
+        return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
     }
-
-    /// <summary>Creates a new ParameterSyntax instance.</summary>
-    public static ParameterSyntax Parameter(SyntaxToken identifier)
-        => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default);
 
     /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
     public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
@@ -5809,6 +5869,24 @@ public static partial class SyntaxFactory
     public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name)
         => SyntaxFactory.NameMemberCref(name, default);
 
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+        if (extensionKeyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+        return (ExtensionMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionMemberCref((Syntax.InternalSyntax.SyntaxToken)extensionKeyword.Node!, typeArgumentList == null ? null : (Syntax.InternalSyntax.TypeArgumentListSyntax)typeArgumentList.Green, (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.MemberCrefSyntax)member.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, MemberCrefSyntax member)
+        => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeArgumentList, parameters, SyntaxFactory.Token(SyntaxKind.DotToken), member);
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(MemberCrefSyntax member)
+        => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, SyntaxFactory.CrefParameterList(), SyntaxFactory.Token(SyntaxKind.DotToken), member);
+
     /// <summary>Creates a new IndexerMemberCrefSyntax instance.</summary>
     public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
     {
@@ -5854,7 +5932,18 @@ public static partial class SyntaxFactory
             case SyntaxKind.GreaterThanToken:
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword: break;
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         return (OperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)checkedKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
@@ -6479,6 +6568,29 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new ShebangDirectiveTriviaSyntax instance.</summary>
     public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(bool isActive)
         => SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+    /// <summary>Creates a new IgnoredDirectiveTriviaSyntax instance.</summary>
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+        if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        switch (content.Kind())
+        {
+            case SyntaxKind.StringLiteralToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(content));
+        }
+        if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+        return (IgnoredDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IgnoredDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)content.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
+    }
+
+    /// <summary>Creates a new IgnoredDirectiveTriviaSyntax instance.</summary>
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken content, bool isActive)
+        => SyntaxFactory.IgnoredDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ColonToken), content, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+    /// <summary>Creates a new IgnoredDirectiveTriviaSyntax instance.</summary>
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(bool isActive)
+        => SyntaxFactory.IgnoredDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ColonToken), default, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
 
     /// <summary>Creates a new NullableDirectiveTriviaSyntax instance.</summary>
     public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)

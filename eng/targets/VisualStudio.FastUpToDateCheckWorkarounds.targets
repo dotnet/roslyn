@@ -1,32 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-
-  <!-- The 9.0 Arcade targets we are consuming don't have Sets specified for the items, and don't include all items correctly. This overrides
-       those targets so they don't interfere. These two empty targets can be deleted when we've removed the support from Arcade in favor of
-       built-in support in the VS SDK, and we are consuming that support in this repo. -->
-
-  <Target Name="CollectVsixUpToDateCheckInput">
-  </Target>
-
-  <Target Name="CollectVsixUpToDateCheckBuilt">
-  </Target>
-
-  <!-- The targets below are being added to the VS SDK; in the mean time we have a copy here. This can be removed when we moved this repo forward
-       to consume those targets. -->
-
+  <!-- Add a workaround for https://github.com/dotnet/project-system/issues/9651 until we decide what we want to do there long term. -->
   <PropertyGroup>
-    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);AddUpToDateCheckVSIXSourceItems</CollectUpToDateCheckInputDesignTimeDependsOn>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);RemoveBuildOutputSourceItems</CollectUpToDateCheckInputDesignTimeDependsOn>
   </PropertyGroup>
 
-  <Target Name="AddUpToDateCheckVSIXSourceItems" DependsOnTargets="GetVsixSourceItems">
+  <Target Name="RemoveBuildOutputSourceItems" DependsOnTargets="AddUpToDateCheckVSIXSourceItems" Condition="'$(CreateVsixContainer)' == 'true'">
     <ItemGroup>
-      <UpToDateCheckInput Include="@(VSIXSourceItem)" Set="VSIX" />
+      <_ItemsInObjDirectory Include="$(IntermediateOutputPath)\**\*" Set="VsixItems" />
+      <UpToDateCheckInput Remove="@(_ItemsInObjDirectory)" MatchOnMetadata="Set" />
     </ItemGroup>
   </Target>
-
-  <!-- Add the UpToDateCheckOutput to the VSIX being produced; we'll do this outside of any target since we know it without further calcuation -->
-  <ItemGroup Condition="'$(CreateVsixContainer)' != 'false'">
-    <UpToDateCheckOutput Include="$(TargetVsixContainer)" Set="VSIX" />
-  </ItemGroup>
 </Project>

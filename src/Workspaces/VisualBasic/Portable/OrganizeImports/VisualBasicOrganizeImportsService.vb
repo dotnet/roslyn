@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
     <ExportLanguageService(GetType(IOrganizeImportsService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicOrganizeImportsService
+    Partial Friend NotInheritable Class VisualBasicOrganizeImportsService
         Implements IOrganizeImportsService
 
         <ImportingConstructor>
@@ -24,16 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             Return document.WithSyntaxRoot(newRoot)
         End Function
 
-        Public ReadOnly Property SortImportsDisplayStringWithAccelerator As String Implements IOrganizeImportsService.SortImportsDisplayStringWithAccelerator
-            Get
-                Return VBWorkspaceResources.Sort_Imports
-            End Get
-        End Property
+        Public ReadOnly Property SortImportsDisplayStringWithAccelerator As String = VBWorkspaceResources.Sort_Imports_with_accelerator Implements IOrganizeImportsService.SortImportsDisplayStringWithAccelerator
+        Public ReadOnly Property SortImportsDisplayStringWithoutAccelerator As String = VBWorkspaceResources.Sort_Imports Implements IOrganizeImportsService.SortImportsDisplayStringWithoutAccelerator
 
-        Public ReadOnly Property SortAndRemoveUnusedImportsDisplayStringWithAccelerator As String Implements IOrganizeImportsService.SortAndRemoveUnusedImportsDisplayStringWithAccelerator
-            Get
-                Return VBWorkspaceResources.Remove_and_Sort_Imports
-            End Get
-        End Property
+        Public ReadOnly Property SortAndRemoveUnusedImportsDisplayStringWithAccelerator As String = VBWorkspaceResources.Remove_and_Sort_Imports Implements IOrganizeImportsService.SortAndRemoveUnusedImportsDisplayStringWithAccelerator
     End Class
 End Namespace

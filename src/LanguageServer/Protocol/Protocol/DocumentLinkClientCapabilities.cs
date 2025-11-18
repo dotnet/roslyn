@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLinkClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class DocumentLinkClientCapabilities : DynamicRegistrationSetting
+internal sealed class DocumentLinkClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>
     /// Whether the client supports the <see cref="DocumentLink.Tooltip"/> property.

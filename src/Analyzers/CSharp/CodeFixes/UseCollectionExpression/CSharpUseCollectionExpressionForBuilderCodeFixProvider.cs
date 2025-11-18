@@ -74,7 +74,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderCodeFixProv
         var subEditor = new SyntaxEditor(root, document.Project.Solution.Services);
 
         // Remove all the nodes mutating the builder.
-        foreach (var (statement, _) in analysisResult.Matches)
+        foreach (var (statement, _, _) in analysisResult.Matches)
             subEditor.RemoveNode(statement);
 
         // Remove the actual declaration of the builder.  Keep any comments on the builder declaration in case they're
@@ -114,7 +114,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderCodeFixProv
 
             nodesToTrack.Add(analysisResult.LocalDeclarationStatement);
             nodesToTrack.Add(analysisResult.CreationExpression);
-            foreach (var (statement, _) in analysisResult.Matches)
+            foreach (var (statement, _, _) in analysisResult.Matches)
                 nodesToTrack.Add(statement);
 
             var newRoot = root.TrackNodes(nodesToTrack);

@@ -3,11 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.PasteTracking
 
 Namespace Microsoft.CodeAnalysis.AddMissingImports
@@ -45,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
                 {GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups}
                 }
 
-            Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options:=options)
+            Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, New TestParameters(options:=options))
         End Function
 
         <WpfFact>

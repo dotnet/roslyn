@@ -56,7 +56,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldNotAssigned() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer
 End Class",
@@ -67,7 +67,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldNotAssigned_PartialClass1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Partial Class C
     Private [|_goo|] As Integer
 End Class",
@@ -78,7 +78,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldNotAssigned_PartialClass2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer
 End Class
@@ -123,7 +123,7 @@ End Class
 </Document>
                     </Project>
                 </Workspace>.ToString()
-            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
         <Fact>
@@ -176,7 +176,7 @@ End Class
 
         <Fact>
         Public Async Function FieldNotAssigned_Struct() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Structure C
     Private [|_goo|] As Integer
 End Structure",
@@ -187,7 +187,7 @@ End Structure")
 
         <Fact>
         Public Async Function FieldNotAssigned_Module() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Module C
     Private [|_goo|] As Integer
 End Module",
@@ -198,7 +198,7 @@ End Module")
 
         <Fact>
         Public Async Function FieldNotAssigned_FieldDeclaredWithDim() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|_goo|] As Integer
 End Class",
@@ -209,7 +209,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldAssignedInline() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
 End Class",
@@ -220,7 +220,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0, _bar As Integer = 0
 End Class",
@@ -232,7 +232,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly_MultipleNamesInDeclarator() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|], _bar As Integer, _fizz As String = """"
 End Class",
@@ -245,7 +245,7 @@ End Class")
 
         <Fact>
         Public Async Function ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private _goo As Integer = 0, [|_bar|] As Integer = 0, _fizz As Integer = 0
 End Class",
@@ -258,7 +258,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms01() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|x|] As Integer, y As String
 End Class",
@@ -270,7 +270,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms02() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x As Integer, [|y|] As String
 End Class",
@@ -282,7 +282,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms03() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|x|], y As Integer, z, w As String
 End Class",
@@ -296,7 +296,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms04() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, [|y|] As Integer, z, w As String
 End Class",
@@ -310,7 +310,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms05() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, y As Integer, [|z|], w As String
 End Class",
@@ -324,7 +324,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms06() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, y As Integer, z, [|w|] As String
 End Class",
@@ -338,7 +338,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms07() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|x|], y() As Integer, z(), w As String
 End Class",
@@ -352,7 +352,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms08() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, [|y|]() As Integer, z(), w As String
 End Class",
@@ -366,7 +366,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms09() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, y() As Integer, [|z|](), w As String
 End Class",
@@ -380,7 +380,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms10() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, y() As Integer, z(), [|w|] As String
 End Class",
@@ -394,7 +394,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms11() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|x|] As New String("""".ToCharArray)
 End Class",
@@ -405,7 +405,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms12() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|x|], y As New String("""".ToCharArray)
 End Class",
@@ -417,7 +417,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms13() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x, [|y|] As New String("""".ToCharArray)
 End Class",
@@ -429,7 +429,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms14() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim {|FixAllInDocument:x|}, y As New String("""".ToCharArray)
 End Class",
@@ -440,7 +440,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_OneAssignedInMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private _goo As Integer = 0, [|_bar|] As Integer = 0
     Private Sub Goo()
@@ -458,7 +458,7 @@ End Class")
 
         <Fact>
         Public Async Function MultipleFieldsAssignedInline_NoInitializer() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer, _bar As Integer = 0
 End Class",
@@ -473,7 +473,7 @@ End Class")
         <InlineData("\r\n")>
         <InlineData("\r\n\r\n")>
         Public Async Function MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(leadingTrivia As String) As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 $"Class C
     'Comment{leadingTrivia}
     Private _goo As Integer = 0, [|_bar|] As Integer = 0
@@ -487,7 +487,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldAssignedInCtor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     Public Sub New()
@@ -559,7 +559,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldAssignedInCtor_QualifiedWithMe() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     Public Sub New()
@@ -576,7 +576,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldReturnedInProperty() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     ReadOnly Property Goo As Integer
@@ -597,7 +597,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")>
         Public Async Function FieldReturnedInMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_s|] As String
     Sub New(s As String)
@@ -620,7 +620,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")>
         Public Async Function FieldReadInMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_s|] As String
     Sub New(s As String)
@@ -700,7 +700,7 @@ End Class")
 
         <Fact>
         Public Async Function VariableAssignedToFieldInMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub Goo
@@ -755,7 +755,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")>
         Public Async Function CopyPassedAsByRefParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub Goo()
@@ -778,7 +778,7 @@ End Class")
 
         <Fact>
         Public Async Function PassedAsByRefParameterInCtor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub New()
@@ -799,7 +799,7 @@ End Class")
 
         <Fact>
         Public Async Function PassedAsByValParameter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub Goo()
@@ -820,7 +820,7 @@ End Class")
 
         <Fact>
         Public Async Function SharedFieldAssignedInSharedCtor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private Shared [|_goo|] As Integer = 0
     Shared Sub New()
@@ -859,7 +859,7 @@ End Class")
 
         <Fact>
         Public Async Function FieldIsCustomImmutableStructure() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Structure S
     Private readonly _goo As Integer
     Private Const _bar As Integer = 0
@@ -880,7 +880,7 @@ End Class")
 
         <Fact>
         Public Async Function FixAll() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private {|FixAllInDocument:_goo|} As Integer = 0, _bar As Integer = 0
     Dim a, b(), c As Integer, x, y As String
@@ -895,7 +895,7 @@ End Class")
 
         <Fact>
         Public Async Function FixAll_MultipleFieldsAssignedInline_TwoCanBeReadonly_MultipleNamesInDeclarator() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private _goo, {|FixAllInDocument:_bar|} As Integer, _fizz As String = """"
     Sub Goo()
@@ -914,7 +914,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26850")>
         Public Async Function FieldNotAssigned_FieldPartiallyDeclaredWithDim() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim [|_goo|]
 End Class",
@@ -947,7 +947,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsRedimIndex() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Private [|_goo()|] As Integer
     Private Sub M(a() As Integer)
@@ -1016,7 +1016,7 @@ End Class
                     </Project>
                 </Workspace>.ToString()
 
-            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
@@ -1050,7 +1050,7 @@ End Class
                     </Project>
                 </Workspace>.ToString()
 
-            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
@@ -1122,7 +1122,7 @@ End Module
                     </Project>
                 </Workspace>.ToString()
 
-            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
         <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
@@ -1151,7 +1151,7 @@ class C(Of T)
         C(Of T).s_value = nothing
     end sub
 end class
-", parseOptions:=s_strictFeatureFlag)
+", New TestParameters(parseOptions:=s_strictFeatureFlag))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47197")>
@@ -1215,7 +1215,7 @@ End Class
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")>
         Public Async Function TestIndexedAndAssignedField_ClassType() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 friend class GreenNode
 end class

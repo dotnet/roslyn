@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Roslyn.sln",
+    "path": "Roslyn.slnx",
     "projects": [
       "src\\Compilers\\CSharp\\CSharpAnalyzerDriver\\CSharpAnalyzerDriver.shproj",
       "src\\Compilers\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.csproj",
@@ -20,7 +20,9 @@
       "src\\Compilers\\Core\\AnalyzerDriver\\AnalyzerDriver.shproj",
       "src\\Compilers\\Core\\CodeAnalysisTest\\Microsoft.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\MSBuildTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj",
-      "src\\Compilers\\Core\\MSBuildTask\\Microsoft.Build.Tasks.CodeAnalysis.csproj",
+      "src\\Compilers\\Core\\SdkTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests.csproj",
+      "src\\Compilers\\Core\\MSBuildTask\\MSBuild\\Microsoft.Build.Tasks.CodeAnalysis.csproj",
+      "src\\Compilers\\Core\\MSBuildTask\\Sdk\\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj",
       "src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj",
       "src\\Compilers\\Core\\RebuildTest\\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj",
       "src\\Compilers\\Core\\Rebuild\\Microsoft.CodeAnalysis.Rebuild.csproj",
@@ -51,6 +53,7 @@
       "src\\ExpressionEvaluator\\Core\\Source\\ExpressionCompiler\\Microsoft.CodeAnalysis.ExpressionCompiler.csproj",
       "src\\ExpressionEvaluator\\VisualBasic\\Source\\ExpressionCompiler\\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.vbproj",
       "src\\Interactive\\csi\\csi.csproj",
+      "src\\NuGet\\Microsoft.CodeAnalysis.BuildClient.Package\\Microsoft.CodeAnalysis.BuildClient.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Compilers.Package\\Microsoft.CodeAnalysis.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Package\\Microsoft.CodeAnalysis.Package.csproj",
       "src\\NuGet\\Microsoft.Net.Compilers.Toolset\\AnyCpu\\Microsoft.Net.Compilers.Toolset.Package.csproj",

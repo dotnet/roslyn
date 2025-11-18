@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 [TagType(typeof(InheritanceMarginTag))]
 // This would ensure the margin is clickable.
 [Order(After = "VsTextMarker")]
-internal class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
+internal sealed class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
 {
     private readonly Workspace _workspace;
     private readonly IThreadingContext _threadingContext;

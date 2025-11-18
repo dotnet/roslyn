@@ -15,17 +15,9 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 
@@ -92,17 +84,17 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             if (_service.IsConstructorInitializerGeneration(_document, node, cancellationToken))
             {
-                if (!TryInitializeConstructorInitializerGeneration(node, cancellationToken))
+                if (!(await TryInitializeConstructorInitializerGenerationAsync(node, cancellationToken).ConfigureAwait(false)))
                     return false;
             }
             else if (_service.IsSimpleNameGeneration(_document, node, cancellationToken))
             {
-                if (!TryInitializeSimpleNameGeneration(node, cancellationToken))
+                if (!(await TryInitializeSimpleNameGenerationAsync(node, cancellationToken).ConfigureAwait(false)))
                     return false;
             }
             else if (_service.IsImplicitObjectCreation(_document, node, cancellationToken))
             {
-                if (!TryInitializeImplicitObjectCreation(node, cancellationToken))
+                if (!(await TryInitializeImplicitObjectCreationAsync(node, cancellationToken).ConfigureAwait(false)))
                     return false;
             }
             else
@@ -131,7 +123,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         private async Task InitializeNonDelegatedConstructorAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
-            var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
+            var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().SelectAsArray(t => t.Name);
             var parameterNames = GetParameterNames(_arguments, typeParametersNames, cancellationToken);
 
             (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewPropertyMap) =
@@ -242,7 +234,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         }
 
         private TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
-            => _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(language).GetRequiredService<TLanguageService>();
+            => _document.Project.Solution.GetRequiredLanguageService<TLanguageService>(language);
 
         private bool ClashesWithExistingConstructor()
         {
@@ -298,7 +290,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 .RemoveUnnamedErrorTypes(compilation);
         }
 
-        private bool TryInitializeConstructorInitializerGeneration(
+        private async ValueTask<bool> TryInitializeConstructorInitializerGenerationAsync(
             SyntaxNode constructorInitializer, CancellationToken cancellationToken)
         {
             if (_service.TryInitializeConstructorInitializerGeneration(
@@ -311,13 +303,13 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
                 var semanticInfo = _document.SemanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
                 if (semanticInfo.Symbol == null)
-                    return TryDetermineTypeToGenerateIn(typeToGenerateIn, cancellationToken);
+                    return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
         }
 
-        private bool TryInitializeImplicitObjectCreation(SyntaxNode implicitObjectCreation, CancellationToken cancellationToken)
+        private async ValueTask<bool> TryInitializeImplicitObjectCreationAsync(SyntaxNode implicitObjectCreation, CancellationToken cancellationToken)
         {
             if (_service.TryInitializeImplicitObjectCreation(
                     _document, implicitObjectCreation, cancellationToken,
@@ -328,13 +320,13 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
                 var semanticInfo = _document.SemanticModel.GetSymbolInfo(implicitObjectCreation, cancellationToken);
                 if (semanticInfo.Symbol == null)
-                    return TryDetermineTypeToGenerateIn(typeToGenerateIn, cancellationToken);
+                    return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
         }
 
-        private bool TryInitializeSimpleNameGeneration(
+        private async ValueTask<bool> TryInitializeSimpleNameGenerationAsync(
             SyntaxNode simpleName,
             CancellationToken cancellationToken)
         {
@@ -361,7 +353,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return TryDetermineTypeToGenerateIn(typeToGenerateIn, cancellationToken);
+            return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
         }
 
         private static bool IsValidAttributeParameterType(ITypeSymbol type)
@@ -399,10 +391,10 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             }
         }
 
-        private bool TryDetermineTypeToGenerateIn(
+        private async ValueTask<bool> TryDetermineTypeToGenerateInAsync(
             INamedTypeSymbol original, CancellationToken cancellationToken)
         {
-            var definition = SymbolFinderInternal.FindSourceDefinition(original, _document.Project.Solution, cancellationToken);
+            var definition = await SymbolFinderInternal.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
             TypeToGenerateIn = definition as INamedTypeSymbol;
 
             return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;
@@ -442,7 +434,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: Accessibility.Public,
-                modifiers: new DeclarationModifiers(isUnsafe: generateUnsafe),
+                modifiers: DeclarationModifiers.None.WithIsUnsafe(generateUnsafe),
                 typeName: TypeToGenerateIn.Name,
                 parameters: newParameters,
                 statements: assignments,

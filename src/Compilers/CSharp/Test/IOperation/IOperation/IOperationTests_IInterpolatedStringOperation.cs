@@ -4188,7 +4188,7 @@ public class C
 ";
 
             var expectedDiagnostics = new[] {
-                // (7,23): error CS8944: 'C.C(bool, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (7,23): error CS8944: 'C.C(bool, CustomHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
                 //     public C(bool b, [InterpolatedStringHandlerArgument("", "b")]CustomHandler c1) {}
                 Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""", ""b"")").WithArguments("C.C(bool, CustomHandler)").WithLocation(7, 23),
                 // (11,25): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c1' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.

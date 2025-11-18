@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\VisualBasicFixAllSpanMappingService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ArgumentGenerator.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AttributeGenerator.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConstructorGenerator.vb" />
@@ -64,6 +65,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.vb" />
@@ -85,6 +87,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\VisualBasicSemanticModelReuseLanguageService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\VisualBasicSimplificationHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ModifierCollectionFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxIterator.vb" />
@@ -98,7 +101,6 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
     <Import Include="Roslyn.Utilities" />
-    <Import Include="Roslyn.Utilities.Contract" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" GenerateSource="true" Link="VisualBasicWorkspaceExtensionsResources.resx" />

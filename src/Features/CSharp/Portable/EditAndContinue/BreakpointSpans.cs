@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -471,14 +472,14 @@ internal static class BreakpointSpans
     internal static TextSpan CreateSpanForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
         => CreateSpan(constructor.Modifiers, constructor.Identifier, constructor.ParameterList.CloseParenToken);
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
-        => constructor.Modifiers.Concat([constructor.Identifier]).Concat(constructor.ParameterList.DescendantTokens());
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => constructor.Modifiers.Concat([constructor.Identifier]).Concat(getDescendantTokens(constructor.ParameterList));
 
     internal static TextSpan CreateSpanForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
         => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
-        => [constructorInitializer.ThisOrBaseKeyword, .. constructorInitializer.ArgumentList.DescendantTokens()];
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => [constructorInitializer.ThisOrBaseKeyword, .. getDescendantTokens(constructorInitializer.ArgumentList)];
 
     internal static TextSpan CreateSpanForImplicitPrimaryConstructorInitializer(TypeDeclarationSyntax typeDeclaration)
     {
@@ -486,7 +487,7 @@ internal static class BreakpointSpans
         return TextSpan.FromBounds(typeDeclaration.Identifier.SpanStart, typeDeclaration.ParameterList.Span.End);
     }
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitPrimaryConstructorInitializer(TypeDeclarationSyntax typeDeclaration)
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitPrimaryConstructorInitializer(TypeDeclarationSyntax typeDeclaration, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
     {
         Debug.Assert(typeDeclaration.ParameterList != null);
 
@@ -494,32 +495,32 @@ internal static class BreakpointSpans
 
         if (typeDeclaration.TypeParameterList != null)
         {
-            foreach (var token in typeDeclaration.TypeParameterList.DescendantTokens())
+            foreach (var token in getDescendantTokens(typeDeclaration.TypeParameterList))
                 yield return token;
         }
 
-        foreach (var token in typeDeclaration.ParameterList.DescendantTokens())
+        foreach (var token in getDescendantTokens(typeDeclaration.ParameterList))
             yield return token;
     }
 
     internal static TextSpan CreateSpanForExplicitPrimaryConstructorInitializer(PrimaryConstructorBaseTypeSyntax baseTypeSyntax)
         => baseTypeSyntax.Span;
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitPrimaryConstructorInitializer(PrimaryConstructorBaseTypeSyntax baseTypeSyntax)
-        => baseTypeSyntax.DescendantTokens();
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitPrimaryConstructorInitializer(PrimaryConstructorBaseTypeSyntax baseTypeSyntax, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(baseTypeSyntax);
 
     internal static TextSpan CreateSpanForCopyConstructor(RecordDeclarationSyntax recordDeclaration)
         => CreateSpan(
             recordDeclaration.Identifier,
             LastNotMissing(recordDeclaration.Identifier, recordDeclaration.TypeParameterList?.GreaterThanToken ?? default));
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForCopyConstructor(RecordDeclarationSyntax recordDeclaration)
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForCopyConstructor(RecordDeclarationSyntax recordDeclaration, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
     {
         yield return recordDeclaration.Identifier;
 
         if (recordDeclaration.TypeParameterList != null)
         {
-            foreach (var token in recordDeclaration.TypeParameterList.DescendantTokens())
+            foreach (var token in getDescendantTokens(recordDeclaration.TypeParameterList))
                 yield return token;
         }
     }
@@ -527,14 +528,14 @@ internal static class BreakpointSpans
     internal static TextSpan CreateSpanForRecordParameter(ParameterSyntax parameter)
         => CreateSpan(parameter.Modifiers, parameter.Type, parameter.Identifier);
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForRecordParameter(ParameterSyntax parameter)
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForRecordParameter(ParameterSyntax parameter, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
     {
         foreach (var modifier in parameter.Modifiers)
             yield return modifier;
 
         if (parameter.Type != null)
         {
-            foreach (var token in parameter.Type.DescendantTokens())
+            foreach (var token in getDescendantTokens(parameter.Type))
                 yield return token;
         }
 
@@ -544,8 +545,8 @@ internal static class BreakpointSpans
     internal static TextSpan CreateSpanForAutoPropertyAccessor(AccessorDeclarationSyntax accessor)
         => accessor.Span;
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForAutoPropertyAccessor(AccessorDeclarationSyntax accessor)
-        => accessor.DescendantTokens();
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForAutoPropertyAccessor(AccessorDeclarationSyntax accessor, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(accessor);
 
     private static TextSpan? TryCreateSpanForFieldDeclaration(BaseFieldDeclarationSyntax fieldDeclaration, int position)
         => TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
@@ -592,7 +593,7 @@ internal static class BreakpointSpans
                 // statement.
                 var declarationStatement = (LocalDeclarationStatementSyntax)statement;
                 return TryCreateSpanForVariableDeclaration(declarationStatement.Declaration, declarationStatement.Modifiers,
-                    declarationStatement.SemicolonToken, position);
+                    declarationStatement.SemicolonToken, position, startNodeOpt: declarationStatement);
 
             case SyntaxKind.LabeledStatement:
                 // Create the breakpoint on the actual statement we are labeling:
@@ -775,14 +776,15 @@ internal static class BreakpointSpans
             // parent node will handle:
             SyntaxKind.LocalDeclarationStatement or SyntaxKind.EventFieldDeclaration or SyntaxKind.FieldDeclaration => null,
 
-            _ => TryCreateSpanForVariableDeclaration(declaration, modifiersOpt: default, semicolonOpt: default, position),
+            _ => TryCreateSpanForVariableDeclaration(declaration, modifiersOpt: default, semicolonOpt: default, position, startNodeOpt: null),
         };
 
     private static TextSpan? TryCreateSpanForVariableDeclaration(
         VariableDeclarationSyntax variableDeclaration,
         SyntaxTokenList modifiersOpt,
         SyntaxToken semicolonOpt,
-        int position)
+        int position,
+        SyntaxNode? startNodeOpt = null)
     {
         if (variableDeclaration.Variables.Count == 0)
         {
@@ -802,6 +804,16 @@ internal static class BreakpointSpans
                 return default(TextSpan);
             }
 
+            // If we have a start node (e.g., LocalDeclarationStatementSyntax with 'using' or 'await'),
+            // use it as the start to include those keywords in the span
+            if (startNodeOpt != null)
+            {
+                return CreateSpan(
+                    startOpt: default,
+                    startFallbackOpt: startNodeOpt,
+                    endOpt: semicolonOpt != default ? semicolonOpt : (SyntaxNodeOrToken)variableDeclaration);
+            }
+
             return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
         }
 
@@ -818,6 +830,16 @@ internal static class BreakpointSpans
 
         if (variableDeclarator == variableDeclaration.Variables[0])
         {
+            // If we have a start node (e.g., LocalDeclarationStatementSyntax with 'using' or 'await'),
+            // use it as the start to include those keywords in the span
+            if (startNodeOpt != null)
+            {
+                return CreateSpan(
+                    startOpt: default,
+                    startFallbackOpt: startNodeOpt,
+                    endOpt: variableDeclarator);
+            }
+
             return CreateSpan(modifiersOpt, variableDeclaration, variableDeclarator);
         }
 
@@ -848,7 +870,8 @@ internal static class BreakpointSpans
         return CreateSpan(variableDeclarator);
     }
 
-    internal static IEnumerable<SyntaxToken> GetActiveTokensForVariableDeclarator(VariableDeclaratorSyntax variableDeclarator, SyntaxTokenList modifiers, SyntaxToken semicolon)
+    internal static IEnumerable<SyntaxToken> GetActiveTokensForVariableDeclarator(
+        VariableDeclaratorSyntax variableDeclarator, SyntaxTokenList modifiers, SyntaxToken semicolon, Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
     {
         if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
             return [];
@@ -857,17 +880,17 @@ internal static class BreakpointSpans
         var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
         if (variableDeclaration.Variables.Count == 1)
         {
-            return modifiers.Concat(variableDeclaration.DescendantTokens()).Concat(semicolon);
+            return modifiers.Concat(getDescendantTokens(variableDeclaration)).Concat(semicolon);
         }
 
         // [|int F = 1|], G = 2;
         if (variableDeclarator == variableDeclaration.Variables[0])
         {
-            return modifiers.Concat(variableDeclaration.Type.DescendantTokens()).Concat(variableDeclarator.DescendantTokens());
+            return modifiers.Concat(getDescendantTokens(variableDeclaration.Type)).Concat(getDescendantTokens(variableDeclarator));
         }
 
         // int F = 1, [|G = 2|];
-        return variableDeclarator.DescendantTokens();
+        return getDescendantTokens(variableDeclarator);
     }
 
     private static VariableDeclaratorSyntax? FindClosestDeclaratorWithInitializer(SeparatedSyntaxList<VariableDeclaratorSyntax> declarators, int position)

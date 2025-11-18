@@ -38,6 +38,8 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
+    - template: build-file-based-apps.yml
+
     - task: PowerShell@2
       displayName: Build
       inputs:

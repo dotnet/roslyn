@@ -6,13 +6,12 @@
 
 using System.Runtime.InteropServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+
+[ComImport]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("E3783F08-E098-11d2-B554-00C04F68D4DB")]
+internal interface ICSSourceText
 {
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("E3783F08-E098-11d2-B554-00C04F68D4DB")]
-    internal interface ICSSourceText
-    {
-        // members not ported
-    }
+    // members not ported
 }

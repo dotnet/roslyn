@@ -175,6 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInterpolatedStringHandlerType => false;
 
+        internal sealed override ParameterSymbol ExtensionParameter => null;
+
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
@@ -192,5 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             methodName = null;
             return false;
         }
+
+        internal sealed override string? ExtensionGroupingName => null;
+
+        internal sealed override string? ExtensionMarkerName => null;
     }
 }

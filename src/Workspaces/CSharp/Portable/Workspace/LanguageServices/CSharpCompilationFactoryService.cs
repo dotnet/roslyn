@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp), Shared]
-internal class CSharpCompilationFactoryService : ICompilationFactoryService
+internal sealed class CSharpCompilationFactoryService : ICompilationFactoryService
 {
     private static readonly CSharpCompilationOptions s_defaultOptions = new(OutputKind.ConsoleApplication, concurrentBuild: false);
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -52,7 +50,7 @@ internal struct RegexLexer
         => GetSubPattern(start, Position);
 
     public readonly VirtualCharSequence GetSubPattern(int start, int end)
-        => Text.GetSubSequence(TextSpan.FromBounds(start, end));
+        => Text[start..end];
 
     public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
     {
@@ -65,7 +63,7 @@ internal struct RegexLexer
         var ch = this.CurrentChar;
         Position++;
 
-        return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
+        return CreateToken(GetKind(ch), trivia, Text[(Position - 1)..Position]);
     }
 
     private static RegexKind GetKind(VirtualChar ch)
@@ -277,7 +275,7 @@ internal struct RegexLexer
 
             unchecked
             {
-                var charVal = ch.Value - '0';
+                var charVal = ch - '0';
                 if (value > MaxValueDiv10 || (value == MaxValueDiv10 && charVal > MaxValueMod10))
                 {
                     error = true;
@@ -426,7 +424,7 @@ internal struct RegexLexer
         {
             if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
             {
-                var octalVal = this.CurrentChar.Value - '0';
+                var octalVal = this.CurrentChar - '0';
                 Debug.Assert(octalVal is >= 0 and <= 7);
                 currentVal *= 8;
                 currentVal += octalVal;

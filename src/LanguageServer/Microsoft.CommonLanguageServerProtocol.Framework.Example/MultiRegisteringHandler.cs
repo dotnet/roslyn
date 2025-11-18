@@ -8,7 +8,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-internal class MultiRegisteringHandler :
+internal sealed class MultiRegisteringHandler :
     IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>,
     IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>,
     INotificationHandler<DidCloseTextDocumentParams, ExampleRequestContext>

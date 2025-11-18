@@ -173,7 +173,7 @@ internal partial class StreamingFindUsagesPresenter
                 cancellationToken =>
                 {
                     _tableDataSink.FactorySnapshotChanged(this);
-                    return ValueTaskFactory.CompletedTask;
+                    return ValueTask.CompletedTask;
                 },
                 presenter._asyncListener,
                 CancellationTokenSource.Token);
@@ -471,15 +471,13 @@ internal partial class StreamingFindUsagesPresenter
             var document = documentSpan.Document;
             var sourceSpan = documentSpan.SourceSpan;
 
-            var excerptService = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
-
             // Fetching options is expensive enough to try to avoid it if we can.  So only fetch this if absolutely necessary.
             ClassificationOptions? options = null;
-            if (excerptService != null)
+            if (DocumentExcerptHelper.CanExcerpt(document))
             {
                 options ??= _globalOptions.GetClassificationOptions(document.Project.Language);
 
-                var result = await excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options.Value, cancellationToken).ConfigureAwait(false);
+                var result = await DocumentExcerptHelper.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options.Value, cancellationToken).ConfigureAwait(false);
                 if (result != null)
                     return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
             }
@@ -507,7 +505,7 @@ internal partial class StreamingFindUsagesPresenter
         {
             try
             {
-                await foreach (var reference in references)
+                await foreach (var reference in references.ConfigureAwait(false))
                     await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
@@ -537,7 +535,7 @@ internal partial class StreamingFindUsagesPresenter
                 NoDefinitionsFoundMessage = message;
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public sealed override async ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
@@ -571,7 +569,7 @@ internal partial class StreamingFindUsagesPresenter
                     _findReferencesWindow.SetProgress(current, maximum);
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         protected static DefinitionItem CreateNoResultsDefinitionItem(string message)

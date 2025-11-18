@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Runtime.Versioning;
@@ -55,5 +57,7 @@ namespace Roslyn.Utilities
                 }
             }
         }
+
+        public static string ExeExtension => IsWindows ? ".exe" : string.Empty;
     }
 }

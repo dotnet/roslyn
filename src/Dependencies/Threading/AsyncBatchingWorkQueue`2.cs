@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Threading;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Threading;
 /// cref="CancellationToken.IsCancellationRequested"/>.
 /// </para>
 /// </summary>
-internal class AsyncBatchingWorkQueue<TItem, TResult>
+internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 {
     /// <summary>
     /// Delay we wait after finishing the processing of one batch and starting up on then.
@@ -121,6 +122,11 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
         CancelExistingWork();
     }
 
+    public void Dispose()
+    {
+        _cancellationSeries.Dispose();
+    }
+
     /// <summary>
     /// Cancels any outstanding work in this queue.  Work that has not yet started will never run. Work that is in
     /// progress will request cancellation in a standard best effort fashion.
@@ -140,19 +146,10 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
 
     public void AddWork(TItem item, bool cancelExistingWork = false)
     {
-        var items = ArrayBuilder<TItem>.GetInstance();
-        try
-        {
-            items.Add(item);
-            AddWork(items, cancelExistingWork);
-        }
-        finally
-        {
-            items.Free();
-        }
+        AddWork([item], cancelExistingWork);
     }
 
-    public void AddWork(IEnumerable<TItem> items, bool cancelExistingWork = false)
+    public void AddWork(ReadOnlySpan<TItem> items, bool cancelExistingWork = false)
     {
         // Don't do any more work if we've been asked to shutdown.
         if (_entireQueueCancellationToken.IsCancellationRequested)
@@ -179,12 +176,13 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
 
         return;
 
-        void AddItemsToBatch(IEnumerable<TItem> items)
+        void AddItemsToBatch(ReadOnlySpan<TItem> items)
         {
             // no equality comparer.  We want to process all items.
             if (_equalityComparer == null)
             {
-                _nextBatch.AddRange(items);
+                foreach (var item in items)
+                    _nextBatch.Add(item);
                 return;
             }
 

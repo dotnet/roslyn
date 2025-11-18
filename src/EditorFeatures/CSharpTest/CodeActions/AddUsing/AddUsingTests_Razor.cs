@@ -11,36 +11,38 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public partial class AddUsingTests_Razor : AbstractAddUsingTests
+public sealed partial class AddUsingTests_Razor : AbstractAddUsingTests
 {
     [Theory, CombinatorialData]
-    public async Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)
-    {
-        await TestAsync(
-@"#line hidden
-using System.Collections.Generic;
-#line default
+    public Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)
+        => TestAsync(
+            """
+            #line hidden
+            using System.Collections.Generic;
+            #line default
 
-class Program
-{
-    void Main()
-    {
-        [|DateTime|] d;
-    }
-}",
-@"#line hidden
-using System;
-using System.Collections.Generic;
-#line default
+            class Program
+            {
+                void Main()
+                {
+                    [|DateTime|] d;
+                }
+            }
+            """,
+            """
+            #line hidden
+            using System;
+            using System.Collections.Generic;
+            #line default
 
-class Program
-{
-    void Main()
-    {
-        DateTime d;
-    }
-}", host);
-    }
+            class Program
+            {
+                void Main()
+                {
+                    DateTime d;
+                }
+            }
+            """, host);
 
     private protected override IDocumentServiceProvider GetDocumentServiceProvider()
     {

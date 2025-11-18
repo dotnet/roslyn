@@ -5,14 +5,12 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
     private struct CodeShapeAnalyzer
     {
@@ -311,7 +309,7 @@ internal partial class TriviaDataFactory
             if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
             {
                 var triviaString = trivia.ToString();
-                if (!string.IsNullOrEmpty(triviaString) && SyntaxFacts.IsNewLine(triviaString.Last()))
+                if (!string.IsNullOrEmpty(triviaString) && SyntaxFacts.IsNewLine(triviaString[^1]))
                 {
                     ResetStateAfterNewLine(index);
                 }

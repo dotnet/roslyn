@@ -8,21 +8,20 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(ICSExtensionMethodExtender))]
+public class ExtensionMethodExtender : ICSExtensionMethodExtender
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ICSExtensionMethodExtender))]
-    public class ExtensionMethodExtender : ICSExtensionMethodExtender
+    internal static ICSExtensionMethodExtender Create(bool isExtension)
     {
-        internal static ICSExtensionMethodExtender Create(bool isExtension)
-        {
-            var result = new ExtensionMethodExtender(isExtension);
-            return (ICSExtensionMethodExtender)ComAggregate.CreateAggregatedObject(result);
-        }
-
-        private ExtensionMethodExtender(bool isExtension)
-            => IsExtension = isExtension;
-
-        public bool IsExtension { get; }
+        var result = new ExtensionMethodExtender(isExtension);
+        return (ICSExtensionMethodExtender)ComAggregate.CreateAggregatedObject(result);
     }
+
+    private ExtensionMethodExtender(bool isExtension)
+        => IsExtension = isExtension;
+
+    public bool IsExtension { get; }
 }

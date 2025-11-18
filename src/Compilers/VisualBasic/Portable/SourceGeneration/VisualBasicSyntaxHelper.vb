@@ -32,6 +32,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
+        Public Overrides Function RemapAttributeTarget(target As SyntaxNode) As SyntaxNode
+            If TypeOf target Is ModifiedIdentifierSyntax AndAlso
+               TypeOf target.Parent Is VariableDeclaratorSyntax AndAlso
+               TypeOf target.Parent.Parent Is FieldDeclarationSyntax Then
+                Return target.Parent.Parent
+            End If
+
+            Return target
+        End Function
+
+        Public Overrides Function GetAttributeOwningNode(attribute As SyntaxNode) As SyntaxNode
+            Debug.Assert(TypeOf attribute Is AttributeSyntax)
+            Debug.Assert(TypeOf attribute.Parent Is AttributeListSyntax)
+            Debug.Assert(attribute.Parent.Parent IsNot Nothing)
+            Dim owningNode = attribute.Parent.Parent
+
+            ' for attribute statements (like `<Assembly: ...>`) we want to get the parent compilation unit as that's
+            ' what symbol will actually own the attribute.
+            If TypeOf owningNode Is AttributesStatementSyntax Then
+                Return owningNode.Parent
+            End If
+
+            Return owningNode
+        End Function
+
         Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean
             Return TypeOf node Is AttributeListSyntax
         End Function

@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,11 +27,9 @@ using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -60,7 +58,7 @@ using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class EditorInProcess : ITextViewWindowInProcess
+internal sealed partial class EditorInProcess : ITextViewWindowInProcess
 {
     TestServices ITextViewWindowInProcess.TestServices => TestServices;
 
@@ -417,11 +415,32 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
     {
         if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
         {
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
-            if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
+            await UpdateUseSuggestionModeAsync();
+            var useSuggestionMode = await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken);
+            if (useSuggestionMode != value)
             {
-                throw new InvalidOperationException($"{nameof(WellKnownCommands.Edit)}.{nameof(WellKnownCommands.Edit.ToggleCompletionMode)} did not leave the editor in the expected state.");
+                throw new InvalidOperationException($"Failed to update suggestion mode to {value} (current: {useSuggestionMode})");
             }
+        }
+
+        async Task UpdateUseSuggestionModeAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+            var options = editorOptionsFactory.GlobalOptions;
+
+            EditorOptionKey<bool> optionKey;
+            if (forDebuggerTextView)
+            {
+                optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
+            }
+            else
+            {
+                optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
+            }
+
+            options.SetOptionValue<bool>(optionKey, value);
         }
     }
 
@@ -561,12 +580,19 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         return (await GetNavigationBarMarginAsync(view, cancellationToken)) is not null;
     }
 
-    private async Task<List<ComboBox>> GetNavigationBarComboBoxesAsync(IWpfTextView textView, CancellationToken cancellationToken)
+    private async Task<List<Microsoft.VisualStudio.Shell.Controls.ComboBox>> GetNavigationBarComboBoxesAsync(IWpfTextView textView, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
-        return margin.GetFieldValue<List<ComboBox>>("_combos");
+        try
+        {
+            return margin.GetFieldValue<List<Microsoft.VisualStudio.Shell.Controls.ComboBox>>("_combos");
+        }
+        catch (FieldAccessException)
+        {
+            return margin.GetFieldValue<List<Microsoft.VisualStudio.Shell.Controls.ComboBox>>("Combos");
+        }
     }
 
     private async Task<UIElement?> GetNavigationBarMarginAsync(IWpfTextView textView, CancellationToken cancellationToken)
@@ -816,13 +842,12 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
                 action = fixAllAction;
 
                 if (willBlockUntilComplete
-                    && action is AbstractFixAllSuggestedAction fixAllSuggestedAction
-                    && fixAllSuggestedAction.CodeAction is AbstractFixAllCodeAction fixAllCodeAction)
+                    && action is EditorSuggestedActionForRefactorOrFixAll fixAllSuggestedAction)
                 {
                     // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                     // the caller would not be able to interact with the preview changes dialog, and the tests would
                     // either timeout or deadlock.
-                    fixAllCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+                    fixAllSuggestedAction.CodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
                 }
 
                 if (string.IsNullOrEmpty(actionName))
@@ -834,7 +859,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
                 broker.DismissSession(view);
             }
 
-            if (action is not SuggestedAction suggestedAction)
+            if (action is not EditorSuggestedAction suggestedAction)
                 return true;
 
             broker.DismissSession(view);
@@ -907,7 +932,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         return actions;
     }
 
-    private async Task<AbstractFixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
+    private async Task<EditorSuggestedActionForRefactorOrFixAll?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -915,13 +940,10 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         {
             foreach (var action in actionSet.Actions)
             {
-                if (action is AbstractFixAllSuggestedAction fixAllSuggestedAction)
+                if (action is EditorSuggestedActionForRefactorOrFixAll fixAllSuggestedAction &&
+                    fixAllSuggestedAction.CodeAction.RefactorOrFixAllState.Scope == fixAllScope)
                 {
-                    var fixAllCodeAction = fixAllSuggestedAction.CodeAction as AbstractFixAllCodeAction;
-                    if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
-                    {
-                        return fixAllSuggestedAction;
-                    }
+                    return fixAllSuggestedAction;
                 }
 
                 if (action.HasActionSets)
@@ -1010,11 +1032,11 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         };
 
         var componentModelService = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(cancellationToken);
-        var commandHandlers = componentModelService.DefaultExportProvider.GetExports<ICommandHandler, NameMetadata>();
-        var goToImplementation = (GoToImplementationCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToImplementation).Value;
+
+        var goToImplementation = componentModelService.DefaultExportProvider.GetExportedValue<GoToImplementationNavigationService>();
         goToImplementation.GetTestAccessor().DelayHook = delayHook;
 
-        var goToBase = (GoToBaseCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToBase).Value;
+        var goToBase = componentModelService.DefaultExportProvider.GetExportedValue<GoToBaseNavigationService>();
         goToBase.GetTestAccessor().DelayHook = delayHook;
     }
 
@@ -1058,15 +1080,11 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
     }
 
-    private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
-    }
+    private Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
 
-    private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 
     public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
     {

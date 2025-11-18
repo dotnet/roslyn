@@ -11,12 +11,11 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Snippets;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp), Shared, PartNotDiscoverable]
-internal class TestSnippetInfoService : ISnippetInfoService
+internal sealed class TestSnippetInfoService : ISnippetInfoService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,7 +44,7 @@ internal class TestSnippetInfoService : ISnippetInfoService
         throw new NotImplementedException();
     }
 
-    public bool SnippetShortcutExists_NonBlocking(string shortcut)
+    public bool SnippetShortcutExists_NonBlocking(string? shortcut)
     {
         throw new NotImplementedException();
     }

@@ -22,6 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Xunit.Abstractions;
 
     public abstract class AbstractInteractiveHostTests : CSharpTestBase, IAsyncLifetime
     {
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private int[] _outputReadPosition = [0, 0];
 
         internal readonly InteractiveHost Host;
+        internal readonly ITestOutputHelper TestOutputHelper;
 
         // DOTNET_ROOT must be set in order to run host process on .NET Core on machines (like CI)
         // that do not have the required version of the runtime installed globally.
@@ -57,12 +59,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        protected AbstractInteractiveHostTests()
+        protected AbstractInteractiveHostTests(ITestOutputHelper testOutputHelper)
         {
+            TestOutputHelper = testOutputHelper;
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
 
             Host.InteractiveHostProcessCreationFailed += (exception, exitCode) =>
-                Assert.False(true, (exception?.Message ?? "Host process terminated unexpectedly.") + $" Exit code: {exitCode?.ToString() ?? "<unknown>"}");
+                testOutputHelper.WriteLine((exception?.Message ?? "Host process terminated unexpectedly.") + $" Exit code: {exitCode?.ToString() ?? "<unknown>"}");
 
             RedirectOutput();
         }

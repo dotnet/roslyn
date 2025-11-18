@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 
-internal class NavInfo : IVsNavInfo, IVsNavInfo2
+internal sealed class NavInfo : IVsNavInfo, IVsNavInfo2
 {
     private readonly NavInfoFactory _factory;
     private readonly string _libraryName;

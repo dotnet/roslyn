@@ -14,17 +14,19 @@ public class CSharpReplClassification : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task VerifyColorOfSomeTokens()
     {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"using System.Console;
-/// <summary>innertext
-/// </summary>
-/// <see cref=""System.Environment"" />
-/// <!--comment-->
-/// <![CDATA[cdata]]]]>&gt;
-/// <typeparam name=""attribute"" />
-public static void Main(string[] args)
-            {
-                WriteLine(""Hello World"");
-            }", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.InsertCodeAsync("""
+            using System.Console;
+            /// <summary>innertext
+            /// </summary>
+            /// <see cref="System.Environment" />
+            /// <!--comment-->
+            /// <![CDATA[cdata]]]]>&gt;
+            /// <typeparam name="attribute" />
+            public static void Main(string[] args)
+                        {
+                            WriteLine("Hello World");
+                        }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.PlaceCaretAsync("using", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindowVerifier.CurrentTokenTypeAsync(tokenType: "keyword", HangMitigatingCancellationToken);

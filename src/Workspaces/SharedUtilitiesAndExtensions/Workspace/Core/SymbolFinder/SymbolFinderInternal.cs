@@ -5,6 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal static class SymbolFinderInternal
 {
     /// <inheritdoc cref="SymbolFinder.FindSourceDefinitionAsync"/>
-    internal static ISymbol? FindSourceDefinition(
+    internal static ValueTask<ISymbol?> FindSourceDefinitionAsync(
         ISymbol? symbol, Solution solution, CancellationToken cancellationToken)
     {
         if (symbol != null)
@@ -31,14 +32,14 @@ internal static class SymbolFinderInternal
                 case SymbolKind.Property:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.Namespace:
-                    return FindSourceDefinitionWorker(symbol, solution, cancellationToken);
+                    return FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken);
             }
         }
 
-        return null;
+        return new ValueTask<ISymbol?>(result: null);
     }
 
-    private static ISymbol? FindSourceDefinitionWorker(
+    private static async ValueTask<ISymbol?> FindSourceDefinitionWorkerAsync(
         ISymbol symbol,
         Solution solution,
         CancellationToken cancellationToken)
@@ -75,11 +76,9 @@ internal static class SymbolFinderInternal
 
         var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
 
-        // Note: if the assembly came from a particular project, then we should be able to get the compilation without
-        // building it.  That's because once we create the compilation, we'll hold onto it for the lifetime of the
-        // project, to avoid unnecessary recomputation.
-        if (project?.TryGetCompilation(out var projectCompilation) is true)
+        if (project is not null)
         {
+            var projectCompilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbolId = symbol.GetSymbolKey(cancellationToken);
             var result = symbolId.Resolve(projectCompilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 

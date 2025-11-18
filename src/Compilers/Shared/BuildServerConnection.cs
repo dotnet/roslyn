@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// 
         /// As such this timeout should be significantly longer than the average gen2 pause
         /// time for the server. When changing this value consider profiling building 
-        /// Roslyn.sln and consulting the GC stats to see what a typical pause time is.
+        /// Roslyn.slnx and consulting the GC stats to see what a typical pause time is.
         /// </remarks>
         internal const int TimeOutMsExistingProcess = 5_000;
 
@@ -63,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string workingDirectory,
             string? tempDirectory,
             string? keepAlive,
-            string? libDirectory)
+            string? libDirectory,
+            string? compilerHash = null)
         {
             Debug.Assert(workingDirectory is object);
 
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 arguments,
                 workingDirectory: workingDirectory,
                 tempDirectory: tempDirectory,
-                compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                compilerHash: compilerHash ?? BuildProtocolConstants.GetCommitHash() ?? "",
                 requestId: requestId,
                 keepAlive: keepAlive,
                 libDirectory: libDirectory);
@@ -177,12 +181,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CancellationToken cancellationToken)
         {
             Debug.Assert(pipeName is object);
-
-            // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
-            if (string.IsNullOrWhiteSpace(BuildProtocolConstants.GetCommitHash()))
-            {
-                return new IncorrectHashBuildResponse();
-            }
 
             using var pipe = await tryConnectToServerAsync(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
@@ -433,11 +431,88 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
+        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
         {
-            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
-            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
+
+            if (!File.Exists(processFilePath))
+            {
+                // Fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
+                commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
+                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
+            }
+
+            return (processFilePath, commandLineArgs);
+        }
+
+        /// <summary>
+        /// Creates an environment block for Windows CreateProcess API.
+        /// </summary>
+        /// <param name="environmentVariables">Dictionary of environment variables to include</param>
+        /// <returns>Pointer to environment block that must be freed with <see cref="Marshal.FreeHGlobal"/></returns>
+        private static IntPtr CreateEnvironmentBlock(Dictionary<string, string> environmentVariables)
+        {
+            if (environmentVariables.Count == 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            // Build the environment block as a single string
+            // Windows API requires environment variables to be sorted alphabetically by name (case-insensitive, Unicode order)
+            var envBlock = new StringBuilder();
+            foreach (var kvp in environmentVariables.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                envBlock.Append(kvp.Key);
+                envBlock.Append('=');
+                envBlock.Append(kvp.Value);
+                envBlock.Append('\0');
+            }
+            // Windows environment block format requires an additional null terminator after the last variable to mark the end of the block
+            envBlock.Append('\0');
+
+            // Convert to Unicode and allocate unmanaged memory
+            return Marshal.StringToHGlobalUni(envBlock.ToString());
+        }
+
+        /// <summary>
+        /// Gets the environment variables that should be passed to the server process.
+        /// </summary>
+        /// <param name="currentEnvironment">Current environment variables to use as a base</param>
+        /// <param name="logger">Optional logger for logging environment variable setup</param>
+        /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
+        {
+            if (RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) is not { } dotNetRoot)
+            {
+                return null;
+            }
+
+            // Start with current environment
+            var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (System.Collections.DictionaryEntry entry in currentEnvironment)
+            {
+                var key = (string)entry.Key;
+                var value = (string?)entry.Value;
+
+                // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 by setting them to empty,
+                // as we want to set our own DOTNET_ROOT and avoid conflicts
+                if (key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables[key] = string.Empty;
+                }
+                else
+                {
+                    environmentVariables[key] = value ?? string.Empty;
+                }
+            }
+
+            // Set our DOTNET_ROOT
+            environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
+
+            logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+
+            return environmentVariables;
         }
 
         /// <summary>
@@ -451,10 +526,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             processId = 0;
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
-            if (!File.Exists(serverInfo.toolFilePath))
+            if (!File.Exists(serverInfo.processFilePath))
             {
                 return false;
             }
+
+            logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+
+            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger);
 
             if (PlatformInformation.IsWindows)
             {
@@ -472,34 +551,50 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
-
                 var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
-                bool success = CreateProcess(
-                    lpApplicationName: null,
-                    lpCommandLine: builder,
-                    lpProcessAttributes: NullPtr,
-                    lpThreadAttributes: NullPtr,
-                    bInheritHandles: false,
-                    dwCreationFlags: dwCreationFlags,
-                    lpEnvironment: NullPtr, // Inherit environment
-                    lpCurrentDirectory: clientDirectory,
-                    lpStartupInfo: ref startInfo,
-                    lpProcessInformation: out processInfo);
+                IntPtr environmentBlockPtr = IntPtr.Zero;
+                try
+                {
+                    if (environmentVariables != null)
+                    {
+                        environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
+                        // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
+                        dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+                    }
 
-                if (success)
-                {
-                    logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                    CloseHandle(processInfo.hProcess);
-                    CloseHandle(processInfo.hThread);
-                    processId = processInfo.dwProcessId;
+                    bool success = CreateProcess(
+                        lpApplicationName: null,
+                        lpCommandLine: builder,
+                        lpProcessAttributes: NullPtr,
+                        lpThreadAttributes: NullPtr,
+                        bInheritHandles: false,
+                        dwCreationFlags: dwCreationFlags,
+                        lpEnvironment: environmentBlockPtr,
+                        lpCurrentDirectory: clientDirectory,
+                        lpStartupInfo: ref startInfo,
+                        lpProcessInformation: out processInfo);
+
+                    if (success)
+                    {
+                        logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                        CloseHandle(processInfo.hProcess);
+                        CloseHandle(processInfo.hThread);
+                        processId = processInfo.dwProcessId;
+                    }
+                    else
+                    {
+                        logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    }
+                    return success;
                 }
-                else
+                finally
                 {
-                    logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    if (environmentBlockPtr != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(environmentBlockPtr);
+                    }
                 }
-                return success;
             }
             else
             {
@@ -517,9 +612,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         CreateNoWindow = true
                     };
 
+                    // Set environment variables directly on ProcessStartInfo
+                    if (environmentVariables != null)
+                    {
+                        foreach (var kvp in environmentVariables)
+                        {
+                            startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
+                        }
+                    }
+
                     if (Process.Start(startInfo) is { } process)
                     {
                         processId = process.Id;
+                        logger.Log("Successfully created process with process id {0}", processId);
                         return true;
                     }
                     else
@@ -543,11 +648,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             bool isAdmin = false;
             if (PlatformInformation.IsWindows)
             {
-#pragma warning disable CA1416 // Validate platform compatibility
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var principal = new WindowsPrincipal(currentIdentity);
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-#pragma warning restore CA1416
             }
 
             var userName = Environment.UserName;

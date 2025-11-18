@@ -4,7 +4,6 @@
 
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
-{
-    internal record struct PreviousPullResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
-}
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+internal record struct PreviousPullResult(string PreviousResultId, TextDocumentIdentifier TextDocument);

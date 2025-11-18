@@ -10,9 +10,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Xunit.Abstractions;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
-    public sealed class InteractiveHostCoreTests : AbstractInteractiveHostTests
+    public sealed class InteractiveHostCoreTests(ITestOutputHelper testOutputHelper) : AbstractInteractiveHostTests(testOutputHelper)
     {
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Core;
         internal override bool UseDefaultInitializationFile => false;

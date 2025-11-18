@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -68,6 +69,9 @@ internal ref partial struct Worker
                 break;
             case SyntaxKind.LoadDirectiveTrivia:
                 ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
+                break;
+            case SyntaxKind.IgnoredDirectiveTrivia:
+                ClassifyIgnoredDirective((IgnoredDirectiveTriviaSyntax)node);
                 break;
             case SyntaxKind.NullableDirectiveTrivia:
                 ClassifyNullableDirective((NullableDirectiveTriviaSyntax)node);
@@ -321,6 +325,29 @@ internal ref partial struct Worker
         AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
         AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
         AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+        ClassifyDirectiveTrivia(node);
+    }
+
+    private void ClassifyIgnoredDirective(IgnoredDirectiveTriviaSyntax node)
+    {
+        AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+        AddClassification(node.ColonToken, ClassificationTypeNames.PreprocessorKeyword);
+
+        // The first part (separated by whitespace) of content is a "keyword", e.g., 'sdk' in '#:sdk Test'.
+        // We only recognize some whitespace characters here for simplicity and performance.
+        if (node.Content.Text.IndexOfAny([' ', '\t']) is > 0 and var firstSpaceIndex)
+        {
+            var keywordSpan = new TextSpan(node.Content.SpanStart, firstSpaceIndex);
+            var stringLiteralSpan = TextSpan.FromBounds(node.Content.SpanStart + firstSpaceIndex, node.Content.FullSpan.End);
+
+            AddClassification(keywordSpan, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(stringLiteralSpan, ClassificationTypeNames.StringLiteral);
+        }
+        else
+        {
+            AddClassification(node.Content, ClassificationTypeNames.PreprocessorKeyword);
+        }
+
         ClassifyDirectiveTrivia(node);
     }
 

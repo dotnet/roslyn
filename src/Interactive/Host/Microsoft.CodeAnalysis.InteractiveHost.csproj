@@ -8,6 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+    
+    <!-- Avoid dependency on System.Threading.Channels (unnecessary 32-bit NGEN'd binary) -->
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_THREADING_NO_CHANNELS</DefineConstants>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -26,7 +29,6 @@
     <InternalsVisibleTo Include="InteractiveHost32" />
     <InternalsVisibleTo Include="InteractiveHost64" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
@@ -41,8 +43,6 @@
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs" Link="Utilities\FailFast.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="Utilities\FatalError.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="Utilities\FileNameUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="Utilities\PlatformInformation.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Utilities\Debug.cs" />
@@ -51,13 +51,6 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="Utilities\FileUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="Utilities\PathUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Utilities\ArrayBuilderExtensions.cs" />
-    <Compile Include="..\..\Dependencies\PooledObjects\PooledDisposer.cs" Link="Utilities\PooledDisposer.cs" />
-    <Compile Include="..\..\Dependencies\PooledObjects\IPooled.cs" Link="Utilities\IPooled.cs" />
-    <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.cs" Link="Utilities\ArrayBuilder.cs" />
-    <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.Enumerator.cs" Link="Utilities\ArrayBuilder.Enumerator.cs" />
-    <Compile Include="..\..\Dependencies\PooledObjects\ObjectPool`1.cs" Link="Utilities\ObjectPool`1.cs" />
-    <Compile Include="..\..\Dependencies\PooledObjects\PooledHashSet.cs" Link="Utilities\PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" />
@@ -72,4 +65,5 @@
   <Import Project="..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
   <Import Project="..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
   <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>

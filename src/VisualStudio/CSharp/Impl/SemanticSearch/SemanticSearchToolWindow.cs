@@ -26,13 +26,11 @@ internal sealed class SemanticSearchToolWindow(MefInjection<SemanticSearchToolWi
     // Initialized by InitializeAsync
     private SemanticSearchToolWindowImpl _impl = null!;
 
-    private IRemoteUserControl? _lazyContent;
-
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            _lazyContent?.Dispose();
+            _impl?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -54,16 +52,6 @@ internal sealed class SemanticSearchToolWindow(MefInjection<SemanticSearchToolWi
         AllowAutoCreation = true,
     };
 
-    public override async Task<IRemoteUserControl> GetContentAsync(CancellationToken cancellationToken)
-    {
-        var content = _lazyContent;
-        if (content != null)
-        {
-            return content;
-        }
-
-        var element = await _impl.InitializeAsync(cancellationToken).ConfigureAwait(false);
-        Interlocked.CompareExchange(ref _lazyContent, new WpfControlWrapper(element), null);
-        return _lazyContent;
-    }
+    public override Task<IRemoteUserControl> GetContentAsync(CancellationToken cancellationToken)
+        => _impl.InitializeAsync(cancellationToken);
 }

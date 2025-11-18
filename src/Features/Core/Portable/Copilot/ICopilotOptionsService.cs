@@ -33,4 +33,9 @@ internal interface ICopilotOptionsService : ILanguageService
     /// Returns true if Copilot generate documentation comment feature is enabled.
     /// </summary>
     Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync();
+
+    /// <summary>
+    /// Returns true if Copilot generate method implementation feature is enabled.
+    /// </summary>
+    Task<bool> IsImplementNotImplementedExceptionEnabledAsync();
 }

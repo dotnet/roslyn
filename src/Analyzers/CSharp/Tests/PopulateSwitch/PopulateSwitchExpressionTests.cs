@@ -14,20 +14,15 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class PopulateSwitchExpressionTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public PopulateSwitchExpressionTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpPopulateSwitchExpressionDiagnosticAnalyzer(), new CSharpPopulateSwitchExpressionCodeFixProvider());
 
     [Fact]
-    public async Task NotOnRangeToken()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnRangeToken()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -53,12 +48,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AllMembersAndDefaultExist()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AllMembersAndDefaultExist()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -85,12 +78,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AllMembersExist_NotDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task AllMembersExist_NotDefault()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -142,12 +133,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AllMembersExist_NotDefault_NoComma()
-    {
-        await TestInRegularAndScript1Async(
+    public Task AllMembersExist_NotDefault_NoComma()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -199,12 +188,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_NotDefault()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -255,12 +242,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_WithDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_WithDefault()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -312,12 +297,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -368,12 +351,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -425,12 +406,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -482,12 +461,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoMembersExist0()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NoMembersExist0()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -535,12 +512,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task NoMembersExist1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NoMembersExist1()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -586,12 +561,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task NoMembersExist2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NoMembersExist2()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -640,12 +613,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_AllMembersExist()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsingStaticEnum_AllMembersExist()
+        => TestMissingInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -670,12 +641,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
+        => TestMissingInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -700,12 +669,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_MembersExist()
-    {
-        await TestInRegularAndScript1Async(
+    public Task UsingStaticEnum_MembersExist()
+        => TestInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -752,12 +719,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_NoMembersExist()
-    {
-        await TestInRegularAndScript1Async(
+    public Task UsingStaticEnum_NoMembersExist()
+        => TestInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -799,12 +764,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -857,12 +820,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_EnumIsNested()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_NotDefault_EnumIsNested()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -913,12 +874,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_SwitchIsNotEnum()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotAllMembersExist_SwitchIsNotEnum()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -939,12 +898,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_UsingConstants()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_NotDefault_UsingConstants()
+        => TestInRegularAndScriptAsync(
             """
             enum MyEnum
             {
@@ -989,12 +946,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_WithMismatchingConstantType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NotAllMembersExist_NotDefault_WithMismatchingConstantType()
+        => TestInRegularAndScriptAsync(
             """
             enum MyEnum
             {
@@ -1040,12 +995,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40399")]
-    public async Task AllMissingTokens()
-    {
-        await TestInRegularAndScript1Async(
+    public Task AllMissingTokens()
+        => TestInRegularAndScriptAsync(
         """
         enum MyEnum
         {
@@ -1077,12 +1030,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
             }
         }
         """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")]
-    public async Task TestAddMissingCasesForNullableEnum()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddMissingCasesForNullableEnum()
+        => TestInRegularAndScriptAsync(
             """
             public class Program
             {
@@ -1128,12 +1079,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
             }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
-    public async Task TestOrPatternIsHandled()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOrPatternIsHandled()
+        => TestInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1186,12 +1135,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
-    public async Task TestOrPatternIsHandled_AllEnumValuesAreHandled_NoDiagnostic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOrPatternIsHandled_AllEnumValuesAreHandled_NoDiagnostic()
+        => TestMissingInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1217,12 +1164,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
-    public async Task TestMixingOrWithAndPatterns()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMixingOrWithAndPatterns()
+        => TestInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1279,12 +1224,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
             }
             """
 );
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50982")]
-    public async Task TestMixingOrWithAndPatterns2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMixingOrWithAndPatterns2()
+        => TestInRegularAndScriptAsync(
             """
             public static class C
             {
@@ -1339,12 +1282,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
             }
             """
 );
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58468")]
-    public async Task NotOnOrPatternWhichAlwaysSucceeds1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnOrPatternWhichAlwaysSucceeds1()
+        => TestMissingInRegularAndScriptAsync(
             """
             enum Greeting
             {
@@ -1365,12 +1306,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58468")]
-    public async Task NotOnOrPatternWhichAlwaysSucceeds2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnOrPatternWhichAlwaysSucceeds2()
+        => TestMissingInRegularAndScriptAsync(
             """
             enum Greeting
             {
@@ -1391,12 +1330,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58468")]
-    public async Task NotOnOrPatternWhichAlwaysSucceeds3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnOrPatternWhichAlwaysSucceeds3()
+        => TestMissingInRegularAndScriptAsync(
             """
             enum Greeting
             {
@@ -1418,12 +1355,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58468")]
-    public async Task NotOnOrPatternWhichAlwaysSucceeds4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnOrPatternWhichAlwaysSucceeds4()
+        => TestMissingInRegularAndScriptAsync(
             """
             enum Greeting
             {
@@ -1445,12 +1380,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableEnabled()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableEnabled()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1486,12 +1419,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1528,12 +1459,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableDisabled()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableDisabled()
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1569,12 +1498,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1611,12 +1538,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task NotOnCompleteBoolean1()
-    {
-        await TestMissingAsync(
+    public Task NotOnCompleteBoolean1()
+        => TestMissingAsync(
             """
             public class Sample
             {
@@ -1630,12 +1555,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task NotOnCompleteBoolean2()
-    {
-        await TestMissingAsync(
+    public Task NotOnCompleteBoolean2()
+        => TestMissingAsync(
             """
             public class Sample
             {
@@ -1650,12 +1573,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task OnIncompleteBoolean1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task OnIncompleteBoolean1()
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {
@@ -1681,12 +1602,10 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task OnIncompleteBoolean2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task OnIncompleteBoolean2()
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {
@@ -1714,14 +1633,12 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("int")]
     [InlineData("int i")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueArms1(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableValueTypeWithNullAndUnderlyingValueArms1(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(int? x)
@@ -1734,14 +1651,12 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("int")]
     [InlineData("int i")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueArms2(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableValueTypeWithNullAndUnderlyingValueArms2(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(int? x)
@@ -1754,14 +1669,12 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("int")]
     [InlineData("int i")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueArms3(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableValueTypeWithNullAndUnderlyingValueArms3(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(int? x)
@@ -1775,14 +1688,12 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("string")]
     [InlineData("string s")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueArms1(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueArms1(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(string? x)
@@ -1795,14 +1706,12 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("string")]
     [InlineData("string s")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueArms2(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueArms2(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(string? x)
@@ -1815,14 +1724,12 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("string")]
     [InlineData("string s")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueArms3(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueArms3(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(string? x)
@@ -1836,5 +1743,156 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74977")]
+    public Task TestMissingWithExhaustiveSwitchExpression1()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(bool showDiagnosticMessages, string assemblyDisplayName, bool noColor)
+                {
+                    var prefix = (showDiagnosticMessages, assemblyDisplayName, noColor) [||]switch
+                    {
+                        (false, _, _) => null,
+                        (true, null, false) => "",
+                        (true, null, true) => "[D]",
+                        (true, _, false) => "No color output",
+                        (true, _, true) => "Color output enabled",
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74977")]
+    public Task TestMissingWithExhaustiveSwitchExpression2()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                uint[] GetUnlockableRows(uint row1, uint row2)
+                {
+                    return (row1, row2) [||]switch
+                    {
+                        (0, _) => [],
+                        (uint i, 0) => [i],
+                        (uint i, uint j) => [i, j],
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60784")]
+    public Task TestMissingWithExhaustiveSwitchExpression3()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void GetUnlockableRows(bool FirstBoolean, bool SecondBoolean)
+                {
+                    var v = (FirstBoolean, SecondBoolean) [||]switch
+                    {
+                        (true, true) => 1,
+                        (true, false) => 2,
+                        (false, true) => 3,
+                        (false, false) => 4
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66433")]
+    public Task TestMissingWithExhaustiveSwitchExpression4()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                static string TestSwitch(int goo)
+                    => goo [||]switch
+                    {
+                        0 => "zero",
+                        < 0 => "negative",
+                        > 0 => "positive",
+                    };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76080")]
+    public Task TestMissingWithExhaustiveSwitchExpression5()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                static void M()
+                {
+                    char c = 'x';
+                    bool i = false;
+
+                    var x = (c, i) [||]switch
+                    {
+                        ('L', _) => '#',
+                        ('#', true) => 'L',
+                        ('#', false) => 'M',
+                        (var z, _) => z,
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76080")]
+    public Task TestMissingWithExhaustiveSwitchExpression6()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                static void M()
+                {
+                    char c = 'x';
+                    bool i = false;
+
+                    var y = (c, i) [||]switch
+                    {
+                        ('L', _) => '#',
+                        ('#', true) => 'L',
+                        ('#', false) => 'M',
+                        (var z, _) => z,
+                        _ => ' ',
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57523")]
+    public Task TestMissingWithExhaustiveSwitchExpression7()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                public static string ToApiString(this bool? value)
+                    => value [||]switch
+                    {
+                        { } val => val.ToApiString(),
+                        null => "Unknown",
+                    };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57523")]
+    public Task TestMissingWithExhaustiveSwitchExpression8()
+        => TestMissingInRegularAndScriptAsync($$"""
+            public class Program
+            {
+                public static int Main() => GetCuts(Shape.Circle) is null ? -1 : 0;
+
+                static int? GetCuts(Shape? shape)
+                    => shape [||]switch
+                    {
+                        Shape.Triangle => 3,
+                        Shape.Square or Shape.Rectangle => 4,
+                        Shape.Circle => 0,
+                        _ => throw new System.NotSupportedException(),
+                    };
+            }
+
+            public enum Shape
+            {
+                Circle,
+                Square,
+                Rectangle,
+                Triangle,
+            }
+            """);
 }

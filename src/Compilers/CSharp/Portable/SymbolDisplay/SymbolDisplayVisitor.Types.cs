@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.SymbolDisplay;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -204,8 +203,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) ||
-                (symbol.IsNativeIntegerType && !Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)))
+            if (symbol.IsNativeIntegerType)
+            {
+                if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType) &&
+                    AddSpecialTypeKeyword(symbol))
+                {
+                    //if we're using special type keywords and this is a special type, then no other work is required
+                    return;
+                }
+            }
+            else if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
             {
                 if (AddSpecialTypeKeyword(symbol))
                 {
@@ -287,24 +294,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //visit the enclosing type if the style requires it
             if (Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypes ||
-                Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
+                Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces ||
+                symbol.IsExtension)
             {
                 if (IncludeNamedType(symbol.ContainingType))
                 {
                     symbol.ContainingType.Accept(this.NotFirstVisitor);
-
-                    if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes))
-                    {
-                        AddPunctuation(SyntaxKind.PlusToken);
-                    }
-                    else
-                    {
-                        AddPunctuation(SyntaxKind.DotToken);
-                    }
+                    AddNestedTypeSeparator();
                 }
             }
 
             AddNameAndTypeArgumentsOrParameters(symbol);
+        }
+
+        private void AddNestedTypeSeparator()
+        {
+            AddPunctuation(Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) ? SyntaxKind.PlusToken : SyntaxKind.DotToken);
         }
 
         private bool ShouldDisplayAsValueTuple(INamedTypeSymbol symbol)
@@ -332,64 +337,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            string? symbolName = null;
-
-            // It would be nice to handle VB NoPia symbols too, but it's not worth the effort.
-
             NamedTypeSymbol? underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
-            var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
-
-            if (illegalGenericInstantiationSymbol is not null)
+            if (symbol.IsExtension)
             {
-                symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol.GetPublicSymbol();
-            }
-            else
-            {
-                var ambiguousCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaAmbiguousCanonicalTypeSymbol;
-                if (ambiguousCanonicalTypeSymbol is not null)
+                if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
-                    symbol = ambiguousCanonicalTypeSymbol.FirstCandidate.GetPublicSymbol();
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, symbol.ExtensionGroupingName));
                 }
                 else
                 {
-                    var missingCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaMissingCanonicalTypeSymbol;
-
-                    if (missingCanonicalTypeSymbol is not null)
-                    {
-                        symbolName = missingCanonicalTypeSymbol.FullTypeName;
-                    }
+                    AddKeyword(SyntaxKind.ExtensionKeyword);
                 }
-            }
-
-            if (symbolName is null && symbol.IsAnonymousType && symbol.TypeKind == TypeKind.Delegate)
-            {
-                symbolName = "<anonymous delegate>";
-            }
-
-            var partKind = GetPartKind(symbol);
-
-            symbolName ??= symbol.Name;
-
-            if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
-                partKind == SymbolDisplayPartKind.ErrorTypeName &&
-                string.IsNullOrEmpty(symbolName))
-            {
-                Builder.Add(CreatePart(partKind, symbol, "?"));
             }
             else
             {
-                symbolName = RemoveAttributeSuffixIfNecessary(symbol, symbolName);
-                Builder.Add(CreatePart(partKind, symbol, symbolName));
+                string? symbolName = null;
+
+                // It would be nice to handle VB NoPia symbols too, but it's not worth the effort.
+
+                var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
+
+                if (illegalGenericInstantiationSymbol is not null)
+                {
+                    symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol.GetPublicSymbol();
+                }
+                else
+                {
+                    var ambiguousCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaAmbiguousCanonicalTypeSymbol;
+                    if (ambiguousCanonicalTypeSymbol is not null)
+                    {
+                        symbol = ambiguousCanonicalTypeSymbol.FirstCandidate.GetPublicSymbol();
+                    }
+                    else
+                    {
+                        var missingCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaMissingCanonicalTypeSymbol;
+
+                        if (missingCanonicalTypeSymbol is not null)
+                        {
+                            symbolName = missingCanonicalTypeSymbol.FullTypeName;
+                        }
+                    }
+                }
+
+                if (symbolName is null && symbol.IsAnonymousType && symbol.TypeKind == TypeKind.Delegate)
+                {
+                    symbolName = "<anonymous delegate>";
+                }
+
+                var partKind = GetPartKind(symbol);
+
+                symbolName ??= symbol.Name;
+
+                if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
+                    partKind == SymbolDisplayPartKind.ErrorTypeName &&
+                    string.IsNullOrEmpty(symbolName))
+                {
+                    Builder.Add(CreatePart(partKind, symbol, "?"));
+                }
+                else
+                {
+                    symbolName = RemoveAttributeSuffixIfNecessary(symbol, symbolName);
+                    Builder.Add(CreatePart(partKind, symbol, symbolName));
+                }
             }
 
             if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes))
             {
-                // Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
-                if (underlyingTypeSymbol?.MangleName == true)
+                if (symbol.Arity > 0)
                 {
-                    Debug.Assert(symbol.Arity > 0);
-                    Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, null,
-                        MetadataHelpers.GetAritySuffix(symbol.Arity)));
+                    string suffix = MetadataHelpers.GetAritySuffix(symbol.Arity);
+
+                    if (underlyingTypeSymbol is not null ? underlyingTypeSymbol.MangleName : (symbol.MetadataName == symbol.Name + suffix))
+                    {
+                        Debug.Assert(symbol.Arity > 0);
+                        Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, null,
+                            suffix));
+                    }
                 }
             }
             else if (symbol.Arity > 0 && Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
@@ -410,9 +433,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddTypeArguments(symbol, GetTypeArgumentsModifiers(underlyingTypeSymbol));
                     AddDelegateParameters(symbol);
 
+                    if (symbol.IsExtension)
+                    {
+                        addExtensionParameter(symbol);
+                    }
+
                     // TODO: do we want to skip these if we're being visited as a containing type?
                     AddTypeParameterConstraints(symbol.TypeArguments);
                 }
+            }
+            else if (symbol.IsExtension)
+            {
+                addExtensionParameter(symbol);
             }
             else
             {
@@ -427,6 +459,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBracketToken);
                 Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, symbol, "missing"));
                 AddPunctuation(SyntaxKind.CloseBracketToken);
+            }
+
+            return;
+
+            void addExtensionParameter(INamedTypeSymbol symbol)
+            {
+                if (!Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
+                    && symbol.ExtensionParameter is { } extensionParameter)
+                {
+                    AddPunctuation(SyntaxKind.OpenParenToken);
+                    AddParameterModifiersAndType(extensionParameter);
+                    AddPunctuation(SyntaxKind.CloseParenToken);
+                }
             }
         }
 
@@ -950,6 +995,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        internal void AddExtensionMarkerName(INamedTypeSymbol extension)
+        {
+            Debug.Assert(extension.IsExtension);
+            AddNestedTypeSeparator();
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, extension, extension.ExtensionMarkerName));
         }
     }
 }

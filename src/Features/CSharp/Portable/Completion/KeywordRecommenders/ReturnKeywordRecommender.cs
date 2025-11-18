@@ -24,7 +24,7 @@ internal sealed class ReturnKeywordRecommender() : AbstractSyntacticSingleKeywor
     private static bool IsAttributeContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
-            context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, includingRecordParameters: false, cancellationToken) ||
+            context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, includingRecordParameters: false, cancellationToken) ||
             (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken)) ||
             context.IsStatementAttributeContext() ||
             IsAccessorAttributeContext();

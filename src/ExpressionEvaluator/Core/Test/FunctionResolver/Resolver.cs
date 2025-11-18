@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             _ignoreCase = ignoreCase;
             _languageId = languageId;
-            _requests = new Dictionary<Process, List<Request>>();
+            _requests = [];
         }
 
         internal void EnableResolution(Process process, Request request)
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             List<Request> requests;
             if (!_requests.TryGetValue(process, out requests))
             {
-                requests = new List<Request>();
+                requests = [];
                 _requests.Add(process, requests);
             }
             requests.Add(request);

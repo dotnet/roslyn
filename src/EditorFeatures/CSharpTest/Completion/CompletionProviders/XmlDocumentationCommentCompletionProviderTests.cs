@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(XmlDocCommentCompletionProvider);
@@ -42,7 +42,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
     private protected override async Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
-        int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
@@ -74,105 +74,130 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
     }
 
     [Fact]
-    public async Task AlwaysVisibleAtAnyLevelItems1()
-    {
-        await VerifyItemsExistAsync("""
+    public Task AlwaysVisibleAtAnyLevelItems1()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 /// $$
                 public void bar() { }
             }
             """, "inheritdoc", "see", "seealso", "![CDATA[", "!--");
-    }
 
     [Fact]
-    public async Task AlwaysVisibleAtAnyLevelItems2()
-    {
-        await VerifyItemsExistAsync("""
+    public Task AlwaysVisibleAtAnyLevelItems2()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 /// <summary> $$ </summary>
                 public void bar() { }
             }
             """, "inheritdoc", "see", "seealso", "![CDATA[", "!--");
-    }
 
     [Fact]
-    public async Task AlwaysVisibleNotTopLevelItems1()
-    {
-        await VerifyItemsExistAsync("""
+    public Task AlwaysVisibleNotTopLevelItems1()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 /// <summary> $$ </summary>
                 public void bar() { }
             }
             """, "c", "code", "list", "para");
-    }
 
     [Fact]
-    public async Task AlwaysVisibleNotTopLevelItems2()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task AlwaysVisibleNotTopLevelItems2()
+        => VerifyItemsAbsentAsync("""
             public class goo
             {
                 /// $$ 
                 public void bar() { }
             }
             """, "c", "code", "list", "para", "paramref", "typeparamref");
-    }
 
     [Fact]
-    public async Task AlwaysVisibleTopLevelOnlyItems1()
-    {
-        await VerifyItemsExistAsync("""
+    public Task CodeStyleElements_InsideSummary()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <summary> $$ </summary>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_NotAtTopLevel()
+        => VerifyItemsAbsentAsync("""
+            public class goo
+            {
+                /// $$ 
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_InsidePara()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <summary>
+                /// <para> $$ </para>
+                /// </summary>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_InsideRemarks()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <remarks> $$ </remarks>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task AlwaysVisibleTopLevelOnlyItems1()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 /// $$ 
                 public void bar() { }
             }
             """, "exception", "include", "permission");
-    }
 
     [Fact]
-    public async Task AlwaysVisibleTopLevelOnlyItems2()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task AlwaysVisibleTopLevelOnlyItems2()
+        => VerifyItemsAbsentAsync("""
             public class goo
             {
                 /// <summary> $$ </summary>
                 public void bar() { }
             }
             """, "exception", "include", "permission");
-    }
 
     [Fact]
-    public async Task TopLevelSingleUseItems1()
-    {
-        await VerifyItemsExistAsync("""
+    public Task TopLevelSingleUseItems1()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 ///  $$
                 public void bar() { }
             }
             """, "example", "remarks", "summary");
-    }
 
     [Fact]
-    public async Task TopLevelSingleUseItems2()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task TopLevelSingleUseItems2()
+        => VerifyItemsAbsentAsync("""
             public class goo
             {
                 ///  <summary> $$ </summary>
                 public void bar() { }
             }
             """, "example", "remarks", "summary");
-    }
 
     [Fact]
-    public async Task TopLevelSingleUseItems3()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task TopLevelSingleUseItems3()
+        => VerifyItemsAbsentAsync("""
             public class goo
             {
                 ///  <summary> $$ </summary>
@@ -182,12 +207,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "example", "remarks", "summary");
-    }
 
     [Fact]
-    public async Task OnlyInListItems()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task OnlyInListItems()
+        => VerifyItemsAbsentAsync("""
             public class goo
             {
                 ///  <summary> $$ </summary>
@@ -197,12 +220,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "listheader", "item", "term", "description");
-    }
 
     [Fact]
-    public async Task OnlyInListItems2()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task OnlyInListItems2()
+        => VerifyItemsAbsentAsync("""
             public class goo
             {
                 ///   $$ 
@@ -210,12 +231,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "listheader", "item", "term", "description");
-    }
 
     [Fact]
-    public async Task OnlyInListItems3()
-    {
-        await VerifyItemsExistAsync("""
+    public Task OnlyInListItems3()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 ///   <list>$$</list>
@@ -223,12 +242,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "listheader", "item", "term", "description");
-    }
 
     [Fact]
-    public async Task OnlyInListItems4()
-    {
-        await VerifyItemsExistAsync("""
+    public Task OnlyInListItems4()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 ///   <list><$$</list>
@@ -236,12 +253,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "listheader", "item", "term", "description");
-    }
 
     [Fact]
-    public async Task ListHeaderItems()
-    {
-        await VerifyItemsExistAsync("""
+    public Task ListHeaderItems()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 ///  <summary>
@@ -253,12 +268,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "term", "description");
-    }
 
     [Fact]
-    public async Task VoidMethodDeclarationItems()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task VoidMethodDeclarationItems()
+        => VerifyItemIsAbsentAsync("""
             public class goo
             {
 
@@ -266,12 +279,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "returns");
-    }
 
     [Fact]
-    public async Task MethodReturns()
-    {
-        await VerifyItemExistsAsync("""
+    public Task MethodReturns()
+        => VerifyItemExistsAsync("""
             public class goo
             {
 
@@ -279,12 +290,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar() { }
             }
             """, "returns");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")]
-    public async Task ReadWritePropertyNoReturns()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task ReadWritePropertyNoReturns()
+        => VerifyItemIsAbsentAsync("""
             public class goo
             {
 
@@ -292,12 +301,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar { get; set; }
             }
             """, "returns");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")]
-    public async Task ReadWritePropertyValue()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ReadWritePropertyValue()
+        => VerifyItemExistsAsync("""
             public class goo
             {
 
@@ -305,12 +312,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar { get; set; }
             }
             """, "value");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")]
-    public async Task ReadOnlyPropertyNoReturns()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task ReadOnlyPropertyNoReturns()
+        => VerifyItemIsAbsentAsync("""
             public class goo
             {
 
@@ -318,12 +323,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar { get; }
             }
             """, "returns");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")]
-    public async Task ReadOnlyPropertyValue()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ReadOnlyPropertyValue()
+        => VerifyItemExistsAsync("""
             public class goo
             {
 
@@ -331,12 +334,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar { get; }
             }
             """, "value");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")]
-    public async Task WriteOnlyPropertyNoReturns()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task WriteOnlyPropertyNoReturns()
+        => VerifyItemIsAbsentAsync("""
             public class goo
             {
 
@@ -344,12 +345,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar { set; }
             }
             """, "returns");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")]
-    public async Task WriteOnlyPropertyValue()
-    {
-        await VerifyItemExistsAsync("""
+    public Task WriteOnlyPropertyValue()
+        => VerifyItemExistsAsync("""
             public class goo
             {
 
@@ -357,7 +356,6 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public int bar { set; }
             }
             """, "value");
-    }
 
     [Fact]
     public async Task MethodParamTypeParam()
@@ -382,9 +380,8 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
     }
 
     [Fact]
-    public async Task IndexerParamTypeParam()
-    {
-        await VerifyItemsExistAsync("""
+    public Task IndexerParamTypeParam()
+        => VerifyItemsExistAsync("""
             public class goo<T>
             {
 
@@ -394,12 +391,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             param name="green"
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")]
-    public async Task MethodParamRefName()
-    {
-        var text = """
+    public Task MethodParamRefName()
+        => VerifyItemsExistAsync(
+            """
             public class Outer<TOuter>
             {
                 public class Inner<TInner>
@@ -410,9 +406,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                     public int Method<TMethod>(T green) { }
                 }
             }
-            """;
-        await VerifyItemsExistAsync(
-            text,
+            """,
             """
             typeparamref name="TOuter"
             """,
@@ -425,12 +419,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """
             paramref name="green"
             """);
-    }
 
     [Fact]
-    public async Task ClassTypeParamRefName()
-    {
-        await VerifyItemsExistAsync("""
+    public Task ClassTypeParamRefName()
+        => VerifyItemsExistAsync("""
             /// <summary>
             /// $$
             /// </summary>
@@ -441,12 +433,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparamref name="T"
             """);
-    }
 
     [Fact]
-    public async Task ClassTypeParam()
-    {
-        await VerifyItemsExistAsync("""
+    public Task ClassTypeParam()
+        => VerifyItemsExistAsync("""
             /// $$
             public class goo<T>
             {
@@ -455,25 +445,19 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparam name="T"
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
-    public async Task TagsAfterSameLineClosedTag()
-    {
-        var text = """
+    public Task TagsAfterSameLineClosedTag()
+        => VerifyItemsExistAsync("""
             /// <summary>
             /// <goo></goo>$$
             /// 
             /// </summary>
-            """;
-
-        await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "seealso", "see");
-    }
+            """, "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "seealso", "see");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
-    public async Task EnumMember()
-    {
-        var text = """
+    public Task EnumMember()
+        => VerifyItemsExistAsync("""
             public enum z
             {
                 /// <summary>
@@ -482,28 +466,21 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 /// <$$
                 a
             }
-            """;
-
-        await VerifyItemsExistAsync(text);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954679")]
-    public async Task CompletionList()
-    {
-        await VerifyItemExistsAsync("""
+    public Task CompletionList()
+        => VerifyItemExistsAsync("""
             /// $$
             public class goo
             {
             }
             """, "completionlist");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
-    public async Task ParamRefNames()
-    {
-        // Local functions do not support documentation comments
-        await VerifyItemIsAbsentAsync("""
+    public Task ParamRefNames()
+        => VerifyItemIsAbsentAsync("""
             /// <summary>
             /// <paramref name="$$"/>
             /// </summary>
@@ -511,13 +488,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             {
             }
             """, "args", sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
-    public async Task ParamRefNames_Interactive()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ParamRefNames_Interactive()
+        => VerifyItemExistsAsync("""
             /// <summary>
             /// <paramref name="$$"/>
             /// </summary>
@@ -525,46 +500,37 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             {
             }
             """, "args", sourceCodeKind: SourceCodeKind.Script);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
-    public async Task ParamNamesInEmptyAttribute()
-    {
-        // Local functions do not support documentation comments
-        await VerifyItemIsAbsentAsync("""
+    public Task ParamNamesInEmptyAttribute()
+        => VerifyItemIsAbsentAsync("""
             /// <param name="$$"/>
             static void Goo(string str)
             {
             }
             """, "str", sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
-    public async Task ParamNamesInEmptyAttribute_Interactive()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ParamNamesInEmptyAttribute_Interactive()
+        => VerifyItemExistsAsync("""
             /// <param name="$$"/>
             static void Goo(string str)
             {
             }
             """, "str", sourceCodeKind: SourceCodeKind.Script);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
-    public async Task DelegateParams()
-    {
-        await VerifyItemExistsAsync("""
+    public Task DelegateParams()
+        => VerifyItemExistsAsync("""
             /// $$
             delegate void D(object o);
             """, """
             param name="o"
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")]
-    public async Task TypeParamRefNamesInEmptyAttribute()
-    {
-        var text = """
+    public Task TypeParamRefNamesInEmptyAttribute()
+        => VerifyItemsExistAsync("""
             public class Outer<TOuter>
             {
                 public class Inner<TInner>
@@ -575,15 +541,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                     public int Method<TMethod>(T green) { }
                 }
             }
-            """;
-
-        await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
-    }
+            """, "TOuter", "TInner", "TMethod");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")]
-    public async Task TypeParamRefNamesPartiallyTyped()
-    {
-        var text = """
+    public Task TypeParamRefNamesPartiallyTyped()
+        => VerifyItemsExistAsync("""
             public class Outer<TOuter>
             {
                 public class Inner<TInner>
@@ -594,10 +556,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                     public int Method<TMethod>(T green) { }
                 }
             }
-            """;
-
-        await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
-    }
+            """, "TOuter", "TInner", "TMethod");
 
     [Fact]
     public async Task TypeParamNamesInEmptyAttribute()
@@ -656,21 +615,18 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8322")]
-    public async Task PartialTagCompletion()
-    {
-        await VerifyItemsExistAsync("""
+    public Task PartialTagCompletion()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 /// <r$$
                 public void bar() { }
             }
             """, "!--", "![CDATA[", "completionlist", "example", "exception", "include", "inheritdoc", "permission", "remarks", "see", "seealso", "summary");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8322")]
-    public async Task PartialTagCompletionNestedTags()
-    {
-        await VerifyItemsExistAsync("""
+    public Task PartialTagCompletionNestedTags()
+        => VerifyItemsExistAsync("""
             public class goo
             {
                 /// <summary>
@@ -679,12 +635,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 public void bar() { }
             }
             """, "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "see", "seealso");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")]
-    public async Task TypeParamAtTopLevelOnly()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task TypeParamAtTopLevelOnly()
+        => VerifyItemsAbsentAsync("""
             /// <summary>
             /// $$
             /// </summary>
@@ -694,12 +648,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparam name="T"
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")]
-    public async Task ParamAtTopLevelOnly()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task ParamAtTopLevelOnly()
+        => VerifyItemsAbsentAsync("""
             /// <summary>
             /// $$
             /// </summary>
@@ -709,12 +661,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             param name="str"
             """);
-    }
 
     [Fact]
-    public async Task ListAttributeNames()
-    {
-        await VerifyItemsExistAsync("""
+    public Task ListAttributeNames()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -725,12 +675,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "type");
-    }
 
     [Fact]
-    public async Task ListTypeAttributeValue()
-    {
-        await VerifyItemsExistAsync("""
+    public Task ListTypeAttributeValue()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -741,13 +689,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "bullet", "number", "table");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37504")]
     [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
-    public async Task SeeAttributeNames()
-    {
-        await VerifyItemsExistAsync("""
+    public Task SeeAttributeNames()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -758,12 +704,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "cref", "langword", "href");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72259")]
-    public async Task SeeAttributeNames2()
-    {
-        var text = """
+    public Task SeeAttributeNames2()
+        => VerifyProviderCommitAsync("""
             class C
             {
                 /// <summary>
@@ -773,8 +717,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 {
                 }
             }
-            """;
-        var expected = """
+            """, "langword", """
             class C
             {
                 /// <summary>
@@ -784,15 +727,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 {
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(text, "langword", expected, null);
-    }
+            """, null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37504")]
-    public async Task SeeAlsoAttributeNames()
-    {
-        await VerifyItemsExistAsync("""
+    public Task SeeAlsoAttributeNames()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -803,12 +742,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "cref", "href");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")]
-    public async Task LangwordCompletionInPlainText()
-    {
-        await VerifyItemsExistAsync("""
+    public Task LangwordCompletionInPlainText()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -819,12 +756,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "null", "sealed", "true", "false", "await");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")]
-    public async Task LangwordCompletionAfterAngleBracket1()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task LangwordCompletionAfterAngleBracket1()
+        => VerifyItemsAbsentAsync("""
             class C
             {
                 /// <summary>
@@ -835,12 +770,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "null", "sealed", "true", "false", "await");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")]
-    public async Task LangwordCompletionAfterAngleBracket2()
-    {
-        await VerifyItemsAbsentAsync("""
+    public Task LangwordCompletionAfterAngleBracket2()
+        => VerifyItemsAbsentAsync("""
             class C
             {
                 /// <summary>
@@ -851,12 +784,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "null", "sealed", "true", "false", "await");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")]
-    public async Task LangwordCompletionAfterAngleBracket3()
-    {
-        await VerifyItemsExistAsync("""
+    public Task LangwordCompletionAfterAngleBracket3()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -867,7 +798,6 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "null", "sealed", "true", "false", "await");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11490")]
     public async Task SeeLangwordAttributeValue()
@@ -894,15 +824,14 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             }
             else
             {
-                await VerifyItemExistsAsync(source, keywordText, glyph: (int)Glyph.Keyword);
+                await VerifyItemExistsAsync(source, keywordText, glyph: Glyph.Keyword);
             }
         }
     }
 
     [Fact]
-    public async Task InheritdocAttributes1()
-    {
-        await VerifyItemsExistAsync("""
+    public Task InheritdocAttributes1()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <summary>
@@ -913,12 +842,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "cref", "path");
-    }
 
     [Fact]
-    public async Task InheritdocAttributes2()
-    {
-        await VerifyItemsExistAsync("""
+    public Task InheritdocAttributes2()
+        => VerifyItemsExistAsync("""
             class C
             {
                 /// <inheritdoc $$/>
@@ -927,12 +854,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 }
             }
             """, "cref", "path");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterTagNameInIncompleteTag()
-    {
-        var text = """
+    public Task AttributeNameAfterTagNameInIncompleteTag()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <exception $$
@@ -940,53 +865,41 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 {
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "cref", usePreviousCharAsTrigger: true);
-    }
+            """, "cref", usePreviousCharAsTrigger: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterTagNameInElementStartTag()
-    {
-        var text = """
+    public Task AttributeNameAfterTagNameInElementStartTag()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <exception $$>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "cref");
-    }
+            """, "cref");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterTagNameInEmptyElement()
-    {
-        var text = """
+    public Task AttributeNameAfterTagNameInEmptyElement()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <see $$/>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "cref");
-    }
+            """, "cref");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterTagNamePartiallyTyped()
-    {
-        var text = """
+    public Task AttributeNameAfterTagNamePartiallyTyped()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <exception c$$
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "cref");
-    }
+            """, "cref");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterSpecialCrefAttribute()
-    {
-        var text = """
+    public Task AttributeNameAfterSpecialCrefAttribute()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -994,14 +907,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 /// </summary>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "type");
-    }
+            """, "type");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterSpecialNameAttribute()
-    {
-        var text = """
+    public Task AttributeNameAfterSpecialNameAttribute()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -1009,14 +919,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 /// </summary>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "type");
-    }
+            """, "type");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameAfterTextAttribute()
-    {
-        var text = """
+    public Task AttributeNameAfterTextAttribute()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -1024,14 +931,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 /// </summary>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "type");
-    }
+            """, "type");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameInWrongTagTypeEmptyElement()
-    {
-        var text = """
+    public Task AttributeNameInWrongTagTypeEmptyElement()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -1039,14 +943,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 /// </summary>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "type");
-    }
+            """, "type");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeNameInWrongTagTypeElementStartTag()
-    {
-        var text = """
+    public Task AttributeNameInWrongTagTypeElementStartTag()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -1054,14 +955,11 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 /// </summary>
                 void Goo() { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "langword");
-    }
+            """, "langword");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
-    public async Task AttributeValueOnQuote()
-    {
-        var text = """
+    public Task AttributeValueOnQuote()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -1071,9 +969,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
                 {
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
-    }
+            """, "await", usePreviousCharAsTrigger: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/757")]
     public async Task TermAndDescriptionInsideItem()
@@ -1098,9 +994,8 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52738")]
-    public async Task RecordParam()
-    {
-        await VerifyItemsExistAsync("""
+    public Task RecordParam()
+        => VerifyItemsExistAsync("""
             /// $$
             public record Goo<T>(string MyParameter);
             """, """
@@ -1108,12 +1003,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparam name="T"
             """);
-    }
 
     [Fact]
-    public async Task PrimaryConstructor_Class_Param()
-    {
-        await VerifyItemsExistAsync("""
+    public Task PrimaryConstructor_Class_Param()
+        => VerifyItemsExistAsync("""
             /// $$
             public class Goo<T>(string MyParameter);
             """, """
@@ -1121,12 +1014,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparam name="T"
             """);
-    }
 
     [Fact]
-    public async Task PrimaryConstructor_Struct_Param()
-    {
-        await VerifyItemsExistAsync("""
+    public Task PrimaryConstructor_Struct_Param()
+        => VerifyItemsExistAsync("""
             /// $$
             public struct Goo<T>(string MyParameter);
             """, """
@@ -1134,12 +1025,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparam name="T"
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69293")]
-    public async Task DelegateParamRef()
-    {
-        await VerifyItemsExistAsync("""
+    public Task DelegateParamRef()
+        => VerifyItemsExistAsync("""
             /// <summary>
             /// $$
             /// <summary>
@@ -1149,12 +1038,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparamref name="T"
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52738")]
-    public async Task RecordParamRef()
-    {
-        await VerifyItemsExistAsync("""
+    public Task RecordParamRef()
+        => VerifyItemsExistAsync("""
             /// <summary>
             /// $$
             /// <summary>
@@ -1164,12 +1051,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparamref name="T"
             """);
-    }
 
     [Fact]
-    public async Task PrimaryConstructor_Class_ParamRef()
-    {
-        await VerifyItemsExistAsync("""
+    public Task PrimaryConstructor_Class_ParamRef()
+        => VerifyItemsExistAsync("""
             /// <summary>
             /// $$
             /// <summary>
@@ -1179,12 +1064,10 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparamref name="T"
             """);
-    }
 
     [Fact]
-    public async Task PrimaryConstructor_Struct_ParamRef()
-    {
-        await VerifyItemsExistAsync("""
+    public Task PrimaryConstructor_Struct_ParamRef()
+        => VerifyItemsExistAsync("""
             /// <summary>
             /// $$
             /// <summary>
@@ -1194,7 +1077,6 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparamref name="T"
             """);
-    }
 
     [Fact]
     public async Task TriggerOnDeletion_DeleteInsideAttributeName()

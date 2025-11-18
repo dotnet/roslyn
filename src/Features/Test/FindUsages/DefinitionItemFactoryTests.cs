@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FindUsages;
 using PartDescription = (string tag, string text, TaggedTextStyle style, string? target, string? hint);
 
 [UseExportProvider]
-public class DefinitionItemFactoryTests
+public sealed class DefinitionItemFactoryTests
 {
     private static string Inspect(DocumentSpan span)
         => $"{span.Document.Name} {span.SourceSpan}";
@@ -36,7 +36,9 @@ public class DefinitionItemFactoryTests
         => string.Join(" | ", e.ToString().Split(',').Select(s => $"{typeof(TEnum).Name}.{s.Trim()}"));
 
     private static string Inspect(string? str)
-        => (str == null) ? "null" : $"\"{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}\"";
+        => (str == null) ? "null" : $"""
+        "{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}"
+        """;
 
     private static string InspectValueAsExpression(string? value, IReadOnlyDictionary<string, string> expressionMap)
         => value != null && expressionMap.TryGetValue(value, out var syntax) ? syntax : Inspect(value);
@@ -1599,7 +1601,7 @@ public class DefinitionItemFactoryTests
         VerifyDefinitionItem(item, project, symbols: [(c, nameof(c)), (r, nameof(r)), (i, nameof(i))],
             displayParts:
             [
-                (tag: "ErrorType", text: "?", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Keyword", text: "int", TaggedTextStyle.None, target: SymbolKey.CreateString(i), hint: "int"),
                 (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "RangeVariable", text: "x", TaggedTextStyle.None, target: SymbolKey.CreateString(r), hint: "? x")
             ],

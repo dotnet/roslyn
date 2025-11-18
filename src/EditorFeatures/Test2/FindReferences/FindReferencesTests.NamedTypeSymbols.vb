@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
@@ -255,6 +254,66 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_TypeOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                System.Type t = typeof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_SizeOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                int t = sizeof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_NameOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                string t = nameof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InaccessibleType(kind As TestKind, host As TestHost) As Task
@@ -387,7 +446,7 @@ class A
             private C<T> c2;
             private C<int> c3;
             private C<C<T>> c4;
-            private [|C|]<int,string> c5;
+            private C<int,string> c5;
         }
         class C<T>
         {

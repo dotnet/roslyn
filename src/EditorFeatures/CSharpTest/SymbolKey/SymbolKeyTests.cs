@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
 [UseExportProvider]
-public class SymbolKeyTests
+public sealed class SymbolKeyTests
 {
     [Fact]
     public async Task FileType_01()
@@ -28,16 +28,16 @@ public class SymbolKeyTests
             }
             """;
 
-        var workspaceXml = @$"
-<Workspace>
-    <Project Language=""C#"">
-        <CompilationOptions Nullable=""Enable""/>
-        <Document FilePath=""C.cs"">
-{typeSource}
-        </Document>
-    </Project>
-</Workspace>
-";
+        var workspaceXml = $"""
+            <Workspace>
+                <Project Language="C#">
+                    <CompilationOptions Nullable="Enable"/>
+                    <Document FilePath="C.cs">
+            {typeSource}
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
         using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
         var solution = workspace.CurrentSolution;
@@ -148,16 +148,16 @@ file class C
                 }
             """.Replace("<", "&lt;").Replace(">", "&gt;");
 
-        var workspaceXml = @$"
-<Workspace>
-    <Project Language=""C#"">
-        <CompilationOptions Nullable=""Enable""/>
-        <Document FilePath=""C.cs"">
-{typeSource}
-        </Document>
-    </Project>
-</Workspace>
-";
+        var workspaceXml = $"""
+            <Workspace>
+                <Project Language="C#">
+                    <CompilationOptions Nullable="Enable"/>
+                    <Document FilePath="C.cs">
+            {typeSource}
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
         using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
         var solution = workspace.CurrentSolution;
@@ -233,21 +233,21 @@ file class C
             // Randomize the order of the projects in the workspace.
             if (random.Next() % 2 == 0)
             {
-                return TestWorkspace.CreateWorkspace(XElement.Parse($@"
-<Workspace>
-    {bodyProject}
-    {referenceProject}
-</Workspace>
-"));
+                return TestWorkspace.CreateWorkspace(XElement.Parse($"""
+                    <Workspace>
+                        {bodyProject}
+                        {referenceProject}
+                    </Workspace>
+                    """));
             }
             else
             {
-                return TestWorkspace.CreateWorkspace(XElement.Parse($@"
-<Workspace>
-    {referenceProject}
-    {bodyProject}
-</Workspace>
-"));
+                return TestWorkspace.CreateWorkspace(XElement.Parse($"""
+                    <Workspace>
+                        {referenceProject}
+                        {bodyProject}
+                    </Workspace>
+                    """));
             }
         }
 

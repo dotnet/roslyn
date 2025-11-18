@@ -13,12 +13,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpAsAndNullCheckTests
+public sealed partial class CSharpAsAndNullCheckTests
 {
     [Fact]
-    public async Task FixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -69,13 +68,11 @@ public partial class CSharpAsAndNullCheckTests
                     return o is string e ? 1 : 0;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
-    }
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
 
     [Fact]
-    public async Task FixAllInDocument1_CSharp9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -126,13 +123,11 @@ public partial class CSharpAsAndNullCheckTests
                     return o is string e ? 1 : 0;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
-    public async Task FixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class Symbol
             {
@@ -165,29 +160,27 @@ public partial class CSharpAsAndNullCheckTests
 
                 void M(object o, bool b0, bool b1)
                 {
-                if (o is Symbol symbol)
-                {
-                    while ((object)symbol != null && b1)
+                    if (o is Symbol symbol)
                     {
-                        symbol = symbol.ContainingSymbol as Symbol;
-                    }
+                        while ((object)symbol != null && b1)
+                        {
+                            symbol = symbol.ContainingSymbol as Symbol;
+                        }
 
-                    if ((object)symbol == null || b2)
-                    {
-                        throw null;
-                    }
+                        if ((object)symbol == null || b2)
+                        {
+                            throw null;
+                        }
 
-                    var use = symbol;
+                        var use = symbol;
+                    }
                 }
             }
-            }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26679")]
-    public async Task FixAllInDocument3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument3()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -251,12 +244,10 @@ public partial class CSharpAsAndNullCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26680")]
-    public async Task FixAllInDocument4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument4()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -283,5 +274,4 @@ public partial class CSharpAsAndNullCheckTests
                 }
             }
             """);
-    }
 }

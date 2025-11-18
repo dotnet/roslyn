@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
 [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-internal class NewLineViewModelFactory : IEnumSettingViewModelFactory
+internal sealed class NewLineViewModelFactory : IEnumSettingViewModelFactory
 {
     private readonly OptionKey2 _key;
 
@@ -43,7 +43,7 @@ internal enum NewLineSetting
     NotSet
 }
 
-internal class NewLineViewModel : EnumSettingViewModel<NewLineSetting>
+internal sealed class NewLineViewModel : EnumSettingViewModel<NewLineSetting>
 {
     private readonly Setting _setting;
 

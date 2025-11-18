@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)hostObjectTypeSymbol != null && hostObjectTypeSymbol.Kind != SymbolKind.ErrorType)
             {
                 return _hostObjectField = new SynthesizedFieldSymbol(
-                    _declaringSubmissionClass, hostObjectTypeSymbol, "<host-object>", isPublic: false, isReadOnly: true, isStatic: false);
+                    _declaringSubmissionClass, hostObjectTypeSymbol, "<host-object>", DeclarationModifiers.Private, isReadOnly: true, isStatic: false);
             }
 
             return null;

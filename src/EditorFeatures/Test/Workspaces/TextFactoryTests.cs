@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
 [UseExportProvider]
-public class TextFactoryTests
+public sealed class TextFactoryTests
 {
     private readonly byte[] _nonUtf8StringBytes = [0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF];
 

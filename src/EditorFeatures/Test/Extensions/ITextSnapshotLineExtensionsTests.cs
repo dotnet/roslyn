@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 [UseExportProvider]
-public class ITextSnapshotLineExtensionsTests
+public sealed class ITextSnapshotLineExtensionsTests
 {
     [Fact]
     public void GetFirstNonWhitespacePosition_EmptyLineReturnsNull()

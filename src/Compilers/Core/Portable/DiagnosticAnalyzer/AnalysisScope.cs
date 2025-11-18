@@ -95,20 +95,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static AnalysisScope Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzers compilationWithAnalyzers)
         {
-            var analyzerOptions = compilationWithAnalyzers.AnalysisOptions.Options;
+            var additionalFiles = compilationWithAnalyzers.AnalysisOptions.Options.GetAdditionalFiles();
             var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
             var concurrentAnalysis = compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis;
-            return Create(compilation, analyzerOptions, analyzers, hasAllAnalyzers, concurrentAnalysis);
+            return Create(compilation, additionalFiles, analyzers, hasAllAnalyzers, concurrentAnalysis);
         }
 
-        public static AnalysisScope CreateForBatchCompile(Compilation compilation, AnalyzerOptions analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        public static AnalysisScope CreateForBatchCompile(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            return Create(compilation, analyzerOptions, analyzers, hasAllAnalyzers: true, concurrentAnalysis: compilation.Options.ConcurrentBuild);
+            return Create(compilation, additionalFiles, analyzers, hasAllAnalyzers: true, concurrentAnalysis: compilation.Options.ConcurrentBuild);
         }
 
-        private static AnalysisScope Create(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis)
+        private static AnalysisScope Create(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis)
         {
-            var additionalFiles = analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
             return new AnalysisScope(compilation.CommonSyntaxTrees, additionalFiles,
                    analyzers, hasAllAnalyzers, filterFile: null, filterSpanOpt: null,
                    originalFilterFile: null, originalFilterSpan: null, isSyntacticSingleFileAnalysis: false,

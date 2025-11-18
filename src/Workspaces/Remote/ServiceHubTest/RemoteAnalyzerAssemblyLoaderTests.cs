@@ -12,64 +12,68 @@ using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Remote.UnitTests
+namespace Microsoft.CodeAnalysis.Remote.UnitTests;
+
+public sealed class RemoteAnalyzerAssemblyLoaderTests
 {
-    public class RemoteAnalyzerAssemblyLoaderTests
+    private static AnalyzerAssemblyLoader Create(string baseDirectory) => new(
+        [new RemoteAnalyzerPathResolver(baseDirectory)],
+        [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver],
+        compilerLoadContext: null);
+
+    [Fact]
+    public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()
     {
-        [Fact]
-        public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()
-        {
-            using var testFixture = new AssemblyLoadTestFixture();
-            var remoteAssemblyInCurrentAlc = typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly;
-            var remoteAssemblyLocation = remoteAssemblyInCurrentAlc.Location;
+        using var testFixture = new AssemblyLoadTestFixture();
+        var remoteAssemblyInCurrentAlc = typeof(RemoteAnalyzerPathResolver).GetTypeInfo().Assembly;
+        var remoteAssemblyLocation = remoteAssemblyInCurrentAlc.Location;
 
-            var loader = new RemoteAnalyzerAssemblyLoader(Path.GetDirectoryName(remoteAssemblyLocation)!);
+        var loader = Create(Path.GetDirectoryName(remoteAssemblyLocation)!);
 
-            // Try to load MS.CA.Remote.ServiceHub.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
-            // since it's not one of the special assemblies listed in RemoteAnalyzerAssemblyLoader,
-            // RemoteAnalyzerAssemblyLoader should loaded in a spearate DirectoryLoadContext. 
-            loader.AddDependencyLocation(testFixture.Delta1);
-            var remoteAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(testFixture.Delta1);
+        // Try to load MS.CA.Remote.ServiceHub.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
+        // since it's not one of the special assemblies listed in RemoteAnalyzerAssemblyLoader,
+        // RemoteAnalyzerAssemblyLoader should loaded in a spearate DirectoryLoadContext. 
+        loader.AddDependencyLocation(testFixture.Delta1);
+        var remoteAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(testFixture.Delta1);
 
-            var alc1 = AssemblyLoadContext.GetLoadContext(remoteAssemblyInCurrentAlc);
-            var alc2 = AssemblyLoadContext.GetLoadContext(remoteAssemblyLoadedViaRemoteLoader);
-            Assert.NotEqual(alc1, alc2);
-        }
+        var alc1 = AssemblyLoadContext.GetLoadContext(remoteAssemblyInCurrentAlc);
+        var alc2 = AssemblyLoadContext.GetLoadContext(remoteAssemblyLoadedViaRemoteLoader);
+        Assert.NotEqual(alc1, alc2);
+    }
 
-        [Fact]
-        public void IdeAnalyzerAssemblyShouldBeLoadedInLoaderALC()
-        {
-            var featuresAssemblyInCurrentAlc = typeof(Microsoft.CodeAnalysis.Completion.CompletionProvider).GetTypeInfo().Assembly;
-            var featuresAssemblyLocation = featuresAssemblyInCurrentAlc.Location;
+    [Fact]
+    public void IdeAnalyzerAssemblyShouldBeLoadedInLoaderALC()
+    {
+        var featuresAssemblyInCurrentAlc = typeof(Microsoft.CodeAnalysis.Completion.CompletionProvider).GetTypeInfo().Assembly;
+        var featuresAssemblyLocation = featuresAssemblyInCurrentAlc.Location;
 
-            // Try to load MS.CA.Features.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
-            // since it's listed as one of the special assemblies in RemoteAnalyzerAssemblyLoader,
-            // RemoteAnalyzerAssemblyLoader should loaded in its own ALC. 
-            var loader = new RemoteAnalyzerAssemblyLoader(Path.GetDirectoryName(featuresAssemblyLocation)!);
-            loader.AddDependencyLocation(featuresAssemblyLocation);
+        // Try to load MS.CA.Features.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
+        // since it's listed as one of the special assemblies in RemoteAnalyzerAssemblyLoader,
+        // RemoteAnalyzerAssemblyLoader should loaded in its own ALC. 
+        var loader = Create(Path.GetDirectoryName(featuresAssemblyLocation)!);
+        loader.AddDependencyLocation(featuresAssemblyLocation);
 
-            var featuresAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(featuresAssemblyLocation);
+        var featuresAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(featuresAssemblyLocation);
 
-            var alc1 = AssemblyLoadContext.GetLoadContext(featuresAssemblyInCurrentAlc);
-            var alc2 = AssemblyLoadContext.GetLoadContext(featuresAssemblyLoadedViaRemoteLoader);
-            Assert.Equal(alc1, alc2);
-        }
+        var alc1 = AssemblyLoadContext.GetLoadContext(featuresAssemblyInCurrentAlc);
+        var alc2 = AssemblyLoadContext.GetLoadContext(featuresAssemblyLoadedViaRemoteLoader);
+        Assert.Equal(alc1, alc2);
+    }
 
-        [Fact]
-        public void CompilerAssemblyShouldBeLoadedInLoaderALC()
-        {
-            var compilerAssemblyInCurrentAlc = typeof(SyntaxNode).GetTypeInfo().Assembly;
-            var compilerAssemblyLocation = compilerAssemblyInCurrentAlc.Location;
+    [Fact]
+    public void CompilerAssemblyShouldBeLoadedInLoaderALC()
+    {
+        var compilerAssemblyInCurrentAlc = typeof(SyntaxNode).GetTypeInfo().Assembly;
+        var compilerAssemblyLocation = compilerAssemblyInCurrentAlc.Location;
 
-            var loader = new RemoteAnalyzerAssemblyLoader(Path.GetDirectoryName(compilerAssemblyLocation)!);
-            loader.AddDependencyLocation(compilerAssemblyLocation);
+        var loader = Create(Path.GetDirectoryName(compilerAssemblyLocation)!);
+        loader.AddDependencyLocation(compilerAssemblyLocation);
 
-            var compilerAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(compilerAssemblyLocation);
+        var compilerAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(compilerAssemblyLocation);
 
-            var alc1 = AssemblyLoadContext.GetLoadContext(compilerAssemblyInCurrentAlc);
-            var alc2 = AssemblyLoadContext.GetLoadContext(compilerAssemblyLoadedViaRemoteLoader);
-            Assert.Equal(alc1, alc2);
-        }
+        var alc1 = AssemblyLoadContext.GetLoadContext(compilerAssemblyInCurrentAlc);
+        var alc2 = AssemblyLoadContext.GetLoadContext(compilerAssemblyLoadedViaRemoteLoader);
+        Assert.Equal(alc1, alc2);
     }
 }
 #endif

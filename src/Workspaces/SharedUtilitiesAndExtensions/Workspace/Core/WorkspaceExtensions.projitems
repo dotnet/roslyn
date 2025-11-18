@@ -10,19 +10,26 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\AbstractFixAllSpanMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\IFixAllSpanMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\MultiProjectSafeFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeAndImportGenerationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\AbstractRefactoringHelpersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\IRefactoringHelpersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editing\ImportAdderService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\ModifierExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateEqualsMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FindSymbols\LinkedFileReferenceLocationEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormatterShared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\AbstractInitializerParameterService.cs" />
@@ -90,7 +97,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
@@ -150,11 +156,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderWithLength.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\ISemanticModelReuseWorkspaceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\SemanticModelReuseWorkspaceServiceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\AbstractSemanticModelReuseLanguageService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\ISemanticModelReuseLanguageService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\ISemanticModelReuseWorkspaceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\SemanticModelReuseWorkspaceServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\SemanticModelWorkspaceServiceFactory.SemanticModelWorkspaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Host\SupportedChangesServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\CodeChangeProviderMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\FileExtensionsMetadata.cs" />
@@ -169,12 +178,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefLanguageServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefWorkspaceServices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableLanguageDocumentMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableLanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceServiceMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />

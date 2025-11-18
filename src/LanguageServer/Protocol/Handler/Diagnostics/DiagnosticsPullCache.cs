@@ -29,25 +29,20 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// the version stamp but not the content (for example, forking LSP text).
     /// </summary>
     private sealed class DiagnosticsPullCache(IGlobalOptionService globalOptions, string uniqueKey)
-        : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
+        : VersionedPullCache<(int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
     {
         private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-        public override async Task<(int globalStateVersion, VersionStamp? dependentVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
-        {
-            return (state.GlobalStateVersion, await state.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false));
-        }
-
-        public override async Task<(int globalStateVersion, Checksum dependentChecksum)> ComputeExpensiveVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
+        public override async Task<(int globalStateVersion, Checksum dependentChecksum)> ComputeVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
             return (state.GlobalStateVersion, await state.Project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        /// <inheritdoc cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}.ComputeDataAsync(TState, CancellationToken)"/>
+        /// <inheritdoc cref="VersionedPullCache{TVersion, TState, TComputedData}.ComputeDataAsync(TState, CancellationToken)"/>
         public override async Task<ImmutableArray<DiagnosticData>> ComputeDataAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
             var diagnostics = await state.DiagnosticSource.GetDiagnosticsAsync(state.Context, cancellationToken).ConfigureAwait(false);
-            state.Context.TraceInformation($"Found {diagnostics.Length} diagnostics for {state.DiagnosticSource.ToDisplayString()}");
+            state.Context.TraceDebug($"Found {diagnostics.Length} diagnostics for {state.DiagnosticSource.ToDisplayString()}");
             return diagnostics;
         }
 
@@ -97,8 +92,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 writer.WriteString(diagnosticData.Properties[key]);
             }
 
-            if (diagnosticData.ProjectId != null)
-                writer.WriteGuid(diagnosticData.ProjectId.Id);
+            writer.WriteGuid(diagnosticData.ProjectId.Id);
 
             WriteDiagnosticDataLocation(diagnosticData.DataLocation, writer);
 

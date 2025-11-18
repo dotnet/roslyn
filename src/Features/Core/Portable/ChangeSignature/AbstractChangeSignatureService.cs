@@ -24,9 +24,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature;
@@ -107,7 +107,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
         // Cross-language symbols will show as metadata, so map it to source if possible.
-        symbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, cancellationToken) ?? symbol;
+        symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
         if (symbol == null)
             return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
 

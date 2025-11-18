@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-internal class CaretPreservingEditTransaction : IDisposable
+internal sealed class CaretPreservingEditTransaction : IDisposable
 {
     private readonly IEditorOperations _editorOperations;
     private readonly ITextUndoHistory? _undoHistory;
@@ -93,10 +93,7 @@ internal class CaretPreservingEditTransaction : IDisposable
 
         set
         {
-            if (_transaction != null)
-            {
-                _transaction.MergePolicy = value;
-            }
+            _transaction?.MergePolicy = value;
         }
     }
 

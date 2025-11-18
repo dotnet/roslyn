@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             TypeSymbol type,
             string name,
-            bool isPublic = false,
+            DeclarationModifiers accessibility = DeclarationModifiers.Private,
             bool isReadOnly = false,
             bool isStatic = false)
-            : base(containingType, name, isPublic, isReadOnly, isStatic)
+            : base(containingType, name, accessibility, isReadOnly, isStatic)
         {
             Debug.Assert((object)type != null);
             _type = TypeWithAnnotations.Create(type);

@@ -14,24 +14,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// Loads analyzer assemblies from their original locations in the file system.
-    /// Assemblies will only be loaded from the locations specified when the loader
-    /// is instantiated.
-    /// </summary>
-    /// <remarks>
-    /// This type is meant to be used in scenarios where it is OK for the analyzer
-    /// assemblies to be locked on disk for the lifetime of the host; for example,
-    /// csc.exe and vbc.exe. In scenarios where support for updating or deleting
-    /// the analyzer on disk is required a different loader should be used.
-    /// </remarks>
     internal partial class AnalyzerAssemblyLoader
     {
         private bool _hookedAssemblyResolve;
 
-        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        internal AnalyzerAssemblyLoader()
+         : this(analyzerPathResolvers: [])
         {
-            _externalResolvers = externalResolvers;
+        }
+
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerPathResolver> analyzerPathResolvers)
+        {
+            AnalyzerPathResolvers = analyzerPathResolvers;
         }
 
         private partial void DisposeWorker()
@@ -63,13 +57,9 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
+        private partial Assembly? Load(AssemblyName assemblyName, string resolvedPath)
         {
             EnsureResolvedHooked();
-            if (ResolveAssemblyExternally(assemblyName, Path.GetDirectoryName(assemblyOriginalPath)) is { } externallyResolvedAssembly)
-            {
-                return externallyResolvedAssembly;
-            }
 
             return AppDomain.CurrentDomain.Load(assemblyName);
         }
@@ -120,27 +110,25 @@ namespace Microsoft.CodeAnalysis
                 const string resourcesExtension = ".resources";
                 var assemblyName = new AssemblyName(args.Name);
                 var simpleName = assemblyName.Name;
-                var isSatelliteAssembly =
-                    assemblyName.CultureInfo is not null &&
-                    simpleName.EndsWith(resourcesExtension, StringComparison.Ordinal);
 
-                if (isSatelliteAssembly)
+                string? loadPath;
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(resourcesExtension, SimpleNameComparer.Comparison))
                 {
                     // Satellite assemblies should get the best path information using the
                     // non-resource part of the assembly name. Once the path information is obtained
-                    // GetSatelliteInfoForPath will translate to the resource assembly path.
+                    // GetSatelliteLoadPath will translate to the resource assembly path.
                     assemblyName.Name = simpleName[..^resourcesExtension.Length];
+                    var (_, resolvedPath) = GetBestResolvedPath(assemblyName);
+                    loadPath = resolvedPath is not null ? GetSatelliteLoadPath(resolvedPath, assemblyName.CultureInfo) : null;
+                }
+                else
+                {
+                    (_, loadPath) = GetBestResolvedPath(assemblyName);
                 }
 
-                var (originalPath, realPath) = GetBestPath(assemblyName);
-                if (isSatelliteAssembly && originalPath is not null)
+                if (loadPath is not null)
                 {
-                    realPath = GetRealSatelliteLoadPath(originalPath, assemblyName.CultureInfo);
-                }
-
-                if (realPath is not null)
-                {
-                    return Assembly.LoadFrom(realPath);
+                    return Assembly.LoadFrom(loadPath);
                 }
 
                 return null;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -70,7 +68,10 @@ internal static class GlyphTags
             Glyph.ModulePrivate => WellKnownTagArrays.ModulePrivate,
             Glyph.ModuleInternal => WellKnownTagArrays.ModuleInternal,
             Glyph.OpenFolder => WellKnownTagArrays.Folder,
-            Glyph.Operator => WellKnownTagArrays.Operator,
+            Glyph.OperatorPublic => WellKnownTagArrays.OperatorPublic,
+            Glyph.OperatorProtected => WellKnownTagArrays.OperatorProtected,
+            Glyph.OperatorPrivate => WellKnownTagArrays.OperatorPrivate,
+            Glyph.OperatorInternal => WellKnownTagArrays.OperatorInternal,
             Glyph.Parameter => WellKnownTagArrays.Parameter,
             Glyph.PropertyPublic => WellKnownTagArrays.PropertyPublic,
             Glyph.PropertyProtected => WellKnownTagArrays.PropertyProtected,

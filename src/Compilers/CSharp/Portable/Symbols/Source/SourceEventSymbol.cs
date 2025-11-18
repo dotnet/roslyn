@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,9 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
     {
+        private SourceEventSymbol? _otherPartOfPartial;
+
         private readonly Location _location;
         private readonly SyntaxReference _syntaxRef;
         private readonly DeclarationModifiers _modifiers;
+        private readonly bool _hasExplicitAccessModifier;
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
         private SymbolCompletionState _state;
@@ -52,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
-            bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out modifierErrors);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out _, out _hasExplicitAccessModifier);
             this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
         }
 
@@ -72,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            SourcePartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+
             if (filter?.Invoke(this) == false)
             {
                 return;
@@ -137,25 +142,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.containingType.AnyMemberHasAttributes)
+                if (this.containingType.AnyMemberHasAttributes && MemberSyntax is { } memberSyntax)
                 {
-                    var syntax = this.CSharpSyntaxNode;
-                    if (syntax != null)
-                    {
-                        switch (syntax.Kind())
-                        {
-                            case SyntaxKind.EventDeclaration:
-                                return ((EventDeclarationSyntax)syntax).AttributeLists;
-                            case SyntaxKind.VariableDeclarator:
-                                Debug.Assert(syntax.Parent!.Parent is object);
-                                return ((EventFieldDeclarationSyntax)syntax.Parent.Parent).AttributeLists;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                        }
-                    }
+                    return memberSyntax.AttributeLists;
                 }
 
                 return default;
+            }
+        }
+
+        internal MemberDeclarationSyntax? MemberSyntax
+        {
+            get
+            {
+                if (this.CSharpSyntaxNode is { } syntax)
+                {
+                    switch (syntax.Kind())
+                    {
+                        case SyntaxKind.EventDeclaration:
+                            return (EventDeclarationSyntax)syntax;
+                        case SyntaxKind.VariableDeclarator:
+                            Debug.Assert(syntax.Parent?.Parent is not null);
+                            return (EventFieldDeclarationSyntax)syntax.Parent.Parent;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -190,8 +204,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            var bag = _lazyCustomAttributesBag;
+            if (bag != null && bag.IsSealed)
+            {
+                return bag;
+            }
+
+            bool bagCreatedOnThisThread;
+
+            if (SourcePartialDefinitionPart is { } definitionPart)
+            {
+                Debug.Assert(!ReferenceEquals(definitionPart, this));
+                bag = definitionPart.GetAttributesBag();
+                bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, bag, null) == null;
+            }
+            else
+            {
+                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref _lazyCustomAttributesBag);
+            }
+
+            if (bagCreatedOnThisThread)
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
                 var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
@@ -200,6 +232,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             RoslynDebug.AssertNotNull(_lazyCustomAttributesBag);
             return _lazyCustomAttributesBag;
+        }
+
+        private OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // Attributes on partial events are owned by the definition part.
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead.
+            Debug.Assert(PartialDefinitionPart is null);
+
+            if (SourcePartialImplementationPart is { } implementationPart)
+            {
+                return OneOrMany.Create(this.AttributeDeclarationSyntaxList, implementationPart.AttributeDeclarationSyntaxList);
+            }
+
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
         }
 
         /// <summary>
@@ -304,7 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.TupleElementNamesAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.NullableAttribute
+                | ReservedAttributes.NativeIntegerAttribute
+                | ReservedAttributes.TupleElementNamesAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
@@ -370,10 +420,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
         }
 
-        public sealed override bool IsExtern
+        private bool HasExternModifier
         {
             get { return (_modifiers & DeclarationModifiers.Extern) != 0; }
         }
+
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
 
         public sealed override bool IsStatic
         {
@@ -398,6 +450,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsReadOnly
         {
             get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
+        }
+
+        private bool IsUnsafe
+        {
+            get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
 
         public sealed override Accessibility DeclaredAccessibility
@@ -442,14 +499,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation,
                                                    bool isFieldLike, Location location,
-                                                   BindingDiagnosticBag diagnostics, out bool modifierErrors)
+                                                   BindingDiagnosticBag diagnostics, out bool modifierErrors,
+                                                   out bool hasExplicitAccessModifier)
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -501,7 +559,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors,
+                                                                        out hasExplicitAccessModifier);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
@@ -515,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation, forMethod: false);
             }
 
             return mods;
@@ -553,6 +612,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
+            }
+            else if (IsPartial && !ContainingType.IsPartial())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, location);
+            }
+            else if (IsPartial && IsExplicitInterfaceImplementation)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberNotExplicit, location);
+            }
+            else if (IsPartial && IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberCannotBeAbstract, location);
             }
             else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
             {
@@ -611,6 +682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
 
+            if (IsPartial)
+            {
+                ModifierUtils.CheckFeatureAvailabilityForPartialEventsAndConstructors(_location, diagnostics);
+            }
+
             diagnostics.Add(location, useSiteInfo);
         }
 
@@ -664,6 +740,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool ComputeIsWindowsRuntimeEvent()
         {
+            if (PartialDefinitionPart is { } partialDefinitionPart)
+            {
+                return partialDefinitionPart.IsWindowsRuntimeEvent;
+            }
+
             // If you explicitly implement an event, then you're a WinRT event if and only if it's a WinRT event.
             ImmutableArray<EventSymbol> explicitInterfaceImplementations = this.ExplicitInterfaceImplementations;
             if (!explicitInterfaceImplementations.IsEmpty)
@@ -771,6 +852,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckExplicitImplementationAccessor(AddMethod, explicitlyImplementedEvent.AddMethod, explicitlyImplementedEvent, diagnostics);
                 CheckExplicitImplementationAccessor(RemoveMethod, explicitlyImplementedEvent.RemoveMethod, explicitlyImplementedEvent, diagnostics);
             }
+
+            if (IsPartialDefinition && OtherPartOfPartial is { } implementation)
+            {
+                PartialEventChecks(implementation, diagnostics);
+            }
         }
 
         private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)
@@ -779,6 +865,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.GetFirstLocation(), thisAccessor, explicitlyImplementedEvent);
             }
+        }
+
+        private void PartialEventChecks(SourceEventSymbol implementation, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.IsPartialDefinition);
+            Debug.Assert(!ReferenceEquals(this, implementation));
+            Debug.Assert(ReferenceEquals(this.OtherPartOfPartial, implementation));
+
+            if (!TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberTypeDifference, implementation.GetFirstLocation());
+            }
+            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
+            }
+            else if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.WRN_PartialMemberSignatureDifference, implementation.GetFirstLocation(),
+                    new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                    new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+
+            if (IsStatic != implementation.IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
+            }
+
+            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (DeclaredAccessibility != implementation.DeclaredAccessibility
+                || _hasExplicitAccessModifier != implementation._hasExplicitAccessModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementation.GetFirstLocation());
+            }
+
+            if (IsVirtual != implementation.IsVirtual
+                || IsOverride != implementation.IsOverride
+                || IsSealed != implementation.IsSealed
+                || IsNew != implementation.IsNew)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
+            }
+        }
+
+        internal bool IsPartial => (this.Modifiers & DeclarationModifiers.Partial) != 0;
+
+        /// <summary>
+        /// <see langword="false"/> if this symbol corresponds to a semi-colon body declaration.
+        /// <see langword="true"/> if this symbol corresponds to a declaration with custom <see langword="add"/> and <see langword="remove"/> accessors.
+        /// </summary>
+        protected abstract bool AccessorsHaveImplementation { get; }
+
+        internal sealed override bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
+
+        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
+
+        internal SourceEventSymbol? OtherPartOfPartial => _otherPartOfPartial;
+
+        internal SourceEventSymbol? SourcePartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+
+        internal SourceEventSymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
+
+        internal sealed override EventSymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+
+        internal sealed override EventSymbol? PartialImplementationPart => SourcePartialImplementationPart;
+
+        internal static void InitializePartialEventParts(SourceEventSymbol definition, SourceEventSymbol implementation)
+        {
+            Debug.Assert(definition.IsPartialDefinition);
+            Debug.Assert(implementation.IsPartialImplementation);
+
+            Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || ReferenceEquals(alreadySetImplPart, implementation));
+            Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || ReferenceEquals(alreadySetDefPart, definition));
+
+            definition._otherPartOfPartial = implementation;
+            implementation._otherPartOfPartial = definition;
+
+            Debug.Assert(ReferenceEquals(definition._otherPartOfPartial, implementation));
+            Debug.Assert(ReferenceEquals(implementation._otherPartOfPartial, definition));
         }
     }
 }

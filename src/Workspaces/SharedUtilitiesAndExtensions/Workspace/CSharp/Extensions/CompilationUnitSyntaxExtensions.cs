@@ -55,8 +55,8 @@ internal static partial class CompilationUnitSyntaxExtensions
             else
             {
                 var start = 0;
-                var end = root.Members.Any()
-                    ? root.Members.First().GetFirstToken().Span.End
+                var end = root.Members is [var firstMember, ..]
+                    ? firstMember.GetFirstToken().Span.End
                     : root.Span.End;
                 return TextSpan.FromBounds(start, end);
             }

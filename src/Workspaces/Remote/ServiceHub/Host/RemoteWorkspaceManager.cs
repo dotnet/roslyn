@@ -3,15 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -22,13 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal class RemoteWorkspaceManager
 {
-    internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
-        MefHostServices.DefaultAssemblies
-            .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
-            .Add(typeof(BrokeredServiceBase).Assembly)
-            .Add(typeof(IRazorLanguageServerTarget).Assembly)
-            .Add(typeof(RemoteWorkspacesResources).Assembly);
-
     /// <summary>
     /// Default workspace manager used by the product. Tests may specify a custom <see
     /// cref="RemoteWorkspaceManager"/> in order to override workspace services.
@@ -57,8 +45,15 @@ internal class RemoteWorkspaceManager
     /// </item>
     /// </list>
     /// </remarks>
-    internal static readonly RemoteWorkspaceManager Default = new(
-        workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)));
+    private static readonly Lazy<RemoteWorkspaceManager> s_default = new(static () =>
+    {
+        return new RemoteWorkspaceManager(CreateAssetCache);
+
+        static SolutionAssetCache CreateAssetCache(RemoteWorkspace workspace)
+            => new(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1));
+    });
+
+    internal static RemoteWorkspaceManager Default => s_default.Value;
 
     private readonly RemoteWorkspace _workspace;
     internal readonly SolutionAssetCache SolutionAssetCache;
@@ -76,27 +71,9 @@ internal class RemoteWorkspaceManager
         SolutionAssetCache = createAssetCache(workspace);
     }
 
-    private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
-    {
-        var resolver = new Resolver(SimpleAssemblyLoader.Instance);
-        var discovery = new AttributedPartDiscovery(resolver, isNonPublicSupported: true);
-        var parts = Task.Run(async () => await discovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).GetAwaiter().GetResult();
-        return ComposableCatalog.Create(resolver).AddParts(parts);
-    }
-
-    private static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
-    {
-        var configuration = CompositionConfiguration.Create(catalog);
-        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-        return runtimeComposition.CreateExportProviderFactory();
-    }
-
     private static RemoteWorkspace CreatePrimaryWorkspace()
     {
-        var catalog = CreateCatalog(RemoteHostAssemblies);
-        var exportProviderFactory = CreateExportProviderFactory(catalog);
-        var exportProvider = exportProviderFactory.CreateExportProvider();
-
+        var exportProvider = RemoteExportProviderBuilder.ExportProvider;
         return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
     }
 
@@ -117,7 +94,7 @@ internal class RemoteWorkspaceManager
         var (solution, _) = await workspace.RunWithSolutionAsync(
             assetProvider,
             solutionChecksum,
-            static _ => ValueTaskFactory.FromResult(false),
+            static _ => ValueTask.FromResult(false),
             cancellationToken).ConfigureAwait(false);
 
         return solution;
@@ -140,26 +117,5 @@ internal class RemoteWorkspaceManager
             cancellationToken).ConfigureAwait(false);
 
         return result;
-    }
-
-    private sealed class SimpleAssemblyLoader : IAssemblyLoader
-    {
-        public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
-
-        public Assembly LoadAssembly(AssemblyName assemblyName)
-            => Assembly.Load(assemblyName);
-
-        public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
-        {
-            var assemblyName = new AssemblyName(assemblyFullName);
-            if (!string.IsNullOrEmpty(codeBasePath))
-            {
-#pragma warning disable SYSLIB0044 // https://github.com/dotnet/roslyn/issues/71510
-                assemblyName.CodeBase = codeBasePath;
-#pragma warning restore SYSLIB0044
-            }
-
-            return LoadAssembly(assemblyName);
-        }
     }
 }

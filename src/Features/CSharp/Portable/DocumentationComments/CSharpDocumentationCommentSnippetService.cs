@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -15,23 +16,18 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpDocumentationCommentSnippetService() : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
 {
     public override string DocumentationCommentCharacter => "/";
 
     protected override bool AddIndent => true;
     protected override string ExteriorTriviaText => "///";
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpDocumentationCommentSnippetService()
-    {
-    }
 
     protected override MemberDeclarationSyntax? GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
     {
@@ -85,14 +81,32 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
         return count;
     }
 
-    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText)
+    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText, DocumentationCommentOptions options)
     {
-        var list = new List<string>
+        // When collapsed mode is enabled, generate single-line summary tags
+        var useSingleLine = options.GenerateSummaryTagOnSingleLine;
+        var onlySummary = options.GenerateOnlySummaryTag;
+
+        var list = new List<string>();
+
+        if (useSingleLine)
         {
-            "/// <summary>",
-            "///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"),
-            "/// </summary>"
-        };
+            // Single-line: /// <summary></summary>
+            list.Add($"/// <summary>{existingCommentText.Trim()}</summary>");
+        }
+        else
+        {
+            // Multi-line (original behavior)
+            list.Add("/// <summary>");
+            list.Add("///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"));
+            list.Add("/// </summary>");
+        }
+
+        // If onlySummary is true, skip generating other tags
+        if (onlySummary)
+        {
+            return list;
+        }
 
         var typeParameterList = member.GetTypeParameterList();
         if (typeParameterList != null)

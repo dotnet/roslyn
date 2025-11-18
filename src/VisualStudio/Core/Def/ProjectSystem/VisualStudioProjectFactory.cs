@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
@@ -33,9 +33,10 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
     private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
-    private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
-    private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
+    private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
+
+    private readonly JoinableTask _initializationTask;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -43,16 +44,28 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         IThreadingContext threadingContext,
         VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-        IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
         [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
-        IVsService<SVsSolution, IVsSolution2> solution2)
+        IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
-        _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
         _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
-        _solution2 = solution2;
+        _solution = solution;
+
+        _initializationTask = _threadingContext.JoinableTaskFactory.RunAsync(
+            async () =>
+            {
+                var cancellationToken = _threadingContext.DisposalToken;
+
+                // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
+                // moved off we'll need to fix up it's constructor to be free-threaded.
+
+                // yield if on the main thread, as the VisualStudioMetadataReferenceManager construction can be fairly expensive
+                // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
+            });
     }
 
     public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -61,54 +74,30 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
-        // moved off we'll need to fix up it's constructor to be free-threaded.
+        // Since we're following JTF/VS threading rules here, we just use ConfigureAwait(true) in this method, which does what we want for performance:
+        //
+        // - For CPS where we expect this to be called on a thread pool thread, we'll stay on the thread pool thread and that's what we want.
+        // - For csproj/msvbprj, this gets called on the UI thread from AbstractLegacyProject's constructor, which since that's under a
+        //    JTF.Run() on the UI thread, ensures we don't find ourselves blocked on a busy thread pool.
+        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(true);
 
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
-
-        _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-        _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
-
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-        // Since we're on the UI thread here anyways, use that as an opportunity to grab the
-        // IVsSolution object and solution file path.
-        var solution = await _solution2.GetValueOrNullAsync(cancellationToken);
-        var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
-            ? filePath
-            : null;
-
-        var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
-
-        // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
-        // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
-        // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
-        // rules to apply.
-        if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
-        {
-            await TaskScheduler.Default;
-        }
+        var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
 
         // From this point on, we start mutating the solution.  So make us non cancellable.
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
         cancellationToken = CancellationToken.None;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
-        _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
+        _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, vsixAnalyzerProvider, _analyzerAssemblyRedirectors);
-        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo);
+        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _analyzerAssemblyRedirectors);
+        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo).ConfigureAwait(true);
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
         // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
-        // This is not cancellable as we have already mutated the solution.
-        await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None);
+        await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(true);
 
         return project;
-
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
         static Guid GetSolutionSessionId()
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -123,7 +121,10 @@ internal static class GlyphExtensions
             case Glyph.OpenFolder:
                 return StandardGlyphGroup.GlyphOpenFolder;
 
-            case Glyph.Operator:
+            case Glyph.OperatorPublic:
+            case Glyph.OperatorProtected:
+            case Glyph.OperatorPrivate:
+            case Glyph.OperatorInternal:
                 return StandardGlyphGroup.GlyphGroupOperator;
 
             case Glyph.Parameter:

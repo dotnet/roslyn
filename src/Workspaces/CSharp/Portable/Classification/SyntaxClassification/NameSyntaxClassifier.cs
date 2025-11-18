@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
@@ -254,16 +253,20 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         // destructors because their declaration is handled by syntactic classification
         // and they cannot be invoked, so their is no usage to semantically classify.
         if (methodSymbol.MethodKind == MethodKind.Constructor)
-        {
             return methodSymbol.ContainingType?.GetClassification() ?? ClassificationTypeNames.MethodName;
-        }
 
         // Note: We only classify an extension method if it is in reduced form.
         // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
         // it is classified as an ordinary method.
-        return methodSymbol.MethodKind == MethodKind.ReducedExtension
-            ? ClassificationTypeNames.ExtensionMethodName
-            : ClassificationTypeNames.MethodName;
+        if (methodSymbol.MethodKind == MethodKind.ReducedExtension)
+            return ClassificationTypeNames.ExtensionMethodName;
+
+        // If calling an extension method through the extension container (not the static class container) then it's
+        // definitely an extension method.
+        if (methodSymbol.ContainingType.IsExtension)
+            return ClassificationTypeNames.ExtensionMethodName;
+
+        return ClassificationTypeNames.MethodName;
     }
 
     private static bool IsInVarContext(SimpleNameSyntax name)

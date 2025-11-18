@@ -2,254 +2,233 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.Internal.VisualStudio.Shell.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 
 /// <summary>
-/// Creates batch scopes for projects based on IVsSolutionEvents. This is useful for projects types that don't otherwise have
+/// Creates batch scopes for projects based on solution and running document table events. This is useful for projects types that don't otherwise have
 /// good batching concepts.
 /// </summary> 
-/// <remarks>All members of this class are affinitized to the UI thread.</remarks>
 [Export(typeof(SolutionEventsBatchScopeCreator))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+internal sealed class SolutionEventsBatchScopeCreator
 {
-    private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(ProjectSystemProject, IVsHierarchy, ProjectSystemProject.BatchScope)>();
+    /// <summary>
+    /// A lock for mutating all objects in this object. This class isn't expected to have any "interesting" locking requirements, so this should just be acquired
+    /// in all methods.
+    /// </summary>
+    private readonly object _gate = new();
+    private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = [];
 
-    private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
-
+    /// <summary>
+    /// The cookie for our subscription to the running document table. Null if we're not currently subscribed.
+    /// </summary>
     private uint? _runningDocumentTableEventsCookie;
     private bool _isSubscribedToSolutionEvents = false;
-    private bool _solutionLoaded = false;
+
+    private readonly IVsBackgroundSolution _backgroundSolution;
+    private readonly IVsRunningDocumentTable _runningDocumentTable;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SolutionEventsBatchScopeCreator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+    {
+        // Fetch services we're going to need later; these are all free-threaded and cacheable on creation, and since we're only going to be
+        // creating this part once we're in a solution load, the services would have already been created.
+        _backgroundSolution = (IVsBackgroundSolution)serviceProvider.GetService(typeof(SVsBackgroundSolution));
+        _runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+    }
 
     public void StartTrackingProject(ProjectSystemProject project, IVsHierarchy hierarchy)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        EnsureSubscribedToSolutionEvents();
-
-        if (!_solutionLoaded)
+        lock (_gate)
         {
-            _fullSolutionLoadScopes.Add((project, hierarchy, project.CreateBatchScope()));
+            EnsureSubscribedToSolutionEvents();
 
-            EnsureSubscribedToRunningDocumentTableEvents();
+            if (_backgroundSolution.IsSolutionOpening)
+            {
+                _fullSolutionLoadScopes.Add((project, hierarchy, project.CreateBatchScope()));
+
+                EnsureSubscribedToRunningDocumentTableEvents();
+            }
         }
     }
 
     public void StopTrackingProject(ProjectSystemProject project)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        foreach (var scope in _fullSolutionLoadScopes)
+        lock (_gate)
         {
-            if (scope.project == project)
+            foreach (var scope in _fullSolutionLoadScopes)
             {
-                scope.batchScope.Dispose();
-                _fullSolutionLoadScopes.Remove(scope);
-                break;
+                if (scope.project == project)
+                {
+                    scope.batchScope.Dispose();
+                    _fullSolutionLoadScopes.Remove(scope);
+                    break;
+                }
             }
-        }
 
-        EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+            EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+        }
     }
 
-    private void StopTrackingAllProjects()
+    /// <summary>
+    /// Closes all batch scopes for all currently tracked projects, called when the solution has finished loading.
+    /// </summary>
+    private Task StopTrackingAllProjectsAsync()
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        ImmutableArray<Task> batchScopeTasks;
 
-        foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
+        lock (_gate)
         {
-            batchScope.Dispose();
+            // Kick off on a background thread the work to close each of the batches. The expectation is each batch closure will fairly quickly hit the solution-level
+            // semaphore, so we don't need to explicitly throttle this work here.
+            batchScopeTasks = _fullSolutionLoadScopes.SelectAsArray(static s => Task.Run(() => s.batchScope.DisposeAsync().AsTask()));
+
+            // We always want to ensure we clear out the list and unsubscribe, even if cancellation has been requested.
+            _fullSolutionLoadScopes.Clear();
+
+            EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
         }
 
-        _fullSolutionLoadScopes.Clear();
-
-        EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+        return Task.WhenAll(batchScopeTasks);
     }
 
     private void StopTrackingAllProjectsMatchingHierarchy(IVsHierarchy hierarchy)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
+        lock (_gate)
         {
-            if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
+            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
             {
-                _fullSolutionLoadScopes[i].batchScope.Dispose();
-                _fullSolutionLoadScopes.RemoveAt(i);
+                if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
+                {
+                    _fullSolutionLoadScopes[i].batchScope.Dispose();
+                    _fullSolutionLoadScopes.RemoveAt(i);
 
-                // Go back by one so we re-check the same index
-                i--;
+                    // Go back by one so we re-check the same index
+                    i--;
+                }
             }
-        }
 
-        EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+            EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+        }
     }
 
     private void EnsureSubscribedToSolutionEvents()
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (_isSubscribedToSolutionEvents)
+        lock (_gate)
         {
-            return;
-        }
-
-        var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
-
-        // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
-        // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
-        // opened other solutions in entirely different languages from there.
-        if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
-        {
-            _isSubscribedToSolutionEvents = true;
-        }
-
-        // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event 
-        var shellMonitorSelection = (IVsMonitorSelection)_serviceProvider.GetService(typeof(SVsShellMonitorSelection));
-
-        if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out var fullyLoadedContextCookie)))
-        {
-            if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out var fActive)) && fActive != 0)
+            if (_isSubscribedToSolutionEvents)
             {
-                _solutionLoaded = true;
+                return;
             }
+
+            // We never unsubscribe from these, so we just throw out the subscription. We could consider unsubscribing if/when all our
+            // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
+            // opened other solutions in entirely different languages from there.
+            _ = _backgroundSolution.SubscribeListener(new SolutionEventsEventListener(this));
+
+            _isSubscribedToSolutionEvents = true;
         }
     }
 
     private void EnsureSubscribedToRunningDocumentTableEvents()
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (_runningDocumentTableEventsCookie.HasValue)
+        lock (_gate)
         {
-            return;
-        }
+            if (_runningDocumentTableEventsCookie.HasValue)
+            {
+                return;
+            }
 
-        var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-
-        if (ErrorHandler.Succeeded(runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this, runningDocumentTable), out var runningDocumentTableEventsCookie)))
-        {
-            _runningDocumentTableEventsCookie = runningDocumentTableEventsCookie;
+            if (ErrorHandler.Succeeded(_runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this, _runningDocumentTable), out var runningDocumentTableEventsCookie)))
+            {
+                _runningDocumentTableEventsCookie = runningDocumentTableEventsCookie;
+            }
         }
     }
 
     private void EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded()
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (!_runningDocumentTableEventsCookie.HasValue)
+        lock (_gate)
         {
-            return;
-        }
+            if (!_runningDocumentTableEventsCookie.HasValue)
+            {
+                return;
+            }
 
-        // If we don't have any scopes left, then there is no reason to be subscribed to Running Document Table events, because
-        // there won't be any scopes to complete.
-        if (_fullSolutionLoadScopes.Count > 0)
-        {
-            return;
-        }
+            // If we don't have any scopes left, then there is no reason to be subscribed to Running Document Table events, because
+            // there won't be any scopes to complete.
+            if (_fullSolutionLoadScopes.Count > 0)
+            {
+                return;
+            }
 
-        var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-        runningDocumentTable.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie.Value);
-        _runningDocumentTableEventsCookie = null;
+            _runningDocumentTable.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie.Value);
+            _runningDocumentTableEventsCookie = null;
+        }
     }
 
-    private class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
+    private sealed class SolutionEventsEventListener : IVsAsyncSolutionEventListener
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
 
-        public SolutionEventsEventSink(SolutionEventsBatchScopeCreator scopeCreator)
+        public SolutionEventsEventListener(SolutionEventsBatchScopeCreator scopeCreator)
             => _scopeCreator = scopeCreator;
 
-        int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
+        public async ValueTask OnAfterOpenSolutionAsync(AfterOpenSolutionArgs args, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(_scopeCreator._fullSolutionLoadScopes.Any());
-
-            _scopeCreator._solutionLoaded = false;
-
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
-        {
-            _scopeCreator._solutionLoaded = false;
-
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
-        {
-            _scopeCreator._solutionLoaded = true;
-            _scopeCreator.StopTrackingAllProjects();
-
-            return VSConstants.S_OK;
+            // NOTE: the cancellationToken here might be cancelled if the user has requested that we cancel the solution load. If the cancellation happened
+            // prior to this method being invoked, we might see this method invoked with the token cancelled from the very start. We want to make sure
+            // we get rid of all the batch scopes in that case before checking the cancellation token. Thus we won't pass the token to StopTrackingAllProjectsAsync.
+            await _scopeCreator.StopTrackingAllProjectsAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
         }
 
         #region Unimplemented Members
 
-        int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
-            => VSConstants.E_NOTIMPL;
-
-        int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        public void OnUnhandledException(Exception exception)
         {
-            pfShouldDelayLoadToNextIdle = false;
-            return VSConstants.E_NOTIMPL;
         }
 
-        int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
-            => VSConstants.E_NOTIMPL;
+        public ValueTask OnBeforeOpenSolutionAsync(BeforeOpenSolutionArgs args, CancellationToken cancellationToken)
+        {
+            return ValueTask.CompletedTask;
+        }
 
-        int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
-            => VSConstants.E_NOTIMPL;
+        public ValueTask OnBeforeCloseSolutionAsync(BeforeCloseSolutionArgs args, CancellationToken cancellationToken)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask OnAfterCloseSolutionAsync(AfterCloseSolutionArgs args, CancellationToken cancellationToken)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask OnAfterRenameSolutionAsync(AfterRenameSolutionArgs args, CancellationToken cancellationToken)
+        {
+            return ValueTask.CompletedTask;
+        }
 
         #endregion
     }
 
-    private class RunningDocumentTableEventSink : IVsRunningDocTableEvents
+    private sealed class RunningDocumentTableEventSink : IVsRunningDocTableEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;

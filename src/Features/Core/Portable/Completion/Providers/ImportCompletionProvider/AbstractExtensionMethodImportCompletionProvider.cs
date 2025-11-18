@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -43,12 +45,13 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
             var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
             {
-
                 var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                     ? syntaxContext.InferredTypes
                     : [];
 
-                var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                var totalTime = SharedStopwatch.StartNew();
+
+                var completionItems = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                     syntaxContext,
                     receiverTypeSymbol,
                     namespaceInScope,
@@ -57,47 +60,55 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
                     hideAdvancedMembers: completionContext.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result is not null)
+                if (!completionItems.IsDefault)
                 {
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                    completionContext.AddItems(completionItems.Select(i => Convert(i, receiverTypeKey)));
                 }
             }
         }
     }
 
-    private static bool TryGetReceiverTypeSymbol(
+    private bool TryGetReceiverTypeSymbol(
         SyntaxContext syntaxContext,
         ISyntaxFactsService syntaxFacts,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
     {
+        receiverTypeSymbol = null;
+
         var parentNode = syntaxContext.TargetToken.Parent;
 
         // Even though implicit access to extension method is allowed, we decide not support it for simplicity 
         // e.g. we will not provide completion for unimported extension method in this case
         // New Bar() {.X = .$$ }
         var expressionNode = syntaxFacts.GetLeftSideOfDot(parentNode, allowImplicitTarget: false);
+        if (expressionNode is null)
+            return false;
 
-        if (expressionNode != null)
+        return TryGetReceiverTypeSymbol(syntaxContext.SemanticModel, expressionNode, cancellationToken, out receiverTypeSymbol);
+    }
+
+    protected virtual bool TryGetReceiverTypeSymbol(
+        SemanticModel semanticModel,
+        SyntaxNode expressionNode,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
+    {
+        receiverTypeSymbol = null;
+
+        // Check if we are accessing members of a type, no extension methods are exposed off of types.
+        if (semanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
         {
-            // Check if we are accessing members of a type, no extension methods are exposed off of types.
-            if (syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
-            {
-                // The expression we're calling off of needs to have an actual instance type.
-                // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.
-                receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
-                if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
-                {
-                    receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
-                }
+            // The expression we're calling off of needs to have an actual instance type.
+            // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.
+            receiverTypeSymbol = semanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
+            if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
+                receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
 
-                return receiverTypeSymbol != null;
-            }
         }
 
-        receiverTypeSymbol = null;
-        return false;
+        return receiverTypeSymbol != null;
     }
 
     private static ITypeSymbol? GetSymbolType(ISymbol symbol)

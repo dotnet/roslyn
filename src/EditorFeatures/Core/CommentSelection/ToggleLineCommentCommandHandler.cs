@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection;
 [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleLineComment)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ToggleLineCommentCommandHandler(
+internal sealed class ToggleLineCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService) :
@@ -58,11 +58,12 @@ internal class ToggleLineCommentCommandHandler(
     internal override CommentSelectionResult CollectEdits(Document document, ICommentSelectionService service,
         ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
     {
-        using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
+        using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
         {
+            var (document, subjectBuffer) = args;
             m[LanguageNameString] = document.Project.Language;
             m[LengthString] = subjectBuffer.CurrentSnapshot.Length;
-        }), cancellationToken))
+        }, (document, subjectBuffer)), cancellationToken))
         {
             var commentInfo = service.GetInfo();
             if (commentInfo.SupportsSingleLineComment)

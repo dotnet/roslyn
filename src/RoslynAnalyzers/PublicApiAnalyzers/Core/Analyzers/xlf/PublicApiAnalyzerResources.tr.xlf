@@ -1,0 +1,297 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../PublicApiAnalyzerResources.resx">
+    <body>
+      <trans-unit id="AddAllItemsInDocumentToTheApiTitle">
+        <source>Add all items in document '{0}' to the API</source>
+        <target state="translated">'{0}' belgesindeki tüm öğeleri API'ye ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInProjectToTheApiTitle">
+        <source>Add all items in project '{0}' to the API</source>
+        <target state="translated">'{0}' projesindeki tüm öğeleri API'ye ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInTheSolutionToTheApiTitle">
+        <source>Add all items in the solution to the API</source>
+        <target state="translated">Çözümdeki tüm öğeleri API'ye ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateInternalApiDescription">
+        <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tüm genel türler ve üyeler PublicAPI.txt içinde null atanabilirlik ek açıklamalarıyla tanımlanmalıdır. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API null atanabilirlik değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateInternalApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="translated">'{0}' sembolünde, bildirilen API'deki null atanabilirlik ek açıklamaları eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateInternalApiTitle">
+        <source>Annotate nullability of internal types and members in the declared API</source>
+        <target state="translated">Tanımlanan API'deki dahili türlerin ve üyelerin null atanabilirliğine not ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiDescription">
+        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tüm genel türler ve üyeler PublicAPI.txt içinde null atanabilirlik ek açıklamalarıyla bildirilmelidir. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API null atanabilirlik değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="translated">'{0}' sembolünde, bildirilen API'deki null atanabilirlik ek açıklamaları eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiTitle">
+        <source>Annotate nullability of public types and members in the declared API</source>
+        <target state="translated">Bildirilen API'deki genel türlerin ve üyelerin null atanabilirliğine not ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
+        <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
+        <target state="translated">'{0}' sembolü geriye dönük uyumluluk gereksinimini ihlal ediyor: 'İsteğe bağlı parametreleri olan birden fazla aşırı yükleme eklemeyin'. Ayrıntılar için bkz. '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
+        <source>Do not add multiple public overloads with optional parameters</source>
+        <target state="translated">İsteğe bağlı parametreleri olan birden fazla genel aşırı yükleme eklemeyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareInternalApiDescription">
+        <source>All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tüm dahili türler ve üyeler InternalAPI.txt içinde tanımlanmalıdır. Bu, kod incelemelerindeki ve kaynak kontrol geçmişindeki API değişikliklerine dikkat çeker ve hataya neden olan değişiklikleri önlemeye yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareInternalApiMessage">
+        <source>Symbol '{0}' is not part of the declared API</source>
+        <target state="translated">'{0}' sembolü bildirilen API'nin bir parçası değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareInternalApiTitle">
+        <source>Add internal types and members to the declared API</source>
+        <target state="translated">Tanımlanan API'ye dahili türler ve üyeler ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiDescription">
+        <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tüm genel türler ve üyeler PublicAPI.txt içinde bildirilmelidir. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiMessage">
+        <source>Symbol '{0}' is not part of the declared public API</source>
+        <target state="translated">'{0}' sembolü, tanımlanan genel API'nin bir parçası değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiTitle">
+        <source>Add public types and members to the declared API</source>
+        <target state="translated">Genel türleri ve üyeleri bildirilen API'ye ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInInternalApiFilesMessage">
+        <source>The symbol '{0}' appears more than once in the internal API files</source>
+        <target state="translated">'{0}' sembolü, dahili API dosyalarında birden çok kez görünüyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInInternalApiFilesTitle">
+        <source>Do not duplicate symbols in internal API files</source>
+        <target state="translated">Sembolleri dahili API dosyalarında çoğaltmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
+        <source>The symbol '{0}' appears more than once in the public API files</source>
+        <target state="translated">'{0}' sembolü, genel API dosyalarında birden çok kez görünüyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
+        <source>Do not duplicate symbols in public API files</source>
+        <target state="translated">Genel API dosyalarında sembolleri yinelemeyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInProjectToTheApiTitle">
+        <source>Enable nullability annotations in the API for project '{0}'</source>
+        <target state="translated">'{0}' projesi için API'de null atanabilirlik ek açıklamalarını etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInTheSolutionToTheApiTitle">
+        <source>Enable nullability annotations in the API for the solution</source>
+        <target state="translated">Çözüm için API'de geçersizlik ek açıklamalarını etkinleştirin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposedNoninstantiableTypeMessage">
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
+        <target state="translated">Oluşturucu, devralınamaz temel sınıfını devralınabilir hale getirir, böylece sınıfın korumalı üyelerini kullanıma sunar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposedNoninstantiableTypeTitle">
+        <source>Constructor make noninheritable base class inheritable</source>
+        <target state="translated">Oluşturucu, devralınamayan temel sınıfı devralınabilir hale getirir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitConstructorErrorMessageName">
+        <source>implicit constructor for '{0}'</source>
+        <target state="translated">'{0}' için örtük oluşturucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitGetAccessor">
+        <source>implicit get-accessor for '{0}'</source>
+        <target state="translated">'{0}' için örtük get erişimcisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitSetAccessor">
+        <source>implicit set-accessor for '{0}'</source>
+        <target state="translated">'{0}' için örtük set erişimcisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFileMissingMessage">
+        <source>Internal API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">'{0}' dahili API dosyası eksik veya ek bir çözümleyici dosyası olarak işaretlenmemiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFileMissingTitle">
+        <source>Missing shipped or unshipped internal API file</source>
+        <target state="translated">Gönderilen veya gönderilmeyen dahili API dosyası eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFilesInvalidMessage">
+        <source>The contents of the internal API files are invalid: {0}</source>
+        <target state="translated">Dahili API dosyalarının içerikleri geçersiz: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFilesInvalidTitle">
+        <source>The contents of the internal API files are invalid</source>
+        <target state="translated">Dahili API dosyalarının içeriği geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousInternalApiDescription">
+        <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Tüm dahili üyeler, null atanabilir veya null atanamaz başvuru türleri kullanmalı, ancak habersiz başvuru türleri kullanmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousInternalApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types</source>
+        <target state="translated">'{0}' sembolü uyarısız atanabilen bazı başvuru türlerini kullanıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousInternalApiTitle">
+        <source>Internal members should not use oblivious types</source>
+        <target state="translated">Dahili üyeler habersiz türleri kullanmamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Tüm genel üyeler null atanabilir veya null atanamaz başvuru türleri kullanmalıdır ancak uyarısız atanabilen başvuru türü içermemelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types</source>
+        <target state="translated">'{0}' sembolü uyarısız atanabilen bazı başvuru türlerini kullanıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Genel üyeler uyarısız atanabilen türler kullanmamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
+        <source>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
+        <target state="translated">'{0}', geri uyumluluk gereksinimini ihlal ediyor: 'İsteğe bağlı parametre(ler) içeren API, genel aşırı yüklemeleri arasında en fazla parametreye sahip olmalıdır'. Ayrıntılar için '{1}' bölümüne bakın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
+        <source>API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="translated">İsteğe bağlı parametrelere sahip API, genel aşırı yüklemeleri arasında en fazla parametreye sahip olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">'{0}' genel API dosyası eksik veya ek bir çözümleyici dosyası olarak işaretlenmemiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="translated">Gönderilmiş veya gönderilmemiş genel API dosyası eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesInvalidMessage">
+        <source>The contents of the public API files are invalid: {0}</source>
+        <target state="translated">Genel API dosyalarının içerikleri geçersiz: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesInvalidTitle">
+        <source>The contents of the public API files are invalid</source>
+        <target state="translated">Genel API dosyalarının içerikleri geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedInternalApiDescription">
+        <source>When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Bir dahili türü veya üyeyi kaldırırken, o girişi '*REMOVED*' önekiyle InternalAPI.Unshipped.txt dosyasına koyun. Bu, kod incelemelerindeki ve kaynak denetimi geçmişindeki API değişikliklerine dikkat çeker ve değişikliklerin bozulmasını önlemeye yardımcı olur.</target>
+        <note>{Locked="*REMOVED*"}</note>
+      </trans-unit>
+      <trans-unit id="RemoveDeletedInternalApiMessage">
+        <source>Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</source>
+        <target state="translated">'{0}' sembolü tanımlanan dahili API'nin parçası, ancak dahili değil veya bulunamadı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedInternalApiTitle">
+        <source>Remove deleted types and members from the declared internal API</source>
+        <target state="translated">Silinen türleri ve üyeleri tanımlanan dahili API'den kaldırın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedPublicApiDescription">
+        <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Bir genel türü veya üyeyi kaldırırken, bu girişi PublicAPI.Unshipped.txt dosyasına '*REMOVED*' önekiyle birlikte yerleştirin. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <note>{Locked="*REMOVED*"}</note>
+      </trans-unit>
+      <trans-unit id="RemoveDeletedPublicApiMessage">
+        <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
+        <target state="translated">'{0}' sembolü bildirilen API'nin parçası, ancak genel değil veya bulunamadı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedPublicApiTitle">
+        <source>Remove deleted types and members from the declared API</source>
+        <target state="translated">Silinen türleri ve üyeleri bildirilen API'den kaldırın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">'{0}' sembolü kaldırıldı olarak işaretlenmiş ancak kaynak kodunda silinmemiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>API is marked as removed but it exists in source code</source>
+        <target state="translated">API kaldırıldı olarak işaretlendi ancak kaynak kodunda mevcut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
+        <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">InternalAPI.txt dosyalarında null atanabilirlik bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null atanabilirlik etkin olduğunda InternalAPI.txt, null atanabilir (türde `?` soneki) veya null atanamaz (`!` soneki) türleri kaydeder. Ayrıca, hala bir habersiz başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
+        <source>InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">InternalAPI.txt'de '#nullable enable' eksik, bu nedenle API'nin null atanabilirlik ek açıklamaları kaydedilmiyor. Bu izlemeyi etkinleştirmeniz önerilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateInternalApiFilesTitle">
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştirin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">PublicAPI.txt dosyalarında null atanabilirlik bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null atanabilirlik etkin olduğunda PublicAPI.txt, null atanabilir (türde `?` soneki) veya null atanamaz (`!` soneki) türleri kaydeder. Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotatePublicApiFilesMessage">
+        <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">PublicAPI.txt dosyasında '#nullable enable' eksik olduğundan API'nin null atanabilirlik ek açıklamaları kaydedilmiyor. Bu izlemenin etkinleştirilmesi önerilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotatePublicApiFilesTitle">
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştirin</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

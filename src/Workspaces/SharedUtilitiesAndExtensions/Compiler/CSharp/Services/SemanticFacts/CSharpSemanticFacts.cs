@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -61,6 +62,12 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
         foreach (var ancestor in token.GetAncestors<SyntaxNode>())
         {
+            // In a conversion declaration, you can have `public static implicit operator X<T>` Being inside the type
+            // argument is a reference location, and not a token we want to think of as declaring the conversion
+            // operator.
+            if (ancestor is TypeArgumentListSyntax)
+                return null;
+
             var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
             if (symbol != null)
             {
@@ -320,6 +327,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 }
 
                 return [];
+
             case QueryClauseSyntax queryClauseSyntax:
                 var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
                 var hasCastInfo = queryInfo.CastInfo.Symbol != null;
@@ -337,8 +345,22 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                     return queryInfo.CastInfo.GetBestOrAllSymbols();
 
                 return queryInfo.OperationInfo.GetBestOrAllSymbols();
+
             case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
                 return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
+
+            case ObjectCreationExpressionSyntax objectCreation:
+                var symbols = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).GetBestOrAllSymbols();
+                if (symbols.Length > 0)
+                    return symbols;
+
+                // `new T()` where `T` is a type parameter ends up returning nothing.  But we still want to consider
+                // this a suitable reference for type parameter.
+                var symbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).GetAnySymbol();
+                if (symbol is ITypeParameterSymbol)
+                    return [symbol];
+
+                return [];
         }
 
         //Only in the orderby clause a comma can bind to a symbol.
@@ -405,7 +427,11 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         };
 
     private static IPreprocessingSymbol? CreatePreprocessingSymbol(SemanticModel model, SyntaxToken identifier)
+#if !ROSLYN_4_12_OR_LOWER
         => model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
+#else
+        => null;
+#endif
 
     private static bool IsInPreprocessingSymbolContext(SyntaxNode node)
         => node.Ancestors().Any(n => n.Kind() is
@@ -417,7 +443,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
 
-#if !CODE_STYLE
+#if CSHARP_WORKSPACE
 
     public async Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
     {

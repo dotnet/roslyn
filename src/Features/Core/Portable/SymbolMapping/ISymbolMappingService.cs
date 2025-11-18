@@ -17,7 +17,6 @@ internal interface ISymbolMappingService : IWorkspaceService
     /// </summary>
     /// <param name="document">The document whence the symbol came</param>
     /// <param name="symbolId">The id of the symbol to map</param>
-    /// <param name="cancellationToken">To cancel symbol resolution</param>
     /// <returns>The matching symbol from the correct solution or null</returns>
     Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken = default);
 
@@ -28,7 +27,6 @@ internal interface ISymbolMappingService : IWorkspaceService
     /// </summary>
     /// <param name="document">The document whence the symbol came</param>
     /// <param name="symbol">The symbol to map</param>
-    /// <param name="cancellationToken">To cancel symbol resolution</param>
     /// <returns>The matching symbol from the correct solution or null</returns>
     Task<SymbolMappingResult?> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default);
 }

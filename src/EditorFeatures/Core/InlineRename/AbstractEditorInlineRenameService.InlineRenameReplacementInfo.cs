@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
 internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
 {
-    private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
+    private sealed class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
     {
         private readonly ConflictResolution _conflicts;
 

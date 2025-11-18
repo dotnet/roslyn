@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -44,6 +40,7 @@ internal sealed class SourceGeneratedFileItemSource(
 
     private readonly CancellationSeries _cancellationSeries = new();
     private ResettableDelay? _resettableDelay;
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     public object SourceItem => _parentGeneratorItem;
 
@@ -138,7 +135,7 @@ internal sealed class SourceGeneratedFileItemSource(
         finally
         {
             _items.EndBulkOperation();
-            _items.MarkAsInitialized();
+            _items.IsInitialized = true;
         }
     }
 
@@ -168,14 +165,13 @@ internal sealed class SourceGeneratedFileItemSource(
                         // in AfterCollapse, and _then_ subscribed here again.
 
                         cancellationToken.ThrowIfCancellationRequested();
-                        _workspace.WorkspaceChanged += OnWorkpaceChanged;
+                        _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
                         if (_workspace.CurrentSolution != solution)
                         {
                             // The workspace changed while we were doing our initial population, so
                             // refresh it. We'll just call our OnWorkspaceChanged event handler
                             // so this looks like any other change.
-                            OnWorkpaceChanged(this,
-                                new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionChanged, solution, _workspace.CurrentSolution));
+                            OnWorkspaceChanged(new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionChanged, solution, _workspace.CurrentSolution));
                         }
                     }
                 },
@@ -193,12 +189,13 @@ internal sealed class SourceGeneratedFileItemSource(
         lock (_gate)
         {
             _cancellationSeries.CreateNext(new CancellationToken(canceled: true));
-            _workspace.WorkspaceChanged -= OnWorkpaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
             _resettableDelay = null;
         }
     }
 
-    private void OnWorkpaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         if (!e.NewSolution.ContainsProject(_parentGeneratorItem.ProjectId))
         {
@@ -217,7 +214,7 @@ internal sealed class SourceGeneratedFileItemSource(
             {
                 // Time to start the work all over again. We'll ensure any previous work is cancelled
                 var cancellationToken = _cancellationSeries.CreateNext();
-                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(OnWorkpaceChanged));
+                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(OnWorkspaceChanged));
 
                 // We're going to go with a really long delay: once the user expands this we will keep it updated, but it's fairly
                 // unlikely to change in a lot of cases if a generator only produces a stable set of names.
@@ -234,35 +231,6 @@ internal sealed class SourceGeneratedFileItemSource(
 
                     return UpdateSourceGeneratedFileItemsAsync(_workspace.CurrentSolution, cancellationToken);
                 }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().CompletesAsyncOperation(asyncToken);
-            }
-        }
-    }
-
-    /// <summary>
-    /// This derivation of <see cref="ObservableCollection{T}"/> also supports raising an initialized event through
-    /// <see cref="ISupportInitializeNotification"/>. This is used to show the spinning icon in the solution explorer
-    /// the first time you expand it.
-    /// </summary>
-    private sealed class BulkObservableCollectionWithInit<T> : BulkObservableCollection<T>, ISupportInitializeNotification
-    {
-        public bool IsInitialized { get; private set; } = false;
-
-        public event EventHandler? Initialized;
-
-        void ISupportInitialize.BeginInit()
-        {
-        }
-
-        void ISupportInitialize.EndInit()
-        {
-        }
-
-        public void MarkAsInitialized()
-        {
-            if (!IsInitialized)
-            {
-                IsInitialized = true;
-                Initialized?.Invoke(this, EventArgs.Empty);
             }
         }
     }

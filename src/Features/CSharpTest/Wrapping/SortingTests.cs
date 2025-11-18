@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
-public class SortingTests
+public sealed class SortingTests
 {
     [Fact]
     public void FirstNotInMruSecondNotInMru()

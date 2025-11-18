@@ -6,16 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attributeType.IsErrorType());
 
             int argumentCount = (attributeSyntax.ArgumentList != null) ?
-                attributeSyntax.ArgumentList.Arguments.Count<AttributeArgumentSyntax>((arg) => arg.NameEquals == null) :
+                attributeSyntax.ArgumentList.Arguments.Count(static (arg) => arg.NameEquals == null) :
                 0;
             return AttributeData.IsTargetEarlyAttribute(attributeType, argumentCount, description);
         }
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 string className = this.AttributeClass.ToDisplayString(SymbolDisplayFormat.TestFormat);
 
-                if (!this.CommonConstructorArguments.Any() & !this.CommonNamedArguments.Any())
+                if (this.CommonConstructorArguments.IsEmpty && this.CommonNamedArguments.IsEmpty)
                 {
                     return className;
                 }
@@ -343,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsSecurityAttribute(compilation));
 
             var ctorArgs = this.CommonConstructorArguments;
-            if (!ctorArgs.Any())
+            if (ctorArgs.IsEmpty)
             {
                 // NOTE:    Security custom attributes must have a valid SecurityAction as its first argument, we have none here.
                 // NOTE:    Ideally, we should always generate 'CS7048: First argument to a security attribute must be a valid SecurityAction' for this case.
@@ -365,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                TypedConstant firstArg = ctorArgs.First();
+                TypedConstant firstArg = ctorArgs[0];
                 var firstArgType = (TypeSymbol?)firstArg.TypeInternal;
                 if (firstArgType is object && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
                 {

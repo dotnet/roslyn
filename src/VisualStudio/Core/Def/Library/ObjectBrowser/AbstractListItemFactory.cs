@@ -10,14 +10,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Roslyn.Utilities;
-using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 
@@ -453,7 +453,7 @@ internal abstract class AbstractListItemFactory
         return builder.ToImmutableAndClear();
     }
 
-    private class AssemblySymbolComparer : IEqualityComparer<(ProjectId, IAssemblySymbol)>
+    private sealed class AssemblySymbolComparer : IEqualityComparer<(ProjectId, IAssemblySymbol)>
     {
         public bool Equals((ProjectId, IAssemblySymbol) x, (ProjectId, IAssemblySymbol) y)
             => x.Item2.Identity.Equals(y.Item2.Identity);

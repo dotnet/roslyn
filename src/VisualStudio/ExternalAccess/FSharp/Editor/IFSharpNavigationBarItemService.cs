@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
+internal interface IFSharpNavigationBarItemService
 {
-    internal interface IFSharpNavigationBarItemService
-    {
-        Task<IList<FSharpNavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
-    }
+    Task<IList<FSharpNavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
 }

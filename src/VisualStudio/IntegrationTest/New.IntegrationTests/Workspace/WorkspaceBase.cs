@@ -49,18 +49,19 @@ public abstract class WorkspaceBase : AbstractIntegrationTest
         await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(WorkspaceBase), HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.VisualBasic, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-        await TestServices.Editor.SetTextAsync(@"Imports System
-Class Program
-    Private e As Exception
-End Class", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+            Imports System
+            Class Program
+                Private e As Exception
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Exception", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
     }
 
     public virtual async Task MetadataReference()
     {
-        var reference = "WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35";
-        await TestServices.SolutionExplorer.AddMetadataReferenceAsync(reference, "TestProj", HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddMetadataReferenceAsync("WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35", "TestProj", HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetTextAsync("class C { System.Windows.Point p; }", HangMitigatingCancellationToken);
@@ -106,16 +107,18 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.Workspace.SetFullSolutionAnalysisAsync(true, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
-        await TestServices.Editor.SetTextAsync(@"Module Program
-    Sub Main()
-        Dim x = 42
-        M(x)
-    End Sub
-    Sub M(p As Integer)
-    End Sub
-    Sub M(p As Object)
-    End Sub
-End Module", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+            Module Program
+                Sub Main()
+                    Dim x = 42
+                    M(x)
+                End Sub
+                Sub M(p As Integer)
+                End Sub
+                Sub M(p As Object)
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("(x)", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SetProjectInferAsync(ProjectName, true, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);

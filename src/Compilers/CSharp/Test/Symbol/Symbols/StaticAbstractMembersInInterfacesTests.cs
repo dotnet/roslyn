@@ -819,34 +819,34 @@ partial interface I3
                 // (4,19): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static I1() {}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("sealed").WithLocation(4, 19),
-                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 5),
-                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 5),
                 // (9,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(9, 27),
-                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 5),
-                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 5),
                 // (14,20): error CS0111: Type 'I2' already defines a member called 'I2' with the same parameter types
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I2").WithArguments("I2", "I2").WithLocation(14, 20),
-                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I3();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 5),
-                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I3();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 5),
-                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I3() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(24, 5),
-                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I3() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(24, 5),
                 // (24,27): error CS0106: The modifier 'sealed' is not valid for this item
@@ -901,48 +901,30 @@ partial interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     sealed static partial I2();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 19),
-                // (4,27): error CS0501: 'I2.I2()' must declare a body because it is not marked abstract, extern, or partial
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19),
+                // (4,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static partial I2();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I2").WithArguments("I2.I2()").WithLocation(4, 27),
-                // (4,27): error CS0542: 'I2': member names cannot be the same as their enclosing type
-                //     sealed static partial I2();
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I2").WithArguments("I2").WithLocation(4, 27),
-                // (9,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(4, 27),
+                // (9,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I2() {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(9, 12),
-                // (9,20): error CS0542: 'I2': member names cannot be the same as their enclosing type
-                //     static partial I2() {}
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I2").WithArguments("I2").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 12),
                 // (9,20): error CS0111: Type 'I2' already defines a member called 'I2' with the same parameter types
                 //     static partial I2() {}
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I2").WithArguments("I2", "I2").WithLocation(9, 20),
-                // (9,20): error CS0161: 'I2.I2()': not all code paths return a value
-                //     static partial I2() {}
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "I2").WithArguments("I2.I2()").WithLocation(9, 20),
-                // (14,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (14,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I3();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(14, 12),
-                // (14,20): error CS0501: 'I3.I3()' must declare a body because it is not marked abstract, extern, or partial
-                //     static partial I3();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I3").WithArguments("I3.I3()").WithLocation(14, 20),
-                // (14,20): error CS0542: 'I3': member names cannot be the same as their enclosing type
-                //     static partial I3();
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I3").WithArguments("I3").WithLocation(14, 20),
-                // (19,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 12),
+                // (19,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(19, 19),
-                // (19,27): error CS0542: 'I3': member names cannot be the same as their enclosing type
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 19),
+                // (19,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I3").WithArguments("I3").WithLocation(19, 27),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(19, 27),
                 // (19,27): error CS0111: Type 'I3' already defines a member called 'I3' with the same parameter types
                 //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I3").WithArguments("I3", "I3").WithLocation(19, 27),
-                // (19,27): error CS0161: 'I3.I3()': not all code paths return a value
-                //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "I3").WithArguments("I3.I3()").WithLocation(19, 27)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I3").WithArguments("I3", "I3").WithLocation(19, 27)
                 );
         }
 
@@ -1623,7 +1605,7 @@ interface I1
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "E01").WithArguments("I1.E01").WithLocation(6, 49),
                 // (7,40): error CS0558: User-defined operator 'I1.operator +(I1)' must be declared static and public
                 //     private abstract static I1 operator+ (I1 x);
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "+").WithArguments("I1.operator +(I1)").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "+").WithArguments("I1.operator +(I1)").WithLocation(7, 40)
                 );
         }
 
@@ -10053,25 +10035,6 @@ class Test
     {
         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b " + op + op + @" b).ToString());
     }
-
-    static void MT3(I1 b, dynamic c)
-    {
-        _ = b " + op + op + @" c;
-    }
-";
-                if (!success)
-                {
-                    source1 +=
-    @"
-    static void MT4<T>() where T : I1
-    {
-        _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d " + op + op + @" e).ToString());
-    }
-";
-                }
-
-                source1 +=
-@"
 }
 ";
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10107,107 +10070,10 @@ class Test
   IL_0015:  ret
 }
 ");
-
-                    if (op == "&")
-                    {
-                        verifier.VerifyIL("Test.MT3(I1, dynamic)",
-@"
-{
-  // Code size       97 (0x61)
-  .maxstack  8
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""bool I1.op_False(I1)""
-  IL_0007:  brtrue.s   IL_0060
-  IL_0009:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_000e:  brfalse.s  IL_0012
-  IL_0010:  br.s       IL_0047
-  IL_0012:  ldc.i4.8
-  IL_0013:  ldc.i4.2
-  IL_0014:  ldtoken    ""Test""
-  IL_0019:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001e:  ldc.i4.2
-  IL_001f:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0024:  dup
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldc.i4.1
-  IL_0027:  ldnull
-  IL_0028:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002d:  stelem.ref
-  IL_002e:  dup
-  IL_002f:  ldc.i4.1
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldnull
-  IL_0032:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0037:  stelem.ref
-  IL_0038:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_003d:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0042:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_004c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Target""
-  IL_0051:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0056:  ldarg.0
-  IL_0057:  ldarg.1
-  IL_0058:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, I1, dynamic)""
-  IL_005d:  pop
-  IL_005e:  br.s       IL_0060
-  IL_0060:  ret
-}
-");
-                    }
-                    else
-                    {
-                        verifier.VerifyIL("Test.MT3(I1, dynamic)",
-@"
-{
-  // Code size       98 (0x62)
-  .maxstack  8
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""bool I1.op_True(I1)""
-  IL_0007:  brtrue.s   IL_0061
-  IL_0009:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_000e:  brfalse.s  IL_0012
-  IL_0010:  br.s       IL_0048
-  IL_0012:  ldc.i4.8
-  IL_0013:  ldc.i4.s   36
-  IL_0015:  ldtoken    ""Test""
-  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001f:  ldc.i4.2
-  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0025:  dup
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  ldnull
-  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002e:  stelem.ref
-  IL_002f:  dup
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldc.i4.0
-  IL_0032:  ldnull
-  IL_0033:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0038:  stelem.ref
-  IL_0039:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_003e:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0043:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_004d:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Target""
-  IL_0052:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0057:  ldarg.0
-  IL_0058:  ldarg.1
-  IL_0059:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, I1, dynamic)""
-  IL_005e:  pop
-  IL_005f:  br.s       IL_0061
-  IL_0061:  ret
-}
-");
-                    }
                 }
                 else
                 {
-                    var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                    builder.AddRange(
+                    compilation1.VerifyDiagnostics(
                         // (10,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
                         //         _ = x && x;
                         Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + op + " x").WithLocation(10, 13),
@@ -10221,24 +10087,62 @@ class Test
                         //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b && b).ToString());
                         Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + op + " b").WithLocation(28, 78)
                         );
-
-                    if (op == "&" ? falseIsAbstract : trueIsAbstract)
-                    {
-                        builder.Add(
-                            // (33,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                            //         _ = b || c;
-                            Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "b " + op + op + " c").WithLocation(33, 13)
-                            );
-                    }
-
-                    builder.Add(
-                        // (38,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must define operator 'true'.
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d || e).ToString());
-                        Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(38, 98)
-                        );
-
-                    compilation1.VerifyDiagnostics(builder.ToArrayAndFree());
                 }
+            }
+        }
+
+        [Theory]
+        [InlineData("&", true, false, false)]
+        [InlineData("|", true, false, false)]
+        [InlineData("&", false, false, true)]
+        [InlineData("|", false, true, false)]
+        [InlineData("&", true, false, true)]
+        [InlineData("|", true, true, false)]
+        [InlineData("&", false, true, false)]
+        [InlineData("|", false, false, true)]
+        public void ConsumeAbstractLogicalBinaryOperator_01_Dynamic(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract)
+        {
+            consumeAbstractLogicalBinaryOperator_01_Dynamic(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, isVirtual: false);
+            consumeAbstractLogicalBinaryOperator_01_Dynamic(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, isVirtual: true);
+
+            void consumeAbstractLogicalBinaryOperator_01_Dynamic(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool isVirtual)
+            {
+                var (modifier, body) = GetModifierAndBody(isVirtual);
+
+                var source1 =
+@"
+interface I1
+{
+    " + (binaryIsAbstract ? modifier : "") + @" static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? body : " => throw null;") + @"
+    " + (trueIsAbstract ? modifier : "") + @" static bool operator true (I1 x)" + (trueIsAbstract ? body : " => throw null;") + @"
+    " + (falseIsAbstract ? modifier : "") + @" static bool operator false (I1 x)" + (falseIsAbstract ? body : " => throw null;") + @"
+}
+
+class Test
+{
+    static void MT3(I1 b, dynamic c)
+    {
+        _ = b " + op + op + @" c;
+    }
+
+    static void MT4<T>() where T : I1
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d " + op + op + @" e).ToString());
+    }
+}
+";
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: _supportingFramework);
+
+                compilation1.VerifyDiagnostics(
+                    // (13,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'false'.
+                    //         _ = b && c;
+                    Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "b").WithArguments("I1", op == "&" ? "false" : "true").WithLocation(13, 13),
+                    // (18,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must not be an interface and must define operator 'false'.
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d && e).ToString());
+                    Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(18, 98)
+                    );
             }
         }
 
@@ -15571,9 +15475,9 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01()'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01()").WithLocation(36, 10),
-                // (38,19): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,19): error CS9334: 'C6.M01()' return type must be 'void' to match implemented member 'I1.M01()'
                 //     static int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 19)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01()", "void", "I1.M01()").WithLocation(38, 19)
                 );
         }
 
@@ -15633,9 +15537,9 @@ public interface I1
                 // (26,13): error CS0539: 'C4.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01()").WithLocation(26, 13),
-                // (38,19): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,19): error CS9334: 'C6.M01()' return type must be 'void' to match implemented member 'I1.M01()'
                 //     static int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 19)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01()", "void", "I1.M01()").WithLocation(38, 19)
                 );
         }
 
@@ -15713,9 +15617,9 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01()'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01()").WithLocation(36, 10),
-                // (38,12): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,12): error CS9334: 'C6.M01()' return type must be 'void' to match implemented member 'I1.M01()'
                 //     int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 12)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01()", "void", "I1.M01()").WithLocation(38, 12)
                 );
         }
 
@@ -17521,7 +17425,7 @@ public class C2 : C1<int>, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "true", "false")] string op, bool structure, bool isChecked)
         {
             var typeKeyword = structure ? "struct" : "class";
 
@@ -17616,13 +17520,13 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + checkedKeyword + op + "(C2)", "C2.operator " + checkedKeyword + op + "(C2)").WithLocation(12, 10),
                 // (14,24): error CS0558: User-defined operator 'C2.operator +(C2)' must be declared static and public
                 //     public C2 operator +(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator +(C3)'. 'C3.operator +(C3)' cannot implement an interface member because it is not public.
                 //     C3 : I1<C3>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + checkedKeyword + op + "(C3)", "C3.operator " + checkedKeyword + op + "(C3)").WithLocation(18, 10),
                 // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
                 //     static C3 operator +(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + checkedKeyword + op + "(C4)").WithLocation(24, 10),
@@ -17638,9 +17542,9 @@ public interface I2<T> where T : I2<T>
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator +(C6)'
                 //     C6 : I1<C6>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(36, 10),
-                // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,32): error CS9334: 'C6.operator +(C6)' return type must be 'C6' to match implemented member 'I1<C6>.operator +(C6)'
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator +(C7)'
                 //     C7 : I1<C7>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7)").WithLocation(42, 10),
@@ -17664,7 +17568,150 @@ public interface I2<T> where T : I2<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementVirtualStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticIncrementOperator_01([CombinatorialValues("++", "--")] string op, bool structure, bool isChecked)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + checkedKeyword + op + @"(T x);
+}
+
+" + typeKeyword + @"
+    C1 : I1<C1>
+{}
+
+" + typeKeyword + @"
+    C2 : I1<C2>
+{
+    public C2 operator " + checkedKeyword + op + @"(C2 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C3 : I1<C3>
+{
+    static C3 operator " + checkedKeyword + op + @"(C3 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C4 : I1<C4>
+{
+    C4 I1<C4>.operator " + checkedKeyword + op + @"(C4 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C5 : I1<C5>
+{
+    public static int operator " + checkedKeyword + op + @" (C5 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C6 : I1<C6>
+{
+    static int I1<C6>.operator " + checkedKeyword + op + @" (C6 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C7 : I1<C7>
+{
+    public static C7 " + opName + @"(C7 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C8 : I1<C8>
+{
+    static C8 I1<C8>." + opName + @"(C8 x) => throw null;
+}
+
+public interface I2<T> where T : I2<T>
+{
+    abstract static T " + opName + @"(T x);
+}
+
+" + typeKeyword + @"
+    C9 : I2<C9>
+{
+    public static C9 operator " + checkedKeyword + op + @"(C9 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C10 : I2<C10>
+{
+    static C10 I2<C10>.operator " + checkedKeyword + op + @"(C10 x) => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator +(C1)'
+                //     C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + checkedKeyword + op + "(C1)").WithLocation(8, 10),
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.operator +(C2)'. 'C2.operator +(C2)' cannot implement the interface member because it is not static.
+                //     C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + checkedKeyword + op + "(C2)", "C2.operator " + checkedKeyword + op + "(C2)").WithLocation(12, 10),
+                // (14,32): error CS0558: User-defined operator 'C2.operator checked ++(C2)' must be declared static and public
+                //     public C2 operator ++(C2 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
+                // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator +(C3)'. 'C3.operator +(C3)' cannot implement an interface member because it is not public.
+                //     C3 : I1<C3>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + checkedKeyword + op + "(C3)", "C3.operator " + checkedKeyword + op + "(C3)").WithLocation(18, 10),
+                // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
+                //     static C3 operator +(C3 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
+                // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4)'
+                //     C4 : I1<C4>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + checkedKeyword + op + "(C4)").WithLocation(24, 10),
+                // (26,32): error CS8930: Explicit implementation of a user-defined operator 'C4.operator checked ++(C4)' must be declared static
+                //     C4 I1<C4>.operator ++(C4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
+                // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     C4 I1<C4>.operator +(C4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
+                // (30,10): error CS0738: 'C5' does not implement interface member 'I1<C5>.operator +(C5)'. 'C5.operator +(C5)' cannot implement 'I1<C5>.operator +(C5)' because it does not have the matching return type of 'C5'.
+                //     C5 : I1<C5>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + checkedKeyword + op + "(C5)", "C5.operator " + checkedKeyword + op + "(C5)", "C5").WithLocation(30, 10),
+                // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator +(C6)'
+                //     C6 : I1<C6>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(36, 10),
+                // (38,32): error CS9334: 'C6.operator +(C6)' return type must be 'C6' to match implemented member 'I1<C6>.operator +(C6)'
+                //     static int I1<C6>.operator + (C6 x) => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator +(C7)'
+                //     C7 : I1<C7>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7)").WithLocation(42, 10),
+                // (48,10): error CS0535: 'C8' does not implement interface member 'I1<C8>.operator +(C8)'
+                //     C8 : I1<C8>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + checkedKeyword + op + "(C8)").WithLocation(48, 10),
+                // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
+                // (59,10): error CS0535: 'C9' does not implement interface member 'I2<C9>.op_UnaryPlus(C9)'
+                //     C9 : I2<C9>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C9>").WithArguments("C9", "I2<C9>." + opName + "(C9)").WithLocation(59, 10),
+                // (65,11): error CS0535: 'C10' does not implement interface member 'I2<C10>.op_UnaryPlus(C10)'
+                //     C10 : I2<C10>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C10>").WithArguments("C10", "I2<C10>." + opName + "(C10)").WithLocation(65, 11),
+                // (67,33): error CS0539: 'C10.operator +(C10)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C10 I2<C10>.operator +(C10 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + checkedKeyword + op + "(C10)").WithLocation(67, 33 + checkedKeyword.Length)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementVirtualStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "true", "false")] string op, bool structure, bool isChecked)
         {
             var typeKeyword = structure ? "struct" : "class";
 
@@ -17753,19 +17800,132 @@ public interface I2<T> where T : I2<T>
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (14,24): error CS0558: User-defined operator 'C2.operator +(C2)' must be declared static and public
                 //     public C2 operator +(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
                 // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
                 //     static C3 operator +(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
                 // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator +(C4)' must be declared static
                 //     C4 I1<C4>.operator +(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     C4 I1<C4>.operator +(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
-                // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,32): error CS9334: 'C6.operator +(C6)' return type must be 'C6' to match implemented member 'I1<C6>.operator +(C6)'
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
+                // (67,33): error CS0539: 'C10.operator +(C10)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C10 I2<C10>.operator +(C10 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + checkedKeyword + op + "(C10)").WithLocation(67, 33 + checkedKeyword.Length)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementVirtualStaticIncrementOperator_01([CombinatorialValues("++", "--")] string op, bool structure, bool isChecked)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static T operator " + checkedKeyword + op + @"(T x) => x;
+}
+
+" + typeKeyword + @"
+    C1 : I1<C1>
+{}
+
+" + typeKeyword + @"
+    C2 : I1<C2>
+{
+    public C2 operator " + checkedKeyword + op + @"(C2 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C3 : I1<C3>
+{
+    static C3 operator " + checkedKeyword + op + @"(C3 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C4 : I1<C4>
+{
+    C4 I1<C4>.operator " + checkedKeyword + op + @"(C4 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C5 : I1<C5>
+{
+    public static int operator " + checkedKeyword + op + @" (C5 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C6 : I1<C6>
+{
+    static int I1<C6>.operator " + checkedKeyword + op + @" (C6 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C7 : I1<C7>
+{
+    public static C7 " + opName + @"(C7 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C8 : I1<C8>
+{
+    static C8 I1<C8>." + opName + @"(C8 x) => throw null;
+}
+
+public interface I2<T> where T : I2<T>
+{
+    virtual static T " + opName + @"(T x) => x;
+}
+
+" + typeKeyword + @"
+    C9 : I2<C9>
+{
+    public static C9 operator " + checkedKeyword + op + @"(C9 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C10 : I2<C10>
+{
+    static C10 I2<C10>.operator " + checkedKeyword + op + @"(C10 x) => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (14,24): error CS0558: User-defined operator 'C2.operator ++(C2)' must be declared static and public
+                //     public C2 operator ++(C2 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
+                // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
+                //     static C3 operator +(C3 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
+                // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator ++(C4)' must be declared static
+                //     C4 I1<C4>.operator ++(C4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
+                // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     C4 I1<C4>.operator +(C4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
+                // (38,32): error CS9334: 'C6.operator +(C6)' return type must be 'C6' to match implemented member 'I1<C6>.operator +(C6)'
+                //     static int I1<C6>.operator + (C6 x) => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
@@ -17895,13 +18055,13 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + checkedKeyword + op + "(C2, int)", "C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(12, 10),
                 // (14,24): error CS0558: User-defined operator 'C2.operator >>(C2, int)' must be declared static and public
                 //     public C2 operator >>(C2 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(14, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(14, 24 + checkedKeyword.Length),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator >>(C3, int)'. 'C3.operator >>(C3, int)' cannot implement an interface member because it is not public.
                 //     C3 : I1<C3>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + checkedKeyword + op + "(C3, int)", "C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(18, 10),
                 // (20,24): error CS0558: User-defined operator 'C3.operator >>(C3, int)' must be declared static and public
                 //     static C3 operator >>(C3 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(20, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(20, 24 + checkedKeyword.Length),
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator >>(C4, int)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + checkedKeyword + op + "(C4, int)").WithLocation(24, 10),
@@ -17917,9 +18077,9 @@ public interface I2<T> where T : I2<T>
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator >>(C6, int)'
                 //     C6 : I1<C6>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(36, 10),
-                // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,32): error CS9334: 'C6.operator >>(C6, int)' return type must be 'C6' to match implemented member 'I1<C6>.operator >>(C6, int)'
                 //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator >>(C7, int)'
                 //     C7 : I1<C7>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7, int)").WithLocation(42, 10),
@@ -18032,19 +18192,19 @@ public interface I2<T> where T : I2<T>
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (14,24): error CS0558: User-defined operator 'C2.operator >>(C2, int)' must be declared static and public
                 //     public C2 operator >>(C2 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(14, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(14, 24 + checkedKeyword.Length),
                 // (20,24): error CS0558: User-defined operator 'C3.operator >>(C3, int)' must be declared static and public
                 //     static C3 operator >>(C3 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(20, 24 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(20, 24 + checkedKeyword.Length),
                 // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator >>(C4, int)' must be declared static
                 //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (26,24): error CS0539: 'C4.operator >>(C4, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
-                // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,32): error CS9334: 'C6.operator >>(C6, int)' return type must be 'C6' to match implemented member 'I1<C6>.operator >>(C6, int)'
                 //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (50,22): error CS0539: 'C8.op_RightShift(C8, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_RightShift(C8 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8, int)").WithLocation(50, 22),
@@ -18056,7 +18216,7 @@ public interface I2<T> where T : I2<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
+        public void ImplementAbstractStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "true", "false")] string op, bool isChecked)
         {
             if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -18144,7 +18304,7 @@ interface I14 : I1
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (12,17): error CS0558: User-defined operator 'I3.operator +(I1)' must be declared static and public
                 //     I1 operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
                 // (12,17): error CS0562: The parameter of a unary operator must be the containing type
                 //     I1 operator +(I1 x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(12, 17 + checkedKeyword.Length),
@@ -18162,7 +18322,7 @@ interface I14 : I1
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
                 // (42,16): error CS0558: User-defined operator 'I8<T>.operator +(T)' must be declared static and public
                 //     T operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
                 // (42,16): error CS0562: The parameter of a unary operator must be the containing type
                 //     T operator +(T x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
@@ -18203,7 +18363,154 @@ interface I14 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementVirtualStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
+        public void ImplementAbstractStaticIncrementOperator_03([CombinatorialValues("++", "--")] string op, bool isChecked)
+        {
+            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
+}
+
+interface I2 : I1
+{}
+
+interface I3 : I1
+{
+    I1 operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I4 : I1
+{
+    static I1 operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I5 : I1
+{
+    I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I6 : I1
+{
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I7 : I1
+{
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
+}
+
+public interface I11<T> where T : I11<T>
+{
+    abstract static T operator " + checkedKeyword + op + @"(T x);
+}
+
+interface I8<T> : I11<T> where T : I8<T>
+{
+    T operator " + checkedKeyword + op + @"(T x) => default;
+}
+
+interface I9<T> : I11<T> where T : I9<T>
+{
+    static T operator " + checkedKeyword + op + @"(T x) => default;
+}
+
+interface I10<T> : I11<T> where T : I10<T>
+{
+    abstract static T operator " + checkedKeyword + op + @"(T x);
+}
+
+interface I12<T> : I11<T> where T : I12<T>
+{
+    static T I11<T>.operator " + checkedKeyword + op + @"(T x) => default;
+}
+
+interface I13<T> : I11<T> where T : I13<T>
+{
+    abstract static T I11<T>.operator " + checkedKeyword + op + @"(T x);
+}
+
+interface I14 : I1
+{
+    abstract static I1 I1.operator " + checkedKeyword + op + @"(I1 x);
+}
+";
+
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            ErrorCode badSignatureError = op.Length != 2 ? ErrorCode.ERR_BadUnaryOperatorSignature : ErrorCode.ERR_BadIncDecSignature;
+            ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
+                // (12,17): error CS0558: User-defined operator 'I3.operator ++(I1)' must be declared static and public
+                //     I1 operator ++(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
+                // (12,17): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     I1 operator ++(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(12, 17 + checkedKeyword.Length),
+                // (17,24): error CS0562: The parameter of a unary operator must be the containing type
+                //     static I1 operator +(I1 x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
+                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator ++(I1)' must be declared static
+                //     I1 I1.operator ++(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
+                // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
+                // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     abstract static I1 operator +(I1 x);
+                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
+                // (42,16): error CS0558: User-defined operator 'I8<T>.operator ++(T)' must be declared static and public
+                //     T operator ++(T x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
+                // (42,16): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     T operator ++(T x) => default;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(42, 16 + checkedKeyword.Length),
+                // (47,23): error CS0562: The parameter of a unary operator must be the containing type
+                //     static T operator +(T x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length)
+                );
+
+            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+
+            var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
+            Assert.Null(i8.FindImplementationForInterfaceMember(i8.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i9 = compilation1.GlobalNamespace.GetTypeMember("I9");
+            Assert.Null(i9.FindImplementationForInterfaceMember(i9.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i10 = compilation1.GlobalNamespace.GetTypeMember("I10");
+            Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
+            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
+            Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementVirtualStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "true", "false")] string op, bool isChecked)
         {
             if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -18291,7 +18598,7 @@ interface I14 : I1
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (12,17): error CS0558: User-defined operator 'I3.operator +(I1)' must be declared static and public
                 //     I1 operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
                 // (12,17): error CS0562: The parameter of a unary operator must be the containing type
                 //     I1 operator +(I1 x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(12, 17 + checkedKeyword.Length),
@@ -18309,10 +18616,163 @@ interface I14 : I1
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
                 // (42,16): error CS0558: User-defined operator 'I8<T>.operator +(T)' must be declared static and public
                 //     T operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
                 // (42,16): error CS0562: The parameter of a unary operator must be the containing type
                 //     T operator +(T x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
+                // (47,23): error CS0562: The parameter of a unary operator must be the containing type
+                //     static T operator +(T x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
+                // (62,39): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual  static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(62, 39 + checkedKeyword.Length),
+                // (67,36): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual  static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(67, 36 + checkedKeyword.Length)
+                );
+
+            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
+            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
+            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
+            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
+            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+
+            foreach (var name in new[] { "I8", "I9", "I10" })
+            {
+                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
+                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                Assert.Same(iXM, iX.FindImplementationForInterfaceMember(iXM));
+            }
+
+            foreach (var name in new[] { "I12", "I13" })
+            {
+                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
+                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                Assert.Same(iX.GetMembers().OfType<MethodSymbol>().Single(), iX.FindImplementationForInterfaceMember(iXM));
+            }
+
+            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
+            Assert.Same(i14.GetMembers().OfType<MethodSymbol>().Single(), i14.FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementVirtualStaticIncrementOperator_03([CombinatorialValues("++", "--")] string op, bool isChecked)
+        {
+            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
+            var source1 =
+@"
+public interface I1
+{
+    virtual  static I1 operator " + checkedKeyword + op + @"(I1 x) => x;
+}
+
+interface I2 : I1
+{}
+
+interface I3 : I1
+{
+    I1 operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I4 : I1
+{
+    static I1 operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I5 : I1
+{
+    I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I6 : I1
+{
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
+}
+
+interface I7 : I1
+{
+    virtual  static I1 operator " + checkedKeyword + op + @"(I1 x) => x;
+}
+
+public interface I11<T> where T : I11<T>
+{
+    virtual  static T operator " + checkedKeyword + op + @"(T x) => x;
+}
+
+interface I8<T> : I11<T> where T : I8<T>
+{
+    T operator " + checkedKeyword + op + @"(T x) => default;
+}
+
+interface I9<T> : I11<T> where T : I9<T>
+{
+    static T operator " + checkedKeyword + op + @"(T x) => default;
+}
+
+interface I10<T> : I11<T> where T : I10<T>
+{
+    virtual  static T operator " + checkedKeyword + op + @"(T x) => x;
+}
+
+interface I12<T> : I11<T> where T : I12<T>
+{
+    static T I11<T>.operator " + checkedKeyword + op + @"(T x) => default;
+}
+
+interface I13<T> : I11<T> where T : I13<T>
+{
+    virtual  static T I11<T>.operator " + checkedKeyword + op + @"(T x) => x;
+}
+
+interface I14 : I1
+{
+    virtual  static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => x;
+}
+";
+
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            ErrorCode badSignatureError = op.Length != 2 ? ErrorCode.ERR_BadUnaryOperatorSignature : ErrorCode.ERR_BadIncDecSignature;
+            ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
+                // (12,17): error CS0558: User-defined operator 'I3.operator ++(I1)' must be declared static and public
+                //     I1 operator ++(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
+                // (12,17): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     I1 operator ++(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(12, 17 + checkedKeyword.Length),
+                // (17,24): error CS0562: The parameter of a unary operator must be the containing type
+                //     static I1 operator +(I1 x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
+                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator ++(I1)' must be declared static
+                //     I1 I1.operator ++(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
+                // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
+                // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     virtual  static I1 operator +(I1 x);
+                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
+                // (42,16): error CS0558: User-defined operator 'I8<T>.operator ++(T)' must be declared static and public
+                //     T operator ++(T x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
+                // (42,16): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     T operator ++(T x) => default;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
                 //     static T operator +(T x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
@@ -18494,7 +18954,7 @@ interface I14 : I1
                     new[] {
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
                         // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
                         //     I1 I1.operator |(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
@@ -18503,7 +18963,7 @@ interface I14 : I1
                         Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
                         // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
                         //     T operator |(T x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
                         }
                     ).ToArray();
             }
@@ -18686,7 +19146,7 @@ interface I14 : I1
                     new[] {
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
                         // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
                         //     I1 I1.operator |(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
@@ -18695,7 +19155,7 @@ interface I14 : I1
                         Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
                         // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
                         //     T operator |(T x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
                         }
                     ).ToArray();
             }
@@ -22401,9 +22861,9 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
-                // (38,20): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,20): error CS9333: 'C6.M01' type must be 'int' to match implemented member 'I1.M01'
                 //     static long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 20)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "int", "I1.M01").WithLocation(38, 20)
                 );
         }
 
@@ -22463,9 +22923,9 @@ public interface I1
                 // (26,12): error CS0539: 'C4.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 12),
-                // (38,20): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,20): error CS9333: 'C6.M01' type must be 'int' to match implemented member 'I1.M01'
                 //     static long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 20)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "int", "I1.M01").WithLocation(38, 20)
                 );
         }
 
@@ -22543,9 +23003,9 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
-                // (38,13): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,13): error CS9333: 'C6.M01' type must be 'int' to match implemented member 'I1.M01'
                 //     long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 13)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "int", "I1.M01").WithLocation(38, 13)
                 );
         }
 
@@ -25180,9 +25640,9 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
-                // (38,40): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,40): error CS9333: 'C6.M01' type must be 'System.Action' to match implemented member 'I1.M01'
                 //     static event System.Action<int> I1.M01 { add{} remove{}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 40)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "System.Action", "I1.M01").WithLocation(38, 40)
                 );
         }
 
@@ -25242,9 +25702,9 @@ public interface I1
                 // (26,28): error CS0539: 'C4.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.M01 { add{} remove{}}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 28),
-                // (38,40): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,40): error CS9333: 'C6.M01' type must be 'System.Action' to match implemented member 'I1.M01'
                 //     static event System.Action<int> I1.M01 { add{} remove{}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 40)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "System.Action", "I1.M01").WithLocation(38, 40)
                 );
         }
 
@@ -25322,9 +25782,9 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
-                // (38,33): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,33): error CS9333: 'C6.M01' type must be 'System.Action' to match implemented member 'I1.M01'
                 //     event System.Action<int> I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 33)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "System.Action", "I1.M01").WithLocation(38, 33)
                 );
         }
 
@@ -27901,13 +28361,13 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>." + op + " operator " + checkedKeyword + "int(C2)", "C2." + op + " operator " + checkedKeyword + "int(C2)").WithLocation(12, 10),
                 // (14,30): error CS0558: User-defined operator 'C2.explicit operator int(C2)' must be declared static and public
                 //     public explicit operator int(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C2)").WithLocation(14, 30 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C2)").WithLocation(14, 30 + checkedKeyword.Length),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.explicit operator int(C3)'. 'C3.explicit operator int(C3)' cannot implement an interface member because it is not public.
                 //     C3 : I1<C3>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>." + op + " operator " + checkedKeyword + "int(C3)", "C3." + op + " operator " + checkedKeyword + "int(C3)").WithLocation(18, 10),
                 // (20,30): error CS0558: User-defined operator 'C3.explicit operator int(C3)' must be declared static and public
                 //     static explicit operator int(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("C3." + op + " operator " + checkedKeyword + "int(C3)").WithLocation(20, 30 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("C3." + op + " operator " + checkedKeyword + "int(C3)").WithLocation(20, 30 + checkedKeyword.Length),
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.explicit operator int(C4)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>." + op + " operator " + checkedKeyword + "int(C4)").WithLocation(24, 10),
@@ -27923,9 +28383,9 @@ public interface I2<T> where T : I2<T>
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.explicit operator int(C6)'
                 //     C6 : I1<C6>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(36, 10),
-                // (38,37): error CS0539: 'C6.explicit operator long(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,37): error CS9334: 'C6.explicit operator long(C6)' return type must be 'int' to match implemented member 'I1<C6>.explicit operator int(C6)'
                 //     static explicit I1<C6>.operator long(C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)").WithLocation(38, 37 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)", "int", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(38, 37 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.explicit operator int(C7)'
                 //     C7 : I1<C7>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>." + op + " operator " + checkedKeyword + "int(C7)").WithLocation(42, 10),
@@ -28038,19 +28498,19 @@ public interface I2<T> where T : I2<T>
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (14,30): error CS0558: User-defined operator 'C2.explicit operator int(C2)' must be declared static and public
                 //     public explicit operator int(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C2)").WithLocation(14, 30 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C2)").WithLocation(14, 30 + checkedKeyword.Length),
                 // (20,30): error CS0558: User-defined operator 'C3.explicit operator int(C3)' must be declared static and public
                 //     static explicit operator int(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("C3." + op + " operator " + checkedKeyword + "int(C3)").WithLocation(20, 30 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("C3." + op + " operator " + checkedKeyword + "int(C3)").WithLocation(20, 30 + checkedKeyword.Length),
                 // (26,30): error CS8930: Explicit implementation of a user-defined operator 'C4.explicit operator int(C4)' must be declared static
                 //     explicit I1<C4>.operator int(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C4." + op + " operator " + checkedKeyword + "int(C4)").WithLocation(26, 30 + checkedKeyword.Length),
                 // (26,30): error CS0539: 'C4.explicit operator int(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     explicit I1<C4>.operator int(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C4." + op + " operator " + checkedKeyword + "int(C4)").WithLocation(26, 30 + checkedKeyword.Length),
-                // (38,37): error CS0539: 'C6.explicit operator long(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (38,37): error CS9334: 'C6.explicit operator long(C6)' return type must be 'int' to match implemented member 'I1<C6>.explicit operator int(C6)'
                 //     static explicit I1<C6>.operator long(C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)").WithLocation(38, 37 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)", "int", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(38, 37 + checkedKeyword.Length),
                 // (50,23): error CS0539: 'C8.op_Explicit(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C8>.op_Explicit(C8 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 23),

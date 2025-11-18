@@ -11,13 +11,13 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.MetadataReader;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using Token = System.Reflection.Adds.Token;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -183,23 +183,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         string IDkmClrFullNameProvider2.GetClrNameForField(DkmInspectionContext inspectionContext, DkmClrModuleInstance moduleInstance, int fieldToken)
         {
             using var importHolder = moduleInstance.GetMetaDataImportHolder();
+            Token tkField = new Token(fieldToken);
 
             // Just get some of information about properties. Get rest later only if needed.
-            int hr = importHolder.Value.GetFieldProps(fieldToken, out _, null, 0, out var nameLength, out _, out _, out _, out _, out _, out _);
+            int hr = importHolder.PortableValue.GetFieldProps(tkField, out _, null, 0, out uint nameLength, out _, out _, out _, out _, out _, out _);
             const int S_OK = 0;
             if (hr != S_OK)
             {
                 throw new ArgumentException("Invalid field token.", nameof(fieldToken));
             }
 
-            var sb = new StringBuilder(nameLength);
-            hr = importHolder.Value.GetFieldProps(fieldToken, out _, sb, sb.Capacity, out _, out _, out _, out _, out _, out _, out _);
+            char[] szField = new char[nameLength];
+            hr = importHolder.PortableValue.GetFieldProps(tkField, out _, szField, nameLength, out uint actualLength, out _, out _, out _, out _, out _, out _);
             if (hr != S_OK)
             {
                 throw new DkmException((DkmExceptionCode)hr);
             }
 
-            string metadataName = sb.ToString();
+            string metadataName = actualLength > 0 ? new string(szField, 0, (int)actualLength - 1) : string.Empty;
             return GetOriginalFieldName(metadataName);
         }
 

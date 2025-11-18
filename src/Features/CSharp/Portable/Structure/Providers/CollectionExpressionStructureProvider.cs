@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class CollectionExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<CollectionExpressionSyntax>
+internal sealed class CollectionExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<CollectionExpressionSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,

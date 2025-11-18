@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 /// <remarks>
 /// Since LSP 3.17
 /// </remarks>
-internal class WorkspaceDiagnosticParams : IWorkDoneProgressParams, IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
+internal sealed class WorkspaceDiagnosticParams : IWorkDoneProgressParams, IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
 {
     /// <summary>
     /// An <see cref="IProgress{T}"/> instance that can be used to report partial results

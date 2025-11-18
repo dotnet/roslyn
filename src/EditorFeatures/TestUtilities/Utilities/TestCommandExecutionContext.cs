@@ -6,11 +6,10 @@
 
 using Microsoft.VisualStudio.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+
+internal static class TestCommandExecutionContext
 {
-    internal static class TestCommandExecutionContext
-    {
-        public static CommandExecutionContext Create()
-            => new CommandExecutionContext(new TestUIThreadOperationContext());
-    }
+    public static CommandExecutionContext Create()
+        => new(new TestUIThreadOperationContext());
 }

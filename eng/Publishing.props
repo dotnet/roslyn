@@ -1,21 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project>
-   <PropertyGroup>
-      <PublishingVersion>3</PublishingVersion>
-   </PropertyGroup>
 
   <PropertyGroup>
     <PublishDependsOnTargets>_ResolvePublishRoslynNuGetPackages;$(PublishDependsOnTargets)</PublishDependsOnTargets>
   </PropertyGroup>
 
+  <!-- Update Artifacts with Kind=Package to have additional metadata item Category="ToolingPackage".
+       Depending on channel configuration, this means that these assets could be pushed to a different feed.
+       Do not include these for source-only builds since these files aren't intended to be published in that mode. -->
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <Artifact Update="@(Artifact->WithMetadataValue('Kind', 'Package'))" Category="ToolingPackage" />
+
+    <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.pdb" />
+    <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.Sdk.pdb" />
+  </ItemGroup>
+
   <!--
     During PR Validation we only need to publish symbols with Arcade,
     since our packages are published separately to the CoreXT feed.
+
+    Also, do not publish any symbols packages in source-only builds.
   -->
   <Target Name="_ResolvePublishRoslynNuGetPackages"
           DependsOnTargets="BeforePublish"
           BeforeTargets="PublishToAzureDevOpsArtifacts"
-          Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' ">
+          Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' or '$(DotNetBuildSourceOnly)' == 'true' ">
+
     <ItemGroup>
       <!-- Determine all NuGet packages being published -->
       <_NuGetPackagesToPush Include="@(ItemsToPushToBlobFeed)"
@@ -24,12 +33,25 @@
       <!-- Determine all symbol packages being published -->
       <_SymbolPackagesToPush Include="@(_NuGetPackagesToPush)"
                              Condition="$([System.String]::Copy(%(FullPath)).EndsWith('.symbols.nupkg'))" />
+      <_SymbolPackagesToPush Include="@(_NuGetPackagesToPush)"
+                             Condition="$([System.String]::Copy(%(FullPath)).Contains('.Symbols.'))" />
+    </ItemGroup>
 
+    <ItemGroup Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' ">
       <!-- Remove all NuGet packages from being published -->
       <ItemsToPushToBlobFeed Remove="@(_NuGetPackagesToPush)" />
+    </ItemGroup>
 
-      <!-- Include symbol packages for publishing -->
+    <ItemGroup Condition=" '$(DotNetBuildSourceOnly)' == 'true' ">
+      <!-- Remove all symbols packages from being published -->
+      <ItemsToPushToBlobFeed Remove="@(_SymbolPackagesToPush)" />
+    </ItemGroup>
+
+    <ItemGroup Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' and '$(DotNetBuildSourceOnly)' != 'true' ">
+      <!-- Include symbol packages for publishing-->
       <ItemsToPushToBlobFeed Include="@(_SymbolPackagesToPush)" />
     </ItemGroup>
+
   </Target>
+
 </Project>

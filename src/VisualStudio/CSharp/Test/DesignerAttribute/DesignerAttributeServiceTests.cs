@@ -5,10 +5,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttributes;
@@ -17,38 +17,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttri
 public sealed class DesignerAttributeServiceTests
 {
     [Fact]
-    public async Task NoDesignerTest1()
-    {
-        await TestAsync(@"class Test { }", category: null);
-    }
+    public Task NoDesignerTest1()
+        => TestAsync(@"class Test { }", category: null);
 
     [Fact]
-    public async Task NoDesignerOnSecondClass()
-    {
-        await TestAsync(
+    public Task NoDesignerOnSecondClass()
+        => TestAsync(
             """
             class Test1 { }
 
             [System.ComponentModel.DesignerCategory("Form")]
             class Test2 { }
             """, category: null);
-    }
 
     [Fact]
-    public async Task NoDesignerOnStruct()
-    {
-        await TestAsync(
+    public Task NoDesignerOnStruct()
+        => TestAsync(
             """
 
             [System.ComponentModel.DesignerCategory("Form")]
             struct Test1 { }
             """, category: null);
-    }
 
     [Fact]
-    public async Task NoDesignerOnNestedClass()
-    {
-        await TestAsync(
+    public Task NoDesignerOnNestedClass()
+        => TestAsync(
             """
             class Test1
             {
@@ -56,37 +49,31 @@ public sealed class DesignerAttributeServiceTests
                 class Test2 { }
             }
             """, category: null);
-    }
 
     [Fact]
-    public async Task SimpleDesignerTest()
-    {
-        await TestAsync(
+    public Task SimpleDesignerTest()
+        => TestAsync(
             """
             [System.ComponentModel.DesignerCategory("Form")]
             class Test { }
             """, "Form");
-    }
 
     [Fact]
-    public async Task SimpleDesignerTest2()
-    {
-        await TestAsync(
+    public Task SimpleDesignerTest2()
+        => TestAsync(
             """
             using System.ComponentModel;
 
             [DesignerCategory("Form")]
             class Test { }
             """, "Form");
-    }
 
     [Theory]
     [InlineData(null)]
     [InlineData("Form")]
     [InlineData("Form1")]
-    public async Task TestUnboundBase1(string? existingCategory)
-    {
-        await TestAsync(
+    public Task TestUnboundBase1(string? existingCategory)
+        => TestAsync(
             """
             namespace System.Windows.Forms
             {
@@ -98,19 +85,16 @@ public sealed class DesignerAttributeServiceTests
             // This should always work and not be impacted by the existing category.
             class Test : Form { }
             """, "Form", existingCategory);
-    }
 
     [Theory]
     [InlineData(null)]
     [InlineData("Form")]
-    public async Task TestUnboundBaseUseOldValueIfNotFound(string? category)
-    {
-        await TestAsync(
+    public Task TestUnboundBaseUseOldValueIfNotFound(string? category)
+        => TestAsync(
             """
             // The base type won't bind.  Return existing category if we have one.
             class Test : Form { }
             """, category: category, existingCategory: category);
-    }
 
     private static async Task TestAsync(string codeWithMarker, string? category, string? existingCategory = null)
     {

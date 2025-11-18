@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
@@ -866,6 +867,266 @@ end class
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")>
+        Public Sub FindCorrectAttributeOnTopLevelPartialClass_OneAttributeOnOnePartInSameFile()
+            Dim source = "
+            <N1.X>
+            partial class C1
+            end class
+            partial class C1
+            end class
+
+            namespace N1
+                class XAttribute
+                    inherits System.Attribute
+                end class
+            end namespace
+            "
+            Dim ParseOptions = TestOptions.Regular
+            Dim Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=ParseOptions)
+
+            Assert.Single(Compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(
+                New PipelineCallbackGenerator(
+                    Sub(ctx)
+                        Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)("N1.XAttribute")
+                        ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                        End Sub)
+                    End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=ParseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(Compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")>
+        Public Sub FindCorrectAttributeOnTopLevelPartialClass_SameAttributeOnMultiplePartsInSameFile()
+            Dim source = "
+            <N1.X>
+            partial class C1
+            end class
+            <N1.X>
+            partial class C1
+            end class
+
+            namespace N1
+                class XAttribute
+                    inherits System.Attribute
+                end class
+            end namespace
+            "
+            Dim ParseOptions = TestOptions.Regular
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=ParseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(
+                New PipelineCallbackGenerator(
+                    Sub(ctx)
+                        Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                            "N1.XAttribute",
+                            Function(node, unused) TypeOf node Is ClassStatementSyntax,
+                            Function(context, unused)
+                                ' We should only see one attribute on each node we're called back for.
+                                Assert.True(context.Attributes.Length = 1)
+                                Return DirectCast(context.TargetNode, ClassStatementSyntax)
+                            End Function)
+                        ctx.RegisterSourceOutput(input,
+                                         Sub(spc, node)
+                                         End Sub)
+                    End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=ParseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Dim steps = runResult.TrackedSteps("result_ForAttributeWithMetadataName")
+            Assert.Collection(steps,
+                Sub(_step) Assert.Collection(_step.Outputs,
+                    Sub(output) Assert.True(IsClassStatementWithName(output.Value, "C1")),
+                    Sub(output) Assert.True(IsClassStatementWithName(output.Value, "C1"))))
+
+            ' We should have a hit for each class decl.0
+            Assert.Equal(2, steps.SelectMany(Function(s) s.Outputs.Select(Function(o) DirectCast(o.Value, ClassStatementSyntax))).Distinct().Count())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")>
+        Public Sub FindCorrectAttributeOnTopLevelPartialClass_DifferentAttributeOnMultiplePartsInSameFile()
+            Dim source = "
+            <N1.X>
+            partial class C1
+            end class
+            <N1.Y>
+            partial class C1
+            end class
+
+            namespace N1
+                class XAttribute
+                    inherits System.Attribute
+                end class
+                class YAttribute
+                    inherits System.Attribute
+                end class
+            end namespace
+            "
+            Dim ParseOptions = TestOptions.Regular
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=ParseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                        "N1.XAttribute",
+                        Function(node, unused) TypeOf node Is ClassStatementSyntax,
+                        Function(context, unused)
+                            ' We should only see one attribute on each node we're called back for.
+                            Assert.True(context.Attributes.Length = 1)
+                            Return DirectCast(context.TargetNode, ClassStatementSyntax)
+                        End Function)
+                    ctx.RegisterSourceOutput(input,
+                                             Sub(spc, node)
+                                             End Sub)
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=ParseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")>
+        Public Sub FindCorrectAttributeOnTopLevelPartialClass_OneAttributeOnOnePartInDifferentFiles()
+            Dim source1 = "
+            <N1.X>
+            partial class C1
+            end class
+
+            namespace N1
+                class XAttribute
+                    inherits System.Attribute
+                end class
+            end namespace
+            "
+            Dim source2 = "
+                partial class C1
+                end class
+                "
+            Dim ParseOptions = TestOptions.Regular
+            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=ParseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)("N1.XAttribute")
+                    ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                    End Sub)
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=ParseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")>
+        Public Sub FindCorrectAttributeOnTopLevelPartialClass_SameAttributeOnMultiplePartsInDifferentFile()
+            Dim source1 = "
+            <N1.X>
+            partial class C1
+            end class
+
+            namespace N1
+                class XAttribute
+                    inherits System.Attribute
+                end class
+            end namespace
+            "
+            Dim source2 = "
+                <N1.X>
+                partial class C1
+                end class
+                "
+            Dim ParseOptions = TestOptions.Regular
+            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=ParseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    "N1.XAttribute",
+                    Function(node, unused) TypeOf node Is ClassStatementSyntax,
+                    Function(context, unused)
+                        ' We should only see one attribute on each node we're called back for.
+                        Assert.True(context.Attributes.Length = 1)
+                        Return DirectCast(context.TargetNode, ClassStatementSyntax)
+                    End Function)
+
+                    ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                    End Sub)
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=ParseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Dim steps = runResult.TrackedSteps("result_ForAttributeWithMetadataName")
+
+            Assert.Collection(steps,
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")),
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+
+            ' We should find the C1 class in both files.
+            AssertEx.SetEqual(
+                steps.Select(Function(s) DirectCast(s.Outputs.Single().Value, ClassStatementSyntax).SyntaxTree),
+                compilation.SyntaxTrees)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")>
+        Public Sub FindCorrectAttributeOnTopLevelPartialClass_DifferentAttributeOnMultiplePartsInDifferentFile()
+            Dim source1 = "
+                <N1.X>
+                partial class C1
+                end class
+
+                namespace N1
+                    class XAttribute
+                        inherits System.Attribute
+                    end class
+                    class YAttribute
+                        inherits System.Attribute
+                    end class
+                end namespace
+                "
+            Dim source2 = "
+                <N1.Y>
+                partial class C1
+                end class
+                "
+            Dim ParseOptions = TestOptions.Regular
+            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=ParseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)("N1.XAttribute")
+                    ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                    End Sub)
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=ParseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(Compilation)
+            dim runResult = driver.GetRunResult().Results(0)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
         End Sub
 
 #End Region

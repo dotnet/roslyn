@@ -14,60 +14,51 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
+
+[Shared]
+[ExportLanguageService(typeof(FSharpUnusedOpensDiagnosticAnalyzerService), LanguageNames.FSharp)]
+internal class FSharpUnusedOpensDiagnosticAnalyzerService : ILanguageService
 {
-    [Shared]
-    [ExportLanguageService(typeof(FSharpUnusedOpensDiagnosticAnalyzerService), LanguageNames.FSharp)]
-    internal class FSharpUnusedOpensDiagnosticAnalyzerService : ILanguageService
+    private readonly IFSharpUnusedOpensDiagnosticAnalyzer _analyzer;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpUnusedOpensDiagnosticAnalyzerService(IFSharpUnusedOpensDiagnosticAnalyzer analyzer)
     {
-        private readonly IFSharpUnusedOpensDiagnosticAnalyzer _analyzer;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpUnusedOpensDiagnosticAnalyzerService(IFSharpUnusedOpensDiagnosticAnalyzer analyzer)
-        {
-            _analyzer = analyzer;
-        }
-
-        public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken)
-        {
-            return _analyzer.AnalyzeSemanticsAsync(descriptor, document, cancellationToken);
-        }
+        _analyzer = analyzer;
     }
 
-    [DiagnosticAnalyzer(LanguageNames.FSharp)]
-    internal class FSharpUnusedOpensDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+    public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken)
     {
-        private readonly DiagnosticDescriptor _descriptor =
-            new DiagnosticDescriptor(
-                    IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
-                    ExternalAccessFSharpResources.RemoveUnusedOpens,
-                    ExternalAccessFSharpResources.UnusedOpens,
-                    DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
+        return _analyzer.AnalyzeSemanticsAsync(descriptor, document, cancellationToken);
+    }
+}
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
+[DiagnosticAnalyzer(LanguageNames.FSharp)]
+internal class FSharpUnusedOpensDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+{
+    private readonly DiagnosticDescriptor _descriptor =
+        new(
+                IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
+                ExternalAccessFSharpResources.RemoveUnusedOpens,
+                ExternalAccessFSharpResources.UnusedOpens,
+                DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
 
-        public override int Priority => 90; // Default = 50
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var analyzer = document.Project.Services.GetService<FSharpUnusedOpensDiagnosticAnalyzerService>();
-            if (analyzer == null)
-            {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-            }
+    public override int Priority => 90; // Default = 50
 
-            return analyzer.AnalyzeSemanticsAsync(_descriptor, document, cancellationToken);
-        }
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        var analyzer = textDocument.Project.Services.GetService<FSharpUnusedOpensDiagnosticAnalyzerService>();
+        return analyzer is null || textDocument is not Document document
+            ? []
+            : await analyzer.AnalyzeSemanticsAsync(_descriptor, document, cancellationToken).ConfigureAwait(false);
+    }
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+    public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+    {
+        return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

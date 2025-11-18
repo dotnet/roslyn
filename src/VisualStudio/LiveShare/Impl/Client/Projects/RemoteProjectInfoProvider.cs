@@ -12,41 +12,40 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
+
+/// <summary>
+/// Discovers project information for remote directories
+/// </summary>
+[Export(typeof(RemoteProjectInfoProvider))]
+internal sealed class RemoteProjectInfoProvider
 {
-    /// <summary>
-    /// Discovers project information for remote directories
-    /// </summary>
-    [Export(typeof(RemoteProjectInfoProvider))]
-    internal class RemoteProjectInfoProvider
+    private readonly IEnumerable<IRemoteProjectInfoProvider> _remoteProjectInfoProviders;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteProjectInfoProvider([ImportMany] IEnumerable<IRemoteProjectInfoProvider> remoteProjectInfoProviders)
+        => _remoteProjectInfoProviders = remoteProjectInfoProviders ?? throw new ArgumentNullException(nameof(remoteProjectInfoProviders));
+
+    public async Task<IReadOnlyCollection<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken)
     {
-        private readonly IEnumerable<IRemoteProjectInfoProvider> _remoteProjectInfoProviders;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteProjectInfoProvider([ImportMany] IEnumerable<IRemoteProjectInfoProvider> remoteProjectInfoProviders)
-            => _remoteProjectInfoProviders = remoteProjectInfoProviders ?? throw new ArgumentNullException(nameof(remoteProjectInfoProviders));
-
-        public async Task<IReadOnlyCollection<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken)
+        var projectInfos = new List<ProjectInfo>();
+        foreach (var remoteProjectInfoProvider in _remoteProjectInfoProviders)
         {
-            var projectInfos = new List<ProjectInfo>();
-            foreach (var remoteProjectInfoProvider in _remoteProjectInfoProviders)
+            try
             {
-                try
+                foreach (var projectInfo in await remoteProjectInfoProvider.GetRemoteProjectInfosAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    foreach (var projectInfo in await remoteProjectInfoProvider.GetRemoteProjectInfosAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        projectInfos.Add(projectInfo);
-                    }
-                }
-                catch (Exception)
-                {
-                    // Continue with the other providers even if one of them fails. 
-                    continue;
+                    projectInfos.Add(projectInfo);
                 }
             }
-
-            return projectInfos;
+            catch (Exception)
+            {
+                // Continue with the other providers even if one of them fails. 
+                continue;
+            }
         }
+
+        return projectInfos;
     }
 }

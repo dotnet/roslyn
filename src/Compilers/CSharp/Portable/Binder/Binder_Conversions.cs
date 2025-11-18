@@ -1069,6 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+            Debug.Assert(!collectionBuilderMethod.IsExtensionBlockMember());
 
             return collectionBuilderMethod;
         }
@@ -1301,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                    invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary: true);
+                    invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary: true);
 
                 // require the target member to be a method.
                 if (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess)
@@ -1361,13 +1362,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resolution = addMethodBinder.ResolveMethodGroup(
                     methodGroup, expression, WellKnownMemberNames.CollectionInitializerAddMethodName, analyzedArguments,
                     useSiteInfo: ref useSiteInfo,
-                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything);
+                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything,
+                    acceptOnlyMethods: true);
 
                 diagnostics.Add(expression, useSiteInfo);
 
                 if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
-                if (resolution.HasAnyErrors)
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
+                {
+                    Debug.Assert(false); // Should not get here given the 'acceptOnlyMethods' argument value used in 'ResolveMethodGroup' call above  
+                    ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
+                    addMethods = [];
+                    result = false;
+                }
+                else if (resolution.HasAnyErrors)
                 {
                     addMethods = [];
                     result = false;
@@ -1399,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var finalApplicableCandidates = addMethodBinder.GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
                                                                                                                 methodGroup.ReceiverOpt,
                                                                                                                 methodGroup.TypeArgumentsOpt,
-                                                                                                                invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
+                                                                                                                isExtensionMethodGroup: resolution.IsExtensionMethodGroup,
                                                                                                                 diagnostics);
 
                             Debug.Assert(finalApplicableCandidates.Length != 1 || finalApplicableCandidates[0].IsApplicable);
@@ -1422,11 +1431,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
+                                    Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
                             }
                         }
                         else
                         {
+                            Debug.Assert(!resolution.OverloadResolutionResult.Succeeded);
+
                             result = bindInvocationExpressionContinued(
                                 addMethodBinder, syntax, expression, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
                                 resolution.MethodGroup, diagnostics: diagnostics, out var addMethod);
@@ -1455,6 +1467,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If the method is generic, skip it if the type arguments cannot be inferred.
                     var member = candidate.Member;
+
+                    // For new extension methods, we'll use the extension implementation method to determine inferrability
+                    if (member.IsExtensionBlockMember())
+                    {
+                        if (member.TryGetCorrespondingExtensionImplementationMethod() is { } extensionImplementation)
+                        {
+                            member = extensionImplementation;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
                     var typeParameters = member.TypeParameters;
 
                     if (!typeParameters.IsEmpty)
@@ -1587,37 +1613,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
-                // We still have to determine if it passes final validation.
-
-                var methodResult = result.ValidResult;
-                var method = methodResult.Member;
-
-                // It is possible that overload resolution succeeded, but we have chosen an
-                // instance method and we're in a static method. A careful reading of the
-                // overload resolution spec shows that the "final validation" stage allows an
-                // "implicit this" on any method call, not just method calls from inside
-                // instance methods. Therefore we must detect this scenario here, rather than in
-                // overload resolution.
-
-                var receiver = methodGroup.Receiver;
-
-                // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
-                // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
-                // Note: final validation wants the receiver that corresponds to the source representation
-                // (i.e. the first argument, if invokedAsExtensionMethod).
-                var gotError = addMethodBinder.MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
-
-                addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
-
-                // No use site errors, but there could be use site warnings.
-                // If there are any use site warnings, they have already been reported by overload resolution.
-                Debug.Assert(!method.HasUseSiteError, "Shouldn't have reached this point if there were use site errors.");
-                Debug.Assert(!method.IsRuntimeFinalizer());
-
-                addMethod = method;
-                return !gotError;
+                // Although this function is modelled after `BindInvocationExpressionContinued`,
+                // since `HasCollectionExpressionApplicableAddMethod` uses a placeholder element of type `dynamic`,
+                // only the first listed error case can be hit.
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -2223,7 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckParameterModifierMismatchMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
-            CheckLambdaConversion(boundLambda.Symbol, destination, diagnostics);
+            CheckLambdaConversion((LambdaSymbol)boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -2274,7 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod))
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, lambdaOrMethod.TryGetThisParameter(out var thisParameter) ? thisParameter : null))
             {
                 SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                     delegateMethod,
@@ -2826,20 +2825,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodParameters = method.Parameters;
             int numParams = delegateOrFuncPtrParameters.Length;
 
-            if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
-            {
-                // This can happen if "method" has optional parameters.
-                Debug.Assert(methodParameters.Length > numParams + (isExtensionMethod ? 1 : 0));
-                Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
-                return false;
-            }
+            Debug.Assert(methodParameters.Length == numParams + (isExtensionMethod ? 1 : 0));
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
+            Debug.Assert(!(isExtensionMethod || (method.IsExtensionBlockMember() && !method.IsStatic)) ||
+                (Conversions.ConvertExtensionMethodThisArg(GetReceiverParameter(method)!.Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
@@ -2974,6 +2967,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
+        internal static ParameterSymbol? GetReceiverParameter(MethodSymbol method)
+        {
+            if (method.IsExtensionMethod)
+            {
+                return method.Parameters[0];
+            }
+
+            Debug.Assert(method.IsExtensionBlockMember());
+            return method.ContainingType.ExtensionParameter;
+        }
+
         /// <summary>
         /// This method combines final validation (section 7.6.5.1) and delegate compatibility (section 15.2).
         /// </summary>
@@ -3034,6 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process

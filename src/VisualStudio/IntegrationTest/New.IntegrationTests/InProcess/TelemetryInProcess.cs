@@ -15,7 +15,7 @@ using IAsyncDisposable = System.IAsyncDisposable;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class TelemetryInProcess
+internal sealed partial class TelemetryInProcess
 {
     internal async Task<TelemetryVerifier> EnableTestTelemetryChannelAsync(CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ internal partial class TelemetryInProcess
     public async Task<bool> TryWaitForTelemetryEventsAsync(string[] names, CancellationToken cancellationToken)
         => await LoggerTestChannel.Instance.TryWaitForEventsAsync(names, cancellationToken);
 
-    public class TelemetryVerifier : IAsyncDisposable
+    public sealed class TelemetryVerifier : IAsyncDisposable
     {
         internal TestServices _testServices;
 

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -197,9 +198,6 @@ internal sealed class SymbolicRenameInfo
             return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
         }
 
-        if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
-            return new SymbolicRenameInfo(FeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
-
         if (symbol.IsErrorType())
             return new SymbolicRenameInfo(FeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
 
@@ -221,7 +219,7 @@ internal sealed class SymbolicRenameInfo
                 var solution = document.Project.Solution;
                 var sourceDocument = solution.GetRequiredDocument(location.SourceTree);
 
-                if (sourceDocument is SourceGeneratedDocument)
+                if (sourceDocument is SourceGeneratedDocument && !sourceDocument.IsRazorSourceGeneratedDocument())
                 {
                     // The file is generated so doesn't count towards valid spans 
                     // we can edit.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class DidOpenNotebookDocumentParams
+internal sealed class DidOpenNotebookDocumentParams
 {
     /// <summary>
     /// The notebook document that got opened.

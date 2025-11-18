@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -22,11 +22,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 internal readonly struct DiagnosticAnalysisResult
 {
     public readonly ProjectId ProjectId;
-
-    /// <summary>
-    /// The set of documents that has any kind of diagnostics on it.
-    /// </summary>
-    public readonly ImmutableHashSet<DocumentId>? DocumentIds;
 
     /// <summary>
     /// Syntax diagnostics from this file.
@@ -44,7 +39,7 @@ internal readonly struct DiagnosticAnalysisResult
     private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
 
     /// <summary>
-    /// Diagnostics that don't have locations.
+    /// Diagnostics that don't have document locations (but are still associated with this <see cref="ProjectId"/>).
     /// </summary>
     private readonly ImmutableArray<DiagnosticData> _others;
 
@@ -53,8 +48,7 @@ internal readonly struct DiagnosticAnalysisResult
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
-        ImmutableArray<DiagnosticData> others,
-        ImmutableHashSet<DocumentId>? documentIds)
+        ImmutableArray<DiagnosticData> others)
     {
         Debug.Assert(!others.IsDefault);
         Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
@@ -67,15 +61,12 @@ internal readonly struct DiagnosticAnalysisResult
         _semanticLocals = semanticLocals;
         _nonLocals = nonLocals;
         _others = others;
-
-        DocumentIds = documentIds ?? GetDocumentIds(syntaxLocals, semanticLocals, nonLocals);
     }
 
     public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId)
     {
         return new DiagnosticAnalysisResult(
             projectId,
-            documentIds: [],
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
@@ -87,8 +78,7 @@ internal readonly struct DiagnosticAnalysisResult
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
-        ImmutableArray<DiagnosticData> others,
-        ImmutableHashSet<DocumentId>? documentIds)
+        ImmutableArray<DiagnosticData> others)
     {
         VerifyDocumentMap(project, syntaxLocalMap);
         VerifyDocumentMap(project, semanticLocalMap);
@@ -99,8 +89,7 @@ internal readonly struct DiagnosticAnalysisResult
             syntaxLocalMap,
             semanticLocalMap,
             nonLocalMap,
-            others,
-            documentIds);
+            others);
     }
 
     public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
@@ -110,8 +99,7 @@ internal readonly struct DiagnosticAnalysisResult
             builder.SyntaxLocals,
             builder.SemanticLocals,
             builder.NonLocals,
-            builder.Others,
-            builder.DocumentIds);
+            builder.Others);
     }
 
     private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
@@ -146,66 +134,23 @@ internal readonly struct DiagnosticAnalysisResult
         var map = GetMap(kind);
         Contract.ThrowIfNull(map);
 
-        if (map.TryGetValue(documentId, out var diagnostics))
-        {
-            Debug.Assert(DocumentIds != null && DocumentIds.Contains(documentId));
-            return diagnostics;
-        }
-
-        return [];
+        return map.TryGetValue(documentId, out var diagnostics) ? diagnostics : [];
     }
 
     public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
         => _others;
 
+    /// <summary>
+    /// Returns a new result instance with no diagnostics except syntax.
+    /// </summary>
+    /// <returns></returns>
     public DiagnosticAnalysisResult DropExceptSyntax()
-    {
-        // quick bail out
-        if (_syntaxLocals == null || _syntaxLocals.Count == 0)
-        {
-            return CreateEmpty(ProjectId);
-        }
-
-        // keep only syntax errors
-        return new DiagnosticAnalysisResult(
+        => new(
            ProjectId,
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-           others: [],
-           documentIds: null);
-    }
-
-    private static ImmutableHashSet<DocumentId> GetDocumentIds(
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? syntaxLocals,
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? semanticLocals,
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? nonLocals)
-    {
-        // quick bail out
-        var allEmpty = syntaxLocals ?? semanticLocals ?? nonLocals;
-        if (allEmpty == null)
-        {
-            return [];
-        }
-
-        var documents = SpecializedCollections.EmptyEnumerable<DocumentId>();
-        if (syntaxLocals != null)
-        {
-            documents = documents.Concat(syntaxLocals.Keys);
-        }
-
-        if (semanticLocals != null)
-        {
-            documents = documents.Concat(semanticLocals.Keys);
-        }
-
-        if (nonLocals != null)
-        {
-            documents = documents.Concat(nonLocals.Keys);
-        }
-
-        return [.. documents];
-    }
+           others: []);
 
     [Conditional("DEBUG")]
     private static void VerifyDocumentMap(Project project, ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map)

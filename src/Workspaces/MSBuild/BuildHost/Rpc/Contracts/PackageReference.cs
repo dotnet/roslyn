@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 [DataContract]
-internal record PackageReference(
+internal sealed record PackageReference(
     [property: DataMember(Order = 0)] string Name,
     [property: DataMember(Order = 1)] string VersionRange
 );

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     isTrailing: false,
                     indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
                     mustHaveSeparator: false,
-                    lineBreaksAfter: 0));
+                    lineBreaksAfter: lineBreaksAfterLeading(token)));
 
                 var nextToken = this.GetNextRelevantToken(token);
 
@@ -118,6 +118,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     lineBreaksAfter: lineBreaksAfter));
 
                 return tk;
+
+                static int lineBreaksAfterLeading(SyntaxToken syntaxToken)
+                {
+                    if (syntaxToken.LeadingTrivia.Count < 2)
+                    {
+                        return 0;
+                    }
+
+                    if (syntaxToken.LeadingTrivia[^2].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) &&
+                        syntaxToken.LeadingTrivia[^1].IsKind(SyntaxKind.EndOfLineTrivia))
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
             }
             finally
             {
@@ -693,7 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (token.IsKind(SyntaxKind.ColonToken))
             {
                 return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
-                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
+                    !token.Parent.IsKind(SyntaxKind.XmlPrefix) &&
+                    !token.Parent.IsKind(SyntaxKind.IgnoredDirectiveTrivia);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
@@ -886,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            if (IsKeyword(token.Kind()))
+            if (IsKeyword(token.Kind()) && !token.IsKind(SyntaxKind.ExtensionKeyword))
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&
                     !next.IsKind(SyntaxKind.DotToken) &&
@@ -910,8 +927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
             else if (token.Width > 1 && next.Width > 1)
             {
-                var tokenLastChar = token.Text.Last();
-                var nextFirstChar = next.Text.First();
+                var tokenLastChar = token.Text[^1];
+                var nextFirstChar = next.Text[0];
                 if (tokenLastChar == nextFirstChar && TokenCharacterCanBeDoubled(tokenLastChar))
                 {
                     return true;
@@ -1234,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia || trivia.Kind() == SyntaxKind.DisabledTextTrivia)
             {
                 var text = trivia.ToFullString();
-                return text.Length > 0 && SyntaxFacts.IsNewLine(text.Last());
+                return text.Length > 0 && SyntaxFacts.IsNewLine(text[^1]);
             }
 
             if (trivia.HasStructure)
@@ -1247,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else
                 {
-                    return IsLineBreak(node.GetLastToken());
+                    return !node.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) && IsLineBreak(node.GetLastToken());
                 }
             }
 

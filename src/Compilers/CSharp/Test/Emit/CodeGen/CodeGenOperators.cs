@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3518,7 +3519,7 @@ True
  -IL_0032:  nop
  -IL_0033:  ret
 }
-", sequencePoints: "MyClass.Test1");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [WorkItem(543893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543893")]
@@ -5228,9 +5229,10 @@ class test<T> where T : c0
 1");
             compilation.VerifyIL("test<T>.Repro1(T)", @"
 {
-  // Code size       88 (0x58)
+  // Code size       84 (0x54)
   .maxstack  4
-  .locals init (T& V_0)
+  .locals init (T& V_0,
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  dup
@@ -5238,31 +5240,33 @@ class test<T> where T : c0
   IL_000c:  ldc.i4.1
   IL_000d:  add
   IL_000e:  stfld      ""int c0.x""
-  IL_0013:  ldarga.s   V_0
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
-  IL_0017:  ldobj      ""T""
-  IL_001c:  box        ""T""
-  IL_0021:  ldloc.0
-  IL_0022:  constrained. ""T""
-  IL_0028:  callvirt   ""int c0.P1.get""
-  IL_002d:  ldc.i4.1
-  IL_002e:  add
-  IL_002f:  callvirt   ""void c0.P1.set""
-  IL_0034:  ldarga.s   V_0
+  IL_0013:  ldarg.0
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  constrained. ""T""
+  IL_0020:  callvirt   ""int c0.P1.get""
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""void c0.P1.set""
+  IL_0032:  ldarg.0
+  IL_0033:  stloc.1
+  IL_0034:  ldloca.s   V_1
   IL_0036:  stloc.0
   IL_0037:  ldloc.0
-  IL_0038:  ldobj      ""T""
-  IL_003d:  box        ""T""
-  IL_0042:  ldc.i4.1
-  IL_0043:  ldloc.0
-  IL_0044:  ldc.i4.1
-  IL_0045:  constrained. ""T""
-  IL_004b:  callvirt   ""int c0.this[int].get""
-  IL_0050:  ldc.i4.1
-  IL_0051:  add
-  IL_0052:  callvirt   ""void c0.this[int].set""
-  IL_0057:  ret
+  IL_0038:  ldc.i4.1
+  IL_0039:  ldloc.0
+  IL_003a:  ldc.i4.1
+  IL_003b:  constrained. ""T""
+  IL_0041:  callvirt   ""int c0.this[int].get""
+  IL_0046:  ldc.i4.1
+  IL_0047:  add
+  IL_0048:  constrained. ""T""
+  IL_004e:  callvirt   ""void c0.this[int].set""
+  IL_0053:  ret
 }
 ").VerifyIL("test<T>.Repro2(T)", @"
 {
@@ -5362,14 +5366,14 @@ class Test
             int i;
             for (i = 0; i < count; i++)
             {
-                builder.Append(i + 1);
+                builder.Append((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append(" * ");
                 builder.Append("f[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append("] + ");
             }
 
-            builder.Append(i + 1);
+            builder.Append((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             return builder.ToString();
         }
@@ -5455,16 +5459,16 @@ class Test
             for (i = 0; i < count; i++)
             {
                 builder.Append("a[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append(']');
                 builder.Append(" & ");
                 builder.Append("f[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append("] | ");
             }
 
             builder.Append("a[");
-            builder.Append(i);
+            builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             builder.Append(']');
 
             return builder.ToString();
@@ -5619,16 +5623,16 @@ struct S1
             for (i = 0; i < count; i++)
             {
                 builder.Append("a[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append(']');
                 builder.Append(" && ");
                 builder.Append("f[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append("] || ");
             }
 
             builder.Append("a[");
-            builder.Append(i);
+            builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             builder.Append(']');
 
             return builder.ToString();

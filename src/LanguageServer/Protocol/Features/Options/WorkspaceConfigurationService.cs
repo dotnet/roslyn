@@ -4,27 +4,22 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Host;
 
 [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
-internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspaceConfigurationService(IGlobalOptionService globalOptions) : IWorkspaceConfigurationService
 {
-    private readonly IGlobalOptionService _globalOptions;
-    private WorkspaceConfigurationOptions? _lazyOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceConfigurationService(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
-
-    public WorkspaceConfigurationOptions Options
-        => _lazyOptions ??= _globalOptions.GetWorkspaceConfigurationOptions();
+    [AllowNull]
+    public WorkspaceConfigurationOptions Options { get => field ??= _globalOptions.GetWorkspaceConfigurationOptions(); private set; }
 
     internal void Clear()
-        => _lazyOptions = null;
+        => Options = null;
 }

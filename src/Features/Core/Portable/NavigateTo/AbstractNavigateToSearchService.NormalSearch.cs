@@ -31,7 +31,7 @@ internal abstract partial class AbstractNavigateToSearchService
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
-        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument: null, onResultsFound);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument: document, onResultsFound);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
@@ -221,7 +221,7 @@ internal abstract partial class AbstractNavigateToSearchService
         {
             using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(

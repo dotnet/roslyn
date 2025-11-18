@@ -24,7 +24,7 @@
                                          '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV.Split('.')[0]), 5)))).0</_MaxSupportedLangVersion>
 
     <!-- Cap _MaxSupportedLangVersion if it exceeds _MaxAvailableLangVersion -->
-    <_MaxAvailableLangVersion>13.0</_MaxAvailableLangVersion>
+    <_MaxAvailableLangVersion>14.0</_MaxAvailableLangVersion>
     <_MaxSupportedLangVersion Condition="'$(_MaxSupportedLangVersion)' != '' AND
                                          '$(_MaxSupportedLangVersion)' &gt; '$(_MaxAvailableLangVersion)'">$(_MaxAvailableLangVersion)</_MaxSupportedLangVersion>
 
@@ -69,6 +69,11 @@
     <PropertyGroup>
       <!-- To match historical behavior, when inside VS11+ disable the warning from csc.exe indicating that no sources were passed in-->
       <NoWarn Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '$(VisualStudioVersion)' != '' AND '$(VisualStudioVersion)' &gt; '10.0'">$(NoWarn);2008</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <!-- CS8002 is not relevant when targeting .NET Core because it ignores strong naming -->
+      <NoWarn>$(NoWarn);8002</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -198,5 +203,7 @@
     <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(Features)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(Features)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(DocumentationFile)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -doc:"$(DocumentationFile)"</CommandLineArgsForDesignTimeEvaluation>
   </PropertyGroup>
 </Project>

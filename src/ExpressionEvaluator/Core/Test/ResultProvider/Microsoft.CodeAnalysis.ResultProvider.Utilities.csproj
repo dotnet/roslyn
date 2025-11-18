@@ -10,6 +10,16 @@
     <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
 
+    <!-- IPooled is not available in ResultProvider -->
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+
+    <!--
+      Workaround: https://github.com/dotnet/roslyn/issues/78392
+      We use NO_VALUE_TUPLE symbol to conditionally compile the code that
+      uses ValueTuple because remote debugger does not ship it.
+    -->
+    <DefineConstants>$(DefineConstants);NO_VALUE_TUPLE</DefineConstants>
+
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
     <NoWarn>$(NoWarn);CA1825</NoWarn>
   </PropertyGroup>
@@ -30,12 +40,6 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
       <Link>Compiler\InternalUtilities\Debug.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
-      <Link>Compiler\InternalUtilities\FailFast.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>Compiler\InternalUtilities\FatalError.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumField.cs">
       <Link>Compiler\InternalUtilities\EnumField.cs</Link>

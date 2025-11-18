@@ -2,67 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
-internal abstract class SemanticSearchWorkspace(HostServices services, SemanticSearchProjectConfiguration config)
+internal abstract class SemanticSearchWorkspace(HostServices services, ISemanticSearchSolutionService solutionService)
     : Workspace(services, WorkspaceKind.SemanticSearch)
 {
+    /// <summary>
+    /// Location of the directory containing reference assemblies used for semantic search queries.
+    /// The assemblies are shared between design-time (in-proc workspace) and compile-time (OOP service).
+    /// </summary>
+    public static readonly string ReferenceAssembliesDirectory = Path.Combine(Path.GetDirectoryName(typeof(SemanticSearchWorkspace).Assembly.Location)!, "SemanticSearchRefs");
+
     public override bool CanOpenDocuments
         => true;
 
     public override bool CanApplyChange(ApplyChangesKind feature)
         => feature == ApplyChangesKind.ChangeDocument;
 
-    public async Task<Document> UpdateQueryDocumentAsync(string? query, CancellationToken cancellationToken)
+    public async Task<Document> UpdateQueryDocumentAsync(string? query, string? targetLanguage, CancellationToken cancellationToken)
     {
-        SourceText? newText = null;
-
-        var (_, newSolution) = await SetCurrentSolutionAsync(
+        var (updated, newSolution) = await this.SetCurrentSolutionAsync(
             useAsync: true,
-            transformation: oldSolution =>
-            {
-                if (oldSolution.Projects.Any())
-                {
-                    if (query == null)
-                    {
-                        // already have a content, don't reset it to default:
-                        return oldSolution;
-                    }
-
-                    newText = SemanticSearchUtilities.CreateSourceText(query);
-                    return oldSolution.WithDocumentText(SemanticSearchUtilities.GetQueryDocumentId(oldSolution), newText);
-                }
-
-                newText = SemanticSearchUtilities.CreateSourceText(query ?? config.Query);
-                var metadataService = oldSolution.Services.GetRequiredService<IMetadataService>();
-
-                return oldSolution
-                    .AddProject(name: SemanticSearchUtilities.QueryProjectName, assemblyName: SemanticSearchUtilities.QueryProjectName, config.Language)
-                    .WithCompilationOptions(config.CompilationOptions)
-                    .WithParseOptions(config.ParseOptions)
-                    .AddMetadataReferences(SemanticSearchUtilities.GetMetadataReferences(metadataService, SemanticSearchUtilities.ReferenceAssembliesDirectory))
-                    .AddDocument(name: SemanticSearchUtilities.QueryDocumentName, newText, filePath: SemanticSearchUtilities.GetDocumentFilePath(config.Language)).Project
-                    .AddDocument(name: SemanticSearchUtilities.GlobalUsingsDocumentName, SemanticSearchUtilities.CreateSourceText(config.GlobalUsings), filePath: null).Project
-                    .AddAnalyzerConfigDocument(name: SemanticSearchUtilities.ConfigDocumentName, SemanticSearchUtilities.CreateSourceText(config.EditorConfig), filePath: SemanticSearchUtilities.GetConfigDocumentFilePath()).Project.Solution;
-            },
-            changeKind: (oldSolution, newSolution) =>
-                oldSolution.Projects.Any()
-                    ? (WorkspaceChangeKind.DocumentChanged, projectId: null, documentId: SemanticSearchUtilities.GetQueryDocumentId(newSolution))
-                    : (WorkspaceChangeKind.ProjectAdded, projectId: SemanticSearchUtilities.GetQueryProjectId(newSolution), documentId: null),
+            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query, targetLanguage, ReferenceAssembliesDirectory),
+            changeKind: solutionService.GetWorkspaceChangeKind,
             onBeforeUpdate: null,
             onAfterUpdate: null,
             cancellationToken).ConfigureAwait(false);
 
-        var queryDocument = SemanticSearchUtilities.GetQueryDocument(newSolution);
+        var queryDocument = newSolution.GetRequiredDocument(solutionService.GetQueryDocumentId(newSolution));
 
-        if (newText != null)
+        if (updated)
         {
+            var newText = await queryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             ApplyQueryDocumentTextChanged(newText);
         }
 

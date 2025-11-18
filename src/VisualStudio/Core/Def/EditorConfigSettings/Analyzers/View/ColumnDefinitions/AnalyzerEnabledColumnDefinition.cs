@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Enabled)]
-internal class AnalyzerEnabledColumnDefinition : TableColumnDefinitionBase
+internal sealed class AnalyzerEnabledColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

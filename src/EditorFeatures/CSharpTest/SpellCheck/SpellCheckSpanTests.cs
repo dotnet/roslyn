@@ -11,506 +11,389 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck;
 
 [UseExportProvider]
-public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
+public sealed class SpellCheckSpanTests : AbstractSpellCheckSpanTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string content)
         => EditorTestWorkspace.CreateCSharp(content);
 
     [Fact]
-    public async Task TestSingleLineComment1()
-    {
-        await TestAsync("{|Comment:// Goo|}");
-    }
+    public Task TestSingleLineComment1()
+        => TestAsync("{|Comment:// Goo|}");
 
     [Fact]
-    public async Task TestSingleLineComment2()
-    {
-        await TestAsync("""
+    public Task TestSingleLineComment2()
+        => TestAsync("""
             {|Comment:// Goo|}
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLineComment1()
-    {
-        await TestAsync("{|Comment:/* Goo */|}");
-    }
+    public Task TestMultiLineComment1()
+        => TestAsync("{|Comment:/* Goo */|}");
 
     [Fact]
-    public async Task TestMultiLineComment2()
-    {
-        await TestAsync("""
+    public Task TestMultiLineComment2()
+        => TestAsync("""
             {|Comment:/*
                Goo
              */|}
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLineComment3()
-    {
-        await TestAsync("""
+    public Task TestMultiLineComment3()
+        => TestAsync("""
             {|Comment:/*
                Goo
              |}
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLineComment4()
-    {
-        await TestAsync("""
+    public Task TestMultiLineComment4()
+        => TestAsync("""
             {|Comment:/**/|}
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLineComment5()
-    {
-        await TestAsync("""
+    public Task TestMultiLineComment5()
+        => TestAsync("""
             {|Comment:/*/|}
             """);
-    }
 
     [Fact]
-    public async Task TestDocComment1()
-    {
-        await TestAsync("""
+    public Task TestDocComment1()
+        => TestAsync("""
             ///{|Comment:goo bar baz|}
             class {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDocComment2()
-    {
-        await TestAsync("""
+    public Task TestDocComment2()
+        => TestAsync("""
             ///{|Comment:goo bar baz|}
             ///{|Comment:goo bar baz|}
             class {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDocComment3()
-    {
-        await TestAsync("""
+    public Task TestDocComment3()
+        => TestAsync("""
             ///{|Comment: |}<summary>{|Comment: goo bar baz |}</summary>
             class {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestString1()
-    {
-        await TestAsync(@"{|String:"" goo ""|}");
-    }
+    public Task TestString1()
+        => TestAsync(@"{|String:"" goo ""|}");
 
     [Fact]
-    public async Task TestString2()
-    {
-        await TestAsync("""
+    public Task TestString2()
+        => TestAsync("""
             " goo
             """);
-    }
 
     [Fact]
-    public async Task TestString3()
-    {
-        await TestAsync("""
+    public Task TestString3()
+        => TestAsync("""
             {|String:" goo "|}
             """);
-    }
 
     [Fact]
-    public async Task TestString4()
-    {
-        await TestAsync("""
+    public Task TestString4()
+        => TestAsync("""
             " goo
             """);
-    }
 
     [Fact]
-    public async Task TestString5()
-    {
-        await TestAsync("""
+    public Task TestString5()
+        => TestAsync("""
             {|String:@" goo "|}
             """);
-    }
 
     [Fact]
-    public async Task TestString6()
-    {
-        await TestAsync("""
+    public Task TestString6()
+        => TestAsync("""
             @" goo
             """);
-    }
 
     [Fact]
-    public async Task TestString7()
-    {
-        await TestAsync(@"{|String:"""""" goo """"""|}");
-    }
+    public Task TestString7()
+        => TestAsync(@"{|String:"""""" goo """"""|}");
 
     [Fact]
-    public async Task TestString8()
-    {
-        await TestAsync(""""
+    public Task TestString8()
+        => TestAsync(""""
             """ goo ""
             """");
-    }
 
     [Fact]
-    public async Task TestString9()
-    {
-        await TestAsync(""""
+    public Task TestString9()
+        => TestAsync(""""
             """ goo "
             """");
-    }
 
     [Fact]
-    public async Task TestString10()
-    {
-        await TestAsync(""""
+    public Task TestString10()
+        => TestAsync(""""
             """ goo
             """");
-    }
 
     [Fact]
-    public async Task TestString11()
-    {
-        await TestAsync(""""
+    public Task TestString11()
+        => TestAsync(""""
             {|String:"""
                 goo 
                 """|}
             """");
-    }
 
     [Fact]
-    public async Task TestString12()
-    {
-        await TestAsync(""""
+    public Task TestString12()
+        => TestAsync(""""
             """
                 goo
                 ""
             """");
-    }
 
     [Fact]
-    public async Task TestString13()
-    {
-        await TestAsync(""""
+    public Task TestString13()
+        => TestAsync(""""
             """
                 goo
                 "
             """");
-    }
 
     [Fact]
-    public async Task TestString14()
-    {
-        await TestAsync(""""
+    public Task TestString14()
+        => TestAsync(""""
             """
                 goo
             """");
-    }
 
     [Fact]
-    public async Task TestString15()
-    {
-        await TestAsync("""
+    public Task TestString15()
+        => TestAsync("""
             $"{|String: goo |}"
             """);
-    }
 
     [Fact]
-    public async Task TestString16()
-    {
-        await TestAsync("""
+    public Task TestString16()
+        => TestAsync("""
             $"{|String: goo |}{0}{|String: bar |}"
             """);
-    }
 
     [Fact]
-    public async Task TestString17()
-    {
-        await TestAsync(""""
+    public Task TestString17()
+        => TestAsync(""""
             $"""{|String: goo |}{0}{|String: bar |}"""
             """");
-    }
 
     [Fact]
-    public async Task TestString18()
-    {
-        await TestAsync(""""
+    public Task TestString18()
+        => TestAsync(""""
             $"""{|String: goo |}{0:abcd}{|String: bar |}"""
             """");
-    }
 
     [Fact]
-    public async Task TestEscapedString1()
-    {
-        await TestAsync(""" " {|String:goo|}\r\n{|String:bar |}" """);
-    }
+    public Task TestEscapedString1()
+        => TestAsync(""" " {|String:goo|}\r\n{|String:bar |}" """);
 
     [Fact]
-    public async Task TestEscapedString2()
-    {
-        await TestAsync(""" " {|String:goo|}\r\t{|String:bar |}" """);
-    }
+    public Task TestEscapedString2()
+        => TestAsync(""" " {|String:goo|}\r\t{|String:bar |}" """);
 
     [Fact]
-    public async Task TestEscapedString3()
-    {
-        await TestAsync(""" " {|String:goo|}\r\u0065bar " """);
-    }
+    public Task TestEscapedString3()
+        => TestAsync(""" " {|String:goo|}\r\u0065bar " """);
 
     [Fact]
-    public async Task TestEscapedString4()
-    {
-        await TestAsync(""" " {|String:C|}:\t{|String:ests |}" """);
-    }
+    public Task TestEscapedString4()
+        => TestAsync(""" " {|String:C|}:\t{|String:ests |}" """);
 
     [Fact]
-    public async Task TestEscapedString5()
-    {
-        await TestAsync(""" {|String:@" C:\tests "|} """);
-    }
+    public Task TestEscapedString5()
+        => TestAsync(""" {|String:@" C:\tests "|} """);
 
     [Fact]
-    public async Task TestEscapedString6()
-    {
-        await TestAsync(""" " {|String:C|}:\\{|String:tests |}" """);
-    }
+    public Task TestEscapedString6()
+        => TestAsync(""" " {|String:C|}:\\{|String:tests |}" """);
 
     [Fact]
-    public async Task TestEscapedString7()
-    {
-        await TestAsync(""" " {|String:C|}:\\{|String:tests|}\\{|String:goo |}" """);
-    }
+    public Task TestEscapedString7()
+        => TestAsync(""" " {|String:C|}:\\{|String:tests|}\\{|String:goo |}" """);
 
     [Fact]
-    public async Task TestEscapedString8()
-    {
-        await TestAsync(""" {|String:@" C:\tests\goo "|} """);
-    }
+    public Task TestEscapedString8()
+        => TestAsync(""" {|String:@" C:\tests\goo "|} """);
 
     [Fact]
-    public async Task TestEscapedString9()
-    {
-        await TestAsync(""" $" {|String:C|}:\\{|String:tests|}\\{|String:goo |}{0} {|String:C|}:\\{|String:tests|}\\{|String:bar |}" """);
-    }
+    public Task TestEscapedString9()
+        => TestAsync(""" $" {|String:C|}:\\{|String:tests|}\\{|String:goo |}{0} {|String:C|}:\\{|String:tests|}\\{|String:bar |}" """);
 
     [Fact]
-    public async Task TestEscapedString10()
-    {
-        await TestAsync(""" $@"{|String: C:\tests\goo |}{0}{|String: C:\tests\bar |}" """);
-    }
+    public Task TestEscapedString10()
+        => TestAsync(""" $@"{|String: C:\tests\goo |}{0}{|String: C:\tests\bar |}" """);
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1908466")]
-    public async Task TestEscapedString11()
-    {
-        await TestAsync(""" " {|String:open telemetry for audits |}\n\t {|String:and |}0{|String:Tel table doesn't exist yet |}" """);
-    }
+    public Task TestEscapedString11()
+        => TestAsync(""" " {|String:open telemetry for audits |}\n\t {|String:and |}0{|String:Tel table doesn't exist yet |}" """);
 
     [Fact]
-    public async Task TestIdentifier1()
-    {
-        await TestAsync("""
+    public Task TestIdentifier1()
+        => TestAsync("""
             class {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier2()
-    {
-        await TestAsync("""
+    public Task TestIdentifier2()
+        => TestAsync("""
             record {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier3()
-    {
-        await TestAsync("""
+    public Task TestIdentifier3()
+        => TestAsync("""
             record class {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier4()
-    {
-        await TestAsync("""
+    public Task TestIdentifier4()
+        => TestAsync("""
             delegate void {|Identifier:C|}();
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier5()
-    {
-        await TestAsync("""
+    public Task TestIdentifier5()
+        => TestAsync("""
             enum {|Identifier:C|} { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier6()
-    {
-        await TestAsync("""
+    public Task TestIdentifier6()
+        => TestAsync("""
             enum {|Identifier:C|}
             {
                 {|Identifier:D|}
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier7()
-    {
-        await TestAsync("""
+    public Task TestIdentifier7()
+        => TestAsync("""
             enum {|Identifier:C|}
             {
                 {|Identifier:D|}, {|Identifier:E|}
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier8()
-    {
-        await TestAsync("""
+    public Task TestIdentifier8()
+        => TestAsync("""
             interface {|Identifier:C|} { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier9()
-    {
-        await TestAsync("""
+    public Task TestIdentifier9()
+        => TestAsync("""
             struct {|Identifier:C|} { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier10()
-    {
-        await TestAsync("""
+    public Task TestIdentifier10()
+        => TestAsync("""
             record struct {|Identifier:C|}() { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier11()
-    {
-        await TestAsync("""
+    public Task TestIdentifier11()
+        => TestAsync("""
             class {|Identifier:C|}<{|Identifier:T|}> { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier12()
-    {
-        await TestAsync("""
+    public Task TestIdentifier12()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private int {|Identifier:X|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier13()
-    {
-        await TestAsync("""
+    public Task TestIdentifier13()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private int {|Identifier:X|}, {|Identifier:Y|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier14()
-    {
-        await TestAsync("""
+    public Task TestIdentifier14()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private const int {|Identifier:X|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier15()
-    {
-        await TestAsync("""
+    public Task TestIdentifier15()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private const int {|Identifier:X|}, {|Identifier:Y|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier16()
-    {
-        await TestAsync("""
+    public Task TestIdentifier16()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private int {|Identifier:X|} => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier17()
-    {
-        await TestAsync("""
+    public Task TestIdentifier17()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private event Action {|Identifier:X|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier18()
-    {
-        await TestAsync("""
+    public Task TestIdentifier18()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private event Action {|Identifier:X|}, {|Identifier:Y|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier19()
-    {
-        await TestAsync("""
+    public Task TestIdentifier19()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 private event Action {|Identifier:X|} { add { } remove { } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier20()
-    {
-        await TestAsync("""
+    public Task TestIdentifier20()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}()
@@ -519,12 +402,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier21()
-    {
-        await TestAsync("""
+    public Task TestIdentifier21()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}()
@@ -533,12 +414,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier22()
-    {
-        await TestAsync("""
+    public Task TestIdentifier22()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}()
@@ -548,12 +427,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier23()
-    {
-        await TestAsync("""
+    public Task TestIdentifier23()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}(int {|Identifier:E|})
@@ -561,12 +438,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier24()
-    {
-        await TestAsync("""
+    public Task TestIdentifier24()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}(int {|Identifier:E|})
@@ -574,12 +449,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier25()
-    {
-        await TestAsync("""
+    public Task TestIdentifier25()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}(int {|Identifier:E|}, int {|Identifier:F|})
@@ -587,12 +460,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier26()
-    {
-        await TestAsync("""
+    public Task TestIdentifier26()
+        => TestAsync("""
             static class {|Identifier:C|}
             {
                 static void {|Identifier:D|}(this int {|Identifier:E|})
@@ -600,32 +471,26 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier27()
-    {
-        await TestAsync("""
+    public Task TestIdentifier27()
+        => TestAsync("""
             namespace {|Identifier:C|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier28()
-    {
-        await TestAsync("""
+    public Task TestIdentifier28()
+        => TestAsync("""
             namespace {|Identifier:C|}.{|Identifier:D|}
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier29()
-    {
-        await TestAsync("""
+    public Task TestIdentifier29()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}()
@@ -636,12 +501,10 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier30()
-    {
-        await TestAsync("""
+    public Task TestIdentifier30()
+        => TestAsync("""
             class {|Identifier:C|}
             {
                 void {|Identifier:D|}()
@@ -650,37 +513,28 @@ public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier31()
-    {
-        await TestAsync("""
+    public Task TestIdentifier31()
+        => TestAsync("""
             class {|Identifier:C|}() { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier32()
-    {
-        await TestAsync("""
+    public Task TestIdentifier32()
+        => TestAsync("""
             struct {|Identifier:C|}() { }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier33()
-    {
-        await TestAsync("""
+    public Task TestIdentifier33()
+        => TestAsync("""
             class {|Identifier:C|};
             """);
-    }
 
     [Fact]
-    public async Task TestIdentifier34()
-    {
-        await TestAsync("""
+    public Task TestIdentifier34()
+        => TestAsync("""
             struct {|Identifier:C|};
             """);
-    }
 }

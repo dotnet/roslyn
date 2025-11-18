@@ -53,7 +53,7 @@ public sealed class ApplyChangesOperation(Solution changedSolution) : CodeAction
         var currentSolution = workspace.CurrentSolution;
 
         // if there was no intermediary edit, just apply the change fully.
-        if (changedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
+        if (changedSolution.SolutionStateContentVersion == currentSolution.SolutionStateContentVersion)
         {
             var result = workspace.TryApplyChanges(changedSolution, progressTracker);
 

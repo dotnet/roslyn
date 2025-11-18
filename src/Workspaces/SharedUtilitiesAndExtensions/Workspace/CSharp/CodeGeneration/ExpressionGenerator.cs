@@ -73,7 +73,8 @@ internal static class ExpressionGenerator
     }
 
     internal static ExpressionSyntax GenerateNonEnumValueExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
-        => value switch
+    {
+        var intermediaryValue = value switch
         {
             bool val => GenerateBooleanLiteralExpression(val),
             string val => GenerateStringLiteralExpression(val),
@@ -93,6 +94,13 @@ internal static class ExpressionGenerator
                 ? GenerateNullLiteral()
                 : (ExpressionSyntax)CSharpSyntaxGeneratorInternal.Instance.DefaultExpression(type),
         };
+
+        if (intermediaryValue is not LiteralExpressionSyntax and not PrefixUnaryExpressionSyntax)
+            return intermediaryValue;
+
+        // Round trip expressions through the parser, so we can be sure to get exactly the same syntax the parser would produce.
+        return ParseExpression(intermediaryValue.ToString());
+    }
 
     private static ExpressionSyntax GenerateBooleanLiteralExpression(bool val)
     {
@@ -296,23 +304,17 @@ internal static class ExpressionGenerator
         return null;
     }
 
-    private static ExpressionSyntax GenerateMemberAccess(params string[] names)
+    private static ExpressionSyntax GenerateMemberAccess(params ReadOnlySpan<string> names)
     {
         ExpressionSyntax result = IdentifierName(GlobalKeyword);
         for (var i = 0; i < names.Length; i++)
         {
             var name = IdentifierName(names[i]);
-            if (i == 0)
-            {
-                result = AliasQualifiedName((IdentifierNameSyntax)result, name);
-            }
-            else
-            {
-                result = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, result, name);
-            }
+            result = i == 0
+                ? AliasQualifiedName((IdentifierNameSyntax)result, name)
+                : MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, result, name);
         }
 
-        result = result.WithAdditionalAnnotations(Simplifier.Annotation);
-        return result;
+        return result.WithAdditionalAnnotations(Simplifier.Annotation);
     }
 }

@@ -32,7 +32,7 @@ internal sealed class LspExtractClassOptionsService() : IExtractClassOptionsServ
             })
             : selectedMembers;
 
-        var memberAnalysisResults = symbolsToUse.Select(m => new ExtractClassMemberAnalysisResult(m, makeAbstract: false)).ToImmutableArray();
+        var memberAnalysisResults = symbolsToUse.SelectAsArray(m => new ExtractClassMemberAnalysisResult(m, makeAbstract: false));
         const string name = "NewBaseType";
         var extension = document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
         return new(

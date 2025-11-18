@@ -4,22 +4,21 @@
   <PropertyGroup>
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
 
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
-    <!-- Workaround for old Microsoft.VisualStudio.Progression.* packages -->
-    <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
-
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
-    <NoWarn>$(NoWarn);NU1507</NoWarn>
+    <NoWarn>$(NoWarn);NU1507;NU1510</NoWarn>
 
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
-    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <!-- RestoreUseStaticGraphEvaluation will cause prebuilts when building source-only. -->
+    <RestoreUseStaticGraphEvaluation Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</RestoreUseStaticGraphEvaluation>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
@@ -35,7 +34,7 @@
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>
 
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">17.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
@@ -118,6 +117,7 @@
     <MicrosoftCodeAnalysisLanguageServerKey>002400000480000094000000060200000024000052534131000400000100010009f3c8fcb7cb2592cc6e6d3646d4d9a2bda9e7a243d357bc17a5a06f50ed0dae74a343cd9538fe45bbc90a3f7cbecb23558205e3b246b69f7f7730e520460d560da1c68cda9e2256e3b801629e2dc1fd588b1681aaf4f2c98abcfc50086ecbcd55f76f7dbaf018e708527d8ae3a2714b3ec9b62bd9aaf56cf55b3ffc9eee31aa</MicrosoftCodeAnalysisLanguageServerKey>
     <MicrosoftCodeAnalysisCompilerDeveloperSDKKey>00240000048000009400000006020000002400005253413100040000010001005984d9e99e5722bb74ddbb59972bff1a2fd9e0ccb2d50e09ef85e39ec4a4e4bf2de896997de1af164be0558cdd5a50a283b9353fc4e5ccc1c87363e6e7d87af7bec8ca40281596fc8f5b5aad9904230f6f3892f8dde382cee7ba9854004d86ce93834a86b42ebdd0faf86d9fa6d935e05aed68cb4d828cea77df028739aaa9dc</MicrosoftCodeAnalysisCompilerDeveloperSDKKey>
     <CopilotKey>002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293</CopilotKey>
+    <AIToolsKey>$(MicrosoftSharedPublicKey)</AIToolsKey>
   </PropertyGroup>
 
   <!--
@@ -135,11 +135,6 @@
     <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible>
     <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
     <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
-  </PropertyGroup>
-
-  <!-- Windows specific settings -->
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-    <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0' and '$(VisualStudioVersion)' != '16.0'">false</DeployExtension>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
@@ -167,13 +162,6 @@
   <PropertyGroup>
     <EnableNetAnalyzers>false</EnableNetAnalyzers>
   </PropertyGroup>
-
-  <!--
-     Code indexing targets to help generating LSIF from indexing builds.
-  -->
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <PackageReference Include="RichCodeNav.EnvVarDump" PrivateAssets="all" />
-  </ItemGroup>
 
   <!--
     Don't inject PerformanceSensitiveAttribute source by default to avoid duplicate definitions caused by IVT.

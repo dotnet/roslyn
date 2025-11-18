@@ -105,7 +105,7 @@ class A
             var caret = testServer.GetLocations("caret").Single();
             var completionParams = new LSP.CompletionParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
                 Position = caret.Range.Start,
                 Context = new LSP.CompletionContext()
                 {

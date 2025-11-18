@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -132,7 +131,7 @@ internal sealed class RemoteFindUsagesService(in BrokeredServiceBase.ServiceCons
         public async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SerializableSourceReferenceItem>.GetInstance(out var dehydrated);
-            await foreach (var reference in references)
+            await foreach (var reference in references.ConfigureAwait(false))
             {
                 var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(
                     GetOrAddDefinitionItemId(reference.Definition), reference);

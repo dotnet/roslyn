@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.IO.Pipes;
@@ -55,7 +57,6 @@ namespace Microsoft.CodeAnalysis
         {
             if (PlatformInformation.IsWindows)
             {
-#pragma warning disable CA1416 // Validate platform compatibility
                 var serverIdentity = getIdentity();
 
                 (string name, bool admin) clientIdentity = default;
@@ -72,7 +73,6 @@ namespace Microsoft.CodeAnalysis
                     var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
                     return (currentIdentity.Name, elevatedToAdmin);
                 }
-#pragma warning restore CA1416 // Validate platform compatibility
             }
 
             return true;

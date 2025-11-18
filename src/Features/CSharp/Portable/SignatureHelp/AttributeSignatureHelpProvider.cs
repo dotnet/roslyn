@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -32,11 +32,9 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private bool TryGetAttributeExpression(
         SyntaxNode root,
@@ -59,7 +57,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
     {
         return !token.IsKind(SyntaxKind.None) &&
             token.ValueText.Length == 1 &&
-            IsTriggerCharacter(token.ValueText[0]) &&
+            TriggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is AttributeArgumentListSyntax &&
             token.Parent.Parent is AttributeSyntax;
     }
@@ -93,7 +91,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
 
         var accessibleConstructors = attributeType.InstanceConstructors
                                                   .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                  .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                                                  .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                                   .Sort(semanticModel, attribute.SpanStart);
 
         if (!accessibleConstructors.Any())
@@ -178,7 +176,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
 
             var displayParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(
+                new(
                 namedParameter is IFieldSymbol ? SymbolDisplayPartKind.FieldName : SymbolDisplayPartKind.PropertyName,
                 namedParameter, namedParameter.Name.ToIdentifierToken().ToString()),
                 Space(),

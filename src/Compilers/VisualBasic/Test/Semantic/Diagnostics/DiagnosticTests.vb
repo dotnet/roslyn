@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
 
@@ -151,7 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Case ERRID.ERR_TypeRefResolutionError3,
                          ERRID.ERR_MissingRuntimeHelper,
                          ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
-                         ERRID.ERR_SymbolDefinedInAssembly
+                         ERRID.ERR_SymbolDefinedInAssembly,
+                         ERRID.ERR_AsyncSubMain
                         Assert.True(isBuildOnly, $"Check failed for ERRID.{err}")
                     Case Else
                         Assert.False(isBuildOnly, $"Check failed for ERRID.{err}")

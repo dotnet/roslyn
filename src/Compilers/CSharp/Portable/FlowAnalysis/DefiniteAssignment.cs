@@ -22,6 +22,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -368,6 +369,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            ParameterSymbol extensionParameter = null;
+            if (_symbol.TryGetInstanceExtensionParameter(out extensionParameter))
+            {
+                EnterParameter(extensionParameter);
+            }
+
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
             // check that each out parameter is definitely assigned at the end of the method.  If
@@ -378,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LeaveParameters(methodParameters, null, location);
                 if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, null, location);
+                if ((object)extensionParameter != null) LeaveParameter(extensionParameter, null, location);
 
                 var savedState = this.State;
                 foreach (PendingBranch returnBranch in pendingReturns)
@@ -385,6 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State = returnBranch.State;
                     LeaveParameters(methodParameters, returnBranch.Branch.Syntax, null);
                     if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
+                    if ((object)extensionParameter != null) LeaveParameter(extensionParameter, returnBranch.Branch.Syntax, null);
                     Join(ref savedState, ref this.State);
                 }
 
@@ -392,55 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pendingReturns;
-        }
-
-        protected override ImmutableArray<PendingBranch> RemoveReturns()
-        {
-            var result = base.RemoveReturns();
-
-            if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
-            {
-                var foundAwait = result.Any(static pending => HasAwait(pending));
-                if (!foundAwait)
-                {
-                    // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
-                    // much better than using its 'Location' (which is the entire span of the lambda).
-                    var diagnosticLocation = CurrentSymbol is LambdaSymbol lambda
-                        ? lambda.DiagnosticLocation
-                        : CurrentSymbol.GetFirstLocationOrNone();
-
-                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
-                }
-            }
-
-            return result;
-        }
-
-        private static bool HasAwait(PendingBranch pending)
-        {
-            var pendingBranch = pending.Branch;
-            if (pendingBranch is null)
-            {
-                return false;
-            }
-
-            BoundKind kind = pendingBranch.Kind;
-            switch (kind)
-            {
-                case BoundKind.AwaitExpression:
-                    return true;
-                case BoundKind.UsingStatement:
-                    var usingStatement = (BoundUsingStatement)pendingBranch;
-                    return usingStatement.AwaitOpt != null;
-                case BoundKind.ForEachStatement:
-                    var foreachStatement = (BoundForEachStatement)pendingBranch;
-                    return foreachStatement.AwaitOpt != null;
-                case BoundKind.UsingLocalDeclarations:
-                    var localDeclaration = (BoundUsingLocalDeclarations)pendingBranch;
-                    return localDeclaration.AwaitOpt != null;
-                default:
-                    return false;
-            }
         }
 
         // For purpose of definite assignment analysis, awaits create pending branches, so async usings and foreachs do too
@@ -585,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatDiagnostics.Free();
             foreach (var diagnostic in strictDiagnostics.AsEnumerable())
             {
-                // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
+                // If it is a warning, or an error that would be reported by the compatible analysis, just report it.
                 if (diagnostic.Severity != DiagnosticSeverity.Error || compatDiagnosticSet.Contains(diagnostic))
                 {
                     diagnostics.Add(diagnostic);
@@ -665,14 +625,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 #nullable disable
-
-        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
-        {
-            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
-            public override int GetHashCode(Diagnostic obj) =>
-                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
-        }
 
         /// <summary>
         /// Analyze the body, reporting all necessary diagnostics.
@@ -1832,6 +1784,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    if (_symbol.TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+                    {
+                        if (extensionParameter.RefKind != RefKind.Out)
+                        {
+                            int slot = GetOrCreateSlot(extensionParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
                 }
 
                 Symbol containing = current.ContainingSymbol;
@@ -2181,7 +2145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
                         // Mark attribute arguments as used.
-                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+                        VisitAttributes(((LocalFunctionSymbol)localFunctionStatement.Symbol).BindMethodAttributes());
 
                         VisitAlways(stmt);
                     }
@@ -2292,14 +2256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void DeclareVariables(OneOrMany<LocalSymbol> locals)
-        {
-            foreach (var symbol in locals)
-            {
-                DeclareVariable(symbol);
-            }
-        }
-
         private void DeclareVariable(LocalSymbol symbol)
         {
             var initiallyAssigned =
@@ -2329,7 +2285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportUnusedVariables(ImmutableArray<LocalFunctionSymbol> locals)
+        private void ReportUnusedVariables(ImmutableArray<MethodSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2337,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol)
+        private void ReportIfUnused(MethodSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
@@ -2351,11 +2307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             LocalSymbol localSymbol = node.LocalSymbol;
-            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            if (node.Type == (object)this.compilation.ImplicitlyTypedVariableUsedInForbiddenZoneType)
             {
                 // Since we've already reported a use of the variable where not permitted, we
                 // suppress the diagnostic that the variable may not be assigned where used.
-                int slot = GetOrCreateSlot(node.LocalSymbol);
+                int slot = GetOrCreateSlot(localSymbol);
                 if (slot > 0)
                 {
                     _alreadyReported[slot] = true;
@@ -2425,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = node.Symbol;
 
             // Mark attribute arguments as used.
-            VisitAttributes(node.Symbol.BindMethodAttributes());
+            VisitAttributes(((LambdaSymbol)node.Symbol).BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -2629,6 +2585,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private void MarkFieldsUsed(TypeSymbol type)
         {
+            type = type.OriginalDefinition;
+
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
@@ -2674,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             DeclareVariables(catchBlock.Locals);
 
@@ -2684,12 +2642,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(exceptionSource, value: null, read: false);
             }
 
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
 
             foreach (var local in catchBlock.Locals)
             {
                 ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
+
+            return null;
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)

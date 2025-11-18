@@ -5,70 +5,69 @@
 using System;
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+public partial class AutomationObject
 {
-    public partial class AutomationObject
+    /// <summary>
+    /// Unused.  But kept around for back compat.  Note this option is not about
+    /// turning warning into errors.  It's about an aspect of 'remove unused using'
+    /// functionality we don't support anymore.  Namely whether or not 'remove unused
+    /// using' should warn if you have any build errors as that might mean we 
+    /// remove some usings inappropriately.
+    /// </summary>
+    public int WarnOnBuildErrors
     {
-        /// <summary>
-        /// Unused.  But kept around for back compat.  Note this option is not about
-        /// turning warning into errors.  It's about an aspect of 'remove unused using'
-        /// functionality we don't support anymore.  Namely whether or not 'remove unused
-        /// using' should warn if you have any build errors as that might mean we 
-        /// remove some usings inappropriately.
-        /// </summary>
-        public int WarnOnBuildErrors
+        get { return 0; }
+        set { }
+    }
+
+    public int ShowKeywords
+    {
+        get { return 0; }
+        set { }
+    }
+
+    [Obsolete("ClosedFileDiagnostics has been deprecated")]
+    public int ClosedFileDiagnostics
+    {
+        get { return 0; }
+        set { }
+    }
+
+    [Obsolete("CSharpClosedFileDiagnostics has been deprecated")]
+    public int CSharpClosedFileDiagnostics
+    {
+        get { return 0; }
+        set { }
+    }
+
+    [Obsolete("Use SnippetsBehavior instead")]
+    public int ShowSnippets
+    {
+        get
         {
-            get { return 0; }
-            set { }
+            return GetOption(CompletionOptionsStorage.SnippetsBehavior) == SnippetsRule.AlwaysInclude
+                ? 1 : 0;
         }
 
-        public int ShowKeywords
+        set
         {
-            get { return 0; }
-            set { }
-        }
-
-        [Obsolete("ClosedFileDiagnostics has been deprecated")]
-        public int ClosedFileDiagnostics
-        {
-            get { return 0; }
-            set { }
-        }
-
-        [Obsolete("CSharpClosedFileDiagnostics has been deprecated")]
-        public int CSharpClosedFileDiagnostics
-        {
-            get { return 0; }
-            set { }
-        }
-
-        [Obsolete("Use SnippetsBehavior instead")]
-        public int ShowSnippets
-        {
-            get
+            if (value == 0)
             {
-                return GetOption(CompletionOptionsStorage.SnippetsBehavior) == SnippetsRule.AlwaysInclude
-                    ? 1 : 0;
+                SetOption(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.NeverInclude);
             }
-
-            set
+            else
             {
-                if (value == 0)
-                {
-                    SetOption(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.NeverInclude);
-                }
-                else
-                {
-                    SetOption(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude);
-                }
+                SetOption(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude);
             }
         }
+    }
 
-        [Obsolete("Use Style_UseImplicitTypeWherePossible, Style_UseImplicitTypeWhereApparent or Style_UseImplicitTypeForIntrinsicTypes", error: true)]
-        public int Style_UseVarWhenDeclaringLocals
-        {
-            get { return 0; }
-            set { }
-        }
+    [Obsolete("Use Style_UseImplicitTypeWherePossible, Style_UseImplicitTypeWhereApparent or Style_UseImplicitTypeForIntrinsicTypes", error: true)]
+    public int Style_UseVarWhenDeclaringLocals
+    {
+        get { return 0; }
+        set { }
     }
 }

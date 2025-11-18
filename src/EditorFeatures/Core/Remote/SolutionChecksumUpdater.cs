@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -23,12 +22,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed class SolutionChecksumUpdater
 {
     private readonly Workspace _workspace;
-
-    /// <summary>
-    /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
-    /// it being null.
-    /// </summary>
-    private readonly IGlobalOperationNotificationService? _globalOperationService;
 
     private readonly IDocumentTrackingService _documentTrackingService;
 
@@ -43,7 +36,8 @@ internal sealed class SolutionChecksumUpdater
     private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
     private readonly object _gate = new();
-    private bool _isSynchronizeWorkspacePaused;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
+    private readonly WorkspaceEventRegistration _workspaceChangedImmediateDisposer;
 
     private readonly CancellationToken _shutdownToken;
 
@@ -59,15 +53,18 @@ internal sealed class SolutionChecksumUpdater
     {
         var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
 
-        _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
-
         _workspace = workspace;
         _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
         _shutdownToken = shutdownToken;
 
+        // A time span of Short is chosen here to ensure that the batching favors fewer but larger batches.
+        // During solution load a large number of WorkspaceChange events might be raised over a few seconds,
+        // and in performance tests a 50ms delay was found to be causing a lot of extra memory churn synchronizing
+        // things OOP. Short didn't cause a similar issue; it's possible this will need to be fine tuned for something in
+        // the middle.
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
-            DelayTimeSpan.NearImmediate,
+            DelayTimeSpan.Short,
             SynchronizePrimaryWorkspaceAsync,
             listener,
             shutdownToken);
@@ -79,15 +76,9 @@ internal sealed class SolutionChecksumUpdater
             shutdownToken);
 
         // start listening workspace change event
-        _workspace.WorkspaceChanged += OnWorkspaceChanged;
-        _workspace.WorkspaceChangedImmediate += OnWorkspaceChangedImmediate;
+        _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
+        _workspaceChangedImmediateDisposer = _workspace.RegisterWorkspaceChangedImmediateHandler(OnWorkspaceChangedImmediate);
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
-
-        if (_globalOperationService != null)
-        {
-            _globalOperationService.Started += OnGlobalOperationStarted;
-            _globalOperationService.Stopped += OnGlobalOperationStopped;
-        }
 
         // Enqueue the work to sync the initial data over.
         _synchronizeActiveDocumentQueue.AddWork();
@@ -97,63 +88,44 @@ internal sealed class SolutionChecksumUpdater
     public void Shutdown()
     {
         // Try to stop any work that is in progress.
-        PauseSynchronizingPrimaryWorkspace();
-
-        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-        _workspace.WorkspaceChangedImmediate -= OnWorkspaceChangedImmediate;
-
-        if (_globalOperationService != null)
-        {
-            _globalOperationService.Started -= OnGlobalOperationStarted;
-            _globalOperationService.Stopped -= OnGlobalOperationStopped;
-        }
-    }
-
-    private void OnGlobalOperationStarted(object? sender, EventArgs e)
-        => PauseSynchronizingPrimaryWorkspace();
-
-    private void OnGlobalOperationStopped(object? sender, EventArgs e)
-        => ResumeSynchronizingPrimaryWorkspace();
-
-    private void PauseSynchronizingPrimaryWorkspace()
-    {
-        // An expensive global operation started (like a build).  Pause ourselves and cancel any outstanding work in
-        // progress to synchronize the solution.
         lock (_gate)
         {
             _synchronizeWorkspaceQueue.CancelExistingWork();
-            _isSynchronizeWorkspacePaused = true;
         }
+
+        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+        _workspaceChangedDisposer.Dispose();
+        _workspaceChangedImmediateDisposer.Dispose();
     }
 
-    private void ResumeSynchronizingPrimaryWorkspace()
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs _)
     {
         lock (_gate)
         {
-            _isSynchronizeWorkspacePaused = false;
             _synchronizeWorkspaceQueue.AddWork();
         }
     }
 
-    private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
     {
-        // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
-        // to whatever the workspace is doing.
-        lock (_gate)
-        {
-            if (!_isSynchronizeWorkspacePaused)
-                _synchronizeWorkspaceQueue.AddWork();
-        }
-    }
-
-    private void OnWorkspaceChangedImmediate(object? sender, WorkspaceChangeEventArgs e)
-    {
-        if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+        if (e.Kind is WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.AdditionalDocumentChanged)
         {
             var documentId = e.DocumentId!;
-            var oldDocument = e.OldSolution.GetRequiredDocument(documentId);
-            var newDocument = e.NewSolution.GetRequiredDocument(documentId);
+            TextDocument oldDocument;
+            TextDocument newDocument;
+
+            if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+            {
+                oldDocument = e.OldSolution.GetRequiredDocument(documentId);
+                newDocument = e.NewSolution.GetRequiredDocument(documentId);
+            }
+            else
+            {
+                Debug.Assert(e.Kind == WorkspaceChangeKind.AdditionalDocumentChanged);
+
+                oldDocument = e.OldSolution.GetRequiredAdditionalDocument(documentId);
+                newDocument = e.NewSolution.GetRequiredAdditionalDocument(documentId);
+            }
 
             // Fire-and-forget to dispatch notification of this document change event to the remote side
             // and return to the caller as quickly as possible.
@@ -204,8 +176,8 @@ internal sealed class SolutionChecksumUpdater
     }
 
     private async Task DispatchSynchronizeTextChangesAsync(
-        Document oldDocument,
-        Document newDocument)
+        TextDocument oldDocument,
+        TextDocument newDocument)
     {
         // Explicitly force a yield point here to ensure this method returns to the caller immediately and that
         // all work is done off the calling thread.
@@ -222,12 +194,13 @@ internal sealed class SolutionChecksumUpdater
         // Update aggregated telemetry with success status of sending the synchronization data.
         var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
         var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
-        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
+        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(static (m, args) =>
         {
+            var (keyName, metricName) = args;
             m[TelemetryLogging.KeyName] = keyName;
             m[TelemetryLogging.KeyValue] = 1L;
             m[TelemetryLogging.KeyMetricName] = metricName;
-        }));
+        }, (keyName, metricName)));
 
         return;
 

@@ -4,6 +4,7 @@
 
 Imports System.IO
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -76,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Await TestLsifOutput.GenerateForWorkspaceAsync(workspace, New LineModeLsifJsonWriter(stringWriter))
 
             Dim generatedDocument = Assert.Single(Await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync())
-            Dim uri = SourceGeneratedDocumentUri.Create(generatedDocument.Identity)
+            Dim uri = SourceGeneratedDocumentUri.Create(generatedDocument.Identity).GetRequiredParsedUri()
             Dim outputText = stringWriter.ToString()
             Assert.Contains(uri.AbsoluteUri, outputText)
         End Function

@@ -21,6 +21,8 @@ internal static class TestPaths
     private const string LanguageServerSubdirectory = "RoslynLSP";
     private const string LanguageServerAssemblyFileName = "Microsoft.CodeAnalysis.LanguageServer.dll";
 
+    public static string GetLanguageServerDirectory()
+        => Path.Combine(AppContext.BaseDirectory, LanguageServerSubdirectory);
     public static string GetLanguageServerPath()
-        => Path.Combine(AppContext.BaseDirectory, LanguageServerSubdirectory, LanguageServerAssemblyFileName);
+        => Path.Combine(GetLanguageServerDirectory(), LanguageServerAssemblyFileName);
 }

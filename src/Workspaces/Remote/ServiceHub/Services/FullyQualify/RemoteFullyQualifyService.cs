@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
@@ -29,7 +27,8 @@ internal sealed class RemoteFullyQualifyService : BrokeredServiceBase, IRemoteFu
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var document = solution.GetRequiredDocument(documentId);
+            // Including source generated documents as this service is used in Razor scenarios.
+            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<IFullyQualifyService>();
 

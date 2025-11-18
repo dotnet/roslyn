@@ -223,7 +223,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C

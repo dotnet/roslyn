@@ -385,7 +385,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
             var setMethodDeclaration = await GetMethodDeclarationAsync(setMethod, cancellationToken).ConfigureAwait(false);
 
             var setMethodDocument = updatedSolution.GetDocument(setMethodDeclaration?.SyntaxTree);
-            if (setMethodDocument?.Id == documentId)
+            if (setMethodDocument?.Id == documentId && setMethodDeclaration != null)
             {
                 service.RemoveSetMethod(editor, setMethodDeclaration);
             }

@@ -7,27 +7,24 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
+public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestClass1()
-    {
-        var code = """
+    public Task TestClass1()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$class C{|textspan:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
@@ -37,19 +34,16 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
     [InlineData("record struct")]
     [InlineData("struct")]
     [InlineData("interface")]
-    public async Task TestClass2(string typeKind)
-    {
-        var code = $@"
-{{|hint:$$class C{{|textspan:
-{{
-}}|}}|}}
-{typeKind}D
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+    public Task TestClass2(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$class C{|textspan:
+            {
+            }|}|}
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
@@ -59,65 +53,50 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
     [InlineData("record struct")]
     [InlineData("struct")]
     [InlineData("interface")]
-    public async Task TestClass3(string typeKind)
-    {
-        var code = $@"
-{{|hint:$$class C{{|textspan:
-{{
-}}|}}|}}
+    public Task TestClass3(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$class C{|textspan:
+            {
+            }|}|}
 
-{typeKind}D
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestClassWithLeadingComments()
-    {
-        var code = """
+    public Task TestClassWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$class C{|textspan2:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestClassWithNestedComments()
-    {
-        var code = """
+    public Task TestClassWithNestedComments()
+        => VerifyBlockSpansAsync("""
                 {|hint1:$$class C{|textspan1:
                 {
                     {|span2:// Goo
                     // Bar|}
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestInterface1()
-    {
-        var code = """
+    public Task TestInterface1()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$interface I{|textspan:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
@@ -127,19 +106,16 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
     [InlineData("record struct")]
     [InlineData("struct")]
     [InlineData("interface")]
-    public async Task TestInterface2(string typeKind)
-    {
-        var code = $@"
-{{|hint:$$interface I{{|textspan:
-{{
-}}|}}|}}
-{typeKind}D
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+    public Task TestInterface2(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$interface I{|textspan:
+            {
+            }|}|}
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
@@ -149,65 +125,50 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
     [InlineData("record struct")]
     [InlineData("struct")]
     [InlineData("interface")]
-    public async Task TestInterface3(string typeKind)
-    {
-        var code = $@"
-{{|hint:$$interface I{{|textspan:
-{{
-}}|}}|}}
+    public Task TestInterface3(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$interface I{|textspan:
+            {
+            }|}|}
 
-{typeKind}D
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestInterfaceWithLeadingComments()
-    {
-        var code = """
+    public Task TestInterfaceWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$interface I{|textspan2:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestInterfaceWithNestedComments()
-    {
-        var code = """
+    public Task TestInterfaceWithNestedComments()
+        => VerifyBlockSpansAsync("""
                 {|hint1:$$interface I{|textspan1:
                 {
                     {|span2:// Goo
                     // Bar|}
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestStruct1()
-    {
-        var code = """
+    public Task TestStruct1()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$struct S{|textspan:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
@@ -217,19 +178,16 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
     [InlineData("record struct")]
     [InlineData("struct")]
     [InlineData("interface")]
-    public async Task TestStruct2(string typeKind)
-    {
-        var code = $@"
-{{|hint:$$struct C{{|textspan:
-{{
-}}|}}|}}
-{typeKind}D
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+    public Task TestStruct2(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$struct C{|textspan:
+            {
+            }|}|}
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
@@ -239,50 +197,56 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
     [InlineData("record struct")]
     [InlineData("struct")]
     [InlineData("interface")]
-    public async Task TestStruct3(string typeKind)
-    {
-        var code = $@"
-{{|hint:$$struct C{{|textspan:
-{{
-}}|}}|}}
+    public Task TestStruct3(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|hint:$$struct C{|textspan:
+            {
+            }|}|}
 
-{typeKind}D
-{{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+            {{typeKind}}D
+            {
+            }
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestStructWithLeadingComments()
-    {
-        var code = """
+    public Task TestStructWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$struct S{|textspan2:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestStructWithNestedComments()
-    {
-        var code = """
+    public Task TestStructWithNestedComments()
+        => VerifyBlockSpansAsync("""
                 {|hint1:$$struct S{|textspan1:
                 {
                     {|span2:// Goo
                     // Bar|}
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62506")]
+    public Task TestTypeDeclarationNoBraces1()
+        => VerifyBlockSpansAsync("""
+                {|comment:// comment|}
+                $$struct S
+                """,
+            Region("comment", "// comment ...", autoCollapse: true));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62506")]
+    public Task TestTypeDeclarationNoBraces2()
+        => VerifyBlockSpansAsync("""
+                {|comment:// comment|}
+                {|hint1:$$struct S{|textspan1:;|}|}
+                """,
+            Region("comment", "// comment ...", autoCollapse: true),
+            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }

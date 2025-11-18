@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
@@ -59,8 +56,11 @@ internal abstract class AbstractDocumentationCommentService<
     }
 
     public string GetBannerText(
-        TDocumentationCommentTriviaSyntax documentationComment, int maxBannerLength, CancellationToken cancellationToken)
+        TDocumentationCommentTriviaSyntax? documentationComment, int maxBannerLength, CancellationToken cancellationToken)
     {
+        if (documentationComment is null)
+            return "";
+
         // TODO: Consider unifying code to extract text from an Xml Documentation Comment (https://github.com/dotnet/roslyn/issues/2290)
         var summaryElement =
             documentationComment.ChildNodes().OfType<TXmlElementSyntax>()
@@ -187,6 +187,6 @@ internal abstract class AbstractDocumentationCommentService<
     private static bool HasTrailingWhitespace(string tokenText)
         => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[^1]);
 
-    public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken)
-        => GetBannerText((TDocumentationCommentTriviaSyntax)documentationCommentTriviaSyntax, maxBannerLength, cancellationToken);
+    public string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken)
+        => GetBannerText((TDocumentationCommentTriviaSyntax?)documentationCommentTriviaSyntax, maxBannerLength, cancellationToken);
 }

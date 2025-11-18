@@ -18,17 +18,19 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 [Trait(Traits.Feature, Traits.Features.NavigationBar)]
 public class BasicNavigationBar : AbstractEditorTest
 {
-    private const string TestSource = @"
-Class C
-    Public WithEvents Domain As AppDomain
-    Public Sub $$Goo()
-    End Sub
-End Class
+    private const string TestSource = """
 
-Structure S
-    Public Property A As Integer
-    Public Property B As Integer
-End Structure";
+        Class C
+            Public WithEvents Domain As AppDomain
+            Public Sub $$Goo()
+            End Sub
+        End Class
+
+        Structure S
+            Public Property A As Integer
+            Public Property B As Integer
+        End Structure
+        """;
 
     public BasicNavigationBar()
         : base(nameof(BasicNavigationBar))
@@ -92,10 +94,12 @@ End Structure";
         await TestServices.Editor.ExpandNavigationBarAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken);
         Assert.Equal(new[] { "New", "Finalize", "Goo" }, await TestServices.Editor.GetNavigationBarItemsAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken));
         await TestServices.Editor.SelectNavigationBarItemAsync(NavigationBarDropdownKind.Member, "New", HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-    Public Sub New()
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-    End Sub", cancellationToken: HangMitigatingCancellationToken);
+                Public Sub New()
+
+                End Sub
+            """, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CaretPositionAsync(78, HangMitigatingCancellationToken); // Caret is between New() and End Sub() in virtual whitespace
         await TestServices.EditorVerifier.CurrentLineTextAsync("$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
@@ -115,39 +119,41 @@ End Structure";
     [IdeFact]
     public async Task VerifyEvents()
     {
-        await SetUpEditorAsync(@"
-$$Class Item1
-    Public Event EvA As Action
-    Public Event EvB As Action
-End Class
+        await SetUpEditorAsync("""
 
-Class Item2
-    Public Event EvX As Action
-    Public Event EvY As Action
-End Class
+            $$Class Item1
+                Public Event EvA As Action
+                Public Event EvB As Action
+            End Class
 
-Partial Class C
-    WithEvents item1 As Item1
-    WithEvents item2 As Item2
-End Class
+            Class Item2
+                Public Event EvX As Action
+                Public Event EvY As Action
+            End Class
 
-Partial Class C
-    Private Sub item1_EvA() Handles item1.EvA
-        ' 1
-    End Sub
+            Partial Class C
+                WithEvents item1 As Item1
+                WithEvents item2 As Item2
+            End Class
 
-    Private Sub item1_EvB() Handles item1.EvB
-        ' 2
-    End Sub
+            Partial Class C
+                Private Sub item1_EvA() Handles item1.EvA
+                    ' 1
+                End Sub
 
-    Private Sub item2_EvX() Handles item2.EvX
-        ' 3
-    End Sub
+                Private Sub item1_EvB() Handles item1.EvB
+                    ' 2
+                End Sub
 
-    Private Sub item2_EvY() Handles item2.EvY
-        ' 4
-    End Sub
-End Class", HangMitigatingCancellationToken);
+                Private Sub item2_EvX() Handles item2.EvX
+                    ' 3
+                End Sub
+
+                Private Sub item2_EvY() Handles item2.EvY
+                    ' 4
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("' 1", charsOffset: 0, HangMitigatingCancellationToken);
 

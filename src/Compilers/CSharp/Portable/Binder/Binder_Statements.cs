@@ -706,6 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            // Check for duplicate modifiers in local declarations.
+            // The actual modifier (const) is determined by node.IsConst below.
+            if (diagnostics.DiagnosticBag is not null)
+                ModifierUtils.CheckForDuplicateModifiers(node.Modifiers, diagnostics.DiagnosticBag);
+
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
@@ -766,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     out var disposeMethod,
                                                     out isExpanded);
 
-            if (disposeMethod?.IsExtensionMethod == true)
+            if (disposeMethod is not null && (disposeMethod.IsExtensionMethod || disposeMethod.IsExtensionBlockMember()))
             {
                 // Extension methods should just be ignored, rather than rejected after-the-fact
                 // Tracked by https://github.com/dotnet/roslyn/issues/32767
@@ -1561,8 +1566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
                     // 2. `e1` must have the same *safe-to-escape* as `e2`
 
-                    var leftEscape = GetRefEscape(op1, _localScopeDepth);
-                    var rightEscape = GetRefEscape(op2, _localScopeDepth);
+                    var leftEscape = GetRefEscape(op1);
+                    var rightEscape = GetRefEscape(op2);
                     if (!rightEscape.IsConvertibleTo(leftEscape))
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
@@ -1581,8 +1586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
                     {
-                        leftEscape = GetValEscape(op1, _localScopeDepth);
-                        rightEscape = GetValEscape(op2, _localScopeDepth);
+                        leftEscape = GetValEscape(op1);
+                        rightEscape = GetValEscape(op2);
 
                         Debug.Assert(leftEscape.Equals(rightEscape) || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
@@ -1603,10 +1608,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else
+                {
+                    switch (op1)
+                    {
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.IsExtensionBlockMember():
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
+                            handleExtensionSetter(in methodInvocationInfo);
+                            return;
+                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
+                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
+                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
+                            handleExtensionSetter(in methodInvocationInfo);
+                            return;
+                    }
+                }
 
                 if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
-                    var leftEscape = GetValEscape(op1, _localScopeDepth);
+                    var leftEscape = GetValEscape(op1);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
@@ -1628,6 +1648,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(false);
                 return "";
+            }
+
+            void handleExtensionSetter(ref readonly MethodInvocationInfo methodInvocationInfo)
+            {
+                // Analyze as if this is a call to the setter directly, not an assignment.
+                var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+                Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo, methodInvocationInfo.MethodInfo.Method, diagnostics);
             }
         }
     }
@@ -1728,6 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundArrayAccess => null,
                 BoundDynamicIndexerAccess => null,
                 BoundBadExpression => null,
+                BoundPointerElementAccess => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
             };
         }
@@ -1911,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 node,
                 locals,
-                GetDeclaredLocalFunctionsForScope(node),
+                ImmutableArray<MethodSymbol>.CastUp(GetDeclaredLocalFunctionsForScope(node)),
                 hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
                 instrumentation: null,
                 boundStatements);
@@ -2719,12 +2748,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, ref discardedOperatorResolutionForReporting, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            discardedOperatorResolutionForReporting.Free();
+
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
-                Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
-                Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
                 return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
@@ -3515,7 +3545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
                     expression = BindToTypeForErrorRecovery(expression);
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -3527,7 +3557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
                     }
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
             else if (expression.Type?.SpecialType == SpecialType.System_Void)
@@ -3855,7 +3885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (containingType.IsStructType() || containingType.IsEnumType())
+            if (containingType.IsStructType() || containingType.IsEnumType() || containingType.IsExtension)
             {
                 return null;
             }
@@ -4153,7 +4183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bindingDiagnostics,
                     queryClause: null,
                     ignoreNormalFormIfHasValidParamsParameter: true,
-                    anyApplicableCandidates: out _);
+                    anyApplicableCandidates: out _,
+                    disallowExpandedNonArrayParams: false,
+                    acceptOnlyMethods: true);
 
                 analyzedArguments.Free();
 

@@ -14,7 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed class RemoteExtensionMethodImportCompletionService : BrokeredServiceBase, IRemoteExtensionMethodImportCompletionService
+internal sealed class RemoteExtensionMethodImportCompletionService(
+    in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteExtensionMethodImportCompletionService
 {
     internal sealed class Factory : FactoryBase<IRemoteExtensionMethodImportCompletionService>
     {
@@ -22,12 +24,7 @@ internal sealed class RemoteExtensionMethodImportCompletionService : BrokeredSer
             => new RemoteExtensionMethodImportCompletionService(arguments);
     }
 
-    public RemoteExtensionMethodImportCompletionService(in ServiceConstructionArguments arguments)
-        : base(arguments)
-    {
-    }
-
-    public ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+    public ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         int position,
@@ -38,11 +35,8 @@ internal sealed class RemoteExtensionMethodImportCompletionService : BrokeredSer
         bool hideAdvancedMembers,
         CancellationToken cancellationToken)
     {
-        var stopwatch = SharedStopwatch.StartNew();
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var assetSyncTime = stopwatch.Elapsed;
-
             // Completion always uses frozen-partial semantic in-proc, which is not automatically passed to OOP, so enable it explicitly
             var document = solution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -56,16 +50,11 @@ internal sealed class RemoteExtensionMethodImportCompletionService : BrokeredSer
                         .Select(symbolKey => SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).GetAnySymbol() as ITypeSymbol)
                         .WhereNotNull().ToImmutableArray();
 
-                var intialGetSymbolsTime = stopwatch.Elapsed - assetSyncTime;
-
-                var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                    document, semanticModel: null, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, assetSyncTime, cancellationToken).ConfigureAwait(false);
-
-                result.GetSymbolsTime += intialGetSymbolsTime;
-                return result;
+                return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                    document, semanticModel: null, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
             }
 
-            return null;
+            return default;
         }, cancellationToken);
     }
 
@@ -75,7 +64,7 @@ internal sealed class RemoteExtensionMethodImportCompletionService : BrokeredSer
         {
             var project = solution.GetRequiredProject(projectId);
             ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 }

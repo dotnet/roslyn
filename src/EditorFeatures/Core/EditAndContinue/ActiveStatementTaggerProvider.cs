@@ -4,8 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -18,7 +16,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -31,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [ContentType(ContentTypeNames.VisualBasicContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class ActiveStatementTaggerProvider(TaggerHost taggerHost)
+internal sealed partial class ActiveStatementTaggerProvider(TaggerHost taggerHost)
     : AsynchronousTaggerProvider<ITextMarkerTag>(taggerHost, FeatureAttribute.Classification)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;

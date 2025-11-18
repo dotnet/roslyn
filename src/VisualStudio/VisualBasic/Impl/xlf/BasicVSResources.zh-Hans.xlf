@@ -52,11 +52,6 @@
         <target state="translated">显示 "New" 表达式的提示</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">请勿将 ByRef 放在自定义结构中(_D)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">自动插入 end 构造(_U)</target>

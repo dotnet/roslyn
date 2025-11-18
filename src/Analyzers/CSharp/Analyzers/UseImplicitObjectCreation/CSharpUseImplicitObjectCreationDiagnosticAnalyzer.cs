@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -17,17 +17,14 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
+        EnforceOnBuildValues.UseImplicitObjectCreation,
+        CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_new), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.new_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
-               EnforceOnBuildValues.UseImplicitObjectCreation,
-               CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_new), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.new_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -57,7 +54,10 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            objectCreation.Type.GetLocation(),
+            // Place the suggestion on the 'new' keyword.  This is both the earliest part of the object creation
+            // expression, and it also matches the location we place the 'use collection expression' analyzer,
+            // ensuring consistency between the two analyzers.
+            objectCreation.NewKeyword.GetLocation(),
             styleOption.Notification,
             context.Options,
             [objectCreation.GetLocation()],
@@ -81,6 +81,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         // 3. Collection-like constructs where the type of the collection is itself explicit.  For example: `new
         //    List<C> { new() }` or `new C[] { new() }`.
 
+        var isAsync = false;
         TypeSyntax? typeNode;
 
         if (objectCreation.Parent is EqualsValueClauseSyntax
@@ -100,15 +101,15 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         }
         else if (objectCreation.Parent.IsKind(SyntaxKind.ArrowExpressionClause))
         {
-            typeNode = objectCreation.Parent.Parent switch
+            (typeNode, isAsync) = objectCreation.Parent.Parent switch
             {
-                LocalFunctionStatementSyntax localFunction => localFunction.ReturnType,
-                MethodDeclarationSyntax method => method.ReturnType,
-                ConversionOperatorDeclarationSyntax conversion => conversion.Type,
-                OperatorDeclarationSyntax op => op.ReturnType,
-                BasePropertyDeclarationSyntax property => property.Type,
-                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => baseProperty.Type,
-                _ => null,
+                LocalFunctionStatementSyntax localFunction => (localFunction.ReturnType, localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword)),
+                MethodDeclarationSyntax method => (method.ReturnType, method.Modifiers.Any(SyntaxKind.AsyncKeyword)),
+                ConversionOperatorDeclarationSyntax conversion => (conversion.Type, false),
+                OperatorDeclarationSyntax op => (op.ReturnType, false),
+                BasePropertyDeclarationSyntax property => (property.Type, false),
+                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => (baseProperty.Type, false),
+                _ => default,
             };
         }
         else if (objectCreation.Parent is InitializerExpressionSyntax { Parent: ObjectCreationExpressionSyntax { Type: var collectionType } })
@@ -147,6 +148,18 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
 
         if (leftType is null || rightType is null)
             return false;
+
+        // In an async context, `Task<T>` and `ValueTask<T>` are considered the same as `T` for purposes of determining
+        // if the type is apparent.  So `new()` is valid for `async Task<Goo> M() { return new Goo(); }`.
+        var compilation = semanticModel.Compilation;
+        if (isAsync)
+        {
+            if (leftType.OriginalDefinition.Equals(compilation.TaskOfTType()) ||
+                leftType.OriginalDefinition.Equals(compilation.ValueTaskOfTType()))
+            {
+                leftType = leftType.GetTypeArguments().Single();
+            }
+        }
 
         if (leftType.IsErrorType() || rightType.IsErrorType())
             return false;

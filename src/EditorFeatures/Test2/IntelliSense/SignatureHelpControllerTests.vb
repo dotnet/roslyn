@@ -2,8 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -60,8 +62,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ' Create a provider that will return an empty state when queried the second time
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
-            slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
-            slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
+            slowProvider.Setup(Function(p) p.TriggerCharacters).Returns(ImmutableArray.Create(Of Char)(" "c))
+            slowProvider.Setup(Function(p) p.RetriggerCharacters).Returns(ImmutableArray.Create(Of Char)(" "c))
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing)))
             Dim controller = Await CreateController(CreateWorkspace(), provider:=slowProvider.Object, waitForPresentation:=True)
@@ -214,13 +216,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Nothing))
             End Function
 
-            Public Function IsTriggerCharacter(ch As Char) As Boolean Implements ISignatureHelpProvider.IsTriggerCharacter
-                Return ch = "("c
-            End Function
+            Public ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) Implements ISignatureHelpProvider.TriggerCharacters
+                Get
+                    Return ImmutableArray.Create("("c)
+                End Get
+            End Property
 
-            Public Function IsRetriggerCharacter(ch As Char) As Boolean Implements ISignatureHelpProvider.IsRetriggerCharacter
-                Return ch = ")"c
-            End Function
+            Public ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) Implements ISignatureHelpProvider.RetriggerCharacters
+                Get
+                    Return ImmutableArray.Create(")"c)
+                End Get
+            End Property
         End Class
 
         Private Shared Function CreateMockTextView(buffer As ITextBuffer) As Mock(Of ITextView)

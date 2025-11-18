@@ -5,12 +5,11 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -271,31 +270,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
+        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node)
         {
             if (node.CatchBlocks.IsEmpty)
             {
-                base.VisitTryBlock(tryBlock, node, ref tryState);
+                base.VisitTryBlock(tryBlock, node);
                 return;
             }
 
             var oldPending = SavePending(); // we do not support branches into a try block
-            base.VisitTryBlock(tryBlock, node, ref tryState);
+            base.VisitTryBlock(tryBlock, node);
             RestorePending(oldPending);
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             var oldPending = SavePending(); // we do not support branches into a catch block
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
             RestorePending(oldPending);
+            return null;
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState endState)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock)
         {
             var oldPending1 = SavePending(); // we do not support branches into a finally block
             var oldPending2 = SavePending(); // track only the branches out of the finally block
-            base.VisitFinallyBlock(finallyBlock, ref endState);
+            base.VisitFinallyBlock(finallyBlock);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
             foreach (var branch in PendingBranches.AsEnumerable())
             {

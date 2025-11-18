@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Host), Shared]
-internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
+internal sealed class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
     private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
 
@@ -32,7 +32,7 @@ internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceSe
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => _serviceSingleton;
 
-    private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
+    private sealed class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 

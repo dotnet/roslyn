@@ -55,7 +55,7 @@ internal abstract class AbstractEmbeddedLanguageFeatureService<TService>
         IEnumerable<Lazy<TService, EmbeddedLanguageMetadata>> allServices)
     {
         // Order the feature providers to respect the [Order] annotations.
-        var orderedFeatureProviders = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Languages.Contains(languageName)).ToImmutableArray();
+        var orderedFeatureProviders = ExtensionOrderer.Order(allServices).WhereAsArray(c => c.Metadata.Languages.Contains(languageName));
 
         // Grab out the services that handle unannotated literals and APIs.
         _legacyServices = orderedFeatureProviders.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);

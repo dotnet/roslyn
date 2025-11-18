@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -14,11 +15,10 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
-public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)
@@ -114,7 +114,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -139,43 +139,6 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
     }
 
     [Theory, CombinatorialData]
-    public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
-    {
-        var markup = """
-            class ABC
-            {
-                private static async void {|caret:XYZ|}()
-                {
-                }
-            }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-        var caret = testLspServer.GetLocations("caret").Single();
-        var codeActionParams = new CodeActionParams
-        {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
-            Range = caret.Range,
-            Context = new CodeActionContext
-            {
-                Diagnostics =
-                [
-                    new LSP.Diagnostic
-                    {
-                        // async method lack of await.
-                        Code = "CS1998"
-                    }
-                ]
-            }
-        };
-
-        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Equal(3, results.Length);
-        Assert.Equal("Make method synchronous", results[0].Title);
-    }
-
-    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -195,7 +158,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -227,8 +190,9 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var markup = """
             class ABC
             {
-                private static async void {|caret:XYZ|}()
+                private static async void XYZ()
                 {
+                    {|caret:System.Threading.Tasks.Task.Yield()|};
                 }
             }
             """;
@@ -238,7 +202,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -246,17 +210,17 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
                 [
                     new LSP.Diagnostic
                     {
-                        // async method lack of await.
-                        Code = "CS1998"
+                        // Task-returning method not awaited
+                        Code = "CS4014"
                     }
                 ]
             }
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Equal(3, results.Length);
-        Assert.Equal("Suppress or configure issues", results[2].Title);
-        var data = GetCodeActionResolveData(results[2]);
+        Assert.Equal(10, results.Length);
+        Assert.Equal("Suppress or configure issues", results[9].Title);
+        var data = GetCodeActionResolveData(results[9]);
         Assert.NotNull(data);
 
         // Asserts that there are NestedActions present
@@ -286,7 +250,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -316,7 +280,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var result = await testLspServer.ExecuteRequestAsync<CodeAction, CodeAction>(
             LSP.Methods.CodeActionResolveName, codeAction, CancellationToken.None);
         Assert.NotNull(result);
-        return (VSInternalCodeAction)result!;
+        return (VSInternalCodeAction)result;
     }
 
     private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)
@@ -325,9 +289,9 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
     }
 
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
-        => new CodeActionParams
+        => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {

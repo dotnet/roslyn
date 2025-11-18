@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        internal override bool HasEnumeratorCancellationAttribute
+        {
+            get { return false; }
+        }
+
         internal override SyntaxReference? SyntaxReference
         {
             get { return null; }
@@ -152,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CustomAttributesBag<CSharpAttributeData>.Empty;
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal override ConstantValue? DefaultValueFromAttributes
         {
-            get { return ConstantValue.NotAvailable; }
+            get { return null; }
         }
 
         internal override ScopedKind EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();

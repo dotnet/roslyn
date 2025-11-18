@@ -25,11 +25,6 @@ internal sealed class DocumentEditAndContinueDiagnosticSourceProvider() : IDiagn
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.GetTrackedDocument<Document>() is { } document)
-        {
-            return new([EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document)]);
-        }
-
-        return new([]);
+        return new([EditAndContinueDiagnosticSource.CreateOpenDocumentSource(context.GetRequiredDocument())]);
     }
 }

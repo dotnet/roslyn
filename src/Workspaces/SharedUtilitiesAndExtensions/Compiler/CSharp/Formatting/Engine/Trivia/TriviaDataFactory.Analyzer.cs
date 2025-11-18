@@ -9,9 +9,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
-    private class Analyzer
+    private sealed class Analyzer
     {
         public static AnalysisResult Leading(SyntaxToken token)
         {

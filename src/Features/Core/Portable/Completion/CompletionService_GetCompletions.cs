@@ -17,8 +17,8 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -33,7 +33,6 @@ public abstract partial class CompletionService
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
     /// <param name="options">Optional options that override the default options.</param>
-    /// <param name="cancellationToken"></param>
     public Task<CompletionList> GetCompletionsAsync(
         Document document,
         int caretPosition,
@@ -58,7 +57,6 @@ public abstract partial class CompletionService
     /// <param name="options">The CompletionOptions that override the default options.</param>
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
-    /// <param name="cancellationToken"></param>
     internal virtual async Task<CompletionList> GetCompletionsAsync(
          Document document,
          int caretPosition,
@@ -103,7 +101,7 @@ public abstract partial class CompletionService
 
         // See if there were completion contexts provided that were exclusive. If so, then
         // that's all we'll return.
-        var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+        var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
 

@@ -25,24 +25,26 @@ public class CSharpClassification : AbstractEditorTest
     [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task VerifyColorOfSomeTokens()
     {
-        await TestServices.Editor.SetTextAsync(@"using System;
-using System.Collections.Generic;
-using System.Text;
-namespace ConsoleApplication1
-{
-    /// <summary>innertext
-    /// </summary>
-    /// <!--comment-->
-    /// <![CDATA[cdata]]>
-    /// <typeparam name=""attribute"" />
-    public class Program
-        {
-            public static void Main(string[] args)
+        await TestServices.Editor.SetTextAsync("""
+            using System;
+            using System.Collections.Generic;
+            using System.Text;
+            namespace ConsoleApplication1
             {
-                Console.WriteLine(""Hello World"");
-            }
-        }
-    }", HangMitigatingCancellationToken);
+                /// <summary>innertext
+                /// </summary>
+                /// <!--comment-->
+                /// <![CDATA[cdata]]>
+                /// <typeparam name="attribute" />
+                public class Program
+                    {
+                        public static void Main(string[] args)
+                        {
+                            Console.WriteLine("Hello World");
+                        }
+                    }
+                }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("class", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "keyword", HangMitigatingCancellationToken);
@@ -73,17 +75,19 @@ namespace ConsoleApplication1
     [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task SemanticClassification()
     {
-        await TestServices.Editor.SetTextAsync(@"
-using System;
-using System.Collections.Generic;
-class Program : Attribute
-{
-    static void Main(string[] args)
-    {
-        List<int> list = new List<int>();
-        Program.Main(null);
-    }
-}", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            using System;
+            using System.Collections.Generic;
+            class Program : Attribute
+            {
+                static void Main(string[] args)
+                {
+                    List<int> list = new List<int>();
+                    Program.Main(null);
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Attribute", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("list", charsOffset: 8, HangMitigatingCancellationToken);
@@ -108,23 +112,25 @@ class Program : Attribute
     [IdeFact]
     public async Task VerifyProjectConfigChange()
     {
-        await TestServices.Editor.SetTextAsync(@"
-namespace ClassLibrary1
-{
-    public class Class1
-    {
-#if DEBUG
-        void Goo()
-        {
-        }
-#else
-        void Bar()
-        {
-        }
-#endif
-    }
-}
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+            #if DEBUG
+                    void Goo()
+                    {
+                    }
+            #else
+                    void Bar()
+                    {
+                    }
+            #endif
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SolutionCfg, argument: "Debug", HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Goo", charsOffset: 0, HangMitigatingCancellationToken);

@@ -44,9 +44,8 @@ public sealed class UseSystemThreadingLockTests
         """;
 
     [Fact]
-    public async Task TestNotInCSharp13_Net80()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp13_Net80()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -64,12 +63,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp12_Net80()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp12_Net80()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -87,12 +84,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp12_Net80_PolyFill()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp12_Net80_PolyFill()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -110,12 +105,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp12_Net90()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp12_Net90()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -133,12 +126,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp13_Net80_PolyFill()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp13_Net80_PolyFill()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -171,12 +162,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInCSharp13_Net90()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp13_Net90()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -209,12 +198,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPolyFill_InternalLock()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPolyFill_InternalLock()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -232,12 +219,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPolyFill_NoInnerScopeType()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPolyFill_NoInnerScopeType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -255,12 +240,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPolyFill_PrivateScopeType()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPolyFill_PrivateScopeType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -280,12 +263,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPolyFill_NotRefStructScopeType()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPolyFill_NotRefStructScopeType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -303,12 +284,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDocCommentReference()
-    {
-        await new VerifyCS.Test
+    public Task TestWithDocCommentReference()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -343,12 +322,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithFullType1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithFullType1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -381,12 +358,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithFullType2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithFullType2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -422,12 +397,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithParenthesizedInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestWithParenthesizedInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -460,12 +433,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithInnerYield()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithInnerYield()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -486,12 +457,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithYieldOutsideLock()
-    {
-        await new VerifyCS.Test
+    public Task TestWithYieldOutsideLock()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -531,12 +500,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithYieldInsideLocalFunctionInsideLock()
-    {
-        await new VerifyCS.Test
+    public Task TestWithYieldInsideLocalFunctionInsideLock()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -584,12 +551,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithoutLock()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithoutLock()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -604,12 +569,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithUnsupportedOperation1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithUnsupportedOperation1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -631,12 +594,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithUnsupportedOperation2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithUnsupportedOperation2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -656,12 +617,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPublicGate()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPublicGate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -679,12 +638,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonObjectInitializerValue1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonObjectInitializerValue1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -702,12 +659,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonObjectInitializerValue_InField()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonObjectInitializerValue_InField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -725,12 +680,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonObjectInitializerValue_InConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonObjectInitializerValue_InConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -753,12 +706,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonObjectAssignment()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonObjectAssignment()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -781,12 +732,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMultipleDeclarators()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithMultipleDeclarators()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -804,12 +753,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonObjectType()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonObjectType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -827,12 +774,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithinStruct1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithinStruct1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct C
@@ -873,12 +818,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithinStruct2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithinStruct2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct C
@@ -921,12 +864,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMemberAccess1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMemberAccess1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -959,12 +900,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMemberAccess2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMemberAccess2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -997,12 +936,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithGenericMemberAccess()
-    {
-        await new VerifyCS.Test
+    public Task TestWithGenericMemberAccess()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C<T>
@@ -1035,12 +972,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithImplicitObjectCreation_InField()
-    {
-        await new VerifyCS.Test
+    public Task TestWithImplicitObjectCreation_InField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1073,12 +1008,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithImplicitObjectCreation_InConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestWithImplicitObjectCreation_InConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct C
@@ -1121,12 +1054,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectCreation_InConstructor1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectCreation_InConstructor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1169,12 +1100,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectCreation_InConstructor2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectCreation_InConstructor2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1217,12 +1146,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectCreation_InConstructor3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectCreation_InConstructor3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1265,12 +1192,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectCreation_InInitializer1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectCreation_InInitializer1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1321,12 +1246,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectCreation_InInitializer2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectCreation_InInitializer2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1377,12 +1300,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNameOf()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNameOf()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1417,12 +1338,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMultipleFieldsNoneLocked()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMultipleFieldsNoneLocked()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1438,12 +1357,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMultipleFieldsOneLocked()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMultipleFieldsOneLocked()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1478,12 +1395,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMultipleFieldsBothLocked()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMultipleFieldsBothLocked()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1524,12 +1439,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithOtherField1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithOtherField1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1568,12 +1481,10 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithOtherField2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithOtherField2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1612,5 +1523,4 @@ public sealed class UseSystemThreadingLockTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 }

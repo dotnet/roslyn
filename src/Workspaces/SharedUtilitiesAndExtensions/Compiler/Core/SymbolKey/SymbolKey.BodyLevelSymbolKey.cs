@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -17,12 +16,12 @@ internal partial struct SymbolKey
 {
     private static class BodyLevelSymbolKey
     {
-        public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
+        public static ImmutableArray<Location?> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
             Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
 
-            using var _ = ArrayBuilder<Location>.GetInstance(out var result);
+            using var _ = ArrayBuilder<Location?>.GetInstance(out var result);
 
             foreach (var location in symbol.Locations)
             {
@@ -63,7 +62,7 @@ internal partial struct SymbolKey
 
             var locations = GetBodyLevelSourceLocations(symbol, cancellationToken);
 
-            Contract.ThrowIfFalse(locations.All(loc => loc.IsInSource));
+            Contract.ThrowIfFalse(locations.All(loc => loc != null && loc.IsInSource));
             visitor.WriteLocationArray(locations.Distinct());
 
             // and the containingSymbol/ordinal for resilience
@@ -75,7 +74,7 @@ internal partial struct SymbolKey
 
             int GetOrdinal()
             {
-                var syntaxTree = locations[0].SourceTree;
+                var syntaxTree = locations[0]!.SourceTree;
                 var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
 
                 // See if we can find an appropriate container for this local and attempt to find this local's index

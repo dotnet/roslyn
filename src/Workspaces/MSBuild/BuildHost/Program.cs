@@ -8,7 +8,6 @@ using System.CommandLine;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -16,24 +15,15 @@ internal static class Program
 {
     internal static async Task Main(string[] args)
     {
-        var pipeOption = new CliOption<string>("--pipe") { Required = true };
-        var propertyOption = new CliOption<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
-        var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
-        var localeOption = new CliOption<string>("--locale") { Required = true };
-        var command = new CliRootCommand { pipeOption, binaryLogOption, propertyOption, localeOption };
+        // Note: we should limit the data passed through via command line strings, and pass information through IBuildHost.ConfigureGlobalState whenever possible.
+        // This is because otherwise we might run into escaping issues, or command line length limits.
+
+        var pipeOption = new Option<string>("--pipe") { Required = true };
+        var localeOption = new Option<string>("--locale") { Required = true };
+        var command = new RootCommand { pipeOption, localeOption };
         var parsedArguments = command.Parse(args);
         var pipeName = parsedArguments.GetValue(pipeOption)!;
-        var properties = parsedArguments.GetValue(propertyOption)!;
-        var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
         var locale = parsedArguments.GetValue(localeOption)!;
-
-        var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
-
-        foreach (var property in properties)
-        {
-            var propertyParts = property.Split(['='], count: 2);
-            propertiesBuilder.Add(propertyParts[0], propertyParts[1]);
-        }
 
         var logger = new BuildHostLogger(Console.Error);
 
@@ -54,7 +44,7 @@ internal static class Program
 
         var server = new RpcServer(pipeServer);
 
-        var targetObject = server.AddTarget(new BuildHost(logger, propertiesBuilder.ToImmutable(), binaryLogPath, server));
+        var targetObject = server.AddTarget(new BuildHost(logger, server));
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");
 
         await server.RunAsync().ConfigureAwait(false);

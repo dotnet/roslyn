@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (PathUtilities.IsSameDirectoryOrChildOf(normalizedDirectory, normalizedBaseDirectory))
             {
                 return normalizedPath.Substring(
-                    PathUtilities.IsDirectorySeparator(normalizedBaseDirectory.Last())
+                    PathUtilities.IsDirectorySeparator(normalizedBaseDirectory[^1])
                         ? normalizedBaseDirectory.Length
                         : normalizedBaseDirectory.Length + 1);
             }

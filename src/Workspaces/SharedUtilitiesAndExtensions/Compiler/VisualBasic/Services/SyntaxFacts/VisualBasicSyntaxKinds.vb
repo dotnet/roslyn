@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property Utf8SingleLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.Utf8SingleLineRawStringLiteralToken
         Public ReadOnly Property Utf8MultiLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.Utf8MultiLineRawStringLiteralToken
 
+        Public ReadOnly Property XmlCrefAttribute As Integer = SyntaxKind.XmlCrefAttribute Implements ISyntaxKinds.XmlCrefAttribute
         Public ReadOnly Property XmlTextLiteralToken As Integer = SyntaxKind.XmlTextLiteralToken Implements ISyntaxKinds.XmlTextLiteralToken
 
         Public ReadOnly Property DelegateKeyword As Integer = SyntaxKind.DelegateKeyword Implements ISyntaxKinds.DelegateKeyword
@@ -73,6 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKinds.IfKeyword
         Public ReadOnly Property NewKeyword As Integer = SyntaxKind.NewKeyword Implements ISyntaxKinds.NewKeyword
         Public ReadOnly Property TrueKeyword As Integer = SyntaxKind.TrueKeyword Implements ISyntaxKinds.TrueKeyword
+        Public ReadOnly Property PartialKeyword As Integer = SyntaxKind.PartialKeyword Implements ISyntaxKinds.PartialKeyword
         Public ReadOnly Property UsingKeyword As Integer = SyntaxKind.UsingKeyword Implements ISyntaxKinds.UsingKeyword
 
         Public ReadOnly Property AliasQualifiedName As Integer? Implements ISyntaxKinds.AliasQualifiedName
@@ -119,11 +121,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
         Public ReadOnly Property SimpleAssignmentExpression As Integer = SyntaxKind.SimpleAssignmentStatement Implements ISyntaxKinds.SimpleAssignmentExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
+        Public ReadOnly Property SizeOfExpression As Integer? Implements ISyntaxKinds.SizeOfExpression
         Public ReadOnly Property SuppressNullableWarningExpression As Integer? Implements ISyntaxKinds.SuppressNullableWarningExpression
         Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.TernaryConditionalExpression
         Public ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression Implements ISyntaxKinds.ThisExpression
         Public ReadOnly Property ThrowExpression As Integer? Implements ISyntaxKinds.ThrowExpression
         Public ReadOnly Property TupleExpression As Integer = SyntaxKind.TupleExpression Implements ISyntaxKinds.TupleExpression
+        Public ReadOnly Property TypeOfExpression As Integer = SyntaxKind.GetTypeExpression Implements ISyntaxKinds.TypeOfExpression
 
         Public ReadOnly Property AndPattern As Integer? Implements ISyntaxKinds.AndPattern
         Public ReadOnly Property ConstantPattern As Integer? Implements ISyntaxKinds.ConstantPattern
@@ -177,6 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ElseClause As Integer = SyntaxKind.ElseBlock Implements ISyntaxKinds.ElseClause
         Public ReadOnly Property EqualsValueClause As Integer = SyntaxKind.EqualsValue Implements ISyntaxKinds.EqualsValueClause
 
+        Public ReadOnly Property ExpressionElement As Integer? Implements ISyntaxKinds.ExpressionElement
         Public ReadOnly Property ImplicitElementAccess As Integer? Implements ISyntaxKinds.ImplicitElementAccess
         Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression

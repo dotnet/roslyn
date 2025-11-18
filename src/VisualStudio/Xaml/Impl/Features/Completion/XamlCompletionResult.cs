@@ -7,11 +7,10 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
+
+internal sealed class XamlCompletionResult
 {
-    internal class XamlCompletionResult
-    {
-        public ImmutableArray<XamlCompletionItem> Completions { get; set; }
-        public TextSpan? ApplicableToSpan { get; set; }
-    }
+    public ImmutableArray<XamlCompletionItem> Completions { get; set; }
+    public TextSpan? ApplicableToSpan { get; set; }
 }

@@ -1440,7 +1440,7 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-  <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
+  <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax" SkipConvenienceFactories="true">
     <Kind Name="SimpleLambdaExpression"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
@@ -2243,6 +2243,9 @@
   <!-- Statements -->
   <Node Name="GlobalStatementSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="GlobalStatement"/>
+    <TypeComment>
+      <summary>Represents a global statement in a compilation unit. Each statement at the top level of a compilation unit is wrapped in a GlobalStatementSyntax node. Global statements are top-level statements that can appear in a C# program or script. In regular C# programs (C# 9.0+), they are synthesized into a Main method. In C# scripts, they are executed as top-level code.</summary>
+    </TypeComment>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
       <summary>Always empty on a global statement.</summary>
     </Field>
@@ -3352,7 +3355,7 @@
     <TypeComment>
       <summary>Base class for type declaration syntax.</summary>
     </TypeComment>
-    <Field Name="Identifier" Type="SyntaxToken">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
@@ -3384,11 +3387,11 @@
   </AbstractNode>
   <AbstractNode Name="TypeDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
     <TypeComment>
-      <summary>Base class for type declaration syntax (class, struct, interface, record).</summary>
+      <summary>Base class for type declaration syntax (class, struct, interface, record, extension).</summary>
     </TypeComment>
     <Field Name="Keyword" Type="SyntaxToken">
       <PropertyComment>
-        <summary>Gets the type keyword token ("class", "struct", "interface", "record").</summary>
+        <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension").</summary>
       </PropertyComment>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
@@ -3616,6 +3619,30 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="EqualsValue" Type="EqualsValueClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="ExtensionBlockDeclarationSyntax" Base="TypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Extension block syntax.</summary>
+    </TypeComment>
+    <Kind Name="ExtensionBlockDeclaration" />
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="ExtensionKeyword"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
   </Node>
   <Node Name="BaseListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
@@ -3943,6 +3970,17 @@
       <Kind Name="FalseKeyword"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="IsKeyword"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanEqualsToken"/>
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Choice>
@@ -4307,7 +4345,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </AbstractNode>
-  <Node Name="ParameterSyntax" Base="BaseParameterSyntax">
+  <Node Name="ParameterSyntax" Base="BaseParameterSyntax" SkipConvenienceFactories="true" HasValidate="true"> 
     <TypeComment>
       <summary>Parameter syntax.</summary>
     </TypeComment>
@@ -4322,8 +4360,8 @@
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
-    <Field Name="Identifier" Type="SyntaxToken">
+    <Field Name="Type" Type="TypeSyntax" Optional="true" RequiredForTest="true" Override="true"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
@@ -4437,6 +4475,20 @@
     <Field Name="Name" Type="TypeSyntax"/>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
   </Node>
+  
+  <Node Name="ExtensionMemberCrefSyntax" Base="MemberCrefSyntax">
+    <Kind Name="ExtensionMemberCref"/>
+    <Field Name="ExtensionKeyword" Type="SyntaxToken">
+      <Kind Name="ExtensionKeyword"/>
+    </Field>
+    <Field Name="TypeArgumentList" Type="TypeArgumentListSyntax" Optional="true"/>
+    <Field Name="Parameters" Type="CrefParameterListSyntax"/>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+    </Field>
+    <Field Name="Member" Type="MemberCrefSyntax"/>
+  </Node>
+  
   <Node Name="IndexerMemberCrefSyntax" Base="MemberCrefSyntax">
     <TypeComment>
       <summary>
@@ -4492,6 +4544,17 @@
       <Kind Name="GreaterThanEqualsToken"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="TrueKeyword"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanEqualsToken"/>
     </Field>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
   </Node>
@@ -5075,6 +5138,7 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
+  <!-- The text following '!' up to end of line is attached as leading trivia of kind PreprocessingMessageTrivia on the EndOfDirectiveToken. -->
   <Node Name="ShebangDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
     <Kind Name="ShebangDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
@@ -5082,6 +5146,22 @@
     </Field>
     <Field Name="ExclamationToken" Type="SyntaxToken">
       <Kind Name="ExclamationToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="IgnoredDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="IgnoredDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Content" Type="SyntaxToken" Optional="true">
+      <Kind Name="StringLiteralToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

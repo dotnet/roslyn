@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
+                case DeclarationKind.Extension:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -162,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -471,6 +474,7 @@ next:;
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -1166,7 +1170,8 @@ next:;
                 | ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -1409,6 +1414,11 @@ next:;
         {
             get
             {
+                if (this.IsExtension)
+                {
+                    return true;
+                }
+
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
@@ -1812,6 +1822,30 @@ next:;
             }
         }
 
+        public override string MetadataName
+        {
+            get
+            {
+                if (IsExtension)
+                {
+                    Debug.Assert(ExtensionMarkerName is not null);
+                    return ExtensionMarkerName;
+                }
+
+                return base.MetadataName;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return IsExtension
+                    ? false
+                    : base.MangleName;
+            }
+        }
+
         protected override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
             base.AfterMembersCompletedChecks(diagnostics);
@@ -1948,6 +1982,7 @@ next:;
                 // 6. It must inherit from System.Attribute
                 // 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
                 // 8. It must be non-generic (checked as part of IsMicrosoftCodeAnalysisEmbeddedAttribute, we don't error on this because both types can exist)
+                // 9. It cannot have file scope
 
                 const AttributeTargets expectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
 
@@ -1955,14 +1990,25 @@ next:;
                     || TypeKind != TypeKind.Class
                     || !IsSealed
                     || IsStatic
+                    || IsFileLocal
                     || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
                     || !this.DeclaringCompilation.IsAttributeType(this)
                     || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
                 {
-                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
                     diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
                 }
 
+            }
+
+            if (IsExtension && ContainingType?.IsExtension != true)
+            {
+                // If the containing type is an extension, we'll have already reported an error
+                if (ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
+                {
+                    var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
+                }
             }
         }
     }

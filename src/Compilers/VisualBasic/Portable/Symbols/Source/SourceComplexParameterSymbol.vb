@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Binder
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -316,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Asking for the default value earlier than that can lead to infinite recursion. Instead, pass in the m_lazyDefaultValue.  If the value hasn't
             ' been computed yet, the new symbol will compute it.
 
-            Return New SourceComplexParameterSymbol(newContainingSymbol, Me.Name, Me.Ordinal, Me.Type, Me.Locations(0), _syntaxRef, _flags, _lazyDefaultValue)
+            Return New SourceComplexParameterSymbol(newContainingSymbol, Me.Name, Me.Ordinal, Me.Type, Me.GetFirstLocation(), _syntaxRef, _flags, _lazyDefaultValue)
         End Function
 
         ' Create a parameter from syntax.

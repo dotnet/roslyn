@@ -49,6 +49,6 @@ internal sealed class ToToListConverter(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     expression,
-                    SyntaxFactory.IdentifierName(nameof(List<object>.AddRange))),
+                    SyntaxFactory.IdentifierName(nameof(List<>.AddRange))),
                 SyntaxFactory.ArgumentList([SyntaxFactory.Argument(queryOrLinqInvocationExpression)])));
 }

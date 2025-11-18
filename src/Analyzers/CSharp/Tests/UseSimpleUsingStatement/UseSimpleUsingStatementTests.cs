@@ -22,9 +22,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseSimpleUsingStatementTests
 {
     [Fact]
-    public async Task TestAboveCSharp8()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestAboveCSharp8()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -47,12 +46,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithOptionOff()
-    {
-        await new VerifyCS.Test
+    public Task TestWithOptionOff()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -72,12 +69,10 @@ public sealed class UseSimpleUsingStatementTests
                 { CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOption2.FalseWithSilentEnforcement }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiDeclaration()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMultiDeclaration()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -100,12 +95,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public async Task TestMissingIfOnSimpleUsingStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingIfOnSimpleUsingStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -119,12 +112,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public async Task TestMissingPriorToCSharp8()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingPriorToCSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -141,12 +132,10 @@ public sealed class UseSimpleUsingStatementTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_2
         }.RunAsync();
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public async Task TestMissingIfExpressionUsing()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingIfExpressionUsing()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -162,12 +151,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public async Task TestMissingIfCodeFollows()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingIfCodeFollows()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -184,13 +171,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public async Task TestAsyncUsing()
-    {
-        // not actually legal code.
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestAsyncUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -215,12 +199,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public async Task TestAwaitUsing()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestAwaitUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -245,12 +227,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithBlockBodyWithContents()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithBlockBodyWithContents()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -275,12 +255,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNonBlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithNonBlockBody()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -303,12 +281,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiUsing()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMultiUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -335,12 +311,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -369,12 +343,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -407,12 +379,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll3()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -447,12 +417,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll4()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll4()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -475,12 +443,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithFollowingReturn()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithFollowingReturn()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -505,12 +471,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithFollowingBreak()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithFollowingBreak()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -547,12 +511,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInSwitchSection()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingInSwitchSection()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -573,12 +535,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingWithJumpInsideToOutside()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithJumpInsideToOutside()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -596,12 +556,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingWithJumpBeforeToAfter()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithJumpBeforeToAfter()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -621,12 +579,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestCollision1()
-    {
-        await new VerifyCS.Test
+    public Task TestCollision1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -645,12 +601,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestNoCollision1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNoCollision1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class Program
@@ -679,12 +633,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestCollision2()
-    {
-        await new VerifyCS.Test
+    public Task TestCollision2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -704,12 +656,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestNoCollision2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNoCollision2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class Program
@@ -740,12 +690,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestCollision3()
-    {
-        await new VerifyCS.Test
+    public Task TestCollision3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -765,12 +713,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestNoCollision3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNoCollision3()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class Program
@@ -801,12 +747,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestCollision4()
-    {
-        await new VerifyCS.Test
+    public Task TestCollision4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -824,12 +768,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestNoCollision4()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNoCollision4()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class Program
@@ -858,12 +800,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestCollision5()
-    {
-        await new VerifyCS.Test
+    public Task TestCollision5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -883,12 +823,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
-    public async Task TestNoCollision5()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNoCollision5()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class Program
@@ -919,12 +857,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37678")]
-    public async Task TestCopyTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyTrivia()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -945,12 +881,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37678")]
-    public async Task TestMultiCopyTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMultiCopyTrivia()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -973,12 +907,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll_WithTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll_WithTrivia()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1011,12 +943,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
-    public async Task TestCopyCompilerDirectiveTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyCompilerDirectiveTrivia()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1059,12 +989,10 @@ public sealed class UseSimpleUsingStatementTests
                 static void LegacyMethod() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
-    public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterRestore()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyCompilerDirectiveAndCommentTrivia_AfterRestore()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1109,12 +1037,10 @@ public sealed class UseSimpleUsingStatementTests
                 static void LegacyMethod() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
-    public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeRestore()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeRestore()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1159,12 +1085,10 @@ public sealed class UseSimpleUsingStatementTests
                 static void LegacyMethod() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
-    public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterDisable()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyCompilerDirectiveAndCommentTrivia_AfterDisable()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1209,12 +1133,10 @@ public sealed class UseSimpleUsingStatementTests
                 static void LegacyMethod() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
-    public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeDisable()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeDisable()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1259,12 +1181,10 @@ public sealed class UseSimpleUsingStatementTests
                 static void LegacyMethod() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
-    public async Task TestCopyCompilerDirectiveTrivia_PreserveCodeBeforeAndAfterDirective()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestCopyCompilerDirectiveTrivia_PreserveCodeBeforeAndAfterDirective()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1311,12 +1231,10 @@ public sealed class UseSimpleUsingStatementTests
                 static void LegacyMethod() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38842")]
-    public async Task TestNextLineIndentation1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNextLineIndentation1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1351,12 +1269,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38842")]
-    public async Task TestNextLineIndentation2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNextLineIndentation2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.IO;
 
@@ -1387,12 +1303,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48586")]
-    public async Task TestKeepSurroundingComments()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestKeepSurroundingComments()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1419,12 +1333,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48586")]
-    public async Task TestKeepSurroundingComments2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestKeepSurroundingComments2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1455,12 +1367,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48586")]
-    public async Task TestKeepSurroundingComments3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestKeepSurroundingComments3()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1499,12 +1409,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
-    public async Task TestWithBlockBodyWithOpeningBracketOnSameLine()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithBlockBodyWithOpeningBracketOnSameLine()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1528,12 +1436,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
-    public async Task TestWithBlockBodyWithOpeningBracketOnSameLine2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithBlockBodyWithOpeningBracketOnSameLine2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1557,12 +1463,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
-    public async Task TestWithBlockBodyWithOpeningBracketAndCommentOnSameLine()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithBlockBodyWithOpeningBracketAndCommentOnSameLine()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1586,12 +1490,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
-    public async Task TestWithBlockBodyWithOpeningBracketOnSameLineWithNoStatements()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithBlockBodyWithOpeningBracketOnSameLineWithNoStatements()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1613,12 +1515,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
-    public async Task TestWithBlockBodyWithOpeningBracketOnSameLineAndCommentInBlock()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithBlockBodyWithOpeningBracketOnSameLineAndCommentInBlock()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -1642,12 +1542,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58911")]
-    public async Task TestUsingWithoutSpace()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestUsingWithoutSpace()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -1692,12 +1590,10 @@ public sealed class UseSimpleUsingStatementTests
                 public static IDisposable Get() => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
-    public async Task TestWithConstantReturn1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithConstantReturn1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class C
@@ -1724,12 +1620,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
-    public async Task TestWithNonConstantReturn1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNonConstantReturn1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -1747,12 +1641,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
-    public async Task TestWithLocalFunctions1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithLocalFunctions1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class C
@@ -1781,12 +1673,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
-    public async Task TestWithLocalFunctions2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithLocalFunctions2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.IO;
@@ -1807,12 +1697,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
-    public async Task TestWithLocalFunctionsAndConstantReturn()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestWithLocalFunctionsAndConstantReturn()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.IO;
 
             class C
@@ -1845,12 +1733,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58861")]
-    public async Task TestOpenBraceTrivia1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOpenBraceTrivia1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Security.Cryptography;
 
             class C
@@ -1879,12 +1765,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58861")]
-    public async Task TestOpenBraceTrivia2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOpenBraceTrivia2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Security.Cryptography;
 
             class C
@@ -1914,12 +1798,10 @@ public sealed class UseSimpleUsingStatementTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
-    public async Task TestGlobalStatement1()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1947,12 +1829,10 @@ public sealed class UseSimpleUsingStatementTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
-    public async Task TestGlobalStatement2()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1982,12 +1862,10 @@ public sealed class UseSimpleUsingStatementTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
-    public async Task TestGlobalStatement3()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2008,12 +1886,10 @@ public sealed class UseSimpleUsingStatementTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
-    public async Task TestGlobalStatement4()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2047,12 +1923,10 @@ public sealed class UseSimpleUsingStatementTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
-    public async Task TestGlobalStatement5()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2082,12 +1956,10 @@ public sealed class UseSimpleUsingStatementTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
-    public async Task TestGlobalStatement6()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobalStatement6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2119,5 +1991,4 @@ public sealed class UseSimpleUsingStatementTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 }

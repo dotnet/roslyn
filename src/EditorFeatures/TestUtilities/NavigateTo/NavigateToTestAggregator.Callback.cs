@@ -9,46 +9,43 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
-using Roslyn.Utilities;
 
-namespace Roslyn.Test.EditorUtilities.NavigateTo
+namespace Roslyn.Test.EditorUtilities.NavigateTo;
+
+public sealed partial class NavigateToTestAggregator
 {
-    public sealed partial class NavigateToTestAggregator
+    private sealed class Callback : INavigateToCallback
     {
-        private sealed class Callback : INavigateToCallback
+        private readonly List<NavigateToItem> _itemsReceived = [];
+
+        private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource = new();
+
+        public Callback(INavigateToOptions options)
         {
-            private readonly List<NavigateToItem> _itemsReceived = [];
+            Contract.ThrowIfNull(options);
 
-            private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource =
-                new TaskCompletionSource<IEnumerable<NavigateToItem>>();
+            Options = options;
+        }
 
-            public Callback(INavigateToOptions options)
-            {
-                Contract.ThrowIfNull(options);
+        public void AddItem(NavigateToItem item)
+        {
+            lock (_itemsReceived)
+                _itemsReceived.Add(item);
+        }
 
-                Options = options;
-            }
+        public void Done()
+            => _taskCompletionSource.SetResult(_itemsReceived);
 
-            public void AddItem(NavigateToItem item)
-            {
-                lock (_itemsReceived)
-                    _itemsReceived.Add(item);
-            }
+        public void Invalidate()
+            => throw new InvalidOperationException("Unexpected call to Invalidate.");
 
-            public void Done()
-                => _taskCompletionSource.SetResult(_itemsReceived);
+        public Task<IEnumerable<NavigateToItem>> GetItemsAsync()
+            => _taskCompletionSource.Task;
 
-            public void Invalidate()
-                => throw new InvalidOperationException("Unexpected call to Invalidate.");
+        public INavigateToOptions Options { get; }
 
-            public Task<IEnumerable<NavigateToItem>> GetItemsAsync()
-                => _taskCompletionSource.Task;
-
-            public INavigateToOptions Options { get; }
-
-            public void ReportProgress(int current, int maximum)
-            {
-            }
+        public void ReportProgress(int current, int maximum)
+        {
         }
     }
 }

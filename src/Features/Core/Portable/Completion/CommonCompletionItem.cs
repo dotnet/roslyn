@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -44,7 +45,7 @@ internal static class CommonCompletionItem
 
         if (!description.IsDefault && description.Length > 0)
         {
-            properties = properties.NullToEmpty().Add(KeyValuePairUtil.Create(DescriptionProperty, EncodeDescription(description.ToTaggedText())));
+            properties = properties.NullToEmpty().Add(KeyValuePair.Create(DescriptionProperty, EncodeDescription(description.ToTagsAndText())));
         }
 
         return CompletionItem.CreateInternal(
@@ -77,8 +78,25 @@ internal static class CommonCompletionItem
 
     private static readonly char[] s_descriptionSeparators = ['|'];
 
-    private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));
+    private static string EncodeDescription(ImmutableArray<(string tag, string text)> description)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+        foreach (var (tag, text) in description)
+        {
+            var escapedTag = tag.Escape('\\', s_descriptionSeparators);
+            var escapedText = text.Escape('\\', s_descriptionSeparators);
+
+            if (builder.Length > 0)
+                builder.Append('|');
+
+            builder.Append(escapedTag);
+            builder.Append('|');
+            builder.Append(escapedText);
+        }
+
+        return builder.ToString();
+    }
 
     private static CompletionDescription DecodeDescription(string encoded)
     {

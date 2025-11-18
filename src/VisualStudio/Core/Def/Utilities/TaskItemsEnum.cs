@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-internal class TaskItemsEnum<T> : IVsEnumTaskItems where T : IVsTaskItem
+internal sealed class TaskItemsEnum<T> : IVsEnumTaskItems where T : IVsTaskItem
 {
     private readonly T[] _items;
     private int _next;
@@ -31,10 +29,7 @@ internal class TaskItemsEnum<T> : IVsEnumTaskItems where T : IVsTaskItem
 
             _next += i;
 
-            if (pceltFetched != null)
-            {
-                pceltFetched[0] = (uint)i;
-            }
+            pceltFetched?[0] = (uint)i;
 
             return (i == celt) ? VSConstants.S_OK : VSConstants.S_FALSE;
         }

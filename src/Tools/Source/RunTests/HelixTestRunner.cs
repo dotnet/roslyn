@@ -1,24 +1,19 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.TeamFoundation.TestManagement.WebApi;
-using Microsoft.VisualStudio.Services.Profile;
 using Newtonsoft.Json;
 
 namespace RunTests;
@@ -220,6 +215,13 @@ internal sealed class HelixTestRunner
                 Path.Combine(workItemPayloadDir, rspFileName),
                 GetRspFileContent(assemblyRelativeFilePaths, helixWorkItem.TestMethodNames, platform));
 
+            Directory.CreateSymbolicLink(
+                path: Path.Combine(workItemPayloadDir, "eng"),
+                pathToTarget: Path.Combine(artifactsDir, "..", "eng"));
+            File.CreateSymbolicLink(
+                path: Path.Combine(workItemPayloadDir, "global.json"),
+                pathToTarget: Path.Combine(artifactsDir, "..", "global.json"));
+
             var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
@@ -232,7 +234,7 @@ internal sealed class HelixTestRunner
                         <PayloadDirectory>{workItemPayloadDir}</PayloadDirectory>
                         <Command>{commandPrefix}{commandFileName}</Command>
                         <PostCommands>{commandPrefix}{postCommandFileName}</PostCommands>
-                        <Timeout>00:30:00</Timeout>
+                        <Timeout>01:00:00</Timeout>
                         <ExpectedExecutionTime>{helixWorkItem.EstimatedExecutionTime}</ExpectedExecutionTime>
                     </HelixWorkItem>
                 """);
@@ -256,14 +258,15 @@ internal sealed class HelixTestRunner
             string[] knownEnvironmentVariables =
             [
                 "ROSLYN_TEST_IOPERATION",
-                "ROSLYN_TEST_USEDASSEMBLIES"
+                "ROSLYN_TEST_USEDASSEMBLIES",
+                "DOTNET_RuntimeAsync"
             ];
 
             foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
             {
                 if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
                 {
-                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=\"{value}\"");
+                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={value}");
                 }
             }
 
@@ -286,6 +289,8 @@ internal sealed class HelixTestRunner
             command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpName=\"{helixDumpFolder}\"");
 
             command.AppendLine(isUnix ? "env | sort" : "set");
+
+            command.AppendLine("powershell -ExecutionPolicy ByPass -NoProfile -File ./eng/enable-preview-sdks.ps1");
 
             // Rehydrate assemblies that we need to run as part of this work item.
             foreach (var assemblyRelativeFilePath in assemblyRelativeFilePaths)
@@ -426,8 +431,14 @@ internal sealed class HelixTestRunner
         // The xml file must end in test-results.xml for the Azure Pipelines reporter to pick it up.
         builder.AppendLine($@"/Logger:xunit;LogFilePath=work-item-test-results.xml");
 
+        // Also add a console logger so that the helix log reports results as we go.
+        builder.AppendLine($@"/Logger:console;verbosity=detailed");
+
         // Specifies the results directory - this is where dumps from the blame options will get published. 
         builder.AppendLine($"/ResultsDirectory:.");
+
+        var blameOption = "CollectDump;CollectHangDump";
+        builder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
 
         // Build the filter string
         if (testMethodNames.Any())

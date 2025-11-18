@@ -141,6 +141,15 @@
   <data name="User_Types_Type_Parameters" xml:space="preserve">
     <value>User Types - Type Parameters</value>
   </data>
+  <data name="User_Types_Arrays" xml:space="preserve">
+    <value>User Types - Arrays</value>
+  </data>
+  <data name="User_Types_Pointers" xml:space="preserve">
+    <value>User Types - Pointers</value>
+  </data>
+  <data name="User_Types_Function_Pointers" xml:space="preserve">
+    <value>User Types - Function Pointers</value>
+  </data>
   <data name="String_Verbatim" xml:space="preserve">
     <value>String - Verbatim</value>
   </data>
@@ -417,9 +426,6 @@
   <data name="Finding_span_of_previous_sibling" xml:space="preserve">
     <value>Finding span of previous sibling...</value>
   </data>
-  <data name="Rename_colon_0" xml:space="preserve">
-    <value>Rename: {0}</value>
-  </data>
   <data name="Engine_must_be_attached_to_an_Interactive_Window" xml:space="preserve">
     <value>Engine must be attached to an Interactive Window.</value>
   </data>
@@ -470,6 +476,7 @@
   </data>
   <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
+    <comment>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</comment>
   </data>
   <data name="Preview_Changes_0" xml:space="preserve">
     <value>Preview Changes - {0}</value>
@@ -495,12 +502,9 @@
   <data name="Do_you_still_want_to_proceed_This_may_produce_broken_code" xml:space="preserve">
     <value>Do you still want to proceed? This may produce broken code.</value>
   </data>
-  <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
-    <value>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</value>
-  </data>
   <data name="Change_Signature_colon" xml:space="preserve">
     <value>Change Signature:</value>
+    <comment>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</comment>
   </data>
   <data name="Rename_0_to_1_colon" xml:space="preserve">
     <value>Rename '{0}' to '{1}':</value>
@@ -534,9 +538,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Preview_changes1" xml:space="preserve">
     <value>_Preview changes</value>
-  </data>
-  <data name="Apply3" xml:space="preserve">
-    <value>Apply</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
@@ -592,12 +593,6 @@ Do you want to proceed?</value>
   <data name="Go_To_Base" xml:space="preserve">
     <value>Go To Base</value>
   </data>
-  <data name="New_name_colon_0" xml:space="preserve">
-    <value>New name: {0}</value>
-  </data>
-  <data name="Modify_any_highlighted_location_to_begin_renaming" xml:space="preserve">
-    <value>Modify any highlighted location to begin renaming.</value>
-  </data>
   <data name="Paste" xml:space="preserve">
     <value>Paste</value>
   </data>
@@ -612,10 +607,6 @@ Do you want to proceed?</value>
   </data>
   <data name="_0_intercepted_locations" xml:space="preserve">
     <value>'{0}' intercepted locations</value>
-  </data>
-  <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
-    <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
-    <comment>For screenreaders. {0} is the identifier being renamed.</comment>
   </data>
   <data name="Inline_Rename_Conflict" xml:space="preserve">
     <value>Inline Rename Conflict</value>

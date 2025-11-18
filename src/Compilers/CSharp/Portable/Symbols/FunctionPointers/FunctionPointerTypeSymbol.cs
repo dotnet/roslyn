@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// signatures, and we are disallowing similar overloads in source with function pointers.
         /// </summary>
         internal static bool RefKindEquals(TypeCompareKind compareKind, RefKind refKind1, RefKind refKind2)
-            => (compareKind & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) != 0
+            => (compareKind & TypeCompareKind.FunctionPointerRefOutInRefReadonlyMatch) != 0
                ? (refKind1 == RefKind.None) == (refKind2 == RefKind.None)
                : refKind1 == refKind2;
 

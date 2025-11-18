@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 
-internal class DebuggerIntelliSenseFilter : AbstractVsTextViewFilter, IDisposable, IFeatureController
+internal sealed class DebuggerIntelliSenseFilter : AbstractVsTextViewFilter, IDisposable, IFeatureController
 {
     private readonly IFeatureServiceFactory _featureServiceFactory;
     private AbstractDebuggerIntelliSenseContext _context;

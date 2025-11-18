@@ -25,22 +25,26 @@ public class CSharpGenerateFromUsage : AbstractEditorTest
     public async Task GenerateLocal()
     {
         await SetUpEditorAsync(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        string s = $$xyz;
-    }
-}", HangMitigatingCancellationToken);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string s = $$xyz;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate local 'xyz'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        string xyz = null;
-        string s = xyz;
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string xyz = null;
+                    string s = xyz;
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

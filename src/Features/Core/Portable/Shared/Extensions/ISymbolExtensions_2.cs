@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,6 +58,7 @@ internal static partial class ISymbolExtensions2
                 {
                     switch (((INamedTypeSymbol)symbol).TypeKind)
                     {
+                        case TypeKind.Extension:
                         case TypeKind.Class:
                             publicIcon = Glyph.ClassPublic;
                             break;
@@ -95,14 +97,13 @@ internal static partial class ISymbolExtensions2
                 {
                     var methodSymbol = (IMethodSymbol)symbol;
 
-                    if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or
-                        MethodKind.Conversion or
-                        MethodKind.BuiltinOperator)
+                    if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion or MethodKind.BuiltinOperator)
                     {
-                        return Glyph.Operator;
+                        publicIcon = Glyph.OperatorPublic;
                     }
                     else if (methodSymbol.IsExtensionMethod ||
-                             methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                             methodSymbol.MethodKind == MethodKind.ReducedExtension ||
+                             methodSymbol.ContainingType?.IsExtension is true)
                     {
                         publicIcon = Glyph.ExtensionMethodPublic;
                     }
@@ -181,8 +182,9 @@ internal static partial class ISymbolExtensions2
     }
 
     public static ImmutableArray<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        => formatter.Format(GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
-            symbol, semanticModel, position, CrefFormat, cancellationToken);
+        => formatter.Format(
+            GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
+            symbol, semanticModel, position, CrefFormat, typeDisplayInfo: default, cancellationToken);
 
     /// <summary>
     /// Returns the <see cref="DocumentationComment"/> for a symbol, even if it involves going to other symbols to find it.
@@ -231,7 +233,7 @@ internal static partial class ISymbolExtensions2
 
     public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
         this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
-        => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
+        => cancellationToken => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
 
     public static readonly SymbolDisplayFormat CrefFormat =
         new(

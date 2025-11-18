@@ -4,20 +4,19 @@
 
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
-{
-    public partial class AutomationObject
-    {
-        public int SortUsings_SeparateImportDirectiveGroups
-        {
-            get { return GetBooleanOption(GenerationOptions.SeparateImportDirectiveGroups); }
-            set { SetBooleanOption(GenerationOptions.SeparateImportDirectiveGroups, value); }
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 
-        public int SortUsings_PlaceSystemFirst
-        {
-            get { return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst); }
-            set { SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value); }
-        }
+public partial class AutomationObject
+{
+    public int SortUsings_SeparateImportDirectiveGroups
+    {
+        get { return GetBooleanOption(GenerationOptions.SeparateImportDirectiveGroups); }
+        set { SetBooleanOption(GenerationOptions.SeparateImportDirectiveGroups, value); }
+    }
+
+    public int SortUsings_PlaceSystemFirst
+    {
+        get { return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst); }
+        set { SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value); }
     }
 }

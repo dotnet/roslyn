@@ -13,19 +13,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 [ExportQuickInfoProvider(QuickInfoProviderNames.Syntactic, LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
-internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpSyntacticQuickInfoProvider() : CommonQuickInfoProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpSyntacticQuickInfoProvider()
-    {
-    }
-
     protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
         QuickInfoContext context,
         SyntaxToken token)
@@ -150,8 +147,7 @@ internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
                 var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
                 var matchesBefore = matchingDirectives
                     .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
-                    .Select(d => d.Span)
-                    .ToImmutableArray();
+                    .SelectAsArray(d => d.Span);
                 if (matchesBefore.Length > 0)
                     return QuickInfoItem.Create(token.Span, relatedSpans: matchesBefore);
             }

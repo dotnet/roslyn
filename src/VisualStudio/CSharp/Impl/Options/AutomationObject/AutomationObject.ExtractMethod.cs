@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.ExtractMethod;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+public partial class AutomationObject
 {
-    public partial class AutomationObject
+    public int ExtractMethod_AllowBestEffort
     {
-        public int ExtractMethod_AllowBestEffort
-        {
-            get { return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort); }
-            set { SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value); }
-        }
+        get { return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort); }
+        set { SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value); }
     }
 }

@@ -12,8 +12,8 @@ internal abstract class AsyncSymbolVisitor<TResult> : SymbolVisitor<ValueTask<TR
     protected abstract TResult DefaultResult { get; }
 
     public override ValueTask<TResult> Visit(ISymbol? symbol)
-        => symbol?.Accept(this) ?? ValueTaskFactory.FromResult(DefaultResult);
+        => symbol?.Accept(this) ?? ValueTask.FromResult(DefaultResult);
 
     public override ValueTask<TResult> DefaultVisit(ISymbol symbol)
-        => ValueTaskFactory.FromResult(DefaultResult);
+        => ValueTask.FromResult(DefaultResult);
 }

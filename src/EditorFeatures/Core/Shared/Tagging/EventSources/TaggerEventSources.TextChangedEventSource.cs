@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class TextChangedEventSource : AbstractTaggerEventSource
+    private sealed class TextChangedEventSource : AbstractTaggerEventSource
     {
         private readonly ITextBuffer _subjectBuffer;
 
@@ -20,10 +19,20 @@ internal partial class TaggerEventSources
         }
 
         public override void Connect()
-            => _subjectBuffer.Changed += OnTextBufferChanged;
+        {
+            if (_subjectBuffer is ITextBuffer2 buffer2)
+                buffer2.ChangedOnBackground += OnTextBufferChanged;
+            else
+                _subjectBuffer.Changed += OnTextBufferChanged;
+        }
 
         public override void Disconnect()
-            => _subjectBuffer.Changed -= OnTextBufferChanged;
+        {
+            if (_subjectBuffer is ITextBuffer2 buffer2)
+                buffer2.ChangedOnBackground -= OnTextBufferChanged;
+            else
+                _subjectBuffer.Changed -= OnTextBufferChanged;
+        }
 
         private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
         {

@@ -3,11 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -116,7 +111,6 @@ End Module
 <expected>
 </expected>)
 
-            ' ILVerify: Unexpected type on the stack. { Offset = 232, Found = ref 'int32[][]', Expected = ref '[mscorlib]System.Collections.Generic.IList`1<System.Collections.Generic.IReadOnlyList`1<int32>>' }
             CompileAndVerify(compilation,
             <![CDATA[
 3
@@ -133,7 +127,7 @@ ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyListOfObject3
-]]>, verify:=Verification.FailsILVerify)
+]]>, verify:=Verification.Passes)
 
         End Sub
 
@@ -332,7 +326,6 @@ End Module
 <expected>
 </expected>)
 
-            ' ILVerify: Unexpected type on the stack. { Offset = 232, Found = ref 'int32[][]', Expected = ref '[mscorlib]System.Collections.Generic.IList`1<System.Collections.Generic.IReadOnlyCollection`1<int32>>' }
             CompileAndVerify(compilation,
             <![CDATA[
 3
@@ -349,7 +342,7 @@ ProcessReadOnlyCollection3
 ProcessReadOnlyCollection3
 ProcessReadOnlyCollection3
 ProcessReadOnlyCollectionOfObject3
-]]>, verify:=Verification.FailsILVerify)
+]]>, verify:=Verification.Passes)
 
         End Sub
 

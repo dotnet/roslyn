@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -26,7 +23,7 @@ internal static class CodeRefactoringHelpers
     /// name="selection"/> is treated more as a caret location.
     /// </para>
     /// <para>
-    /// It's intended to be used in conjunction with <see cref="IRefactoringHelpersService.AddRelevantNodes"/> that, for
+    /// It's intended to be used in conjunction with <c>IRefactoringHelpers.AddRelevantNodes</c> that, for
     /// non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too
     /// large given user-selection even though it is the smallest that can be retrieved.
     /// </para>
@@ -94,30 +91,5 @@ internal static class CodeRefactoringHelpers
         // It's a crude heuristic but it allows omitting parts of nodes or trivial tokens from the beginning/end 
         // but fires up e.g.: `1 + [|2 + 3|]`.
         return beginningNode.Span.End <= selection.Start || endNode.Span.Start >= selection.End;
-    }
-
-    /// <summary>
-    /// Trims leading and trailing whitespace from <paramref name="span"/>.
-    /// </summary>
-    /// <remarks>
-    /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
-    /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
-    /// </remarks>
-    public static TextSpan GetTrimmedTextSpan(ParsedDocument document, TextSpan span)
-    {
-        if (span.IsEmpty)
-            return span;
-
-        var sourceText = document.Text;
-        var start = span.Start;
-        var end = span.End;
-
-        while (start < end && char.IsWhiteSpace(sourceText[end - 1]))
-            end--;
-
-        while (start < end && char.IsWhiteSpace(sourceText[start]))
-            start++;
-
-        return TextSpan.FromBounds(start, end);
     }
 }

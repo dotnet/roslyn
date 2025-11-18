@@ -5027,6 +5027,17 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
+        [Fact, WorkItem(72907, "https://github.com/dotnet/roslyn/issues/72907")]
+        public void GetPreprocessingSymbolInfoOnUnrelatedDirective()
+        {
+            const string sourceCode = """
+                #pragma warning disable Z //bind pragma warning disable
+                """;
+
+            var symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Z //bind pragma warning disable");
+            Assert.Null(symbolInfo.Symbol);
+        }
+
         [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_01()
         {
@@ -6047,6 +6058,99 @@ class B<T, U, U>
             Assert.False(symbol.IsReferenceType);
             symbol = model.GetDeclaredSymbol(typeParameters[typeParameters.Length - 2]);
             Assert.True(symbol.IsReferenceType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75570")]
+        public void GetConstructedReducedFrom_WithNullableInferredType()
+        {
+            var source = """
+                #nullable enable
+
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+                using System.Linq;
+
+                class C1 { }
+
+                class C2 { }
+
+                class D
+                {
+                    public static void ConvertAll(IEnumerable<C1> values)
+                    {
+                        var v = values.Select(Convert);
+                    }
+
+                    [return: NotNullIfNotNull(nameof(value))]
+                    private static C2? Convert(C1? value) => value is null ? null : new C2();
+                }
+                """ + NotNullIfNotNullAttributeDefinition;
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+            var constructedMethodSymbol = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+
+            // Ensure that both the bound reduced method symbol, and the constructed method symbol 
+            // it was reduced from both have the right nullable annotations for the type parameters.
+            Assert.True(constructedMethodSymbol is
+            {
+                Name: nameof(Enumerable.Select),
+                TypeArguments: [
+                { Name: "C1", NullableAnnotation: Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated },
+                { Name: "C2", NullableAnnotation: Microsoft.CodeAnalysis.NullableAnnotation.Annotated }
+                ],
+                ReceiverType.Name: nameof(IEnumerable<>),
+            });
+
+            var constructedReducedFrom = constructedMethodSymbol.GetConstructedReducedFrom();
+            Assert.True(constructedReducedFrom is
+            {
+                Name: nameof(Enumerable.Select),
+                TypeArguments: [
+                { Name: "C1", NullableAnnotation: Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated },
+                { Name: "C2", NullableAnnotation: Microsoft.CodeAnalysis.NullableAnnotation.Annotated }
+                ],
+                ReceiverType.Name: nameof(Enumerable),
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79930")]
+        public void NotInvoicableInvocationTarget()
+        {
+            var source =
+@"
+public class OuterClass
+{
+    void M()
+    {
+        var s = OuterClass.InnerClass();
+    }
+
+    public class InnerClass
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (6,28): error CS1955: Non-invocable member 'OuterClass.InnerClass' cannot be used like a method.
+                //         var s = OuterClass.InnerClass();
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "InnerClass").WithArguments("OuterClass.InnerClass").WithLocation(6, 28)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var semanticModel = comp.GetSemanticModel(tree);
+            var invocationNode = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var expressionNode = invocationNode.Expression;
+
+            var info = semanticModel.GetSymbolInfo(expressionNode);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.NotInvocable, info.CandidateReason);
+            Assert.Same(comp.GetTypeByMetadataName("OuterClass+InnerClass").GetPublicSymbol(), info.CandidateSymbols.Single());
         }
     }
 }

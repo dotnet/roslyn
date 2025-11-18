@@ -283,7 +283,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
 
     protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
         var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
         editor.ReplaceNode(editor.OriginalRoot, newRoot);
@@ -829,9 +829,8 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         var originalDocument = document;
         var originalDeclStatementsToMoveOrRemove =
             memberDeclaration.DescendantNodes()
-                             .Where(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
-                                         n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation))
-                             .ToImmutableArray();
+                             .WhereAsArray(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
+                                         n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation));
         if (originalDeclStatementsToMoveOrRemove.IsEmpty)
         {
             return memberDeclaration;

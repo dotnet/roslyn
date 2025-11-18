@@ -9,15 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceParameter;
@@ -79,6 +78,11 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
             return;
 
+        // Direct reference to named type or type parameter.  e.g. `$$Console.WriteLine()` or `T.Add(...)`.  These 
+        // are effectively statics (not values) and cannot become parameter.
+        if (expressionSymbol is INamedTypeSymbol or ITypeParameterSymbol)
+            return;
+
         // Code actions for trampoline and overloads will not be offered if the method is a constructor.
         // Code actions for overloads will not be offered if the method if the method is a local function.
         var methodKind = methodSymbol.MethodKind;
@@ -123,6 +127,16 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         // Need to special case for expressions whose direct parent is a MemberAccessExpression since they will
         // never introduce a parameter that makes sense in that case.
         if (syntaxFacts.IsNameOfAnyMemberAccessExpression(expression))
+            return false;
+
+        // Need to special case for the left-hand side of member initializers in regular objects (e.g., 'X' in 'new Foo { X = ... }')
+        // because it does not make sense to introduce a parameter for the property/member name itself.
+        if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(expression, out _))
+            return false;
+
+        // Need to special case for the left-hand side of member initializers in anonymous objects (e.g., 'a' in 'new { a = ... }').
+        // This checks if the expression is the name identifier in an anonymous object member declarator.
+        if (syntaxFacts.IsAnonymousObjectMemberDeclaratorNameIdentifier(expression))
             return false;
 
         // Need to special case for expressions that are contained within a parameter or attribute argument
@@ -248,7 +262,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
             {
                 var (project, projectCallSites) = tuple;
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     projectCallSites,
                     cancellationToken,
                     async (tuple, cancellationToken) =>

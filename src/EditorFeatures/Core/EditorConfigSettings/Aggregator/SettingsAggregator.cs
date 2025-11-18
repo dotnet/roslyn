@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
-internal partial class SettingsAggregator : ISettingsAggregator
+internal sealed partial class SettingsAggregator : ISettingsAggregator
 {
     private readonly Workspace _workspace;
     private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
@@ -32,7 +33,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
         IAsynchronousOperationListener listener)
     {
         _workspace = workspace;
-        _workspace.WorkspaceChanged += UpdateProviders;
+        _ = workspace.RegisterWorkspaceChangedHandler(UpdateProviders);
 
         var currentSolution = _workspace.CurrentSolution.SolutionState;
         UpdateProviders(currentSolution);
@@ -48,7 +49,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
             threadingContext.DisposalToken);
     }
 
-    private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
+    private void UpdateProviders(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
@@ -93,7 +94,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
     private ValueTask UpdateProvidersAsync(CancellationToken cancellationToken)
     {
         UpdateProviders(_workspace.CurrentSolution.SolutionState);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [MemberNotNull(nameof(_whitespaceProvider))]

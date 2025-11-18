@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _inUsings = inUsings;
         }
 
-        internal override void GetCandidateExtensionMethods(
+        internal override void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.FindUsages;
 
 [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
-internal class CSharpFindUsagesService : AbstractFindUsagesService
+internal sealed class CSharpFindUsagesService : AbstractFindUsagesService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

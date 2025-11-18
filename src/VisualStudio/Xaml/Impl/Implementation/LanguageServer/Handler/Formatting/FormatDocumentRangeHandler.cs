@@ -10,21 +10,20 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
+
+[ExportStatelessXamlLspService(typeof(FormatDocumentRangeHandler)), Shared]
+[Method(Methods.TextDocumentRangeFormattingName)]
+internal sealed class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
 {
-    [ExportStatelessXamlLspService(typeof(FormatDocumentRangeHandler)), Shared]
-    [Method(Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FormatDocumentRangeHandler()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler()
-        {
-        }
-
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
-
-        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.Options, context, cancellationToken, range: request.Range);
     }
+
+    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+
+    public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetTextEditsAsync(request.Options, context, cancellationToken, range: request.Range);
 }

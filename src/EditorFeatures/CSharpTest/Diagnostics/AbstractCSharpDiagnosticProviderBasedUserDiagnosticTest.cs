@@ -2,21 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#if CODE_STYLE
+extern alias CODESTYLE_UTILITIES;
+#endif
 
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 
-public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest : AbstractDiagnosticProviderBasedUserDiagnosticTest
-{
-    protected AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
+#if CODE_STYLE
+using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
+#else
+using OptionsCollectionAlias = OptionsCollection;
+#endif
 
+public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper? logger)
+    : AbstractDiagnosticProviderBasedUserDiagnosticTest(logger)
+{
     protected override ParseOptions GetScriptOptions() => Options.Script;
 
     protected internal override string GetLanguage() => LanguageNames.CSharp;
@@ -151,4 +159,29 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
     internal OptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
     internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
     internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
+
+    internal new Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        int index = 0,
+        TestParameters? parameters = null)
+    {
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
+    }
+
+    //internal new Task TestInRegularAndScriptAsync(
+    //    [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+    //    [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+    //    int index = 0,
+    //    CodeActionPriority? priority = null,
+    //    CompilationOptions? compilationOptions = null,
+    //    OptionsCollectionAlias? options = null,
+    //    object? fixProviderData = null,
+    //    ParseOptions? parseOptions = null,
+    //    string? title = null,
+    //    TestHost testHost = TestHost.OutOfProcess)
+    //{
+    //    return base.TestInRegularAndScriptAsync(
+    //        initialMarkup, expectedMarkup, index, priority, compilationOptions, options, fixProviderData, parseOptions, title, testHost);
+    //}
 }

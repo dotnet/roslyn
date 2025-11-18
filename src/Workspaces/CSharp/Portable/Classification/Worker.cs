@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -49,21 +49,19 @@ internal readonly ref partial struct Worker
         worker.ClassifyNode(node);
     }
 
-    private void AddClassification(TextSpan span, string type)
+    private readonly void AddClassification(TextSpan span, string type)
     {
         if (ShouldAddSpan(span))
-        {
             _result.Add(new ClassifiedSpan(type, span));
-        }
     }
 
-    private bool ShouldAddSpan(TextSpan span)
+    private readonly bool ShouldAddSpan(TextSpan span)
         => span.Length > 0 && _textSpan.OverlapsWith(span);
 
-    private void AddClassification(SyntaxTrivia trivia, string type)
+    private readonly void AddClassification(SyntaxTrivia trivia, string type)
         => AddClassification(trivia.Span, type);
 
-    private void AddClassification(SyntaxToken token, string type)
+    private readonly void AddClassification(SyntaxToken token, string type)
         => AddClassification(token.Span, type);
 
     private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
@@ -249,6 +247,7 @@ internal readonly ref partial struct Worker
             case SyntaxKind.PragmaChecksumDirectiveTrivia:
             case SyntaxKind.ReferenceDirectiveTrivia:
             case SyntaxKind.LoadDirectiveTrivia:
+            case SyntaxKind.IgnoredDirectiveTrivia:
             case SyntaxKind.NullableDirectiveTrivia:
             case SyntaxKind.BadDirectiveTrivia:
                 ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure()!);

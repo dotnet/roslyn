@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField;
 
-internal class EncapsulateFieldTestState : IDisposable
+internal sealed class EncapsulateFieldTestState : IDisposable
 {
     private readonly EditorTestHostDocument _testDocument;
     public EditorTestWorkspace Workspace { get; }

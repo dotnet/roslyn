@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -249,12 +249,6 @@ Use the dropdown to view and navigate to other items in this file.</value>
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="AnalyzerChangedOnDisk" xml:space="preserve">
-    <value>AnalyzerChangedOnDisk</value>
-  </data>
-  <data name="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted" xml:space="preserve">
-    <value>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</value>
-  </data>
   <data name="Deselect_All" xml:space="preserve">
     <value>_Deselect All</value>
   </data>
@@ -411,9 +405,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Synchronizing_with_0" xml:space="preserve">
     <value>Synchronizing with {0}...</value>
   </data>
-  <data name="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance" xml:space="preserve">
-    <value>Visual Studio has suspended some advanced features to improve performance.</value>
-  </data>
   <data name="Installing_0" xml:space="preserve">
     <value>Installing '{0}'</value>
   </data>
@@ -534,9 +525,6 @@ Additional information: {1}</value>
   <data name="Restore_0" xml:space="preserve">
     <value>Restore {0}</value>
     <comment>{0} is a parameter description</comment>
-  </data>
-  <data name="Re_enable" xml:space="preserve">
-    <value>Re-enable</value>
   </data>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
@@ -1151,20 +1139,11 @@ Additional information: {1}</value>
   <data name="Running_code_analysis_for_0" xml:space="preserve">
     <value>Running code analysis for '{0}'...</value>
   </data>
-  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
-    <value>Running code analysis for Solution...</value>
-  </data>
   <data name="Code_analysis_completed_for_0" xml:space="preserve">
     <value>Code analysis completed for '{0}'.</value>
   </data>
-  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
-    <value>Code analysis completed for Solution.</value>
-  </data>
   <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
     <value>Code analysis terminated before completion for '{0}'.</value>
-  </data>
-  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
-    <value>Code analysis terminated before completion for Solution.</value>
   </data>
   <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
     <value>Run background code analysis for:</value>
@@ -1239,15 +1218,6 @@ Additional information: {1}</value>
   </data>
   <data name="Value_to_inject_at_call_sites" xml:space="preserve">
     <value>Value to inject at call sites</value>
-  </data>
-  <data name="Editor_Color_Scheme" xml:space="preserve">
-    <value>Editor Color Scheme</value>
-  </data>
-  <data name="Visual_Studio_2019" xml:space="preserve">
-    <value>Visual Studio 2019</value>
-  </data>
-  <data name="Visual_Studio_2017" xml:space="preserve">
-    <value>Visual Studio 2017</value>
   </data>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
@@ -1340,6 +1310,12 @@ Additional information: {1}</value>
   </data>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
+  </data>
+  <data name="Generate_summary_on_single_line" xml:space="preserve">
+    <value>Generate &lt;summary&gt; on single line</value>
+  </data>
+  <data name="Generate_only_summary_tag" xml:space="preserve">
+    <value>Generate only &lt;summary&gt; tag</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
@@ -1492,8 +1468,8 @@ Additional information: {1}</value>
   <data name="This_rule_is_not_configurable" xml:space="preserve">
     <value>This rule is not configurable</value>
   </data>
-  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
-    <value>Display diagnostics inline (experimental)</value>
+  <data name="Display_diagnostics_inline" xml:space="preserve">
+    <value>Display diagnostics inline</value>
   </data>
   <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
     <value>at the end of the line of code</value>
@@ -1588,30 +1564,11 @@ Additional information: {1}</value>
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
   </data>
-  <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
-    <value>Run code analysis in separate process (requires restart)</value>
-  </data>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
   </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
-  </data>
-  <data name="Default_Current_Document" xml:space="preserve">
-    <value>Default (Current Document)</value>
-    <comment>This text is a menu command</comment>
-  </data>
-  <data name="Default_Entire_Solution" xml:space="preserve">
-    <value>Default (Entire Solution)</value>
-    <comment>This text is a menu command</comment>
-  </data>
-  <data name="Default_Open_Documents" xml:space="preserve">
-    <value>Default (Open Documents)</value>
-    <comment>This text is a menu command</comment>
-  </data>
-  <data name="Default_None" xml:space="preserve">
-    <value>Default (None)</value>
-    <comment>This text is a menu command</comment>
   </data>
   <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
     <value>Suppress hints when argument matches parameter name</value>
@@ -1693,8 +1650,8 @@ Additional information: {1}</value>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating</value>
   </data>
-  <data name="Fix_text_pasted_into_string_literals_experimental" xml:space="preserve">
-    <value>Fix text pasted into string literals (experimental)</value>
+  <data name="Fix_text_pasted_into_string_literals" xml:space="preserve">
+    <value>Fix text pasted into string literals</value>
   </data>
   <data name="Go_To_Definition" xml:space="preserve">
     <value>Go To Definition</value>
@@ -1724,9 +1681,6 @@ Additional information: {1}</value>
   <data name="Document_Outline_Search" xml:space="preserve">
     <value>Search Document Outline</value>
   </data>
-  <data name="Rename_asynchronously_experimental" xml:space="preserve">
-    <value>Rename asynchronously (experimental)</value>
-  </data>
   <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
     <value>Fix analyzer warnings and errors</value>
   </data>
@@ -1749,32 +1703,14 @@ Additional information: {1}</value>
     <value>Extract Base Record</value>
     <comment>{Locked="Record"} "Record" is a language construct for C# and should not be localized</comment>
   </data>
-  <data name="Show_UI_as_dashboard_in_top_right" xml:space="preserve">
-    <value>Show UI as a dashboard in top right</value>
-    <comment>"UI" is an acronym for "User Interface"</comment>
-  </data>
-  <data name="Show_UI_inline" xml:space="preserve">
-    <value>Show UI Inline</value>
-    <comment>"UI" is an acronym for "User Interface"</comment>
-  </data>
-  <data name="Where_should_the_rename_UI_be_shown" xml:space="preserve">
-    <value>Where should the rename UI be shown?</value>
-    <comment>"UI" is an acronym for "User Interface"</comment>
-  </data>
   <data name="Prefer_read_only_struct" xml:space="preserve">
     <value>Prefer read-only struct</value>
-  </data>
-  <data name="Analyze_source_generated_files" xml:space="preserve">
-    <value>Analyze source generated files</value>
   </data>
   <data name="Prefer_read_only_struct_member" xml:space="preserve">
     <value>Prefer read-only struct member</value>
   </data>
   <data name="Sync_namespaces_changes" xml:space="preserve">
     <value>Sync namespaces changes</value>
-  </data>
-  <data name="Enable_document_outline_experimental_requires_restart" xml:space="preserve">
-    <value>Enable document outline (experimental, requires restart)</value>
   </data>
   <data name="Prefer_primary_constructors" xml:space="preserve">
     <value>Prefer primary constructors</value>
@@ -1843,9 +1779,6 @@ Additional information: {1}</value>
   </data>
   <data name="Show_hints_for_collection_expressions" xml:space="preserve">
     <value>Show hints for collection expressions</value>
-  </data>
-  <data name="Automatically_reload_updated_analyzers_and_generators" xml:space="preserve">
-    <value>Automatically reload updated analyzers and generators (requires restart)</value>
   </data>
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
@@ -1943,7 +1876,26 @@ Additional information: {1}</value>
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>Show completion list after a character is typed</value>
   </data>
+  <data name="Error_encountered_updating_0" xml:space="preserve">
+    <value>Error encountered updating '{0}'</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignore</value>
+  </data>
+  <data name="Ignore_including_future_errors" xml:space="preserve">
+    <value>Ignore (including future errors)</value>
+  </data>
   <data name="Experimental_feature" xml:space="preserve">
     <value>Experimental feature</value>
+    <comment>This is used by the settings UI to mark experimental features.</comment>
+  </data>
+  <data name="Prefer_simple_property_accessors" xml:space="preserve">
+    <value>Prefer simple property accessors</value>
+  </data>
+  <data name="Search_members" xml:space="preserve">
+    <value>Search members</value>
+  </data>
+  <data name="Code_preview" xml:space="preserve">
+    <value>Code preview</value>
   </data>
 </root>

@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class AnnotatedTextEdit : TextEdit
+internal sealed class AnnotatedTextEdit : TextEdit
 {
     /// <summary>
     /// The annotation identifier.

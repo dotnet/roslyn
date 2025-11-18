@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -93,7 +93,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                             showProgress: false);
 
                         var cancellationToken = waitContext.UserCancellationToken;
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                        var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                        var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
                         if (textBuffer == null)
                             return default;
 
@@ -136,7 +138,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     if (_proximityExpressionsService == null)
                         return null;
 
-                    var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                    var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                    var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
                     if (textBuffer == null)
                         return null;
 
@@ -166,20 +170,25 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
             => VSConstants.E_NOTIMPL;
 
-        public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
+        public int ResolveName(string? pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
         {
             // In VS, this method frequently get's called with an empty string to test if the language service
             // supports this method (some language services, like F#, implement IVsLanguageDebugInfo but don't
             // implement this method).  In that scenario, there's no sense doing work, so we'll just return
             // S_FALSE (as the old VB language service did).
-            if (string.IsNullOrEmpty(pszName))
+            if (pszName is null or "")
             {
                 ppNames = null;
                 return VSConstants.S_FALSE;
             }
 
+            // NOTE(cyrusn): We have to wait here because the debuggers' ResolveName
+            // call is synchronous.  In the future it would be nice to make it async.
             ppNames = this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
+                // We're in a blocking JTF run.  So ConfigureAwait(true) all calls to ensure we're coming back
+                // and using the blocked thread whenever possible.
+
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ResolveName, CancellationToken.None))
                 {
                     using var waitContext = _uiThreadOperationExecutor.BeginExecute(
@@ -191,16 +200,13 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     var cancellationToken = waitContext.UserCancellationToken;
                     if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
                     {
-                        var solution = _languageService.Workspace.CurrentSolution;
+                        var solution = _languageService.Workspace.Value.CurrentSolution;
 
-                        // NOTE(cyrusn): We have to wait here because the debuggers' ResolveName
-                        // call is synchronous.  In the future it would be nice to make it async.
                         if (_breakpointService != null)
                         {
                             var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
-                                solution, pszName, cancellationToken).ConfigureAwait(false);
-                            var debugNames = await breakpoints.SelectAsArrayAsync(
-                                bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(true);
+                                solution, pszName, cancellationToken).ConfigureAwait(true);
+                            var debugNames = breakpoints.SelectAsArray(bp => CreateDebugName(bp, cancellationToken));
 
                             return new VsEnumDebugName(debugNames);
                         }
@@ -211,23 +217,28 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             });
 
             return ppNames != null ? VSConstants.S_OK : VSConstants.E_NOTIMPL;
-        }
 
-        private async ValueTask<IVsDebugName> CreateDebugNameAsync(
-            BreakpointResolutionResult breakpoint, CancellationToken cancellationToken)
-        {
-            var document = breakpoint.Document;
-            var filePath = _languageService.Workspace.GetFilePath(document.Id);
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
-            // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
-            // Otherwise, we'll just use the original span.
-            var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                this.ThreadingContext, document.Id, cancellationToken).ConfigureAwait(true);
-            if (mappedSpan != null)
-                span = mappedSpan.Value;
+            IVsDebugName CreateDebugName(
+                BreakpointResolutionResult breakpoint, CancellationToken cancellationToken)
+            {
+                // We're in a blocking jtf run.  So CA(true) all calls to ensure we're coming bac
+                // and using the blocked thread whenever possible.
 
-            return new VsDebugName(breakpoint.LocationNameOpt, filePath, span);
+                var document = breakpoint.Document;
+                var filePath = _languageService.Workspace.Value.GetFilePath(document.Id);
+
+                // We're (unfortunately) blocking the UI thread here.  So avoid async io as we actually
+                // awant the IO to complete as quickly as possible, on this thread if necessary.
+                var text = document.GetTextSynchronously(cancellationToken);
+                var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
+                // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
+                // Otherwise, we'll just use the original span.
+                var mappedSpan = span.MapSpanFromSecondaryBufferToPrimaryBuffer(this.ThreadingContext, document.Id);
+                if (mappedSpan != null)
+                    span = mappedSpan.Value;
+
+                return new VsDebugName(breakpoint.LocationNameOpt, filePath!, span);
+            }
         }
 
         public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, VsTextSpan[] pCodeSpan)
@@ -258,7 +269,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             if (_breakpointService == null)
                 return VSConstants.E_FAIL;
 
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
             if (textBuffer != null)
             {
                 var snapshot = textBuffer.CurrentSnapshot;

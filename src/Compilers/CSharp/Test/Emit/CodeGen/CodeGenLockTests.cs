@@ -67,7 +67,7 @@ public class Test
  -IL_002c:  ldstr      ""After""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
  -IL_0036:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -122,7 +122,7 @@ public class Test
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -397,7 +397,7 @@ public class Test
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -1387,7 +1387,7 @@ public class Test
  -IL_0025:  ldstr      ""After""
   IL_002a:  call       ""void System.Console.WriteLine(string)""
  -IL_002f:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -1771,7 +1771,7 @@ public class Buffer<T>
 
             item = newItem;
             empty = false;
-            Console.Error.WriteLine(""{0} wrote {1}"", Thread.CurrentThread.Name, newItem);
+            Console.WriteLine(""{0} wrote {1}"", Thread.CurrentThread.Name, newItem);
             Monitor.PulseAll(bufferLock);
         }
     }
@@ -1784,7 +1784,7 @@ public class Buffer<T>
 
             empty = true;
             T result = item;
-            Console.Error.WriteLine(""{0} read {1}"", Thread.CurrentThread.Name, result);
+            Console.WriteLine(""{0} read {1}"", Thread.CurrentThread.Name, result);
             Monitor.PulseAll(bufferLock);
             return result;
         }

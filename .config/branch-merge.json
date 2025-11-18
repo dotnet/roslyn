@@ -1,9 +1,0 @@
-{
-    "merge-flow-configurations": {
-        // Merge any main changes to release/dev18.0.
-        "main": {
-            "MergeToBranch": "release/dev18.0",
-            "ExtraSwitches": "-QuietComments"
-        }
-    }
-}

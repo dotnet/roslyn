@@ -2,9 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -17,22 +23,37 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
 
-internal abstract partial class AbstractImplementInterfaceService() : IImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax> : IImplementInterfaceService
+    where TTypeDeclarationSyntax : SyntaxNode
 {
     protected const string DisposingName = "disposing";
 
-    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
     protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
     protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
 
     protected abstract bool CanImplementImplicitly { get; }
     protected abstract bool HasHiddenExplicitImplementation { get; }
-    protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out ImmutableArray<INamedTypeSymbol> interfaceTypes);
+    protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken,
+        [NotNullWhen(true)] out SyntaxNode? classOrStructDecl,
+        [NotNullWhen(true)] out INamedTypeSymbol? classOrStructType,
+        out ImmutableArray<INamedTypeSymbol> interfaceTypes);
     protected abstract bool AllowDelegateAndEnumConstraints(ParseOptions options);
 
     protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
     protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
+
+    protected abstract bool IsTypeInInterfaceBaseList([NotNullWhen(true)] SyntaxNode? type);
+    protected abstract void AddInterfaceTypes(TTypeDeclarationSyntax typeDeclaration, ArrayBuilder<SyntaxNode> result);
+
+    public ImmutableArray<SyntaxNode> GetInterfaceTypes(SyntaxNode typeDeclaration)
+    {
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+        if (typeDeclaration is TTypeDeclarationSyntax typeSyntax)
+            AddInterfaceTypes(typeSyntax, result);
+
+        return result.ToImmutableAndClear();
+    }
 
     public async Task<Document> ImplementInterfaceAsync(
         Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
@@ -54,7 +75,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         }
     }
 
-    public async Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
+    private async Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
     {
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         return State.Generate(this, document, model, interfaceType, cancellationToken)?.Info;
@@ -70,7 +91,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         => node.WithPrependedLeadingTrivia(CreateCommentTrivia(comments));
 
     protected SyntaxTriviaList CreateCommentTrivia(
-        params string[] comments)
+        params ReadOnlySpan<string> comments)
     {
         using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);
 
@@ -83,7 +104,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         return [.. trivia];
     }
 
-    public async Task<Document> ImplementInterfaceAsync(
+    private async Task<Document> ImplementInterfaceAsync(
         Document document,
         ImplementInterfaceInfo info,
         ImplementTypeOptions options,
@@ -120,5 +141,170 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             options.PropertyGenerationBehavior);
 
         return implementedMembers;
+    }
+
+    public async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode? interfaceType, CancellationToken cancellationToken)
+    {
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!this.IsTypeInInterfaceBaseList(interfaceType))
+            return [];
+
+        var info = await this.AnalyzeAsync(
+            document, interfaceType, cancellationToken).ConfigureAwait(false);
+        if (info is null)
+            return [];
+
+        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
+        await foreach (var implementOptions in GetImplementOptionsAsync(document, info, cancellationToken).ConfigureAwait(false))
+        {
+            var title = GetTitle(implementOptions);
+            var equivalenceKey = GetEquivalenceKey(info, implementOptions);
+            codeActions.Add(CodeAction.Create(
+                title,
+                cancellationToken => this.ImplementInterfaceAsync(
+                    document, info, options, implementOptions, cancellationToken),
+                equivalenceKey));
+        }
+
+        return codeActions.ToImmutableAndClear();
+    }
+
+    private static async IAsyncEnumerable<ImplementInterfaceConfiguration> GetImplementOptionsAsync(
+        Document document, ImplementInterfaceInfo state, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var supportsImplicitImplementationOfNonPublicInterfaceMembers = syntaxFacts.SupportsImplicitImplementationOfNonPublicInterfaceMembers(document.Project.ParseOptions!);
+        if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
+        {
+            var totalMemberCount = 0;
+            var inaccessibleMemberCount = 0;
+
+            foreach (var (_, members) in state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented)
+            {
+                foreach (var member in members)
+                {
+                    totalMemberCount++;
+
+                    if (ContainsTypeLessAccessibleThan(member, state.ClassOrStructType, supportsImplicitImplementationOfNonPublicInterfaceMembers))
+                        inaccessibleMemberCount++;
+                }
+            }
+
+            // If all members to implement are inaccessible, then "Implement interface" codeaction
+            // will be the same as "Implement interface explicitly", so there is no point in having both of them
+            if (totalMemberCount != inaccessibleMemberCount)
+                yield return new() { OnlyRemaining = true };
+
+            if (ShouldImplementDisposePattern(compilation, state, explicitly: false))
+                yield return new() { OnlyRemaining = true, ImplementDisposePattern = true, };
+
+            var delegatableMembers = GetDelegatableMembers(document, state, cancellationToken);
+            foreach (var member in delegatableMembers)
+                yield return new() { ThroughMember = member };
+
+            if (state.ClassOrStructType.IsAbstract)
+                yield return new() { OnlyRemaining = true, Abstractly = true };
+        }
+
+        if (state.MembersWithoutExplicitImplementation.Length > 0)
+        {
+            yield return new() { Explicitly = true };
+
+            if (ShouldImplementDisposePattern(compilation, state, explicitly: true))
+                yield return new() { ImplementDisposePattern = true, Explicitly = true };
+        }
+
+        if (AnyImplementedImplicitly(state))
+            yield return new() { OnlyRemaining = true, Explicitly = true };
+    }
+
+    private static string GetTitle(ImplementInterfaceConfiguration options)
+    {
+        if (options.ImplementDisposePattern)
+        {
+            return options.Explicitly
+                ? CodeFixesResources.Implement_interface_explicitly_with_Dispose_pattern
+                : CodeFixesResources.Implement_interface_with_Dispose_pattern;
+        }
+        else if (options.Explicitly)
+        {
+            return options.OnlyRemaining
+                ? CodeFixesResources.Implement_remaining_members_explicitly
+                : CodeFixesResources.Implement_all_members_explicitly;
+        }
+        else if (options.Abstractly)
+        {
+            return CodeFixesResources.Implement_interface_abstractly;
+        }
+        else if (options.ThroughMember != null)
+        {
+            return string.Format(CodeFixesResources.Implement_interface_through_0, options.ThroughMember.Name);
+        }
+        else
+        {
+            return CodeFixesResources.Implement_interface;
+        }
+    }
+
+    private static string GetEquivalenceKey(
+        ImplementInterfaceInfo state,
+        ImplementInterfaceConfiguration options)
+    {
+        var interfaceType = state.InterfaceTypes.First();
+        var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        // Legacy part of the equivalence key.  Kept the same to avoid test churn.
+        var codeActionTypeName = options.ImplementDisposePattern
+            ? "Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction"
+            : "Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction";
+
+        // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+        // in the same manner.  Note: 'implement through member' means implementing the same interface through
+        // an applicable member with the same name in the destination.
+        return options.Explicitly.ToString() + ";" +
+           options.Abstractly.ToString() + ";" +
+           options.OnlyRemaining.ToString() + ":" +
+           typeName + ";" +
+           codeActionTypeName + ";" +
+           options.ThroughMember?.Name;
+    }
+
+    private static bool AnyImplementedImplicitly(ImplementInterfaceInfo state)
+    {
+        if (state.MembersWithoutExplicitOrImplicitImplementation.Length != state.MembersWithoutExplicitImplementation.Length)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < state.MembersWithoutExplicitOrImplicitImplementation.Length; i++)
+        {
+            var (typeA, membersA) = state.MembersWithoutExplicitOrImplicitImplementation[i];
+            var (typeB, membersB) = state.MembersWithoutExplicitImplementation[i];
+            if (!typeA.Equals(typeB))
+            {
+                return true;
+            }
+
+            if (!membersA.SequenceEqual(membersB))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static ImmutableArray<ISymbol> GetDelegatableMembers(
+        Document document, ImplementInterfaceInfo state, CancellationToken cancellationToken)
+    {
+        var firstInterfaceType = state.InterfaceTypes.First();
+
+        return ImplementHelpers.GetDelegatableMembers(
+            document,
+            state.ClassOrStructType,
+            t => t.GetAllInterfacesIncludingThis().Contains(firstInterfaceType),
+            cancellationToken);
     }
 }

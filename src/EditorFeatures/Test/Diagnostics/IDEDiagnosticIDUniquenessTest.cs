@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-public class IDEDiagnosticIDUniquenessTest
+public sealed class IDEDiagnosticIDUniquenessTest
 {
     [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public void UniqueIDEDiagnosticIds()

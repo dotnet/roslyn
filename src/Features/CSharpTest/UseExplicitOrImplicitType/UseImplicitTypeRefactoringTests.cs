@@ -15,15 +15,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitOrImplicitType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseImplicitTypeCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestIntLocalDeclaration()
-    {
-        var code = """
+    public Task TestIntLocalDeclaration()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -31,9 +30,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     int[||] i = 0;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -41,15 +38,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestSelection1()
-    {
-        var code = """
+    public Task TestSelection1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -57,9 +50,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     [|int i = 0;|]
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -67,15 +58,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestSelection2()
-    {
-        var code = """
+    public Task TestSelection2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -83,9 +70,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     [|int|] i = 0;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -93,16 +78,12 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestSelectionNotType()
-    {
-        var code = """
+    public Task TestSelectionNotType()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -110,9 +91,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     int [|i|] = 0;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -120,15 +99,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestForeachInsideLocalDeclaration()
-    {
-        var code = """
+    public Task TestForeachInsideLocalDeclaration()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -136,9 +111,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     System.Action notThisLocal = () => { foreach (int[||] i in new int[0]) { } };
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -146,15 +119,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     System.Action notThisLocal = () => { foreach (var[||] i in new int[0]) { } };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestInIntPattern()
-    {
-        var code = """
+    public Task TestInIntPattern()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -162,15 +131,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     _ = 0 is int[||] i;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task TestIntLocalDeclaration_Multiple()
-    {
-        var code = """
+    public Task TestIntLocalDeclaration_Multiple()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -178,15 +143,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     int[||] i = 0, j = j;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task TestIntLocalDeclaration_NoInitializer()
-    {
-        var code = """
+    public Task TestIntLocalDeclaration_NoInitializer()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -194,15 +155,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     int[||] i;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task TestIntForLoop()
-    {
-        var code = """
+    public Task TestIntForLoop()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -210,9 +167,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     for (int[||] i = 0;;) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -220,15 +175,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     for (var i = 0;;) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestInDispose()
-    {
-        var code = """
+    public Task TestInDispose()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C : System.IDisposable
             {
                 static void Main()
@@ -236,9 +187,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     using (C[||] c = new C()) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C : System.IDisposable
             {
                 static void Main()
@@ -246,15 +195,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     using (var c = new C()) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestIntForeachLoop()
-    {
-        var code = """
+    public Task TestIntForeachLoop()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -262,9 +207,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach (int[||] i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -272,15 +215,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach (var i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestIntForeachLoop2()
-    {
-        var code = """
+    public Task TestIntForeachLoop2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -288,9 +227,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach ([|int|] i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -298,15 +235,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach (var i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestIntForeachLoop3()
-    {
-        var code = """
+    public Task TestIntForeachLoop3()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -314,9 +247,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach (int [|i|] in new[] { 0 }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -324,15 +255,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach (var i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestIntForeachLoop4()
-    {
-        var code = """
+    public Task TestIntForeachLoop4()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -340,9 +267,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach ([|object|] i in new[] { new object() }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -350,15 +275,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     foreach (var i in new[] { new object() }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestIntDeconstruction()
-    {
-        var code = """
+    public Task TestIntDeconstruction()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -366,9 +287,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     (int[||] i, var j) = (0, 1);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -376,15 +295,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     (var i, var j) = (0, 1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestIntDeconstruction2()
-    {
-        var code = """
+    public Task TestIntDeconstruction2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -392,9 +307,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     (int[||] i, var j) = (0, 1);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -402,15 +315,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     (var i, var j) = (0, 1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
-    public async Task NoSuggestionOnForeachCollectionExpression()
-    {
-        var code = """
+    public Task NoSuggestionOnForeachCollectionExpression()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -424,16 +333,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     }
                 }
             }
-            """;
-
-        // We never want to get offered here under any circumstances.
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task NoSuggestionWithinAnExpression()
-    {
-        var code = """
+    public Task NoSuggestionWithinAnExpression()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System;
 
@@ -444,16 +348,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     int a = 40 [||]+ 2;
                 }
             }
-            """;
-
-        // We never want to get offered here under any circumstances.
-        await TestMissingInRegularAndScriptAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefLocal1()
-    {
-        var code = """
+    public Task TestRefLocal1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -463,8 +362,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     [||]ref string rStr1 = ref str;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -474,15 +372,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefLocal2()
-    {
-        var code = """
+    public Task TestRefLocal2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -492,9 +386,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref [||]string rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -504,15 +396,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefLocal3()
-    {
-        var code = """
+    public Task TestRefLocal3()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -522,9 +410,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref string [||]rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -534,15 +420,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefReadonlyLocal1()
-    {
-        var code = """
+    public Task TestRefReadonlyLocal1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -552,9 +434,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref readonly [||]string rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -564,15 +444,11 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref readonly var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefReadonlyLocal2()
-    {
-        var code = """
+    public Task TestRefReadonlyLocal2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -582,9 +458,7 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref readonly string[||] rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -594,20 +468,17 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
                     ref readonly var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
-    }
+            """);
 
     private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
     {
         // Enabled because the diagnostic is disabled
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithNone());
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferImplicitTypeWithNone()));
 
         // Enabled because the diagnostic is checking for the other direction
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithNone());
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithSilent());
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithInfo());
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithNone()));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithSilent()));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithInfo()));
 
         // Disabled because the diagnostic will report it instead
         await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithSilent()));
@@ -616,8 +487,8 @@ public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEd
         await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithError()));
 
         // Currently this refactoring is still enabled in cases where it would cause a warning or error
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithWarning());
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithError());
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithWarning()));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: this.PreferExplicitTypeWithError()));
     }
 
     private async Task TestMissingInRegularAndScriptAsync(string initialMarkup)

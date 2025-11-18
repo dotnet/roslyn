@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 [ExportWorkspaceService(typeof(IExternalDefinitionItemProvider), ServiceLayer.Desktop), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VisualStudioDefinitionsAndReferencesFactory(
+internal sealed class VisualStudioDefinitionsAndReferencesFactory(
     SVsServiceProvider serviceProvider,
     IThreadingContext threadingContext) : IExternalDefinitionItemProvider
 {

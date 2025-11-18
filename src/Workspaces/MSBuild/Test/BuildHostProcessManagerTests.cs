@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,13 +12,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 using BuildHostProcessKind = BuildHostProcessManager.BuildHostProcessKind;
 
-public class BuildHostProcessManagerTests
+public sealed class BuildHostProcessManagerTests
 {
     [Fact]
     public void ProcessStartInfo_ForNetCore_RollsForwardToLatestPreview()
     {
-        var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "");
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
 
 #if NET
         var rollForwardIndex = processStartInfo.ArgumentList.IndexOf("--roll-forward");
@@ -33,8 +33,7 @@ public class BuildHostProcessManagerTests
     [Fact]
     public void ProcessStartInfo_ForNetCore_LaunchesDotNetCLI()
     {
-        var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "");
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
 
         Assert.StartsWith("dotnet", processStartInfo.FileName);
     }
@@ -42,8 +41,7 @@ public class BuildHostProcessManagerTests
     [Fact]
     public void ProcessStartInfo_ForMono_LaunchesMono()
     {
-        var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.Mono, pipeName: "");
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.Mono, pipeName: "", dotnetPath: null);
 
         Assert.Equal("mono", processStartInfo.FileName);
     }
@@ -51,30 +49,9 @@ public class BuildHostProcessManagerTests
     [Fact]
     public void ProcessStartInfo_ForNetFramework_LaunchesBuildHost()
     {
-        var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetFramework, pipeName: "");
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetFramework, pipeName: "", dotnetPath: null);
 
         Assert.EndsWith("Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe", processStartInfo.FileName);
-    }
-
-    [Theory]
-    [InlineData(BuildHostProcessKind.NetFramework)]
-    [InlineData(BuildHostProcessKind.NetCore)]
-    [InlineData(BuildHostProcessKind.Mono)]
-    internal void ProcessStartInfo_PassesBinLogPath(BuildHostProcessKind buildHostKind)
-    {
-        const string BinaryLogPath = "test.binlog";
-
-        var processStartInfo = new BuildHostProcessManager(binaryLogPath: BinaryLogPath)
-            .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
-
-#if NET
-        var binlogIndex = processStartInfo.ArgumentList.IndexOf("--binlog");
-        Assert.True(binlogIndex >= 0);
-        Assert.Equal(BinaryLogPath, processStartInfo.ArgumentList[binlogIndex + 1]);
-#else
-        Assert.Contains($"--binlog {BinaryLogPath}", processStartInfo.Arguments);
-#endif
     }
 
     [Theory]
@@ -85,8 +62,7 @@ public class BuildHostProcessManagerTests
     {
         const string PipeName = "TestPipe";
 
-        var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(buildHostKind, PipeName);
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
 
 #if NET
         var binlogIndex = processStartInfo.ArgumentList.IndexOf("--pipe");
@@ -106,8 +82,7 @@ public class BuildHostProcessManagerTests
     {
         const string Locale = "de-DE";
 
-        var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "", dotnetPath: null);
 
 #if NET
         var localeIndex = processStartInfo.ArgumentList.IndexOf("--locale");
@@ -116,43 +91,5 @@ public class BuildHostProcessManagerTests
 #else
         Assert.Contains($"--locale {Locale}", processStartInfo.Arguments);
 #endif
-    }
-
-    [Theory]
-    [InlineData(BuildHostProcessKind.NetFramework)]
-    [InlineData(BuildHostProcessKind.NetCore)]
-    [InlineData(BuildHostProcessKind.Mono)]
-    internal void ProcessStartInfo_PassesProperties(BuildHostProcessKind buildHostKind)
-    {
-        var globalMSBuildProperties = new Dictionary<string, string>
-        {
-            ["TestKey1"] = "TestValue1",
-            ["TestKey2"] = "TestValue2",
-        }.ToImmutableDictionary();
-
-        var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties);
-
-        var processStartInfo = buildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "");
-
-#if NET
-        foreach (var kvp in globalMSBuildProperties)
-        {
-            var propertyArgument = GetPropertyArgument(kvp);
-            var argumentIndex = processStartInfo.ArgumentList.IndexOf(propertyArgument);
-            Assert.True(argumentIndex >= 0);
-            Assert.Equal("--property", processStartInfo.ArgumentList[argumentIndex - 1]);
-        }
-#else
-        foreach (var kvp in globalMSBuildProperties)
-        {
-            var propertyArgument = GetPropertyArgument(kvp);
-            Assert.Contains($"--property {propertyArgument}", processStartInfo.Arguments);
-        }
-#endif
-
-        static string GetPropertyArgument(KeyValuePair<string, string> property)
-        {
-            return $"{property.Key}={property.Value}";
-        }
     }
 }

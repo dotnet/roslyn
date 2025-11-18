@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -21,8 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static UseCollectionExpressionHelpers;
 using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -42,24 +41,24 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     private static readonly ImmutableArray<string> s_suffixes =
     [
         nameof(Array),
-        nameof(Span<int>),
-        nameof(ReadOnlySpan<int>),
-        nameof(System.Collections.Generic.List<int>),
-        nameof(HashSet<int>),
-        nameof(LinkedList<int>),
-        nameof(Queue<int>),
-        nameof(SortedSet<int>),
-        nameof(Stack<int>),
-        nameof(ICollection<int>),
-        nameof(IReadOnlyCollection<int>),
-        nameof(IList<int>),
-        nameof(IReadOnlyList<int>),
-        nameof(ImmutableArray<int>),
-        nameof(ImmutableHashSet<int>),
-        nameof(ImmutableList<int>),
-        nameof(ImmutableQueue<int>),
-        nameof(ImmutableSortedSet<int>),
-        nameof(ImmutableStack<int>),
+        nameof(Span<>),
+        nameof(ReadOnlySpan<>),
+        nameof(System.Collections.Generic.List<>),
+        nameof(HashSet<>),
+        nameof(LinkedList<>),
+        nameof(Queue<>),
+        nameof(SortedSet<>),
+        nameof(Stack<>),
+        nameof(ICollection<>),
+        nameof(IReadOnlyCollection<>),
+        nameof(IList<>),
+        nameof(IReadOnlyList<>),
+        nameof(ImmutableArray<>),
+        nameof(ImmutableHashSet<>),
+        nameof(ImmutableList<>),
+        nameof(ImmutableQueue<>),
+        nameof(ImmutableSortedSet<>),
+        nameof(ImmutableStack<>),
         nameof(System.Collections.Immutable),
     ];
 

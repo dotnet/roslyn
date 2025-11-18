@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal partial class ChangeList : IVsPreviewChangesList, IVsLiteTreeList
+internal sealed partial class ChangeList : IVsPreviewChangesList, IVsLiteTreeList
 {
     public static readonly ChangeList Empty = new([]);
 

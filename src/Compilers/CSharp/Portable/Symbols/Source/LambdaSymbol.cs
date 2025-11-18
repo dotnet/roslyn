@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
+        private ImmutableArray<CustomModifier> _refCustomModifiers;
         private TypeWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             TypeWithAnnotations returnType) :
             base(unboundLambda.Syntax.GetReference())
         {
@@ -56,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
-            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _returnType))
+            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _refCustomModifiers, out _returnType))
             {
                 _refKind = refKind;
+                _refCustomModifiers = refCustomModifiers;
                 _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             }
             _isSynthesized = unboundLambda.WasCompilerGenerated;
@@ -147,6 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _refCustomModifiers; }
+        }
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return _returnType; }
@@ -160,13 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(inferredReturnType.HasType);
             Debug.Assert(_returnType.Type.IsErrorType());
+            Debug.Assert(refKind != RefKind.RefReadOnly);
             _refKind = refKind;
+            _refCustomModifiers = [];
             _returnType = inferredReturnType;
-        }
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -381,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
+                && lambda._refCustomModifiers.SequenceEqual(_refCustomModifiers)
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Roslyn.Utilities;
 
@@ -38,7 +39,7 @@ internal readonly struct ReferenceHolder<T> : IEquatable<ReferenceHolder<T>>
             return Strong(value);
         }
 
-        return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.GetHashCode(value));
+        return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.Instance.GetHashCode(value));
     }
 
     public T? TryGetTarget()
@@ -86,7 +87,7 @@ internal readonly struct ReferenceHolder<T> : IEquatable<ReferenceHolder<T>>
         if (_weakReference is object)
             return _hashCode;
 
-        return ReferenceEqualityComparer.GetHashCode(_strongReference);
+        return ReferenceEqualityComparer.Instance.GetHashCode(_strongReference);
     }
 
     internal static class TestAccessor

@@ -15,10 +15,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class DocCommentFormatterTests
+public sealed class DocCommentFormatterTests
 {
-    private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-    private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+    private readonly CSharpDocumentationCommentFormattingService _csharpService = new();
+    private readonly VisualBasicDocumentationCommentFormattingService _vbService = new();
 
     private void TestFormat(string docCommentXmlFragment, string expected)
         => TestFormat(docCommentXmlFragment, expected, expected);
@@ -36,82 +36,42 @@ public class DocCommentFormatterTests
 
     [Fact]
     public void Summary()
-    {
-        var comment = "<summary>This is a summary.</summary>";
-
-        var expected =
-$@"{FeaturesResources.Summary_colon}
-    This is a summary.";
-
-        TestFormat(comment, expected);
-    }
+        => TestFormat("<summary>This is a summary.</summary>", $@"{FeaturesResources.Summary_colon}
+    This is a summary.");
 
     [Fact]
     public void Wrapping1()
-    {
-        var comment = "<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>";
-
-        var expected =
-$@"{FeaturesResources.Summary_colon}
+        => TestFormat("<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>", $@"{FeaturesResources.Summary_colon}
     I am the very model of a modern major general. This is a very long comment. And
-    getting longer by the minute.";
-
-        TestFormat(comment, expected);
-    }
+    getting longer by the minute.");
 
     [Fact]
     public void Wrapping2()
-    {
-        var comment = "<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>";
-        var expected =
-$@"{FeaturesResources.Summary_colon}
+        => TestFormat("<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>", $@"{FeaturesResources.Summary_colon}
     I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe
-    minute.";
-
-        TestFormat(comment, expected);
-    }
+    minute.");
 
     [Fact]
     public void Exception()
-    {
-        var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
-
-        var expected =
-$@"{WorkspacesResources.Exceptions_colon}
+        => TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>", $@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
-    throws NotImplementedException";
-
-        TestFormat(comment, expected);
-    }
+    throws NotImplementedException");
 
     [Fact]
     public void MultipleExceptionTags()
-    {
-        var comment =
-@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>
-<exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>";
-
-        var expected =
-$@"{WorkspacesResources.Exceptions_colon}
+        => TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>
+<exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>", $@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException
 
   T:System.InvalidOperationException:
-    throws InvalidOperationException";
-
-        TestFormat(comment, expected);
-    }
+    throws InvalidOperationException");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
     public void MultipleExceptionTagsWithSameType()
-    {
-        var comment =
-@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException for reason X</exception>
+        => TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException for reason X</exception>
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>
-<exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>";
-
-        var expected =
-$@"{WorkspacesResources.Exceptions_colon}
+<exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>", $@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException for reason X
 
@@ -119,45 +79,23 @@ $@"{WorkspacesResources.Exceptions_colon}
     also throws NotImplementedException for reason Y
 
   T:System.InvalidOperationException:
-    throws InvalidOperationException";
-
-        TestFormat(comment, expected);
-    }
+    throws InvalidOperationException");
 
     [Fact]
     public void Returns()
-    {
-        var comment = @"<returns>A string is returned</returns>";
-
-        var expected =
-$@"{FeaturesResources.Returns_colon}
-    A string is returned";
-
-        TestFormat(comment, expected);
-    }
+        => TestFormat(@"<returns>A string is returned</returns>", $@"{FeaturesResources.Returns_colon}
+    A string is returned");
 
     [Fact]
     public void Value()
-    {
-        var comment = @"<value>A string value</value>";
-
-        var expected =
-$@"{FeaturesResources.Value_colon}
-    A string value";
-
-        TestFormat(comment, expected);
-    }
+        => TestFormat(@"<value>A string value</value>", $@"{FeaturesResources.Value_colon}
+    A string value");
 
     [Fact]
     public void SummaryAndParams()
-    {
-        var comment =
-@"<summary>This is the summary.</summary>
+        => TestFormat(@"<summary>This is the summary.</summary>
 <param name=""a"">The param named 'a'</param>
-<param name=""b"">The param named 'b'</param>";
-
-        var expected =
-$@"{FeaturesResources.Summary_colon}
+<param name=""b"">The param named 'b'</param>", $@"{FeaturesResources.Summary_colon}
     This is the summary.
 
 {FeaturesResources.Parameters_colon}
@@ -165,34 +103,21 @@ $@"{FeaturesResources.Summary_colon}
     The param named 'a'
 
   b:
-    The param named 'b'";
-
-        TestFormat(comment, expected);
-    }
+    The param named 'b'");
 
     [Fact]
     public void TypeParameters()
-    {
-        var comment =
-@"<typeparam name=""T"">The type param named 'T'</typeparam>
-<typeparam name=""U"">The type param named 'U'</typeparam>";
-
-        var expected =
-$@"{FeaturesResources.Type_parameters_colon}
+        => TestFormat(@"<typeparam name=""T"">The type param named 'T'</typeparam>
+<typeparam name=""U"">The type param named 'U'</typeparam>", $@"{FeaturesResources.Type_parameters_colon}
   T:
     The type param named 'T'
 
   U:
-    The type param named 'U'";
-
-        TestFormat(comment, expected);
-    }
+    The type param named 'U'");
 
     [Fact]
     public void FormatEverything()
-    {
-        var comment =
-@"<summary>
+        => TestFormat(@"<summary>
 This is a summary of something.
 </summary>
 <param name=""a"">The param named 'a'.</param>
@@ -206,10 +131,7 @@ This is a summary of something.
 <exception cref=""System.GooException"">Thrown for an unknown reason</exception>
 <exception cref=""System.BarException""></exception>
 <exception cref=""System.BlahException"">Thrown when blah blah blah</exception>
-<remarks>This doc comment is really not very remarkable.</remarks>";
-
-        var expected =
-$@"{FeaturesResources.Summary_colon}
+<remarks>This doc comment is really not very remarkable.</remarks>", $@"{FeaturesResources.Summary_colon}
     This is a summary of something.
 
 {FeaturesResources.Parameters_colon}
@@ -246,8 +168,5 @@ $@"{FeaturesResources.Summary_colon}
     Thrown when blah blah blah
 
 {FeaturesResources.Remarks_colon}
-    This doc comment is really not very remarkable.";
-
-        TestFormat(comment, expected);
-    }
+    This doc comment is really not very remarkable.");
 }

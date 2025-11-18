@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -23,23 +22,16 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
         => typeof(CSharpSuggestionModeCompletionProvider);
 
     [Fact]
-    public async Task AfterFirstExplicitArgument()
-    {
-        // The right-hand-side parses like a possible deconstruction or tuple type
-        await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
-    }
+    public Task AfterFirstExplicitArgument()
+        => VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
 
     [Fact]
-    public async Task AfterFirstImplicitArgument()
-    {
-        // The right-hand-side parses like a possible deconstruction or tuple type
-        await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
-    }
+    public Task AfterFirstImplicitArgument()
+        => VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
 
     [Fact]
-    public async Task AfterFirstImplicitArgumentInMethodCall()
-    {
-        var markup = """
+    public Task AfterFirstImplicitArgumentInMethodCall()
+        => VerifyBuilderAsync("""
             class c
             {
                 private void bar(Func<int, int, bool> f) { }
@@ -49,15 +41,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     bar((x, i $$
                 }
             }
-            """;
-        // The right-hand-side parses like a possible deconstruction or tuple type
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task AfterFirstExplicitArgumentInMethodCall()
-    {
-        var markup = """
+    public Task AfterFirstExplicitArgumentInMethodCall()
+        => VerifyBuilderAsync("""
             class c
             {
                 private void bar(Func<int, int, bool> f) { }
@@ -67,15 +55,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     bar((int x, i $$
                 }
             }
-            """;
-        // Could be a deconstruction expression
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task DelegateTypeExpected1()
-    {
-        var markup = """
+    public Task DelegateTypeExpected1()
+        => VerifyBuilderAsync("""
             using System;
 
             class c
@@ -87,18 +71,15 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     bar($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task DelegateTypeExpected2()
         => await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
 
     [Fact]
-    public async Task ObjectInitializerDelegateType()
-    {
-        var markup = """
+    public Task ObjectInitializerDelegateType()
+        => VerifyBuilderAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -115,14 +96,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var b = new Program() { myfunc = $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817145")]
-    public async Task ExplicitArrayInitializer()
-    {
-        var markup = """
+    public Task ExplicitArrayInitializer()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -132,14 +110,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Func<int, int>[] myfunc = new Func<int, int>[] { $$;
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task ImplicitArrayInitializerUnknownType()
-    {
-        var markup = """
+    public Task ImplicitArrayInitializerUnknownType()
+        => VerifyNotBuilderAsync("""
             using System;
 
             class a
@@ -149,14 +124,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var a = new [] { $$;
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task ImplicitArrayInitializerKnownDelegateType()
-    {
-        var markup = """
+    public Task ImplicitArrayInitializerKnownDelegateType()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -166,14 +138,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var a = new [] { x => 2 * x, $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TernaryOperatorUnknownType()
-    {
-        var markup = """
+    public Task TernaryOperatorUnknownType()
+        => VerifyNotBuilderAsync("""
             using System;
 
             class a
@@ -183,14 +152,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var a = true ? $$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TernaryOperatorKnownDelegateType1()
-    {
-        var markup = """
+    public Task TernaryOperatorKnownDelegateType1()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -200,14 +166,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var a = true ? x => x * 2 : $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TernaryOperatorKnownDelegateType2()
-    {
-        var markup = """
+    public Task TernaryOperatorKnownDelegateType2()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -217,14 +180,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Func<int, int> a = true ? $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task OverloadTakesADelegate1()
-    {
-        var markup = """
+    public Task OverloadTakesADelegate1()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -237,14 +197,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     this.goo($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task OverloadTakesDelegate2()
-    {
-        var markup = """
+    public Task OverloadTakesDelegate2()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -257,14 +214,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     this.goo(1, $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task ExplicitCastToDelegate()
-    {
-        var markup = """
+    public Task ExplicitCastToDelegate()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -275,14 +229,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     (Func<int, int>) ($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860580")]
-    public async Task ReturnStatement()
-    {
-        var markup = """
+    public Task ReturnStatement()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -292,14 +243,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     return $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task BuilderInAnonymousType1()
-    {
-        var markup = """
+    public Task BuilderInAnonymousType1()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -309,14 +257,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var q = new {$$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task BuilderInAnonymousType2()
-    {
-        var markup = """
+    public Task BuilderInAnonymousType2()
+        => VerifyBuilderAsync("""
             using System;
 
             class a
@@ -326,14 +271,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var q = new {$$ 1, 2 };
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task BuilderInAnonymousType3()
-    {
-        var markup = """
+    public Task BuilderInAnonymousType3()
+        => VerifyBuilderAsync("""
             using System;
             class a
             {
@@ -342,9 +284,7 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var q = new {Name = 1, $$ };
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task BuilderInFromClause()
@@ -386,9 +326,8 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544290")]
-    public async Task ParenthesizedLambdaArgument()
-    {
-        var markup = """
+    public Task ParenthesizedLambdaArgument()
+        => VerifyBuilderAsync("""
             using System;
             class Program
             {
@@ -397,14 +336,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Console.CancelKeyPress += new ConsoleCancelEventHandler((a$$, e) => { });
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
-    public async Task IncompleteParenthesizedLambdaArgument()
-    {
-        var markup = """
+    public Task IncompleteParenthesizedLambdaArgument()
+        => VerifyBuilderAsync("""
             using System;
             class Program
             {
@@ -413,14 +349,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Console.CancelKeyPress += new ConsoleCancelEventHandler((a$$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
-    public async Task IncompleteNestedParenthesizedLambdaArgument()
-    {
-        var markup = """
+    public Task IncompleteNestedParenthesizedLambdaArgument()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -429,14 +362,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task ParenthesizedExpressionInVarDeclaration()
-    {
-        var markup = """
+    public Task ParenthesizedExpressionInVarDeclaration()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -445,14 +375,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var x = (a$$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24432")]
-    public async Task TestInObjectCreation()
-    {
-        var markup = """
+    public Task TestInObjectCreation()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -461,14 +388,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Program x = new P$$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24432")]
-    public async Task TestInArrayCreation()
-    {
-        var markup = """
+    public Task TestInArrayCreation()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -477,14 +401,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Program[] x = new $$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24432")]
-    public async Task TestInArrayCreation2()
-    {
-        var markup = """
+    public Task TestInArrayCreation2()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -493,14 +414,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Program[] x = new Pr$$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TupleExpressionInVarDeclaration()
-    {
-        var markup = """
+    public Task TupleExpressionInVarDeclaration()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -509,14 +427,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var x = (a$$, b)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TupleExpressionInVarDeclaration2()
-    {
-        var markup = """
+    public Task TupleExpressionInVarDeclaration2()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -525,14 +440,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var x = (a, b$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task IncompleteLambdaInActionDeclaration()
-    {
-        var markup = """
+    public Task IncompleteLambdaInActionDeclaration()
+        => VerifyBuilderAsync("""
             using System;
             class Program
             {
@@ -541,14 +453,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     System.Action x = (a$$, b)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TupleWithNamesInActionDeclaration()
-    {
-        var markup = """
+    public Task TupleWithNamesInActionDeclaration()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -557,14 +466,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     System.Action x = (a$$, b: b)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TupleWithNamesInActionDeclaration2()
-    {
-        var markup = """
+    public Task TupleWithNamesInActionDeclaration2()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -573,14 +479,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     System.Action x = (a: a, b$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task TupleWithNamesInVarDeclaration()
-    {
-        var markup = """
+    public Task TupleWithNamesInVarDeclaration()
+        => VerifyNotBuilderAsync("""
             using System;
             class Program
             {
@@ -589,14 +492,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     var x = (a: a, b$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
-    public async Task BuilderForLinqExpression()
-    {
-        var markup = """
+    public Task BuilderForLinqExpression()
+        => VerifyBuilderAsync("""
             using System;
             using System.Linq.Expressions;
 
@@ -607,14 +507,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Goo($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
-    public async Task NotInTypeParameter()
-    {
-        var markup = """
+    public Task NotInTypeParameter()
+        => VerifyNotBuilderAsync("""
             using System;
             using System.Linq.Expressions;
 
@@ -625,14 +522,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     Enumerable.Empty<$$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611477")]
-    public async Task ExtensionMethodFaultTolerance()
-    {
-        var markup = """
+    public Task ExtensionMethodFaultTolerance()
+        => VerifyBuilderAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -672,14 +566,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     }
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834609")]
-    public async Task LambdaWithAutomaticBraceCompletion()
-    {
-        var markup = """
+    public Task LambdaWithAutomaticBraceCompletion()
+        => VerifyBuilderAsync("""
             using System;
             using System;
 
@@ -690,27 +581,21 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     EventHandler h = (s$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-    public async Task ThisConstructorInitializer()
-    {
-        var markup = """
+    public Task ThisConstructorInitializer()
+        => VerifyBuilderAsync("""
             using System;
             class X 
             { 
                 X(Func<X> x) : this($$) { } 
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-    public async Task BaseConstructorInitializer()
-    {
-        var markup = """
+    public Task BaseConstructorInitializer()
+        => VerifyBuilderAsync("""
             using System;
             class B
             {
@@ -721,26 +606,20 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
             { 
                 D() : base($$) { } 
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887842")]
-    public async Task PreprocessorExpression()
-    {
-        var markup = """
+    public Task PreprocessorExpression()
+        => VerifyBuilderAsync("""
             class C
             {
             #if $$
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967254")]
-    public async Task ImplicitArrayInitializerAfterNew()
-    {
-        var markup = """
+    public Task ImplicitArrayInitializerAfterNew()
+        => VerifyNotBuilderAsync("""
             using System;
 
             class a
@@ -750,77 +629,50 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     int[] a = new $$;
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task NamespaceDeclaration_Unqualified()
-    {
-        var markup = @"namespace $$";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task NamespaceDeclaration_Unqualified()
+        => VerifyBuilderAsync(@"namespace $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task NamespaceDeclaration_Qualified()
-    {
-        var markup = @"namespace A.$$";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task NamespaceDeclaration_Qualified()
+        => VerifyBuilderAsync(@"namespace A.$$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task FileScopedNamespaceDeclaration_Unqualified()
-    {
-        var markup = @"namespace $$;";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task FileScopedNamespaceDeclaration_Unqualified()
+        => VerifyBuilderAsync(@"namespace $$;");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task FileScopedNamespaceDeclaration_Qualified()
-    {
-        var markup = @"namespace A.$$;";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task FileScopedNamespaceDeclaration_Qualified()
+        => VerifyBuilderAsync(@"namespace A.$$;");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task PartialClassName()
-    {
-        var markup = @"partial class $$";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task PartialClassName()
+        => VerifyBuilderAsync(@"partial class $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task PartialStructName()
-    {
-        var markup = @"partial struct $$";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task PartialStructName()
+        => VerifyBuilderAsync(@"partial struct $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
-    public async Task PartialInterfaceName()
-    {
-        var markup = @"partial interface $$";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task PartialInterfaceName()
+        => VerifyBuilderAsync(@"partial interface $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12818")]
-    public async Task UnwrapParamsArray()
-    {
-        var markup = """
+    public Task UnwrapParamsArray()
+        => VerifyBuilderAsync("""
             using System;
             class C {
                 C(params Action<int>[] a) {
                     new C($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72225")]
-    public async Task UnwrapParamsCollection()
-    {
-        var markup = """
+    public Task UnwrapParamsCollection()
+        => VerifyBuilderAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -831,53 +683,41 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     new C($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12818")]
-    public async Task DoNotUnwrapRegularArray()
-    {
-        var markup = """
+    public Task DoNotUnwrapRegularArray()
+        => VerifyNotBuilderAsync("""
             using System;
             class C {
                 C(Action<int>[] a) {
                     new C($$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47662")]
-    public async Task LambdaExpressionInImplicitObjectCreation()
-    {
-        var markup = """
+    public Task LambdaExpressionInImplicitObjectCreation()
+        => VerifyBuilderAsync("""
             using System;
             class C {
                 C(Action<int> a) {
                     C c = new($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15443")]
-    public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
-    {
-        var markup = """
+    public Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
+        => VerifyNotBuilderAsync("""
             class C {
             	Action a = Task.$$
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15443")]
-    public async Task NotBuilderInTypeArgument()
-    {
-        var markup = """
+    public Task NotBuilderInTypeArgument()
+        => VerifyNotBuilderAsync("""
             namespace ConsoleApplication1
             {
                 class Program
@@ -891,25 +731,19 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     static T Load<T>() => default(T);
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16176")]
-    public async Task NotBuilderForLambdaAfterNew()
-    {
-        var markup = """
+    public Task NotBuilderForLambdaAfterNew()
+        => VerifyNotBuilderAsync("""
             class C {
             	Action a = new $$
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20937")]
-    public async Task AsyncLambda()
-    {
-        var markup = """
+    public Task AsyncLambda()
+        => VerifyBuilderAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -919,15 +753,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                 void A()
                 {
                     B(async($$
-            """;
-
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20937")]
-    public async Task AsyncLambdaAfterComma()
-    {
-        var markup = """
+    public Task AsyncLambdaAfterComma()
+        => VerifyBuilderAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -937,15 +767,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                 void A()
                 {
                     B(async(p1, $$
-            """;
-
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod1()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod1()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -969,14 +795,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(a$$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod2()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod2()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1000,14 +823,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(a$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod3()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod3()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1031,14 +851,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(($$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod4()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod4()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1062,14 +879,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(($$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod5()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod5()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1093,14 +907,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(($$))
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod6()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod6()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1124,14 +935,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar((a, $$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithExtensionAndInstanceMethod7()
-    {
-        var markup = """
+    public Task WithExtensionAndInstanceMethod7()
+        => VerifyBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1155,14 +963,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(async (a$$
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task WithNonDelegateExtensionAndInstanceMethod1()
-    {
-        var markup = """
+    public Task WithNonDelegateExtensionAndInstanceMethod1()
+        => VerifyNotBuilderAsync("""
             using System;
 
             public sealed class Goo
@@ -1186,14 +991,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     goo.Bar(a$$
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInDeclarationPattern()
-    {
-        var markup = """
+    public Task TestInDeclarationPattern()
+        => VerifyBuilderAsync("""
             class C
             {
                 void M()
@@ -1202,14 +1004,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is int o$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInDeclarationPattern2()
-    {
-        var markup = """
+    public Task TestInDeclarationPattern2()
+        => VerifyBuilderAsync("""
             class C
             {
                 void M()
@@ -1218,14 +1017,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is System.Collections.Generic.List<int> an$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInRecursivePattern()
-    {
-        var markup = """
+    public Task TestInRecursivePattern()
+        => VerifyBuilderAsync("""
             class C
             {
                 int P { get; }
@@ -1235,14 +1031,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (test is { P: 1 } o$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInPropertyPattern()
-    {
-        var markup = """
+    public Task TestInPropertyPattern()
+        => VerifyBuilderAsync("""
             class C
             {
                 int P { get; }
@@ -1252,14 +1045,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (test is { P: int o$$ })
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInAndPattern()
-    {
-        var markup = """
+    public Task TestInAndPattern()
+        => VerifyBuilderAsync("""
             class C
             {
                 void M()
@@ -1268,14 +1058,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is 1 and int a$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInAndOrPattern()
-    {
-        var markup = """
+    public Task TestInAndOrPattern()
+        => VerifyBuilderAsync("""
             class C
             {
                 void M()
@@ -1284,14 +1071,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is (int or 1) and int a$$)
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInSwitchStatement()
-    {
-        var markup = """
+    public Task TestInSwitchStatement()
+        => VerifyBuilderAsync("""
             class C
             {
                 void M()
@@ -1303,14 +1087,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     }
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestInSwitchExpression()
-    {
-        var markup = """
+    public Task TestInSwitchExpression()
+        => VerifyBuilderAsync("""
             class C
             {
                 void M()
@@ -1322,14 +1103,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     }
                 }
             }
-            """;
-        await VerifyBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestMissingInNotPattern_Declaration()
-    {
-        var markup = """
+    public Task TestMissingInNotPattern_Declaration()
+        => VerifyNotBuilderAsync("""
             class C
             {
                 void M()
@@ -1338,14 +1116,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is not int o$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestMissingInNotPattern_Declaration2()
-    {
-        var markup = """
+    public Task TestMissingInNotPattern_Declaration2()
+        => VerifyNotBuilderAsync("""
             class C
             {
                 void M()
@@ -1354,14 +1129,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is not (1 and int o$$))
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestMissingInNotPattern_Recursive()
-    {
-        var markup = """
+    public Task TestMissingInNotPattern_Recursive()
+        => VerifyNotBuilderAsync("""
             class C
             {
                 int P { get; }
@@ -1371,14 +1143,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (test is not { P: 1 } o$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestMissingInOrPattern()
-    {
-        var markup = """
+    public Task TestMissingInOrPattern()
+        => VerifyNotBuilderAsync("""
             class C
             {
                 void M()
@@ -1387,14 +1156,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is 1 or int o$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestMissingInAndOrPattern()
-    {
-        var markup = """
+    public Task TestMissingInAndOrPattern()
+        => VerifyNotBuilderAsync("""
             class C
             {
                 void M()
@@ -1403,14 +1169,11 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (e is 1 or int and int o$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestMissingInRecursiveOrPattern()
-    {
-        var markup = """
+    public Task TestMissingInRecursiveOrPattern()
+        => VerifyNotBuilderAsync("""
             class C
             {
                 int P { get; }
@@ -1420,28 +1183,24 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
                     if (test is null or { P: 1 } o$$)
                 }
             }
-            """;
-        await VerifyNotBuilderAsync(markup);
-    }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
-    public async Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
-    {
-        var markup = $@"
-using System;
-interface Foo
-{{
-    bool Bar() => true;
-}}
-class P
-{{
-    void M(Foo f)
-    {{
-        f.Bar({(hasTypedChar ? "s" : "")}$$
-    }}
-}}";
-        await VerifyNotBuilderAsync(markup);
-    }
+    public Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
+        => VerifyNotBuilderAsync($$"""
+            using System;
+            interface Foo
+            {
+                bool Bar() => true;
+            }
+            class P
+            {
+                void M(Foo f)
+                {
+                    f.Bar({{(hasTypedChar ? "s" : "")}}$$
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
     public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
@@ -1450,20 +1209,21 @@ class P
             ? "bool Bar(Func<int, bool> predicate) => true;"
             : "bool Bar(int x) => true;";
 
-        var markup = $@"
-using System;
-interface Foo
-{{
-    bool Bar() => true;
-    {overload}
-}}
-class P
-{{
-    void M(Foo f)
-    {{
-        f.Bar({(hasTypedChar ? "s" : "")}$$
-    }}
-}}";
+        var markup = $$"""
+            using System;
+            interface Foo
+            {
+                bool Bar() => true;
+                {{overload}}
+            }
+            class P
+            {
+                void M(Foo f)
+                {
+                    f.Bar({{(hasTypedChar ? "s" : "")}}$$
+                }
+            }
+            """;
         if (isLambda)
         {
             await VerifyBuilderAsync(markup);
@@ -1478,24 +1238,22 @@ class P
     [InlineData("string x = null, string y = null")]
     [InlineData("string x = null, string y = null, params string[] z")]
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49656")]
-    public async Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
-    {
-        var markup = $@"
-using System;
-interface Foo
-{{
-    bool Bar({overloadParameterList}) => true;
-    bool Bar(Func<int, bool> predicate) => true;
-}}
-class P
-{{
-    void M(Foo f)
-    {{
-        f.Bar($$)
-    }}
-}}";
-        await VerifyBuilderAsync(markup);
-    }
+    public Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
+        => VerifyBuilderAsync($$"""
+            using System;
+            interface Foo
+            {
+                bool Bar({{overloadParameterList}}) => true;
+                bool Bar(Func<int, bool> predicate) => true;
+            }
+            class P
+            {
+                void M(Foo f)
+                {
+                    f.Bar($$)
+                }
+            }
+            """);
 
     private async Task VerifyNotBuilderAsync(string markup)
         => await VerifyWorkerAsync(markup, isBuilder: false);

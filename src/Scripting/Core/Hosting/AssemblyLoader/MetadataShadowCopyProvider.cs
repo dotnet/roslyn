@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 StripReadOnlyAttributeFromFile(new FileInfo(shadowCopyPath));
                 return new FileStream(shadowCopyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
-            catch (Exception e) when (fileMayNotExist && (e is FileNotFoundException || e is DirectoryNotFoundException))
+            catch (Exception e) when (fileMayNotExist && e is FileNotFoundException or DirectoryNotFoundException)
             {
                 return null;
             }

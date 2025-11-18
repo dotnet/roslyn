@@ -123,6 +123,9 @@
   <data name="Failed_to_load_solution_filter_0" xml:space="preserve">
     <value>Failed to load solution filter: '{0}'</value>
   </data>
+  <data name="Failed_to_load_solution_0" xml:space="preserve">
+    <value>Failed to load solution: '{0}'</value>
+  </data>
   <data name="Found_project_reference_without_a_matching_metadata_reference_0" xml:space="preserve">
     <value>Found project reference without a matching metadata reference: {0}</value>
   </data>

@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace BoundTreeGenerator
 {
-    internal enum TargetLanguage
+    public enum TargetLanguage
     {
         VB,
         CSharp
@@ -275,7 +275,7 @@ namespace BoundTreeGenerator
 
         private void WriteTypes()
         {
-            foreach (var node in _tree.Types.Where(n => n is not PredefinedNode))
+            foreach (var node in _tree.Types.OfType<AbstractNode>())
             {
                 Blank();
                 WriteType(node);
@@ -769,6 +769,16 @@ namespace BoundTreeGenerator
             return AllFields(node).Where(field => TypeIsSymbol(field) || (IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType)));
         }
 
+        private IEnumerable<Field> AllNonTypeSymbolOrNonTypeSymbolListFields(TreeType node)
+        {
+            return AllFields(node).Where(field => IsNonTypeSymbolOrNonTypeSymbolListField(field));
+        }
+
+        private bool IsNonTypeSymbolOrNonTypeSymbolListField(Field field)
+        {
+            return TypeIsNonTypeSymbol(field) || (IsImmutableArray(field.Type, out var elementType) && TypeIsNonTypeSymbol(elementType));
+        }
+
         private NullHandling FieldNullHandling(TreeType node, string fieldName)
         {
             Field f = GetField(node, fieldName);
@@ -891,10 +901,8 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteType(TreeType node)
+        private void WriteType(AbstractNode node)
         {
-            if (node is not AbstractNode)
-                return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
@@ -1043,6 +1051,9 @@ namespace BoundTreeGenerator
 
         private static bool TypeIsSymbol(Field field) => TypeIsSymbol(field.Type);
         private static bool TypeIsSymbol(string type) => type.TrimEnd('?').EndsWith("Symbol");
+
+        private static bool TypeIsNonTypeSymbol(Field field) => TypeIsNonTypeSymbol(field.Type);
+        private static bool TypeIsNonTypeSymbol(string type) => TypeIsSymbol(type) && type.TrimEnd('?') != "TypeSymbol";
 
         private string StripBound(string name)
         {
@@ -1363,7 +1374,7 @@ namespace BoundTreeGenerator
                         Brace();
                         foreach (var node in _tree.Types.OfType<Node>())
                         {
-                            if (!AllNodeOrNodeListFields(node).Any() && !AllTypeFields(node).Any())
+                            if (!AllNodeOrNodeListFields(node).Any() && !AllTypeFields(node).Any() && !AllNonTypeSymbolOrNonTypeSymbolListFields(node).Any())
                             {
                                 WriteLine($"{GetVisitFunctionDeclaration(node.Name, isOverride: true)} => node;");
                                 continue;
@@ -1371,20 +1382,51 @@ namespace BoundTreeGenerator
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
+
+                            foreach (var field in AllNonTypeSymbolOrNonTypeSymbolListFields(node))
+                            {
+                                hadField = true;
+
+                                if (!IsImmutableArray(field.Type, out string elementType))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.Visit{field.Type.TrimEnd('?')}(node.{field.Name});");
+                                }
+                                else if (elementType.TrimEnd('?') == "LocalSymbol")
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitLocals(node.{field.Name});");
+                                }
+                                else if (elementType.TrimEnd('?') == "MethodSymbol" && field.Name.EndsWith("LocalFunctions"))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitDeclaredLocalFunctions(node.{field.Name});");
+                                }
+                                else
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitSymbols<{elementType}>(node.{field.Name});");
+                                }
+                            }
+
                             foreach (Field field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
                                 WriteNodeVisitCall(field);
                             }
+
                             foreach (Field field in AllTypeFields(node))
                             {
                                 hadField = true;
                                 WriteLine("TypeSymbol? {0} = this.VisitType(node.{1});", ToCamelCase(field.Name), field.Name);
                             }
+
                             if (hadField)
                             {
                                 Write("return node.Update");
-                                ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || TypeIsTypeSymbol(field) ? ToCamelCase(field.Name) : string.Format("node.{0}", field.Name));
+                                ParenList(
+                                    AllSpecifiableFields(node),
+                                    field => IsDerivedOrListOfDerived("BoundNode", field.Type) ||
+                                             TypeIsTypeSymbol(field) ||
+                                             IsNonTypeSymbolOrNonTypeSymbolListField(field) ?
+                                                 ToCamelCase(field.Name) :
+                                                 string.Format("node.{0}", field.Name));
                                 WriteLine(";");
                             }
                             else

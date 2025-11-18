@@ -31,9 +31,8 @@ public sealed class AddInheritdocTests
         => VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
 
     [Fact]
-    public async Task AddMissingInheritdocOnOverriddenMethod()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnOverriddenMethod()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -61,15 +60,13 @@ public sealed class AddInheritdocTests
                 public override void M() { }
             }
             """);
-    }
 
     [Theory]
     [InlineData("public void {|CS1591:OtherMethod|}() { }")]
     [InlineData("public void {|CS1591:M|}() { }")]
     [InlineData("public new void {|CS1591:M|}() { }")]
-    public async Task DoNotOfferOnNotOverriddenMethod(string methodDefinition)
-    {
-        await TestMissingAsync(
+    public Task DoNotOfferOnNotOverriddenMethod(string methodDefinition)
+        => TestMissingAsync(
         $$"""
         /// Some doc.
         public class BaseClass
@@ -83,12 +80,10 @@ public sealed class AddInheritdocTests
             {{methodDefinition}}
         }
         """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocOnImplicitInterfaceMethod()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnImplicitInterfaceMethod()
+        => TestAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -116,12 +111,10 @@ public sealed class AddInheritdocTests
                 public void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotOfferOnExplicitInterfaceMethod()
-    {
-        await TestMissingAsync(
+    public Task DoNotOfferOnExplicitInterfaceMethod()
+        => TestMissingAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -135,11 +128,9 @@ public sealed class AddInheritdocTests
                 void IInterface.M() { }
             }
             """);
-    }
     [Fact]
-    public async Task AddMissingInheritdocOnOverriddenProperty()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnOverriddenProperty()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -167,12 +158,10 @@ public sealed class AddInheritdocTests
                 public override string P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocOnImplicitInterfaceProperty()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnImplicitInterfaceProperty()
+        => TestAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -200,12 +189,10 @@ public sealed class AddInheritdocTests
                 public string P { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocOnImplicitInterfaceEvent()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocOnImplicitInterfaceEvent()
+        => TestAsync(
             """
             /// Some doc.
             public interface IInterface
@@ -237,12 +224,10 @@ public sealed class AddInheritdocTests
                 void OnSomething() => SomeEvent?.Invoke();
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocTriviaTest_1()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocTriviaTest_1()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -272,12 +257,10 @@ public sealed class AddInheritdocTests
                 public override void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocTriviaTest_2()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocTriviaTest_2()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -307,12 +290,10 @@ public sealed class AddInheritdocTests
               public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocMethodWithAttribute()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocMethodWithAttribute()
+        => TestAsync(
             """
             /// Some doc.
             [System.AttributeUsage(System.AttributeTargets.Method)]
@@ -354,12 +335,10 @@ public sealed class AddInheritdocTests
                 public override void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddMissingInheritdocFixAll()
-    {
-        await TestAsync(
+    public Task AddMissingInheritdocFixAll()
+        => TestAsync(
             """
             /// Some doc.
             public class BaseClass
@@ -394,12 +373,10 @@ public sealed class AddInheritdocTests
                 public override string P { get; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61562")]
-    public async Task TestOverrideBelowMember()
-    {
-        await TestAsync(
+    public Task TestOverrideBelowMember()
+        => TestAsync(
             """
             using System;
 
@@ -455,5 +432,4 @@ public sealed class AddInheritdocTests
                 }
             }
             """);
-    }
 }

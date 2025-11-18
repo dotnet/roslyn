@@ -122,7 +122,7 @@ internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable
         {
             if (item.TryGetTarget(out var box))
             {
-                yield return KeyValuePairUtil.Create(box.Key, box.Value);
+                yield return KeyValuePair.Create(box.Key, box.Value);
             }
         }
     }
