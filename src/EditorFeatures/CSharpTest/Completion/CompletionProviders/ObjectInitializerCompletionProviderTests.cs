@@ -1093,44 +1093,6 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
         await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
     }
 
-    [Fact]
-    public async Task RequiredMembersDoNotHardSelect()
-    {
-        const string markup = """
-            struct A
-            {
-                public required int F1 { get; init; }
-                public int F2 { get; init; }
-            }
-
-            class D
-            {
-                void goo()
-                {
-                    A a = new A { $$
-                }
-            }
-            """;
-
-        using var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: GetComposition());
-        var hostDocument = workspace.Documents.Single();
-        var position = hostDocument.CursorPosition.Value;
-        var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        var triggerInfo = CompletionTrigger.CreateInsertionTrigger('{');
-
-        var service = GetCompletionService(document.Project);
-        var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-
-        // Verify that required members are present
-        Assert.Contains(completionList.ItemsList, item => item.DisplayText == "F1");
-        Assert.Contains(completionList.ItemsList, item => item.DisplayText == "F2");
-
-        // Verify that Enter doesn't commit any item (soft selection behavior)
-        var firstItem = completionList.ItemsList.First();
-        Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), firstItem, string.Empty),
-            "Expected false from SendEnterThroughToEditor() - items should not be hard selected");
-    }
-
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80192")]
     public async Task RequiredMembersNotLabeledOrSelectedInRecordWith()
     {

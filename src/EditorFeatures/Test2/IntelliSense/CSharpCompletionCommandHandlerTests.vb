@@ -795,6 +795,35 @@ class C
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65482")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function RequiredMembersDoNotHardSelect(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+struct A
+{
+    public required int F1 { get; init; }
+    public int F2 { get; init; }
+}
+
+class D
+{
+    void goo()
+    {
+        A a = new A $$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp11)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="F1", isHardSelected:=False)
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new A" & vbCrLf & "{" & vbCrLf, state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem("https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnObjectCreation(showCompletionInArgumentLists As Boolean) As Task
