@@ -49,7 +49,12 @@ schedules:
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
 
+# The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
+  - name: _DotNetArtifactsCategory
+    value: .NETCore
+  - name: _DotNetValidationArtifactsCategory
+    value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
@@ -296,6 +301,8 @@ extends:
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
                        /p:DotNetSignType=${{ parameters.SignType }}
+                       /p:PublishToSymbolServer=true
+                       /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
