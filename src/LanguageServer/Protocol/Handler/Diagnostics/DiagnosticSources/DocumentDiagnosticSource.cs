@@ -35,6 +35,12 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
             allSpanDiagnostics = allSpanDiagnostics.AddRange(copilotDiagnostics);
         }
 
+        // Compiler includes hidden diagnostics for informative purposes.  We never want to show those.  Note: this
+        // differs from hidden analyzer diagnostics which we may sometimes want to show, because they do affect the
+        // presentation of the code (e.g. fade out).
+        if (this.DiagnosticKind == DiagnosticKind.CompilerSemantic)
+            allSpanDiagnostics = allSpanDiagnostics.WhereAsArray(diagnostic => diagnostic.Severity != DiagnosticSeverity.Hidden);
+
         // Drop the source suppressed diagnostics.
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1824321 tracks
         // adding LSP support for returning source suppressed diagnostics.
