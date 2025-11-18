@@ -60,7 +60,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        using var _2 = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
+        using var _ = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
         foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
         {
