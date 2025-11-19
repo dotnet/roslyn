@@ -3215,7 +3215,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """ + s_allowNullAttribute);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81320")]
     public Task TestStaticFieldWrittenInInstanceConstructor_ReadOnlyProperty()
         => TestInRegularAndScriptAsync(
             """
