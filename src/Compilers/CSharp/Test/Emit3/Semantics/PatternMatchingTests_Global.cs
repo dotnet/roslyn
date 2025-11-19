@@ -4935,25 +4935,25 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool b { get; } = (1 is int x1);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool d { get; } = (2 is int x2);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (9,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool f { get; } = (3 is int x3);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (12,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool h { get; } = H.Dummy((41 is int x4),
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 6),
                     // (13,38): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           (42 is int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 38),
-                    // (15,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool x5 { get; } = 
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
@@ -5101,25 +5101,25 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool b { get; } = (1 is var x1);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool d { get; } = (2 is var x2);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (9,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool f { get; } = (3 is var x3);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (12,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool h { get; } = H.Dummy((41 is var x4),
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 6),
                     // (13,38): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           (42 is var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 38),
-                    // (15,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // bool x5 { get; } = 
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
@@ -5432,28 +5432,28 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (3,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action b = H.Dummy(1 is int x1);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 21),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (7,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action d = H.Dummy(2 is int x2);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 21),
-                    // (9,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (9,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action f = H.Dummy(3 is int x3);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 21),
-                    // (12,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (12,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action h = H.Dummy((41 is int x4),
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 21),
                     // (13,36): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                         (42 is int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 36),
-                    // (15,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (15,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action x5 = 
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 21),
-                    // (18,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (18,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action i = H.Dummy(5 is int x6),
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "i").WithLocation(18, 21),
                     // (21,6): warning CS8321: The local function 'Test' is declared but never used
@@ -5617,28 +5617,28 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (3,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action b = H.Dummy(1 is var x1);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 21),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (7,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action d = H.Dummy(2 is var x2);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 21),
-                    // (9,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (9,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action f = H.Dummy(3 is var x3);
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 21),
-                    // (12,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (12,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action h = H.Dummy((41 is var x4),
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 21),
                     // (13,36): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                         (42 is var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 36),
-                    // (15,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (15,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action x5 = 
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 21),
-                    // (18,21): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (18,21): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // event System.Action i = H.Dummy(5 is var x6),
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "i").WithLocation(18, 21),
                     // (21,6): warning CS8321: The local function 'Test' is declared but never used
@@ -6208,7 +6208,7 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,12): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                    // (3,12): error CS9343: The global namespace cannot directly contain members such as fields or properties
                     // fixed bool a[2], b[H.Dummy(1 is var x1)];
                     Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "a").WithLocation(3, 12),
                     // (3,18): error CS1642: Fixed size buffer fields may only be members of structs
