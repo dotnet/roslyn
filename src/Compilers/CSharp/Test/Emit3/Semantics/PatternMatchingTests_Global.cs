@@ -5044,42 +5044,30 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (3,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
-                // bool b { get; } = (1 is var x1);
-                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 6),
-                // (4,9): error CS0103: The name 'x1' does not exist in the current context
-                // H.Dummy(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                // (7,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
+                // (7,29): error CS0102: The type 'Script' already contains a definition for 'x2'
                 // bool d { get; } = (2 is var x2);
-                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 6),
-                // (9,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
-                // bool f { get; } = (3 is var x3);
-                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 6),
-                // (12,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
-                // bool h { get; } = H.Dummy((41 is var x4),
-                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 6),
-                // (13,38): error CS0128: A local variable or function named 'x4' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 29),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,38): error CS0102: The type 'Script' already contains a definition for 'x4'
                 //                           (42 is var x4));
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 38),
-                // (15,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
-                // bool x5 { get; } = 
-                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 6),
-                // (20,13): error CS0103: The name 'x1' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 38),
+                // (16,21): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           (5 is var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 21),
+                // (20,17): error CS0229: Ambiguity between 'x2' and 'x2'
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
-                // (20,25): error CS0103: The name 'x4' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(20, 17),
+                // (20,21): error CS0229: Ambiguity between 'x3' and 'x3'
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(20, 25),
-                // (20,29): error CS0103: The name 'x5' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(20, 21),
+                // (20,25): error CS0229: Ambiguity between 'x4' and 'x4'
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29),
-                // (23,1): error CS0165: Use of unassigned local variable 'x2'
-                // Test();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Test()").WithArguments("x2").WithLocation(23, 1),
-                // (23,1): error CS0165: Use of unassigned local variable 'x3'
-                // Test();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Test()").WithArguments("x3").WithLocation(23, 1)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25),
+                // (20,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -5113,27 +5101,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
                     // bool b { get; } = (1 is var x1);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(3, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
                     // bool d { get; } = (2 is var x2);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 6),
+                    // (9,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
                     // bool f { get; } = (3 is var x3);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 6),
+                    // (12,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
                     // bool h { get; } = H.Dummy((41 is var x4),
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "h").WithLocation(12, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 6),
                     // (13,38): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           (42 is var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 38),
-                    // (15,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9343: The global namespace cannot directly contain members such as fields or methods
                     // bool x5 { get; } = 
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x5").WithLocation(15, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
                     //     H.Dummy(x1, x2, x3, x4, x5);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
