@@ -1702,6 +1702,11 @@
         <target state="translated">Visual Studio Ayarları</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_0_does_not_bind_to_type">
+        <source>Warning {0} does not bind to type</source>
+        <target state="new">Warning {0} does not bind to type</target>
+        <note>{0} is a type name</note>
+      </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>
         <target state="translated">Uyarı: Yinelenen parametre adı</target>

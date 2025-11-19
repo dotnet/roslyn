@@ -131,6 +131,11 @@ internal sealed partial class ChangeSignatureDialogViewModel
             get
             {
                 var baseText = base.FullAutomationText;
+                if (TypeWarningVisibility is Visibility.Visible)
+                {
+                    baseText = baseText.Replace(Type, string.Format(ServicesVSResources.Warning_0_does_not_bind_to_type, Type));
+                }
+
                 return ServicesVSResources.Added_Parameter + baseText + string.Format(ServicesVSResources.Inserting_call_site_value_0, CallSite);
             }
         }
