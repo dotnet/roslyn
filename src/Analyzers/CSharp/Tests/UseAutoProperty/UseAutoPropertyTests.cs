@@ -3217,16 +3217,27 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
     public Task TestStaticFieldWrittenInInstanceConstructor_ReadOnlyProperty()
-        => TestMissingInRegularAndScriptAsync(
+        => TestInRegularAndScriptAsync(
             """
             public sealed class Test
             {
-                private static Test? s_instance;
+                [|private static Test? s_instance;|]
                 public static Test Instance => s_instance!;
 
                 public Test()
                 {
                     s_instance = this;
+                }
+            }
+            """,
+            """
+            public sealed class Test
+            {
+                public static Test Instance { get; private set; }
+
+                public Test()
+                {
+                    Instance = this;
                 }
             }
             """);

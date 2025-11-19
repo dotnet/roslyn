@@ -93,8 +93,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     protected abstract void RecordIneligibleFieldLocations(
         HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFieldUsageIfOutsideProperty, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
-    protected abstract bool IsStaticConstructor(TConstructorDeclaration constructorDeclaration);
-
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterSymbolStartAction(context =>
         {
@@ -588,16 +586,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 continue;
             }
 
-            // If the property is static with no setter, and the field is written in an instance constructor, we can't
-            // convert it. A static property can only be assigned in a static constructor, not an instance constructor.
-            if (result.Property.IsStatic &&
-                result.Property.SetMethod is null &&
-                fieldWrites.TryGetValue(result.Field, out var writeLocations3) &&
-                InstanceConstructorLocations(writeLocations3).Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
-            {
-                continue;
-            }
-
             // If we have a non-trivial getter, then we can't convert this if the field is read outside of the property.
             // The read will go through the property getter now, which may change semantics.
             if (!result.IsTrivialGetAccessor &&
@@ -647,9 +635,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
         static IEnumerable<SyntaxNode> NonConstructorLocations(IEnumerable<SyntaxNode> nodes)
             => nodes.Where(n => n.FirstAncestorOrSelf<TConstructorDeclaration>() is null);
-
-        IEnumerable<SyntaxNode> InstanceConstructorLocations(IEnumerable<SyntaxNode> nodes)
-            => nodes.Where(n => n.FirstAncestorOrSelf<TConstructorDeclaration>() is TConstructorDeclaration ctor && !IsStaticConstructor(ctor));
 
         void ReportDiagnostics(AnalysisResult result)
         {

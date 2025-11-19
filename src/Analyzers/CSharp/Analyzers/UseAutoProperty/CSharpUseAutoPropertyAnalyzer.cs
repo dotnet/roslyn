@@ -254,7 +254,4 @@ internal sealed class CSharpUseAutoPropertyAnalyzer() : AbstractUseAutoPropertyA
             }
         }
     }
-
-    protected override bool IsStaticConstructor(ConstructorDeclarationSyntax constructorDeclaration)
-        => constructorDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
 }
