@@ -1212,9 +1212,15 @@ struct S1 : System.Runtime.CompilerServices.IUnion
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 16),
                 // (34,22): error CS8121: An expression of type 'S1?' cannot be handled by a pattern of type 'int'.
                 //         if (u is not int z)
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1?", "int").WithLocation(34, 22)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1?", "int").WithLocation(34, 22),
 
-                // PROTOTYPE: An error should be reported for Test8, it will be implemented along with exhaustiveness checking for union types.
+                // PROTOTYPE: The diagnostics is somewhat confusing in this case.
+                //            A type cannot be handled by the pattern of the same type.
+                //            Syntactially it is not obvious that we are doing union matching.
+
+                // (44,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
+                //         return u is not (S1 and int);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(44, 26)
                 );
         }
 
@@ -2224,6 +2230,1234 @@ class Program
 ";
             var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseFalseFalse TrueFalseFalseFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is C1 and C2;
+        _ = u is C1 and C3;
+        _ = u is C1 and C4;
+        _ = u switch { C4 => 1, _ => 0 };
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (101,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(101, 25),
+                // (102,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(102, 25),
+                // (103,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u switch { C4 => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(103, 24)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_TypePattern_02_BindTypePattern_UnionType_Out_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test4(S1 u)
+    {
+#line 400
+        _ = u is System.IComparable and string;
+        _ = u is string and int;
+        _ = u is object and byte;
+        _ = u switch { byte => 1, _ => 0 };
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (401,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
+                //         _ = u is string and int;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(401, 29),
+                // (402,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
+                //         _ = u is object and byte;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(402, 29),
+                // (403,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
+                //         _ = u switch { byte => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(403, 24)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_TypePattern_03()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test4(S1 u)
+    {
+#line 400
+        switch (u)
+        {
+            case string:
+                break;  
+            case byte:
+                break;  
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (404,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
+                //             case byte:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(404, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_RecursivePattern_01_BindRecursivePattern_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test2(S1 u)
+    {
+#line 200
+        _ = u is C1 and C2 {};
+        _ = u is C1 and C3 {};
+        _ = u is C1 and C4 {};
+        _ = u is C4 {};
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (201,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and C3 {};
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(201, 25),
+                // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and C4 {};
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
+                // (203,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C4 {};
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(203, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_RecursivePattern_02_BindRecursivePattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test10(S1 u)
+    {
+#line 1000
+        _ = u is C1 {} and C2;
+        _ = u is C1 {} and C3;
+        _ = u is C1 {} and C4;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (1001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 {} and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(1001, 28),
+                // (1002,28): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 {} and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1002, 28)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_DeclarationPattern_01_BindDeclarationPattern_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test3(S1 u)
+    {
+#line 300
+        _ = u is C1 and C2 a;
+        _ = u is C1 and C3 b;
+        _ = u is C1 and C4 c;
+        _ = u is C4 d;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (301,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and C3 b;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(301, 25),
+                // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and C4 c;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
+                // (303,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C4 d;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(303, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_DeclarationPattern_02_BindDeclarationPattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test9(S1 u)
+    {
+#line 900
+        _ = u is C1 a and C2;
+        _ = u is C1 b and C3;
+        _ = u is C1 c and C4;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (901,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 b and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 27),
+                // (902,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 c and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(902, 27)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_NegatedPattern_01_BindUnaryPattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test5(S1 u)
+    {
+#line 500
+        _ = u is not C5 and C2;
+        _ = u is not C5 and C4;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (501,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is not C5 and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(501, 29)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_NegatedPattern_02_BindUnaryPattern_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test7(S1 u)
+    {
+#line 700
+        _ = u is C1 and not C5;
+        _ = u is C1 and not C3;
+        _ = u is C1 and not C4;
+        _ = u is not C4;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (701,29): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and not C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(701, 29),
+                // (702,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and not C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(702, 29),
+                // (703,22): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is not C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(703, 22)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ParenthesizedPattern_01_BindParenthesizedPattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test6(S1 u)
+    {
+#line 600
+        _ = u is (not C5) and C2;
+        _ = u is (not C5) and C4;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (601,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is (not C5) and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(601, 31)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ParenthesizedPattern_01_BindParenthesizedPattern_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test8(S1 u)
+    {
+#line 800
+        _ = u is C1 and (not C2);
+        _ = u is C1 and (not C3);
+        _ = u is C1 and (not C4);
+        _ = u is (not C4);
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (801,30): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and (not C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(801, 30),
+                // (802,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and (not C4);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(802, 30),
+                // (803,23): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is (not C4);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(803, 23)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ListPattern_01_BindListPattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test11(S1 u)
+    {
+#line 1100
+        _ = u is [] and C2;
+        _ = u is [] and C4;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (1100,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                //         _ = u is [] and C2;
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(1100, 18),
+                // (1100,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                //         _ = u is [] and C2;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(1100, 18),
+                // (1101,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                //         _ = u is [] and C4;
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(1101, 18),
+                // (1101,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                //         _ = u is [] and C4;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(1101, 18),
+                // (1101,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is [] and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1101, 25)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_VarDeconstructionPattern_01_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+class C3;
+class C4 : C1;
+class C5 : C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is var (a, b) and C2;
+        _ = u is var (c, d) and C4;
+    } 
+}
+
+static class Extensions
+{
+    public static void Deconstruct(this object o, out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (101,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is var (c, d) and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(101, 33)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ConstantPattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C1 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1
+{
+    public static implicit operator C1(string c) => null;
+}
+
+class C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is {} and ""1"";
+        _ = u is C1 and (C2)null;
+        _ = u is C1 and ""1"";
+        _ = u is System.IComparable and ""1"";
+        _ = u is ""1"";
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("S1", "string").WithLocation(100, 25),
+                // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'C1'
+                //         _ = u is C1 and (C2)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "C1").WithLocation(101, 25),
+                // (102,25): error CS9135: A constant value of type 'C1' is expected
+                //         _ = u is C1 and "1";
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
+                // (103,41): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is System.IComparable and "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("S1", "string").WithLocation(103, 41),
+                // (104,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("S1", "string").WithLocation(104, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ConstantPattern_02_BindConstantPatternWithFallbackToTypePattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(byte x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is null and C2;
+        _ = u is 1 and byte;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C2'.
+                //         _ = u is null and C2;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C2").WithArguments("S1", "C2").WithLocation(100, 27),
+                // (101,24): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
+                //         _ = u is 1 and byte;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(101, 24)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ConstantPattern_03_BindIsOperator_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(byte x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+        const string empty ="""";
+#line 100
+        _ = u is empty;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is empty;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "empty").WithArguments("S1", "string").WithLocation(100, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ConstantPattern_04_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(byte x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+        const string empty ="""";
+#line 100
+        switch (u)
+        {
+            case 1:
+                goto case empty;
+        }   
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (102,13): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
+                //             case 1:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(102, 13),
+
+                // PROTOTYPE: This doesn't look like a union matching error. Something is likely missing in implementation.
+
+                // (103,17): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //                 goto case empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case empty;").WithArguments("string", "S1").WithLocation(103, 17)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_RelationalPattern_01_BindRelationalPattern_UnionType_In()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(string x) { _value = x; }
+    public S1(C1 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1
+{
+    public static implicit operator C1(int c) => null;
+}
+
+class C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is {} and > 1;
+        _ = u is C1 and > 1;
+        _ = u is System.IComparable and > 1;
+        _ = u is > 1;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("S1", "int").WithLocation(100, 27),
+                // (101,27): error CS9135: A constant value of type 'C1' is expected
+                //         _ = u is C1 and > 1;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
+                // (102,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is System.IComparable and > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("S1", "int").WithLocation(102, 43),
+                // (103,20): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("S1", "int").WithLocation(103, 20)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_RelationalPattern_02_BindRelationalPattern_UnionType_Out()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(byte x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is > 1 and byte;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,26): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
+                //         _ = u is > 1 and byte;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(100, 26)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_01_Disjunction_Snap_To_Previous_UnionType()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is int or string or C3;
+        _ = u is int or (string or C3);
+        _ = u is C1 or string or C3;
+        _ = u is int or C2 or C3;
+        _ = u is int or string or C1;
+        _ = u is int or (C2 or C3);
+        _ = u is int or (string or C1);
+        _ = u is (int or string) or C3;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 18),
+                // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(100, 25),
+                // (100,35): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(100, 35),
+                // (101,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 18),
+                // (101,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(101, 26),
+                // (101,36): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 36),
+                // (102,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is C1 or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(102, 24),
+                // (102,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 34),
+                // (103,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or C2 or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(103, 18),
+                // (103,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or C2 or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(103, 31),
+                // (104,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or string or C1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 18),
+                // (104,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or string or C1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(104, 25),
+                // (105,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or (C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 18),
+                // (105,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or (C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(105, 32),
+                // (106,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or (string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(106, 18),
+                // (106,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or (string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(106, 26),
+                // (107,19): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is (int or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(107, 19),
+                // (107,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is (int or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(107, 26),
+                // (107,37): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is (int or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(107, 37)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_02_Disjunction_Snap_To_Previous_UnionType()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1 u)
+    {
+#line 100
+        _ = u is {} and (int or string or C3);
+        _ = u is {} and (int or (string or C3));
+        _ = u is {} and (C1 or string or C3);
+        _ = u is {} and (int or C2 or C3);
+        _ = u is {} and (int or string or C1);
+        _ = u is {} and (int or (C2 or C3));
+        _ = u is {} and (int or (string or C1));
+        _ = u is {} and ((int or string) or C3);
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 26),
+                // (100,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(100, 33),
+                // (100,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(100, 43),
+                // (101,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 26),
+                // (101,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(101, 34),
+                // (101,44): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 44),
+                // (102,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (C1 or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(102, 32),
+                // (102,42): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (C1 or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 42),
+                // (103,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(103, 26),
+                // (103,39): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(103, 39),
+                // (104,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 26),
+                // (104,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(104, 33),
+                // (105,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (C2 or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 26),
+                // (105,40): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or (C2 or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(105, 40),
+                // (106,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (string or C1));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(106, 26),
+                // (106,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or (string or C1));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(106, 34),
+                // (107,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and ((int or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(107, 27),
+                // (107,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and ((int or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(107, 34),
+                // (107,45): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and ((int or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(107, 45)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_03_Disjunction_Snap_To_Previous_UnionType()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(object u)
+    {
+#line 100
+        _ = u is (S1 and int) or string or C3;
+        _ = u is (S1 and int) or (string or C3);
+        _ = u is int or (S1 and C2) or C3;
+        _ = u is int or ((S1 and C2) or C3);
+        _ = u is ((S1 and int) or string) or C3;
+        _ = u is S1 and int or string or C3;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is (S1 and int) or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 26),
+                // (101,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is (S1 and int) or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 26),
+                // (104,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is ((S1 and int) or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 27),
+                // (105,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is S1 and int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 25)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_04_Disjunction_Snap_To_Previous_UnionType()
+        {
+            var src1 = @"
+struct S0 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S0(byte x) { _value = x; }
+    public S0(S1 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S0 u)
+    {
+#line 100
+        _ = u is {} and ((S1 and int) or string or C3);
+        _ = u is {} and ((S1 and int) or (string or C3));
+        _ = u is {} and (int or (S1 and C2) or C3);
+        _ = u is {} and (int or ((S1 and C2) or C3));
+        _ = u is {} and (((S1 and int) or string) or C3);
+        _ = u is {} and (S1 and int or string or C3);
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and ((S1 and int) or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 34),
+                // (100,42): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and ((S1 and int) or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(100, 42),
+                // (100,52): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and ((S1 and int) or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(100, 52),
+                // (101,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and ((S1 and int) or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 34),
+                // (101,43): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and ((S1 and int) or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(101, 43),
+                // (101,53): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and ((S1 and int) or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(101, 53),
+                // (102,26): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (S1 and C2) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S0", "int").WithLocation(102, 26),
+                // (102,48): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or (S1 and C2) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(102, 48),
+                // (103,26): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or ((S1 and C2) or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S0", "int").WithLocation(103, 26),
+                // (103,49): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or ((S1 and C2) or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(103, 49),
+                // (104,35): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (((S1 and int) or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 35),
+                // (104,43): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (((S1 and int) or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(104, 43),
+                // (104,54): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (((S1 and int) or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(104, 54),
+                // (105,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (S1 and int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 33),
+                // (105,40): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (S1 and int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(105, 40),
+                // (105,50): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (S1 and int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(105, 50)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_05_Conjunction_Pass_UnionType_Through()
+        {
+            var src1 = @"
+struct S0 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S0(byte x) { _value = x; }
+    public S0(S1 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(object u)
+    {
+#line 100
+        _ = u is S1 and string;
+        _ = u is (S1 and object) and C3;
+        _ = u is S1 and object and C3;
+    } 
+
+    static void Test2(object u)
+    {
+#line 200
+        _ = u is S0 and S1 and C3;
+        _ = u is (S0 and S1) and C3;
+        _ = u is S0 and (S1 and C3);
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is S1 and string;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(100, 25),
+                // (101,38): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is (S1 and object) and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 38),
+                // (102,36): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is S1 and object and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 36),
+                // (200,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is S0 and S1 and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(200, 32),
+                // (201,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is (S0 and S1) and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(201, 34),
+                // (202,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is S0 and (S1 and C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(202, 33)
+                );
         }
     }
 }

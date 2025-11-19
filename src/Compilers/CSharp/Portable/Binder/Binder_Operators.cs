@@ -4869,7 +4869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
 
                 bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
+                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
                 if (wasExpression)
                 {
                     hasErrors |= constantValueOpt is null;

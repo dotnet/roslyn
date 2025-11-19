@@ -2139,9 +2139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsWellKnownTypeIsExternalInit(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit");
 
-        internal static bool IsWellKnownTypeIUnion(this NamedTypeSymbol typeSymbol)
-            => typeSymbol.DeclaredAccessibility == Accessibility.Public &&
-               typeSymbol.IsInterface &&
+        internal static bool IsWellKnownTypeIUnion(this NamedTypeSymbol typeSymbol) // PROTOTYPE: Test individual conditions
+            => typeSymbol is { DeclaredAccessibility: Accessibility.Public, IsInterface: true, IsGenericType: false } &&
                typeSymbol.IsWellKnownCompilerServicesTopLevelType(WellKnownMemberNames.IUnionInterfaceName); // PROTOTYPE: Confirm namespace, the spec doesn't specify it at the moment.
 
         internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
