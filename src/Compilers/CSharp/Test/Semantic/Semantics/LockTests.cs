@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using ICSharpCode.Decompiler.IL.Transforms;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
