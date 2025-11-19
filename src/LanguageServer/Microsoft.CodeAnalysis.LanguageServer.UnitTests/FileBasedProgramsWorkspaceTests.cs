@@ -146,12 +146,12 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Empty(primordialDocument.Project.MetadataReferences);
 
         var primordialSyntaxTree = await primordialDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        var primordialSyntaxDiagnostics = primordialSyntaxTree.GetDiagnostics(CancellationToken.None);
         // TODO: we probably don't want to report syntax errors for '#:' in the primordial non-file document.
-        // The logic which decides whether to add Features:FileBasedProgram=true probably needs to be adjusted.
-        Assert.Equal(
-            "vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')",
-            primordialSyntaxDiagnostics.Single().ToString());
+        // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
+        primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
+            // vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
+            // #:sdk Microsoft.Net.Sdk
+            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
 
         // Wait for the canonical project to finish loading.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
