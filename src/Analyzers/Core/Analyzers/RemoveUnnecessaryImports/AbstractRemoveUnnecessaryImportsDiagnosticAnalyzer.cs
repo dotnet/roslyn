@@ -47,7 +47,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
 
     protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(LocalizableString titleAndMessage)
-        : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor), FadingOptions.FadeOutUnusedImports)
+        : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor))
     {
         _classificationIdDescriptor = classificationIdDescriptor;
         _generatedCodeClassificationIdDescriptor = generatedCodeClassificationIdDescriptor;

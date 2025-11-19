@@ -89,16 +89,4 @@ internal static class IDEDiagnosticIdToOptionMappingHelper
 
         map.TryAdd(diagnosticId, options);
     }
-
-    public static void AddFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool> fadingOption)
-    {
-        diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
-        fadingOption = fadingOption ?? throw new ArgumentNullException(nameof(fadingOption));
-
-        // Verify that the option is either being added for the first time, or the existing option is already the same.
-        // Latter can happen in tests as we re-instantiate the analyzer for every test, which attempts to add the mapping every time.
-        Debug.Assert(!s_diagnosticIdToFadingOptionMap.TryGetValue(diagnosticId, out var existingOption) || existingOption.Equals(fadingOption));
-
-        s_diagnosticIdToFadingOptionMap.TryAdd(diagnosticId, fadingOption);
-    }
 }
