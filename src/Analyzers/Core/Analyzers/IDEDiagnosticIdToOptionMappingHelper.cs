@@ -21,15 +21,11 @@ internal static class IDEDiagnosticIdToOptionMappingHelper
 {
     private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new();
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new();
-    private static readonly ConcurrentDictionary<string, PerLanguageOption2<bool>> s_diagnosticIdToFadingOptionMap = new();
 
     public static bool TryGetMappedOptions(string diagnosticId, string language, [NotNullWhen(true)] out ImmutableHashSet<IOption2>? options)
         => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||
            (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
             map.TryGetValue(diagnosticId, out options));
-
-    public static bool TryGetMappedFadingOption(string diagnosticId, [NotNullWhen(true)] out PerLanguageOption2<bool>? fadingOption)
-        => s_diagnosticIdToFadingOptionMap.TryGetValue(diagnosticId, out fadingOption);
 
     public static ImmutableHashSet<string> KnownIDEDiagnosticIds
         => [.. s_diagnosticIdToOptionMap.Keys,

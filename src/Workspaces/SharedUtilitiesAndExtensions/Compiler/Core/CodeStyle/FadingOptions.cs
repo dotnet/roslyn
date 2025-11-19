@@ -12,5 +12,5 @@ internal static class FadingOptions
     public static readonly PerLanguageOption2<bool> FadeOutUnusedMembers = new("dotnet_fade_out_unused_members", defaultValue: true);
     public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("dotnet_fade_out_unreachable_code", defaultValue: true);
 
-    // When adding a new fading option, be sure to update 
+    // When adding a new fading option, be sure to update ProtocolConversions.ConvertDiagnostic
 }

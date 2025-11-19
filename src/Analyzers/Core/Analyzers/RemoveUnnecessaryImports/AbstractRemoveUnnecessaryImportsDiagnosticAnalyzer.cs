@@ -56,7 +56,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     private static ImmutableArray<DiagnosticDescriptor> GetDescriptors(LocalizableString titleAndMessage, out DiagnosticDescriptor classificationIdDescriptor, out DiagnosticDescriptor generatedCodeClassificationIdDescriptor)
     {
         classificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, EnforceOnBuildValues.RemoveUnnecessaryImports, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true);
-        generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen", EnforceOnBuild.Never, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true, isConfigurable: false);
+        generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsGeneratedCodeDiagnosticId, EnforceOnBuild.Never, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true, isConfigurable: false);
         return
         [
             s_fixableIdDescriptor,
