@@ -145,7 +145,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        var forkedProjectInfo = await GetForkedProjectInfo_NoLockAsync(newDocumentInfo, documentText, cancellationToken);
+        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetCanonicalProject(), newDocumentInfo, documentText, cancellationToken);
 
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
@@ -310,10 +310,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// Creates a new project based on the canonical project with a new document added.
     /// This should only be called when the canonical project is in the FullyLoaded state.
     /// </summary>
-    private async Task<ProjectInfo> GetForkedProjectInfo_NoLockAsync(DocumentInfo newDocumentInfo, SourceText documentText, CancellationToken cancellationToken)
+    private static async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SourceText documentText, CancellationToken cancellationToken)
     {
-        var canonicalProject = GetCanonicalProject();
-
         var newDocumentPath = newDocumentInfo.FilePath;
         Contract.ThrowIfNull(newDocumentPath);
 
