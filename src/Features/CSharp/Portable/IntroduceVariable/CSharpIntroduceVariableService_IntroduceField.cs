@@ -31,6 +31,9 @@ internal sealed partial class CSharpIntroduceVariableService
     {
         // Get the ancestor TypeDeclarationSyntax that is NOT an ExtensionBlockDeclarationSyntax.
         // Extension blocks can't contain fields, so we need to find the containing class/struct.
+        //
+        // Note, this can be revised in the future as we do expect to allow constants/static in
+        // extension blocks in a future version of the language.
         var oldTypeDeclaration = expression.GetAncestorsOrThis<TypeDeclarationSyntax>()
             .FirstOrDefault(t => t is not ExtensionBlockDeclarationSyntax);
 
