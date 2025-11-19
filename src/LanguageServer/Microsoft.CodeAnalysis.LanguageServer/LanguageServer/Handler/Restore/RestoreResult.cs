@@ -6,7 +6,6 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal sealed record RestorePartialResult(
-    [property: JsonPropertyName("stage")] string Stage,
-    [property: JsonPropertyName("message")] string Message
+internal sealed record RestoreResult(
+    [property: JsonPropertyName("success")] bool Success
 );

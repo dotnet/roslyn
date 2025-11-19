@@ -44,7 +44,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
             : base(
                 workspaceFactory,
                 fileChangeWatcher,
@@ -53,7 +54,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider)
+                binLogPathProvider,
+                dotnetCliHelper)
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
@@ -66,7 +68,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider);
+                binLogPathProvider,
+                dotnetCliHelper);
     }
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
