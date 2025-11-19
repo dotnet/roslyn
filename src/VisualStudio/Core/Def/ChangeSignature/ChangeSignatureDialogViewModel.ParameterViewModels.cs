@@ -93,6 +93,14 @@ internal sealed partial class ChangeSignatureDialogViewModel
         }
 
         public virtual string CallSiteValue => string.Empty;
+
+        public string RemovedParameterAutomationText
+        {
+            get
+            {
+                return string.Format(ServicesVSResources.Removed_0, FullAutomationText);
+            }
+        }
     }
 
     public sealed class AddedParameterViewModel : ParameterViewModel

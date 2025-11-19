@@ -1217,6 +1217,11 @@
         <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removed_0">
+        <source>Removed {0}</source>
+        <target state="new">Removed {0}</target>
+        <note>{0} is a modifier, type, and parameter name</note>
+      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Ungültige JSON-Zeichenfolgen melden</target>
