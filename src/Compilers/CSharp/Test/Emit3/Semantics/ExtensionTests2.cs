@@ -36013,6 +36013,29 @@ static class E
     }
 
     [Fact]
+    public void ReduceExtensionMember_14()
+    {
+        // extension without containing type
+        var src = """
+extension<T>(T)
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
+
+        var extension = comp.GlobalNamespace.GetTypeMembers("").Single().GetPublicSymbol();
+        Assert.True(extension.IsExtension);
+        var m = extension.GetMember<IMethodSymbol>("M");
+        var reduced = m.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol());
+        AssertEx.Equal("void <G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", reduced.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ReportDiagnostics_01()
     {
         // two properties
