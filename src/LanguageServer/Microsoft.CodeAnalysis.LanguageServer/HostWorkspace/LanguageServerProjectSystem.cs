@@ -35,7 +35,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
             : base(
                 workspaceFactory,
                 fileChangeWatcher,
@@ -44,7 +45,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider)
+                binLogPathProvider,
+                dotnetCliHelper)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _hostProjectFactory = workspaceFactory.HostProjectFactory;
