@@ -2913,4 +2913,97 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """);
+
+    [Fact]
+    public Task TestIfStatement_CompoundAssignment_Event()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                event Action SomeEvent;
+
+                static void M(C c)
+                {
+                    [|if|] (c is not null)
+                        c.SomeEvent += () => { };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                event Action SomeEvent;
+
+                static void M(C c)
+                {
+                    c?.SomeEvent += () => { };
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp14);
+
+    [Fact]
+    public Task TestIfStatement_CompoundAssignment_AddAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.Value += 5;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    c?.Value += 5;
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp14);
+
+    [Fact]
+    public Task TestIfStatement_CompoundAssignment_SubtractAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.Value -= 5;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    c?.Value -= 5;
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp14);
 }

@@ -446,6 +446,15 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             return (TExpressionSyntax)left;
         }
 
+        // Check if node itself is a compound assignment. We do this by checking if the first child node
+        // is on the left side of a compound assignment (which means the node is the compound assignment itself).
+        var firstChild = node.ChildNodesAndTokens().FirstOrDefault().AsNode();
+        if (firstChild != null && syntaxFacts.IsLeftSideOfCompoundAssignment(firstChild))
+        {
+            syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
+            return (TExpressionSyntax)left;
+        }
+
         return null;
     }
 }
