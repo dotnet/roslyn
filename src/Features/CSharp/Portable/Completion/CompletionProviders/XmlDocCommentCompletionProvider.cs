@@ -399,6 +399,10 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
             {
                 declaredParameters = delegateInvokeParameters;
             }
+            else if (namedTypeSymbol.IsExtension && namedTypeSymbol.ExtensionParameter is { } extensionParameter)
+            {
+                declaredParameters = [extensionParameter];
+            }
         }
 
         return declaredParameters;
