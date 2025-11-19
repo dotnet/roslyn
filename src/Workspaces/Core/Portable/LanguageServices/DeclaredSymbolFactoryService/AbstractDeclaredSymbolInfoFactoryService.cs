@@ -18,6 +18,7 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
     TTypeDeclarationSyntax,
     TEnumDeclarationSyntax,
     TMethodDeclarationSyntax,
+    TPropertyDeclarationSyntax,
     TMemberDeclarationSyntax,
     TNameSyntax,
     TQualifiedNameSyntax,
@@ -28,6 +29,7 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
     where TEnumDeclarationSyntax : TMemberDeclarationSyntax
     where TMethodDeclarationSyntax : TMemberDeclarationSyntax
+    where TPropertyDeclarationSyntax : TMemberDeclarationSyntax
     where TMemberDeclarationSyntax : SyntaxNode
     where TNameSyntax : SyntaxNode
     where TQualifiedNameSyntax : TNameSyntax
@@ -79,9 +81,16 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
     /// Get the name of the target type of specified extension method declaration. The node provided must be an
     /// extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` on `node` should return a
     /// `DeclaredSymbolInfo` of kind `ExtensionMethod`. If the return value is null, then it means this is a
-    /// "complex" method (as described at <see cref="TopLevelSyntaxTreeIndex.ExtensionMethodInfo"/>).
+    /// "complex" method (as described at <see cref="TopLevelSyntaxTreeIndex.ExtensionMemberInfo"/>).
     /// </summary>
-    protected abstract string GetReceiverTypeName(TMethodDeclarationSyntax node);
+    protected abstract string GetExtensionReceiverTypeName(TMethodDeclarationSyntax node);
+
+    /// <summary>
+    /// Get the name of the target type of specified extension block declaration. If the node is not an extension
+    /// block, this should return <see langword="null"/>.
+    /// </summary>
+    protected abstract string? GetExtensionReceiverTypeName(TTypeDeclarationSyntax node);
+
     protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);
     protected abstract string GetRootNamespace(CompilationOptions compilationOptions);
 
@@ -90,7 +99,7 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
 
     // We do not differentiate arrays of different kinds for simplicity.
     // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
-    protected static string CreateReceiverTypeString(string typeName, bool isArray)
+    protected static string CreateReceiverTypeString(string? typeName, bool isArray)
     {
         if (string.IsNullOrEmpty(typeName))
         {
@@ -153,7 +162,7 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
         ProjectState project,
         SyntaxNode root,
         ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-        Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+        Dictionary<string, ArrayBuilder<int>> extensionMemberInfo,
         CancellationToken cancellationToken)
     {
         var stringTable = SyntaxTreeIndex.GetStringTable(project);
@@ -168,17 +177,18 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
         }
 
         foreach (var child in GetChildren((TCompilationUnitSyntax)root))
-            AddDeclaredSymbolInfos(root, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
+            AddDeclaredSymbolInfos(root, extensionReceiverTypeName: null, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMemberInfo, "", "", cancellationToken);
     }
 
     private void AddDeclaredSymbolInfos(
         SyntaxNode container,
+        string? extensionReceiverTypeName,
         TMemberDeclarationSyntax memberDeclaration,
         StringTable stringTable,
         string rootNamespace,
         ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
         Dictionary<string, string?> aliases,
-        Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+        Dictionary<string, ArrayBuilder<int>> extensionMemberInfo,
         string containerDisplayName,
         string fullyQualifiedContainerName,
         CancellationToken cancellationToken)
@@ -201,7 +211,7 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
             foreach (var child in GetChildren(namespaceDeclaration))
             {
                 AddDeclaredSymbolInfos(
-                    memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                    memberDeclaration, extensionReceiverTypeName: null, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMemberInfo,
                     innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
             }
         }
@@ -229,10 +239,11 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
                 cancellationToken);
 
             // Then recurse into the children and add those.
+            var receiverTypeName = this.GetExtensionReceiverTypeName(typeDeclaration);
             foreach (var child in GetChildren(typeDeclaration))
             {
                 AddDeclaredSymbolInfos(
-                    memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                    typeDeclaration, receiverTypeName, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMemberInfo,
                     innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
             }
         }
@@ -253,7 +264,7 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
             foreach (var child in GetChildren(enumDeclaration))
             {
                 AddDeclaredSymbolInfos(
-                    memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                    memberDeclaration, extensionReceiverTypeName: null, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMemberInfo,
                     innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
             }
         }
@@ -271,11 +282,17 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
 
             // If the AddSingle call added an item, and that item was an extension method, then go and add the
             // information about this extension method to our 
-            if (declaredSymbolInfos.Count != count &&
-                declaredSymbolInfos.Last().Kind == DeclaredSymbolInfoKind.ExtensionMethod &&
-                memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
+            if (declaredSymbolInfos.Count != count)
             {
-                AddExtensionMethodInfo(methodDeclaration);
+                if (declaredSymbolInfos.Last().Kind == DeclaredSymbolInfoKind.ExtensionMethod &&
+                    memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
+                {
+                    AddExtensionMemberInfo(GetExtensionReceiverTypeName(methodDeclaration));
+                }
+                else if (extensionReceiverTypeName != null && memberDeclaration is TMethodDeclarationSyntax or TPropertyDeclarationSyntax)
+                {
+                    AddExtensionMemberInfo(extensionReceiverTypeName);
+                }
             }
 
             AddLocalFunctionInfos(
@@ -326,11 +343,9 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
             }
         }
 
-        void AddExtensionMethodInfo(TMethodDeclarationSyntax methodDeclaration)
+        void AddExtensionMemberInfo(string receiverTypeName)
         {
             var declaredSymbolInfoIndex = declaredSymbolInfos.Count - 1;
-
-            var receiverTypeName = this.GetReceiverTypeName(methodDeclaration);
 
             // Target type is an alias
             if (aliases.TryGetValue(receiverTypeName, out var originalName))
@@ -348,10 +363,10 @@ internal abstract class AbstractDeclaredSymbolInfoFactoryService<
                 }
             }
 
-            if (!extensionMethodInfo.TryGetValue(receiverTypeName, out var arrayBuilder))
+            if (!extensionMemberInfo.TryGetValue(receiverTypeName, out var arrayBuilder))
             {
                 arrayBuilder = ArrayBuilder<int>.GetInstance();
-                extensionMethodInfo[receiverTypeName] = arrayBuilder;
+                extensionMemberInfo[receiverTypeName] = arrayBuilder;
             }
 
             arrayBuilder.Add(declaredSymbolInfoIndex);
