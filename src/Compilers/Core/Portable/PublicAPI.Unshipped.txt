@@ -1,4 +1,4 @@
-Microsoft.CodeAnalysis.CommandLineArguments.ManifestResourceArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineResource>
+﻿Microsoft.CodeAnalysis.CommandLineArguments.ManifestResourceArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineResource>
 Microsoft.CodeAnalysis.CommandLineResource
 Microsoft.CodeAnalysis.CommandLineResource.CommandLineResource() -> void
 Microsoft.CodeAnalysis.CommandLineResource.FullPath.get -> string!
@@ -13,6 +13,9 @@ Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
+Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs = Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, string? trackingName = null) -> void
+Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps, string? baseDirectory) -> void
+Microsoft.CodeAnalysis.GeneratorDriverOptions.TrackingName.get -> string?
 Microsoft.CodeAnalysis.IMethodSymbol.AssociatedExtensionImplementation.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.IsIterator.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?

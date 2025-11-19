@@ -78,7 +78,8 @@ internal sealed partial class SolutionCompilationState
                     GetSourceGenerators(projectState),
                     projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
                     additionalTexts,
-                    generatedFilesBaseDirectory);
+                    generatedFilesBaseDirectory,
+                    $"{projectState.Name} ({projectState.Id})");
 
                 return generatorDriver.RunGenerators(compilation, generatorFilter, cancellationToken);
             }
