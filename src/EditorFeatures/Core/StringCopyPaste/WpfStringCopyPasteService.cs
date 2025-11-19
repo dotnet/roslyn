@@ -12,7 +12,6 @@ using System.Threading;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio;
 using IComDataObject = System.Runtime.InteropServices.ComTypes.IDataObject;
 
 namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste;
@@ -84,7 +83,7 @@ internal sealed class WpfStringCopyPasteService() : IStringCopyPasteService
         do
         {
             hr = OleGetClipboard(ref dataObject);
-            if (!ErrorHandler.Succeeded(hr))
+            if (hr != 0)
             {
                 if (retry == 0)
                     return null;
