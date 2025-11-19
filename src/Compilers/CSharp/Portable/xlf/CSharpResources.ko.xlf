@@ -572,6 +572,11 @@
         <target state="translated">형식 매개 변수 '{1}'에 'unmanaged' 제약 조건이 있으므로 '{1}'은(는) '{0}'에 대한 제약 조건으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessNotReferenceTypeOrValueType">
+        <source>Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</source>
+        <target state="new">Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">조건부 특성을 사용하려면 로컬 함수 '{0}'이(가) 'static'이어야 합니다.</target>

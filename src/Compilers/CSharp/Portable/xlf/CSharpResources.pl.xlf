@@ -572,6 +572,11 @@
         <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessNotReferenceTypeOrValueType">
+        <source>Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</source>
+        <target state="new">Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">Funkcja lokalna „{0}” musi być oznaczona jako „static”, aby można było używać atrybutu warunkowego</target>
