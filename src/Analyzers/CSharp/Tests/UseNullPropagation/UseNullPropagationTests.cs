@@ -2945,7 +2945,7 @@ public sealed partial class UseNullPropagationTests
             }
             """, languageVersion: LanguageVersion.CSharp14);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
     public Task TestIfStatement_CompoundAssignment_AddAssignment()
         => TestInRegularAndScriptAsync(
             """
@@ -2976,7 +2976,7 @@ public sealed partial class UseNullPropagationTests
             }
             """, languageVersion: LanguageVersion.CSharp14);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
     public Task TestIfStatement_CompoundAssignment_SubtractAssignment()
         => TestInRegularAndScriptAsync(
             """
@@ -3007,7 +3007,7 @@ public sealed partial class UseNullPropagationTests
             }
             """, languageVersion: LanguageVersion.CSharp14);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
     public Task TestIfStatement_CompoundAssignment_NotAvailableInCSharp13()
         => TestMissingInRegularAndScriptAsync(
             """
