@@ -242,8 +242,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
-                <!-- A misc file should not complain about usage of '#:' ignored directives. -->
-                <Features>$(Features);FileBasedProgram</Features>
               </PropertyGroup>
             </Project>
             """;

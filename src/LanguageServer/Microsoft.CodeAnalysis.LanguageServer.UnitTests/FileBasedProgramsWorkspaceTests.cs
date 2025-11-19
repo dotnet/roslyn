@@ -166,7 +166,12 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         // The canonical misc document doesn't have syntax errors for '#:'.
         var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
+        // TODO: we probably don't want to report syntax errors for '#:' in the primordial non-file document.
+        // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
+        canonicalSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
+            // vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
+            // #:sdk Microsoft.Net.Sdk
+            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
     }
 
     [Theory, CombinatorialData]
