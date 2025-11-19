@@ -3006,4 +3006,22 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """, languageVersion: LanguageVersion.CSharp14);
+
+    [Fact]
+    public Task TestIfStatement_CompoundAssignment_NotAvailableInCSharp13()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                event Action SomeEvent;
+
+                static void M(C c)
+                {
+                    if (c is not null)
+                        c.SomeEvent += () => { };
+                }
+            }
+            """, LanguageVersion.CSharp13);
 }
