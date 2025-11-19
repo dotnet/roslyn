@@ -135,9 +135,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>73fa8a8e61a28b103613e06c1692b44f7bc89947</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25503.1">
+    <Dependency Name="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25161.2">
       <Uri>https://github.com/dotnet/arcade-services</Uri>
-      <Sha>cc62b9386f210bc9e9498ee2fc55f3005c90db30</Sha>
+      <Sha>8b5a2ffee4f4097893b7fc670f7d86d84c8c841f</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.FileBasedPrograms" Version="10.0.200-preview.0.25556.104">
       <Uri>https://github.com/dotnet/dotnet</Uri>
