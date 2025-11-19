@@ -699,7 +699,7 @@
   <data name="ERR_NamespaceUnexpected" xml:space="preserve">
     <value>A namespace cannot directly contain members such as fields, methods or statements</value>
   </data>
-  <data name="ERR_MemberIsNoTopLevelSatement" xml:space="preserve">
+  <data name="ERR_GlobalNamespaceUnexpected" xml:space="preserve">
     <value>The global namespace cannot directly contain members such as fields or methods</value>
   </data>
   <data name="ERR_NoSuchMember" xml:space="preserve">

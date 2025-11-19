@@ -1543,8 +1543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberIsNoTopLevelSatement">
-        <source>Members, such as properties, fields or events, are not allowed as top level statements </source>
-        <target state="new">Members, such as properties, fields or events, are not allowed as top level statements </target>
+        <source>The global namespace cannot directly contain members such as fields or methods</source>
+        <target state="new">The global namespace cannot directly contain members such as fields or methods</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">

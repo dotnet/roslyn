@@ -739,7 +739,7 @@ System.Console.WriteLine(g);
             comp.VerifyDiagnostics(
                 // (2,12): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // new string a = "Hi!";
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "a").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "a").WithLocation(2, 12),
                 // (2,12): warning CS0109: The member '<invalid-global-code>.a' does not hide an accessible member. The new keyword is not required.
                 // new string a = "Hi!";
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "a").WithArguments("<invalid-global-code>.a").WithLocation(2, 12),
@@ -748,7 +748,7 @@ System.Console.WriteLine(g);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(3, 26),
                 // (4,15): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // public string b = "Hi!";
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "b").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(4, 15),
                 // (5,26): error CS0103: The name 'b' does not exist in the current context
                 // System.Console.WriteLine(b);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(5, 26),
@@ -2611,7 +2611,7 @@ new void M()
             comp.VerifyDiagnostics(
                 // (5,10): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // new void M()
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "M").WithLocation(5, 10),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
                 // new void M()
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "M").WithArguments("<invalid-global-code>.M()").WithLocation(5, 10)
@@ -2642,7 +2642,7 @@ class C1
             comp.VerifyDiagnostics(
                 // (5,9): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // new int F = C1.GetInt(out var Test);
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "F").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "F").WithLocation(5, 9),
                 // (5,9): warning CS0109: The member '<invalid-global-code>.F' does not hide an accessible member. The new keyword is not required.
                 // new int F = C1.GetInt(out var Test);
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("<invalid-global-code>.F").WithLocation(5, 9)
@@ -2667,7 +2667,7 @@ new void M()
             comp.VerifyDiagnostics(
                 // (5,10): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // new void M()
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "M").WithLocation(5, 10),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
                 // new void M()
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "M").WithArguments("<invalid-global-code>.M()").WithLocation(5, 10)
@@ -4401,7 +4401,7 @@ localI();
             comp.VerifyDiagnostics(
                 // (2,10): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // new void localA() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "localA").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "localA").WithLocation(2, 10),
                 // (2,10): warning CS0109: The member '<invalid-global-code>.localA()' does not hide an accessible member. The new keyword is not required.
                 // new void localA() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "localA").WithArguments("<invalid-global-code>.localA()").WithLocation(2, 10),
@@ -4413,7 +4413,7 @@ localI();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(4, 1),
                 // (6,14): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // virtual void localC() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "localC").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "localC").WithLocation(6, 14),
                 // (6,14): error CS0621: '<invalid-global-code>.localC()': virtual or abstract members cannot be private
                 // virtual void localC() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "localC").WithArguments("<invalid-global-code>.localC()").WithLocation(6, 14),
@@ -4422,7 +4422,7 @@ localI();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localC").WithArguments("localC").WithLocation(7, 1),
                 // (8,13): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // sealed void localD() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "localD").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "localD").WithLocation(8, 13),
                 // (8,13): error CS0238: '<invalid-global-code>.localD()' cannot be sealed because it is not an override
                 // sealed void localD() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "localD").WithArguments("<invalid-global-code>.localD()").WithLocation(8, 13),
@@ -4431,7 +4431,7 @@ localI();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localD").WithArguments("localD").WithLocation(9, 1),
                 // (10,15): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // override void localE() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "localE").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "localE").WithLocation(10, 15),
                 // (10,15): error CS0621: '<invalid-global-code>.localE()': virtual or abstract members cannot be private
                 // override void localE() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "localE").WithArguments("<invalid-global-code>.localE()").WithLocation(10, 15),
@@ -4443,7 +4443,7 @@ localI();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localE").WithArguments("localE").WithLocation(11, 1),
                 // (12,15): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // abstract void localF() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "localF").WithLocation(12, 15),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "localF").WithLocation(12, 15),
                 // (12,15): error CS0500: '<invalid-global-code>.localF()' cannot declare a body because it is marked abstract
                 // abstract void localF() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "localF").WithArguments("<invalid-global-code>.localF()").WithLocation(12, 15),
@@ -4455,7 +4455,7 @@ localI();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localF").WithArguments("localF").WithLocation(13, 1),
                 // (14,14): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // partial void localG() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "localG").WithLocation(14, 14),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "localG").WithLocation(14, 14),
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
@@ -4818,7 +4818,7 @@ int local => 1;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
                 // (4,5): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // int local => 1;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4839,7 +4839,7 @@ int local { get => 1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
                 // (4,5): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // int local { get => 1; }
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4860,7 +4860,7 @@ int local { get { return 1; } }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
                 // (4,5): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // int local { get { return 1; } }
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4881,7 +4881,7 @@ event System.Action local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
                 // (4,21): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // event System.Action local;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "local").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "local").WithLocation(4, 21)
                 );
         }
 
@@ -4906,7 +4906,7 @@ event System.Action local
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
                 // (4,21): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // event System.Action local
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "local").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "local").WithLocation(4, 21)
                 );
         }
 
@@ -9977,7 +9977,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,13): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // private int f;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "f").WithLocation(5, 13)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(5, 13)
                 );
         }
 
@@ -10067,7 +10067,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,5): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // int P { get; set; }
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "P").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "P").WithLocation(5, 5)
                 );
         }
 
@@ -10154,7 +10154,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,14): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // event Action E;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "E").WithLocation(5, 14)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "E").WithLocation(5, 14)
                 );
         }
 
@@ -10248,7 +10248,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,14): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "E").WithLocation(5, 14)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "E").WithLocation(5, 14)
                 );
         }
 
@@ -10339,7 +10339,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,5): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // int this[int x] => 0;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "this").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "this").WithLocation(5, 5)
                 );
         }
 
@@ -10426,7 +10426,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,24): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "operator").WithLocation(5, 24),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "operator").WithLocation(5, 24),
                 // (5,33): error CS0556: User-defined conversion must convert to or from the enclosing type
                 // public static implicit operator int(int d) => 0;
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 33)
@@ -10525,7 +10525,7 @@ class C { }
             comp.VerifyDiagnostics(
                 // (5,19): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "operator").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "operator").WithLocation(5, 19),
                 // (5,28): error CS0563: One of the parameters of a binary operator must be the containing type
                 // public static int operator +(int operand1, int operand2) => 0;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 28)

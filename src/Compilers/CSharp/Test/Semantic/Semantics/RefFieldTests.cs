@@ -11810,7 +11810,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
                 // (1,15): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "A").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
@@ -11856,7 +11856,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
                 // (1,15): error CS9343: The global namespace cannot directly contain members such as fields or methods 
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "A").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
