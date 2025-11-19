@@ -1580,5 +1580,132 @@ public class C
 ", state.GetDocumentText())
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public C()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private void OnMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public C()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private async void OnMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerWithMinusEquals() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void UnregisterHandler()
+    {
+        MyEvent -= OnMyEvent;
+    }
+
+    private void OnMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void UnregisterHandler()
+    {
+        MyEvent -= OnMyEvent;
+    }
+
+    private async void OnMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionChangesVoidToTask_ForNonEventHandlerMethod() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    private void RegularMethod()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    private async Task RegularMethod()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
     End Class
 End Namespace

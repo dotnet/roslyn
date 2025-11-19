@@ -833,4 +833,104 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
         else
             await VerifyAbsenceAsync(code);
     }
+
+    [Fact]
+    public Task TestEventHandlerMethod_DoesNotChangeVoidToTask()
+        => VerifyKeywordAsync("""
+            using System;
+
+            class C
+            {
+                public event EventHandler MyEvent;
+
+                public C()
+                {
+                    MyEvent += OnMyEvent;
+                }
+
+                private void OnMyEvent(object sender, EventArgs e)
+                {
+                    $$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestEventHandlerMethod_WithDifferentEventType()
+        => VerifyKeywordAsync("""
+            using System;
+
+            delegate void CustomEventHandler(object sender, EventArgs e);
+
+            class C
+            {
+                public event CustomEventHandler MyEvent;
+
+                public C()
+                {
+                    MyEvent += HandleMyEvent;
+                }
+
+                private void HandleMyEvent(object sender, EventArgs e)
+                {
+                    $$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestEventHandlerMethod_InDifferentMethod()
+        => VerifyKeywordAsync("""
+            using System;
+
+            class C
+            {
+                public event EventHandler MyEvent;
+
+                public void RegisterHandler()
+                {
+                    MyEvent += OnMyEvent;
+                }
+
+                private void OnMyEvent(object sender, EventArgs e)
+                {
+                    $$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestEventHandlerMethod_WithMinusEquals()
+        => VerifyKeywordAsync("""
+            using System;
+
+            class C
+            {
+                public event EventHandler MyEvent;
+
+                public void UnregisterHandler()
+                {
+                    MyEvent -= OnMyEvent;
+                }
+
+                private void OnMyEvent(object sender, EventArgs e)
+                {
+                    $$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNonEventHandlerMethod_ChangesVoidToTask()
+        => VerifyKeywordAsync("""
+            using System;
+
+            class C
+            {
+                private void RegularMethod()
+                {
+                    $$
+                }
+            }
+            """);
 }
