@@ -142,5 +142,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Protected Overrides Sub AddAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, fieldNames As HashSet(Of String), result As HashSet(Of IFieldSymbol), cancellationToken As CancellationToken)
             Throw ExceptionUtilities.Unreachable()
         End Sub
+
+        Protected Overrides Function IsStaticConstructor(constructorDeclaration As ConstructorBlockSyntax) As Boolean
+            Return constructorDeclaration.SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword)
+        End Function
     End Class
 End Namespace

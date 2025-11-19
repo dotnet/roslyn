@@ -3214,4 +3214,73 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public string Goo { get => field ?? throw new System.InvalidOperationException(); } = "";
             }
             """ + s_allowNullAttribute);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestStaticFieldWrittenInInstanceConstructor_ReadOnlyProperty()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public sealed class Test
+            {
+                private static Test? s_instance;
+                public static Test Instance => s_instance!;
+
+                public Test()
+                {
+                    s_instance = this;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestStaticFieldWrittenInStaticConstructor_ReadOnlyProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Test
+            {
+                [|private static Test? s_instance;|]
+                public static Test Instance => s_instance!;
+
+                static Test()
+                {
+                    s_instance = new Test();
+                }
+            }
+            """,
+            """
+            public sealed class Test
+            {
+                public static Test Instance { get; } = new Test();
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestStaticFieldWrittenInInstanceConstructor_WithSetter()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Test
+            {
+                [|private static Test? s_instance;|]
+                public static Test Instance
+                {
+                    get => s_instance!;
+                    set => s_instance = value;
+                }
+
+                public Test()
+                {
+                    s_instance = this;
+                }
+            }
+            """,
+            """
+            public sealed class Test
+            {
+                public static Test Instance { get; set; }
+
+                public Test()
+                {
+                    Instance = this;
+                }
+            }
+            """);
 }
