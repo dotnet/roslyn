@@ -9,8 +9,6 @@ Param(
   [switch][Alias('nobl')]$excludeCIBinaryLog,
   [switch]$noWarnAsError,
   [switch] $help,
-  [string] $runtimeSourceFeed = '',
-  [string] $runtimeSourceFeedKey = '',
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$properties
 )
 
@@ -70,7 +68,7 @@ try {
       $GlobalJson.tools | Add-Member -Name "vs" -Value (ConvertFrom-Json "{ `"version`": `"16.5`" }") -MemberType NoteProperty
     }
     if( -not ($GlobalJson.tools.PSObject.Properties.Name -match "xcopy-msbuild" )) {
-      $GlobalJson.tools | Add-Member -Name "xcopy-msbuild" -Value "17.14.16" -MemberType NoteProperty
+      $GlobalJson.tools | Add-Member -Name "xcopy-msbuild" -Value "17.13.0" -MemberType NoteProperty
     }
     if ($GlobalJson.tools."xcopy-msbuild".Trim() -ine "none") {
         $xcopyMSBuildToolsFolder = InitializeXCopyMSBuild $GlobalJson.tools."xcopy-msbuild" -install $true
