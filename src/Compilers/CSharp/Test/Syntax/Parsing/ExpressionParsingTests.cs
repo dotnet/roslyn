@@ -7555,6 +7555,73 @@ select t";
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4009")]
+        public void InProgressMultipleExpressionsInIfStatement3()
+        {
+            UsingTree("""
+                if (1 2 3)
+                    return;
+                """,
+                // (1,7): error CS1026: ) expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "2").WithLocation(1, 7),
+                // (1,9): error CS1002: ; expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(1, 9),
+                // (1,10): error CS1002: ; expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 10),
+                // (1,10): error CS1022: Type or namespace definition, or end-of-file expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
         public void InProgressMultipleExpressionsInParenthesizedExpression()
         {
