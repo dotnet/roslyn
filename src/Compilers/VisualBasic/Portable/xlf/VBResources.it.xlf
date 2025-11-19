@@ -62,6 +62,11 @@
         <target state="translated">Non è possibile aggiornare '{0}'. Manca l'attributo '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">L'argomento diagnosticId dell'attributo 'Experimental' deve essere un identificatore valido</target>
