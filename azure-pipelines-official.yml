@@ -125,7 +125,7 @@ extends:
       sbom:
         enabled: false
       suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
       policheck:
           enabled: true
       tsa:
