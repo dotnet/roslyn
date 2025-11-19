@@ -3233,7 +3233,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             public sealed class Test
             {
-                public static Test Instance { get; private set; }
+                public static Test Instance { get => field!; private set; }
 
                 public Test()
                 {
@@ -3260,7 +3260,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             public sealed class Test
             {
-                public static Test Instance { get; } = new Test();
+                public static Test Instance => field!;
             }
             """);
 
@@ -3286,7 +3286,11 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             public sealed class Test
             {
-                public static Test Instance { get; set; }
+                public static Test Instance
+                {
+                    get => field!;
+                    set;
+                }
 
                 public Test()
                 {
