@@ -594,7 +594,7 @@ internal sealed partial class SymbolTreeInfo
                 //  }
                 //
                 // Note: to keep things simple, we don't check actual attributes.  We just check enough to give us
-                // confidence that we found the right thing.  (So same modifiers, has or does not have a special name,
+                // confidence that we found the right thing.  (So same modifiers, has a special name,
                 // has attributes, etc).
 
                 if ((typeDefinition.Attributes & TypeAttributes.Sealed) == 0 ||
