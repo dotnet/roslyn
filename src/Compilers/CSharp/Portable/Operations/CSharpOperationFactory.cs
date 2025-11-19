@@ -323,16 +323,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 case BoundKind.CollectionBuilderElementsPlaceholder:
-                    // The only supported use of BoundValuePlaceholder is within a collection expression as we use it to
-                    // represent the elements passed to the collection builder creation methods.  We can hit these
-                    // creation methods when producing the .ConstructArguments for the ICollectionExpressionOperation.
-                    // Note: the caller will end up stripping this off when producing the ConstructArguments, so it will
-                    // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
-                    // and this code which actually hits all the arguments passed along. Because we never actually
-                    // expose this placeholder in the IOp tree, it's fine to use .CollectionBuilderElements as its kind
-                    // here.
-                    //
-                    // See the logic in CreateBoundCollectionExpression.getConstructArguments for more info.
                     return new PlaceholderOperation(
                         PlaceholderKind.CollectionBuilderElements, _semanticModel, boundNode.Syntax,
                         boundNode switch
@@ -1287,39 +1277,18 @@ namespace Microsoft.CodeAnalysis.Operations
                     // Match the logic in CreateBoundObjectCreationOperation which does not DeriveArguments in the case of an
                     // problems encountered in binding.
                     Debug.Assert(!objectCreation.Type.IsAnonymousType);
-                    if (!CanDeriveObjectCreationExpressionArguments(objectCreation))
-                        return @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)objectCreation).InvalidNodeChildren);
-
-                    return ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
+                    return !CanDeriveObjectCreationExpressionArguments(objectCreation)
+                        ? @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)objectCreation).InvalidNodeChildren)
+                        : ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
                 }
 
                 if (collectionCreation is BoundCall boundCall)
                 {
                     // Match the logic in CreateBoundCallOperation which does not DeriveArguments in the case of an
                     // erroneous call node.
-                    if (boundCall.IsErroneousNode)
-                    {
-                        var array = @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
-                        Debug.Assert(array is [.., IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements }],
-                            "We should always have at least one argument (the placeholder elements).");
-                        return array is [.. var normalArguments, _]
-                            ? normalArguments
-                            : array;
-                    }
-                    else
-                    {
-                        var arguments = @this.DeriveArguments(collectionCreation);
-
-                        // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
-                        // We do *not* want to include that information in the Arguments we return.
-                        Debug.Assert(arguments is [.., IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements } }],
-                            "We should always have at least one argument (the placeholder elements).");
-                        var slicedArguments = arguments is [.. var normalArguments, _]
-                            ? normalArguments
-                            : arguments;
-
-                        return ImmutableArray<IOperation>.CastUp(slicedArguments);
-                    }
+                    return boundCall.IsErroneousNode
+                        ? @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren)
+                        : ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
                 }
 
                 if (collectionCreation is BoundNewT boundNewT)

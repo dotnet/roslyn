@@ -3700,12 +3700,14 @@
     <Property Name="ConstructArguments" Type="ImmutableArray&lt;IOperation&gt;">
       <Comments>
         <summary>
-          Arguments passed to a <c>with(...)</c> element on the collection expression, if any.
-          If the collection expression does not have a <c>with(...)</c> element, or does not allow
-          any arguments, this can be an empty array. Will never be <c>default</c>.  If the <c>with(...)</c> element
-          successfully bound, these will all be <see cref="IArgumentOperation"/>; otherwise, they can be
-          any operation.
+          Arguments passed to to <see cref="ConstructMethod"/>, if present. Arguments are in evaluation order. This can
+          be an empty array. Will never be <c>default</c>.  If the arguments succe successfully bound, these will all be
+          <see cref="IArgumentOperation"/>; otherwise, they can be any operation.
         </summary>
+        <remarks>
+          If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
+          Default values are supplied for optional arguments missing in source.
+        </remarks>
       </Comments>
     </Property>
     <Property Name="Elements" Type="ImmutableArray&lt;IOperation&gt;">
