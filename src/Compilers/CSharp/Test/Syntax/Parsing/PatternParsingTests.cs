@@ -8670,23 +8670,24 @@ switch (e)
                 // (5,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     >= 3 => 3,
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">=").WithArguments("relational pattern", "9.0").WithLocation(5, 5),
-                // (6,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,5): error CS9344: The '==' operator is not supported in a pattern.
                 //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "==").WithArguments("relational pattern", "9.0").WithLocation(6, 5),
-                // (6,5): error CS1525: Invalid expression term '=='
-                //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(6, 5),
                 // (7,1): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     != 5 => 5,
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "").WithArguments("not pattern", "9.0").WithLocation(7, 1),
-                // (7,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                // (7,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 => 5,
                 Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
 
             UsingStatement(test, TestOptions.RegularWithoutPatternCombinators,
-                // (7,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                // (6,5): error CS9344: The '==' operator is not supported in a pattern.
+                //     == 4 => 4,
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(6, 5),
+                // (7,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 => 5,
                 Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8774,9 +8775,8 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.RelationalPattern);
+                            N(SyntaxKind.ConstantPattern);
                             {
-                                N(SyntaxKind.EqualsEqualsToken);
                                 N(SyntaxKind.NumericLiteralExpression);
                                 {
                                     N(SyntaxKind.NumericLiteralToken, "4");
@@ -8839,22 +8839,13 @@ switch (e)
                 // (2,13): error CS8504: Pattern missing
                 //     < 0 < 0 => 0,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(2, 13),
-                // (3,10): error CS1003: Syntax error, '=>' expected
+                // (3,5): error CS9344: The '==' operator is not supported in a pattern.
                 //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(3, 10),
-                // (3,10): error CS1525: Invalid expression term '<'
-                //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(3, 10),
-                // (3,14): error CS1003: Syntax error, ',' expected
-                //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(3, 14),
-                // (3,14): error CS8504: Pattern missing
-                //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(3, 14),
-                // (4,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(3, 5),
+                // (4,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
-                );
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5));
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8915,36 +8906,19 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.RelationalPattern);
+                            N(SyntaxKind.ConstantPattern);
                             {
-                                N(SyntaxKind.EqualsEqualsToken);
-                                N(SyntaxKind.NumericLiteralExpression);
+                                N(SyntaxKind.LessThanExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "4");
-                                }
-                            }
-                            M(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.LessThanExpression);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "4");
-                                }
-                            }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.SwitchExpressionArm);
-                        {
-                            M(SyntaxKind.ConstantPattern);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "4");
+                                    }
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "4");
+                                    }
                                 }
                             }
                             N(SyntaxKind.EqualsGreaterThanToken);
@@ -9000,10 +8974,13 @@ switch (e)
     != 5 << 5 => 5,
 };",
                 TestOptions.RegularWithPatternCombinators,
-                // (4,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                // (3,5): error CS9344: The '==' operator is not supported in a pattern.
+                //     == 4 << 4 => 4,
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(3, 5),
+                // (4,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 << 5 => 5,
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
-                );
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5));
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -9048,9 +9025,8 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.RelationalPattern);
+                            N(SyntaxKind.ConstantPattern);
                             {
-                                N(SyntaxKind.EqualsEqualsToken);
                                 N(SyntaxKind.LeftShiftExpression);
                                 {
                                     N(SyntaxKind.NumericLiteralExpression);
@@ -12741,11 +12717,59 @@ switch (e)
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
+        public void EqualityOperatorInPattern()
+        {
+            UsingStatement(@"_ = goo switch { == 5 => 5 };",
+                // (1,18): error CS9344: The '==' operator is not supported in a pattern.
+                // _ = goo switch { != 5 => 5 };
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 18));
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "goo");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
         public void InequalityOperatorInPattern()
         {
-            UsingStatement(@"_ = foo switch { != 5 => 5 };",
+            UsingStatement(@"_ = goo switch { != 5 => 5 };",
                 // (1,18): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // _ = foo switch { != 5 => 5 };
+                // _ = goo switch { != 5 => 5 };
                 Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 18));
 
             N(SyntaxKind.ExpressionStatement);
@@ -12761,7 +12785,7 @@ switch (e)
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "foo");
+                            N(SyntaxKind.IdentifierToken, "goo");
                         }
                         N(SyntaxKind.SwitchKeyword);
                         N(SyntaxKind.OpenBraceToken);
