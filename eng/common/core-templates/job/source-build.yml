@@ -12,10 +12,9 @@ parameters:
   #   The name of the job. This is included in the job ID.
   # targetRID: ''
   #   The name of the target RID to use, instead of the one auto-detected by Arcade.
-  # portableBuild: false
+  # nonPortable: false
   #   Enables non-portable mode. This means a more specific RID (e.g. fedora.32-x64 rather than
-  #   linux-x64), and compiling against distro-provided packages rather than portable ones. The
-  #   default is portable mode.
+  #   linux-x64), and compiling against distro-provided packages rather than portable ones.
   # skipPublishValidation: false
   #   Disables publishing validation.  By default, a check is performed to ensure no packages are
   #   published by source-build.
@@ -33,6 +32,9 @@ parameters:
   #   A list of job properties to inject at the top level, for potential extensibility beyond
   #   container and pool.
   platform: {}
+
+  # Optional list of directories to ignore for component governance scans.
+  componentGovernanceIgnoreDirectories: []
 
   is1ESPipeline: ''
 
@@ -94,3 +96,4 @@ jobs:
     parameters:
       is1ESPipeline: ${{ parameters.is1ESPipeline }}
       platform: ${{ parameters.platform }}
+      componentGovernanceIgnoreDirectories: ${{ parameters.componentGovernanceIgnoreDirectories }}

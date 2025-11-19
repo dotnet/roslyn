@@ -6,8 +6,7 @@ param(
   [Parameter(Mandatory=$true)][string] $WaitPublishingFinish,
   [Parameter(Mandatory=$false)][string] $ArtifactsPublishingAdditionalParameters,
   [Parameter(Mandatory=$false)][string] $SymbolPublishingAdditionalParameters,
-  [Parameter(Mandatory=$false)][string] $RequireDefaultChannels,
-  [Parameter(Mandatory=$false)][string] $SkipAssetsPublishing
+  [Parameter(Mandatory=$false)][string] $RequireDefaultChannels
 )
 
 try {
@@ -38,10 +37,6 @@ try {
   
   if ("true" -eq $RequireDefaultChannels) {
     $optionalParams.Add("--default-channels-required") | Out-Null
-  }
-
-  if ("true" -eq $SkipAssetsPublishing) {
-    $optionalParams.Add("--skip-assets-publishing") | Out-Null
   }
 
   & $darc add-build-to-channel `

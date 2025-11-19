@@ -21,6 +21,9 @@ parameters:
   runAsPublic: false
 
   # Optional: whether the build's artifacts will be published using release pipelines or direct feed publishing
+  publishUsingPipelines: false
+
+  # Optional: whether the build's artifacts will be published using release pipelines or direct feed publishing
   publishAssetsImmediately: false
 
   artifactsPublishingAdditionalParameters: ''
@@ -28,15 +31,6 @@ parameters:
   signingValidationAdditionalParameters: ''
 
   is1ESPipeline: ''
-
-  # Optional: 🌤️ or not the build has assets it wants to publish to BAR
-  isAssetlessBuild: false
-
-  # Optional, publishing version
-  publishingVersion: 3
-
-  # Optional: A minimatch pattern for the asset manifests to publish to BAR
-  assetManifestsPattern: '*/manifests/**/*.xml'
 
   repositoryAlias: self
 
@@ -90,33 +84,15 @@ jobs:
     - checkout: ${{ parameters.repositoryAlias }}
       fetchDepth: 3
       clean: true
-
-    - ${{ if eq(parameters.isAssetlessBuild, 'false') }}: 
-      - ${{ if eq(parameters.publishingVersion, 3) }}: 
-        - task: DownloadPipelineArtifact@2
-          displayName: Download Asset Manifests
-          inputs:
-            artifactName: AssetManifests
-            targetPath: '$(Build.StagingDirectory)/AssetManifests'
-          condition: ${{ parameters.condition }}
-          continueOnError: ${{ parameters.continueOnError }}
-      - ${{ if eq(parameters.publishingVersion, 4) }}:
-        - task: DownloadPipelineArtifact@2
-          displayName: Download V4 asset manifests
-          inputs:
-            itemPattern: '*/manifests/**/*.xml'
-            targetPath: '$(Build.StagingDirectory)/AllAssetManifests'
-          condition: ${{ parameters.condition }}
-          continueOnError: ${{ parameters.continueOnError }}
-        - task: CopyFiles@2
-          displayName: Copy V4 asset manifests to AssetManifests
-          inputs:
-            SourceFolder: '$(Build.StagingDirectory)/AllAssetManifests'
-            Contents: ${{ parameters.assetManifestsPattern }}
-            TargetFolder: '$(Build.StagingDirectory)/AssetManifests'
-            flattenFolders: true
-          condition: ${{ parameters.condition }}
-          continueOnError: ${{ parameters.continueOnError }}
+      
+    - task: DownloadBuildArtifacts@0
+      displayName: Download artifact
+      inputs:
+        artifactName: AssetManifests
+        downloadPath: '$(Build.StagingDirectory)/Download'
+        checkDownloadedFiles: true
+      condition: ${{ parameters.condition }}
+      continueOnError: ${{ parameters.continueOnError }}
     
     - task: NuGetAuthenticate@1
 
@@ -128,9 +104,9 @@ jobs:
         scriptLocation: scriptPath
         scriptPath: $(System.DefaultWorkingDirectory)/eng/common/sdk-task.ps1
         arguments: -task PublishBuildAssets -restore -msbuildEngine dotnet
-          /p:ManifestsPath='$(Build.StagingDirectory)/AssetManifests'
-          /p:IsAssetlessBuild=${{ parameters.isAssetlessBuild }}
+          /p:ManifestsPath='$(Build.StagingDirectory)/Download/AssetManifests'
           /p:MaestroApiEndpoint=https://maestro.dot.net
+          /p:PublishUsingPipelines=${{ parameters.publishUsingPipelines }}
           /p:OfficialBuildId=$(OfficialBuildId)
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
@@ -153,17 +129,6 @@ jobs:
             Copy-Item -Path $symbolExclusionfile -Destination "$(Build.StagingDirectory)/ReleaseConfigs"
           }
 
-    - ${{ if eq(parameters.publishingVersion, 4) }}:
-      - template: /eng/common/core-templates/steps/publish-pipeline-artifacts.yml
-        parameters:
-          is1ESPipeline: ${{ parameters.is1ESPipeline }}
-          args:
-            targetPath: '$(Build.ArtifactStagingDirectory)/MergedManifest.xml'
-            artifactName: AssetManifests
-            displayName: 'Publish Merged Manifest'
-            retryCountOnTaskFailure: 10 # for any logs being locked
-            sbomEnabled: false  # we don't need SBOM for logs
-
     - template: /eng/common/core-templates/steps/publish-build-artifacts.yml
       parameters:
         is1ESPipeline: ${{ parameters.is1ESPipeline }}
@@ -173,12 +138,17 @@ jobs:
           publishLocation: Container
           artifactName: ReleaseConfigs
 
-    - ${{ if or(eq(parameters.publishAssetsImmediately, 'true'), eq(parameters.isAssetlessBuild, 'true')) }}:
+    - ${{ if eq(parameters.publishAssetsImmediately, 'true') }}:
       - template: /eng/common/core-templates/post-build/setup-maestro-vars.yml
         parameters:
           BARBuildId: ${{ parameters.BARBuildId }}
           PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
           is1ESPipeline: ${{ parameters.is1ESPipeline }}
+
+      # Darc is targeting 8.0, so make sure it's installed
+      - task: UseDotNet@2
+        inputs:
+          version: 8.0.x
 
       - task: AzureCLI@2
         displayName: Publish Using Darc
@@ -194,7 +164,6 @@ jobs:
             -WaitPublishingFinish true
             -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
             -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'
-            -SkipAssetsPublishing '${{ parameters.isAssetlessBuild }}'
 
     - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:
       - template: /eng/common/core-templates/steps/publish-logs.yml

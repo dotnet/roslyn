@@ -156,8 +156,13 @@ fetch_tizen_pkgs()
     done
 }
 
-BASE="Tizen-Base"
-UNIFIED="Tizen-Unified"
+if [ "$TIZEN_ARCH" == "riscv64" ]; then
+    BASE="Tizen-Base-RISCV"
+    UNIFIED="Tizen-Unified-RISCV"
+else
+    BASE="Tizen-Base"
+    UNIFIED="Tizen-Unified"
+fi
 
 Inform "Initialize ${TIZEN_ARCH} base"
 fetch_tizen_pkgs_init standard $BASE
