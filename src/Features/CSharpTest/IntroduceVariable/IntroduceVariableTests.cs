@@ -8560,7 +8560,7 @@ namespace ConsoleApp1
             }
             """);
 
-    [Fact(Skip = "Extension blocks not yet fully supported in test infrastructure"), WorkItem("https://github.com/dotnet/roslyn/issues/TODO")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81337")]
     public Task TestExtensionBlockIntroduceConstant()
         => TestInRegularAndScriptAsync(
             """
@@ -8589,7 +8589,7 @@ namespace ConsoleApp1
             """,
             new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)));
 
-    [Fact(Skip = "Extension blocks not yet fully supported in test infrastructure"), WorkItem("https://github.com/dotnet/roslyn/issues/TODO")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81337")]
     public Task TestExtensionBlockIntroduceConstant_AllOccurrences()
         => TestInRegularAndScriptAsync(
             """
