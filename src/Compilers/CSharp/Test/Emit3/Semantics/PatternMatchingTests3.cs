@@ -3000,7 +3000,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 9),
                 // (7,9): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //         != 2 => 2,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 9)
                 );
 
             VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"

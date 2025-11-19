@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return _syntaxFactory.UnaryPattern(
                     this.AddTrailingSkippedSyntax(
                         SyntaxFactory.MissingToken(SyntaxKind.NotKeyword),
-                        this.AddError(this.EatToken(), ErrorCode.ERR_EqualityOperatorInPatternNotSupported)),
+                        this.AddError(this.EatToken(), ErrorCode.ERR_InequalityOperatorInPatternNotSupported)),
                     ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern));
             }
             else

@@ -8681,12 +8681,12 @@ switch (e)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "").WithArguments("not pattern", "9.0").WithLocation(7, 1),
                 // (7,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
 
             UsingStatement(test, TestOptions.RegularWithoutPatternCombinators,
                 // (7,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8853,7 +8853,7 @@ switch (e)
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(3, 14),
                 // (4,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -9002,7 +9002,7 @@ switch (e)
                 TestOptions.RegularWithPatternCombinators,
                 // (4,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 << 5 => 5,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -12746,7 +12746,7 @@ switch (e)
             UsingStatement(@"_ = foo switch { != 5 => 5 };",
                 // (1,18): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 // _ = foo switch { != 5 => 5 };
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(1, 18)
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 18)
                 );
 
             N(SyntaxKind.ExpressionStatement);
