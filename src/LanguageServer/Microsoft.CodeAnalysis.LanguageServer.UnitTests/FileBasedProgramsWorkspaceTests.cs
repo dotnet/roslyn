@@ -164,7 +164,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
 
-        // The canonical misc document doesn't have syntax errors for '#:'.
         var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         // TODO: we probably don't want to report syntax errors for '#:' in the canonical non-file document.
         // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
