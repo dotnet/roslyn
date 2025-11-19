@@ -12741,13 +12741,12 @@ switch (e)
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void EqualityOperatorInPattern()
+        public void InequalityOperatorInPattern()
         {
             UsingStatement(@"_ = foo switch { != 5 => 5 };",
                 // (1,18): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 // _ = foo switch { != 5 => 5 };
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 18)
-                );
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 18));
 
             N(SyntaxKind.ExpressionStatement);
             {
