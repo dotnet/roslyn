@@ -440,17 +440,11 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (node is TElementAccessExpressionSyntax elementAccess)
             return (TExpressionSyntax?)syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
 
-        if (syntaxFacts.SyntaxKinds.SimpleAssignmentExpression == node.RawKind && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
-        {
-            syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
-            return (TExpressionSyntax)left;
-        }
-
-        // Check if node itself is a compound assignment. We do this by checking if the first child node
-        // is on the left side of a compound assignment (which means the node is the compound assignment itself).
-        // Compound assignments with null conditional (?.) are only supported in C# 14+.
+        // Check if node itself is an assignment (simple or compound). We do this by checking if the first child node
+        // is on the left side of any assignment (which means the node is the assignment itself).
+        // Simple and compound assignments with null conditional (?.) are only supported in C# 14+.
         var firstChild = node.ChildNodesAndTokens().FirstOrDefault().AsNode();
-        if (firstChild != null && syntaxFacts.IsLeftSideOfCompoundAssignment(firstChild) && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
+        if (firstChild != null && syntaxFacts.IsLeftSideOfAnyAssignment(firstChild) && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
         {
             syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
             return (TExpressionSyntax)left;

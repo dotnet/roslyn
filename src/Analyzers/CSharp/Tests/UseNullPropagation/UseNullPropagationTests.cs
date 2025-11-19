@@ -2914,7 +2914,7 @@ public sealed partial class UseNullPropagationTests
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
     public Task TestIfStatement_CompoundAssignment_Event()
         => TestInRegularAndScriptAsync(
             """
