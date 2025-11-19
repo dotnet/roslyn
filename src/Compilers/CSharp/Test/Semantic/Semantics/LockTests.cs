@@ -314,9 +314,9 @@ class Res
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,19): error CS9344: Binary operator expected
+                // (6,19): error CS1073: Unexpected token 'd'
                 //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(6, 19));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "d").WithArguments("d").WithLocation(6, 19));
         }
 
         [Fact]

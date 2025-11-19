@@ -7490,9 +7490,9 @@ select t";
                 {
                 }
                 """,
-                // (1,9): error CS9344: Binary operator expected
+                // (1,9): error CS1073: Unexpected token 'Quux'
                 // if (Boo Quux())
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 9));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7526,9 +7526,9 @@ select t";
                 if (1 2)
                     return;
                 """,
-                // (1,7): error CS9344: Binary operator expected
+                // (1,7): error CS1073: Unexpected token '2'
                 // if (1 2)
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "2").WithArguments("2").WithLocation(1, 7));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7561,9 +7561,9 @@ select t";
             UsingTree("""
                 var v = (Boo Quux());
                 """,
-                // (1,14): error CS9344: Binary operator expected
+                // (1,14): error CS1073: Unexpected token 'Quux'
                 // var v = (Boo Quux());
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 14));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7614,9 +7614,9 @@ select t";
                 {
                 }
                 """,
-                // (4,31): error CS9344: Binary operator expected
+                // (4,31): error CS1073: Unexpected token 'Quux'
                 // catch (Exception e) when (Boo Quux())
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(4, 31));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(4, 31));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7675,9 +7675,9 @@ select t";
                 }
                 while (Boo Quux());
                 """,
-                // (4,12): error CS9344: Binary operator expected
+                // (4,12): error CS1073: Unexpected token 'Quux'
                 // while (Boo Quux());
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(4, 12));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7714,9 +7714,9 @@ select t";
                 {
                 }
                 """,
-                // (1,11): error CS9344: Binary operator expected
+                // (1,11): error CS1073: Unexpected token 'Quux'
                 // lock (Boo Quux())
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 11));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7751,9 +7751,9 @@ select t";
                 {
                 }
                 """,
-                // (1,12): error CS9344: Binary operator expected
+                // (1,12): error CS1073: Unexpected token 'Quux'
                 // while (Boo Quux())
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 12));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7786,9 +7786,9 @@ select t";
             UsingTree("""
                 var v = __makeref(Boo Quux());
                 """,
-                // (1,23): error CS9344: Binary operator expected
+                // (1,23): error CS1073: Unexpected token 'Quux'
                 // var v = __makeref(Boo Quux());
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 23));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7835,9 +7835,9 @@ select t";
             UsingTree("""
                 var v = __reftype(Boo Quux());
                 """,
-                // (1,23): error CS9344: Binary operator expected
+                // (1,23): error CS1073: Unexpected token 'Quux'
                 // var v = __reftype(Boo Quux());
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 23));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7938,9 +7938,9 @@ select t";
             UsingTree("""
                 var v = checked(Boo Quux());
                 """,
-                // (1,21): error CS9344: Binary operator expected
+                // (1,21): error CS1073: Unexpected token 'Quux'
                 // var v = checked(Boo Quux());
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7987,9 +7987,9 @@ select t";
             UsingTree("""
                 var v = unchecked(Boo Quux());
                 """,
-                // (1,23): error CS9344: Binary operator expected
+                // (1,23): error CS1073: Unexpected token 'Quux'
                 // var v = unchecked(Boo Quux());
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 23));
 
             N(SyntaxKind.CompilationUnit);
             {

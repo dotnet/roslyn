@@ -13467,9 +13467,9 @@ class C
     public void LambdaAttributeVersusCollectionLookahead5A()
     {
         UsingExpression("[A][B](C, D) ? ([e] f) : g",
-            // (1,21): error CS9344: Binary operator expected
+            // (1,21): error CS1073: Unexpected token 'f'
             // [A][B](C, D) ? ([e] f) : g
-            Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 21));
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "f").WithArguments("f").WithLocation(1, 21));
 
         N(SyntaxKind.ConditionalExpression);
         {
@@ -13647,9 +13647,9 @@ class C
     public void LambdaAttributeVersusCollectionLookahead6A()
     {
         UsingExpression("[A][B](C, D) ? ((e,f) g) : h",
-            // (1,23): error CS9344: Binary operator expected
+            // (1,23): error CS1073: Unexpected token 'g'
             // [A][B](C, D) ? ((e,f) g) : h
-            Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "g").WithArguments("g").WithLocation(1, 23));
 
         N(SyntaxKind.ConditionalExpression);
         {
@@ -13850,9 +13850,9 @@ class C
             // (1,23): error CS0443: Syntax error; value expected
             // [A][B](C, D) ? ((e,f)[] g) : h
             Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 23),
-            // (1,25): error CS9344: Binary operator expected
+            // (1,25): error CS1073: Unexpected token 'g'
             // [A][B](C, D) ? ((e,f)[] g) : h
-            Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 25));
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "g").WithArguments("g").WithLocation(1, 25));
 
         N(SyntaxKind.ConditionalExpression);
         {

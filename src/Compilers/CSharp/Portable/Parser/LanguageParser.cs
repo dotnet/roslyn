@@ -9876,8 +9876,9 @@ done:
                     this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken &&
                     !nextExpression.GetLastToken().IsMissing)
                 {
-                    nextExpression = AddError(nextExpression, offset: 0, length: 0, ErrorCode.ERR_BinaryOperatorExpected);
-                    expression = AddTrailingSkippedSyntax(expression, nextExpression);
+                    expression = AddTrailingSkippedSyntax(
+                        expression,
+                        AddErrorToFirstToken(nextExpression, ErrorCode.ERR_UnexpectedToken, nextExpression.GetFirstToken().Text));
                 }
                 else
                 {

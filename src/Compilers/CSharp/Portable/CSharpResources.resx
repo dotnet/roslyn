@@ -2399,9 +2399,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_OvlBinaryOperatorExpected" xml:space="preserve">
     <value>Overloadable binary operator expected</value>
   </data>
-  <data name="ERR_BinaryOperatorExpected" xml:space="preserve">
-    <value>Binary operator expected</value>
-  </data>
   <data name="ERR_IntOverflow" xml:space="preserve">
     <value>Integral constant is too large</value>
   </data>
