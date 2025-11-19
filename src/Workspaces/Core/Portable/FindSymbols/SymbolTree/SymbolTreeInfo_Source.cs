@@ -138,7 +138,7 @@ internal sealed partial class SymbolTreeInfo
                 checksum,
                 unsortedBuilderNodes.ToImmutable(),
                 inheritanceMap: [],
-                receiverTypeNameToExtensionMethodMap: null);
+                receiverTypeNameToExtensionMemberMap: null);
         }
         finally
         {

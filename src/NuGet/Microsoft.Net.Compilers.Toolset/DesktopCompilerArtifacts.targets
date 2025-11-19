@@ -94,6 +94,8 @@
       <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Memory.dll" />
       <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Numerics.Vectors.dll" />
       <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\csc.rsp" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\vbc.rsp" />
       <BridgeCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.Sdk.resources.dll" />
     </ItemGroup>
   </Target>

@@ -2547,6 +2547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SingleInapplicableBinaryOperator
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
                 or ErrorCode.ERR_AmbigOperator
+                or ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
                 or ErrorCode.ERR_GlobalNamespaceUnexpected
                     => false,
             };

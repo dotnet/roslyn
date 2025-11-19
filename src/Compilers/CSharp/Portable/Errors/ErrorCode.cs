@@ -2439,6 +2439,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleInapplicableBinaryOperator = 9340,
         ERR_SingleInapplicableUnaryOperator = 9341,
         ERR_AmbigOperator = 9342,
+
+        ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
         ERR_GlobalNamespaceUnexpected = 9344,
 
         // Note: you will need to do the following after adding errors:

@@ -50,6 +50,9 @@ internal readonly struct SemanticTokensSchema
         [ClassificationTypeNames.EnumMemberName] = SemanticTokenTypes.EnumMember,
         [ClassificationTypeNames.EventName] = SemanticTokenTypes.Event,
         [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Macro,
+        [ClassificationTypeNames.ArrayName] = SemanticTokenTypes.Class,
+        [ClassificationTypeNames.PointerName] = SemanticTokenTypes.Struct,
+        [ClassificationTypeNames.FunctionPointerName] = SemanticTokenTypes.Struct,
         // in https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#standard-token-types-and-modifiers
         [ClassificationTypeNames.LabelName] = "label",
     }).ToImmutableDictionary();
