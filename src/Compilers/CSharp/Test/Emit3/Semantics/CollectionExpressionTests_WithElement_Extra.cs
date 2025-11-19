@@ -1544,31 +1544,40 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
         VerifyOperationTree(compilation, operation1, """
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(), t]')
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
-              ReturnedValue:
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
-                    ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
-                      Elements(1):
-                          IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
+                ReturnedValue:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
+                        ConstructArguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
+                              IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with()')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Elements(1):
+                            IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
             """);
         var operation2 = semanticModel.GetOperation(arrowExpressions[1]);
         VerifyOperationTree(compilation, operation2, """
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(t), t]')
-            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(t), t]')
-              ReturnedValue:
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(t), t]')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
-                    ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(t), t]')
-                      ConstructArguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null) (Syntax: 't')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(t), t]')
+                ReturnedValue:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(t), t]')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(t), t]')
+                        ConstructArguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null) (Syntax: 't')
+                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(t)')
+                              IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with(t)')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Elements(1):
                             IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Elements(1):
-                          IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
             """);
     }
 

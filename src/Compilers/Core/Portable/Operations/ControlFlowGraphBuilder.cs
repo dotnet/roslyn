@@ -6556,6 +6556,10 @@ oneMoreTime:
             }
             else
             {
+                arguments = arguments is [.. var nonPlaceholderArguments, IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements } }]
+                    ? nonPlaceholderArguments
+                    : arguments;
+
                 VisitAndPushArguments(arguments, instancePushed: false);
             }
 

@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
-            Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
+            Assert.True(operation.PlaceholderKind is PlaceholderKind.AggregationGroup or PlaceholderKind.CollectionBuilderElements);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)
