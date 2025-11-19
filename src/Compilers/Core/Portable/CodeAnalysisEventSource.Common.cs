@@ -187,6 +187,15 @@ namespace Microsoft.CodeAnalysis
         [Event(20, Message = "Project '{0}' created with file path '{1}'", Level = EventLevel.Informational)]
         internal void ProjectCreated(string projectSystemName, string? filePath) => WriteEvent(20, projectSystemName, filePath ?? string.Empty);
 
+        [Event(21)]
+        internal void GeneratorDriverCreated(string trackingName) => WriteEvent(21, trackingName);
+
+        [Event(22)]
+        internal void GeneratorDriverUsedFromCache(string trackingName) => WriteEvent(22, trackingName);
+
+        [Event(23)]
+        internal void GeneratorDriverCacheCreated(string projectName) => WriteEvent(23, projectName);
+
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {
             fixed (char* ptr2 = value)

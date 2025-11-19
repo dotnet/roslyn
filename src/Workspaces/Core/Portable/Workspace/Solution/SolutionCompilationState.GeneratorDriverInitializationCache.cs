@@ -43,7 +43,9 @@ internal sealed partial class SolutionCompilationState
             var existingDriverCache = _driverCache;
             if (existingDriverCache is not null)
             {
-                return UpdateDriverAndRunGenerators(await existingDriverCache.GetValueAsync(cancellationToken).ConfigureAwait(false));
+                var cachedDriver = await existingDriverCache.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                CodeAnalysisEventSource.Log.GeneratorDriverUsedFromCache($"{projectState.Name} ({projectState.Id})");
+                var result =  UpdateDriverAndRunGenerators(cachedDriver);
             }
 
             // The AsyncLazy we create here implicitly creates a GeneratorDriver that will run generators for the compilation passed to this method.
@@ -64,7 +66,9 @@ internal sealed partial class SolutionCompilationState
             }
             else
             {
-                return UpdateDriverAndRunGenerators(await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false));
+                var cachedDriver = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                CodeAnalysisEventSource.Log.GeneratorDriverUsedFromCache($"{projectState.Name} ({projectState.Id})");
+                return UpdateDriverAndRunGenerators(cachedDriver);
             }
 
             GeneratorDriver CreateGeneratorDriverAndRunGenerators(CancellationToken cancellationToken)
@@ -80,6 +84,8 @@ internal sealed partial class SolutionCompilationState
                     additionalTexts,
                     generatedFilesBaseDirectory,
                     $"{projectState.Name} ({projectState.Id})");
+
+                CodeAnalysisEventSource.Log.GeneratorDriverCreated($"{projectState.Name} ({projectState.Id})");
 
                 return generatorDriver.RunGenerators(compilation, generatorFilter, cancellationToken);
             }
