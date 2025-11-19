@@ -1419,7 +1419,17 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         await first;
         await second;
 
-        Assert.Equal(1, initializationCount);
+        if (testHost == TestHost.InProcess)
+        {
+            Assert.Equal(1, initializationCount);
+        }
+        else
+        {
+            // Currently, the RemoteTestHost does not do any effort to share the Solution object when it is synced to the 'remote'
+            // side; thus when we ask for compilations, each time it'll create a new Project instance. Since those will have separate
+            // caches, we don't expect any sharing. In the actual product things are more aggressive with updating CurrentSolution.
+            Assert.Equal(2, initializationCount);
+        }
     }
 
 #if NET

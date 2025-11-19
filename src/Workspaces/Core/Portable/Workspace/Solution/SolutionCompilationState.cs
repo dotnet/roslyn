@@ -43,8 +43,6 @@ internal sealed partial class SolutionCompilationState
     public bool PartialSemanticsEnabled { get; }
     public TextDocumentStates<SourceGeneratedDocumentState> FrozenSourceGeneratedDocumentStates { get; }
 
-    public GeneratorDriverInitializationCache GeneratorDriverCache { get; }
-
     // Values for all these are created on demand.
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
@@ -64,7 +62,6 @@ internal sealed partial class SolutionCompilationState
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap,
         TextDocumentStates<SourceGeneratedDocumentState> frozenSourceGeneratedDocumentStates,
-        GeneratorDriverInitializationCache generatorDriverCreationCache,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         SolutionState = solution;
@@ -72,7 +69,6 @@ internal sealed partial class SolutionCompilationState
         _projectIdToTrackerMap = projectIdToTrackerMap;
         SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
-        GeneratorDriverCache = generatorDriverCreationCache;
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(static async (self, cancellationToken) =>
@@ -91,14 +87,12 @@ internal sealed partial class SolutionCompilationState
 
     public SolutionCompilationState(
         SolutionState solution,
-        bool partialSemanticsEnabled,
-        GeneratorDriverInitializationCache generatorDriverCreationCache)
+        bool partialSemanticsEnabled)
         : this(
               solution,
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Empty,
               sourceGeneratorExecutionVersionMap: SourceGeneratorExecutionVersionMap.Empty,
-              generatorDriverCreationCache: generatorDriverCreationCache,
               frozenSourceGeneratedDocumentStates: TextDocumentStates<SourceGeneratedDocumentState>.Empty)
     {
     }
@@ -143,7 +137,6 @@ internal sealed partial class SolutionCompilationState
             projectIdToTrackerMap.Value,
             sourceGeneratorExecutionVersionMap,
             frozenSourceGeneratedDocumentStates,
-            GeneratorDriverCache,
             cachedFrozenSnapshot);
     }
 
@@ -1531,11 +1524,6 @@ internal sealed partial class SolutionCompilationState
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
-
-            // Clear out the cache of any previously initialized GeneratorDriver. Otherwise we might reuse a
-            // driver which will not count as a new "run" in some of our unit tests. We have tests that very explicitly count
-            // and assert the number of invocations of a generator.
-            GeneratorDriverCache.EmptyCacheForProject(projectId);
         }
 
         if (!changed)
