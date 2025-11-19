@@ -3261,6 +3261,11 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             public sealed class Test
             {
                 public static Test Instance => field!;
+
+                static Test()
+                {
+                    Instance = new Test();
+                }
             }
             """);
 
