@@ -1898,7 +1898,8 @@ Additional information: {1}</value>
   <data name="Code_preview" xml:space="preserve">
     <value>Code preview</value>
   </data>
-  <data name="Removed" xml:space="preserve">
-    <value>Removed</value>
+  <data name="Removed_0" xml:space="preserve">
+    <value>Removed {0}</value>
+    <comment>{0} is a modifier, type, and parameter name</comment>
   </data>
 </root>

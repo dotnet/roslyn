@@ -98,7 +98,7 @@ internal sealed partial class ChangeSignatureDialogViewModel
         {
             get
             {
-                return $"{ServicesVSResources.Removed} {FullAutomationText}";
+                return string.Format(ServicesVSResources.Removed_0, FullAutomationText);
             }
         }
     }
