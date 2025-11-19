@@ -91,7 +91,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (textDocument.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
         {
             // Do a check to determine if the misc project needs to be re-created with a new HasAllInformation flag value.
-            if (textDocument is Document document
+            if (!isLoadedAsFileBasedProgram
+                && await _canonicalMiscFilesLoader.IsCanonicalProjectLoadedAsync(cancellationToken)
+                && textDocument is Document document
                 && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
             {
                 var newHasAllInformation = await VirtualProjectXmlProvider.HasTopLevelStatementsAsync(syntaxTree, cancellationToken);

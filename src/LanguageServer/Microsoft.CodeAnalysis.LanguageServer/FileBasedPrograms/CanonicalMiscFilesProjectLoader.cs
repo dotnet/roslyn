@@ -157,6 +157,16 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         return addedDocument;
     }
 
+    internal async ValueTask<bool> IsCanonicalProjectLoadedAsync(CancellationToken cancellationToken)
+    {
+        return await ExecuteUnderGateAsync(async loadedProjects =>
+        {
+            var canonicalDocumentPath = _canonicalDocumentPath.Value;
+            return loadedProjects.TryGetValue(canonicalDocumentPath, out var loadState)
+                && loadState is ProjectLoadState.LoadedTargets;
+        }, cancellationToken);
+    }
+
     private async ValueTask<TextDocument> AddDocumentToPrimordialProject_NoLockAsync(string documentPath, SourceText documentText, ProjectId existingProjectId, CancellationToken cancellationToken)
     {
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
@@ -232,6 +242,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
+                <!-- A misc file should not complain about usage of '#:' ignored directives. -->
+                <Features>$(Features);FileBasedProgram</Features>
               </PropertyGroup>
             </Project>
             """;

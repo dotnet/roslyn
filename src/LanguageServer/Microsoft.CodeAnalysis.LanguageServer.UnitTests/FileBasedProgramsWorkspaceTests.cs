@@ -126,6 +126,49 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Contains(canonicalDocumentTwo.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
     }
 
+    /// <summary>Test that a document which does not have an on-disk path, is never treated as a file-based program.</summary>
+    [Theory, CombinatorialData]
+    public async Task TestNonFileDocumentsAreNotFileBasedPrograms(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var nonFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"vscode-notebook-cell://dev-container/test.cs");
+        await testLspServer.OpenDocumentAsync(nonFileUri, """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World");
+            """).ConfigureAwait(false);
+
+        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        var (_, primordialDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        // Should have the primordial canonical document and the loose document.
+        Assert.Equal(2, primordialDocument.Project.Documents.Count());
+        Assert.Empty(primordialDocument.Project.MetadataReferences);
+
+        var primordialSyntaxTree = await primordialDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        var primordialSyntaxDiagnostics = primordialSyntaxTree.GetDiagnostics(CancellationToken.None);
+        // TODO: we probably don't want to report syntax errors for '#:' in the primordial non-file document.
+        // The logic which decides whether to add Features:FileBasedProgram=true probably needs to be adjusted.
+        Assert.Equal(
+            "vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')",
+            primordialSyntaxDiagnostics.Single().ToString());
+
+        // Wait for the canonical project to finish loading.
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify the document is loaded in the canonical project.
+        var (miscWorkspace, canonicalDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscWorkspace.Kind);
+        Assert.NotNull(canonicalDocument);
+        Assert.NotEqual(primordialDocument, canonicalDocument);
+        // Should have the appropriate generated files now that we ran a design time build
+        Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
+
+        // The canonical misc document doesn't have syntax errors for '#:'.
+        var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
     [Theory, CombinatorialData]
     public async Task TestSemanticDiagnosticsEnabledWhenTopLevelStatementsAdded(bool mutatingLspWorkspace)
     {
