@@ -667,53 +667,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    // NOTE: this type exists in order to hide the presence of {Value,Type}Expression inside of a
-    //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
-    //       a constructor that may spuriously set hasErrors to true if either field had errors.
-    //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
-    internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
-    {
-        public Binder Binder { get; }
-        public Symbol ValueSymbol { get; }
-
-        public BoundTypeOrValueData(Binder binder, Symbol valueSymbol)
-        {
-            Debug.Assert(binder != null, "Field 'binder' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.Binder = binder;
-            this.ValueSymbol = valueSymbol;
-        }
-
-        // operator==, operator!=, GetHashCode, and Equals are needed by the generated bound tree.
-
-        public static bool operator ==(BoundTypeOrValueData a, BoundTypeOrValueData b)
-        {
-            return (object)a.ValueSymbol == (object)b.ValueSymbol &&
-                (object)a.Binder == (object)b.Binder;
-        }
-
-        public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)
-        {
-            return !(a == b);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is BoundTypeOrValueData && (BoundTypeOrValueData)obj == this;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(ValueSymbol.GetHashCode(), Binder.GetHashCode());
-        }
-
-        bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
-        {
-            return b == this;
-        }
-    }
-
     internal partial class BoundTupleExpression
     {
         /// <summary>

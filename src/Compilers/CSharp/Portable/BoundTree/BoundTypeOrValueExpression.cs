@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private partial void Validate()
         {
             Debug.Assert(Syntax is IdentifierNameSyntax);
+            Debug.Assert(!HasErrors);
         }
     }
 }

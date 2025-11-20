@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                             // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                             bool inStaticContext;
-                            bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                            bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
@@ -1954,24 +1954,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeOrValueExpression:
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
                     var identifier = (IdentifierNameSyntax)typeOrValue.Syntax;
-                    Debug.Assert(typeOrValue.Data.Binder == (object)this);
+                    Debug.Assert(typeOrValue.Binder == (object)this);
 
                     if (useType)
                     {
-                        if (typeOrValue.Data.Binder.GetShadowedPrimaryConstructorParameter(identifier, typeOrValue.Data.ValueSymbol, invoked: false, membersOpt: null) is { } shadowedParameter &&
+                        if (typeOrValue.Binder.GetShadowedPrimaryConstructorParameter(identifier, typeOrValue.ValueSymbol, invoked: false, membersOpt: null) is { } shadowedParameter &&
                             !shadowedParameter.Type.Equals(typeOrValue.Type, TypeCompareKind.AllIgnoreOptions)) // If the type and the name match, we would resolve to the same type rather than a value at the end.
                         {
                             diagnostics.Add(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, identifier.Location, shadowedParameter);
                         }
 
-                        return typeOrValue.Data.Binder.BindNamespaceOrType(identifier, diagnostics);
+                        return typeOrValue.Binder.BindNamespaceOrType(identifier, diagnostics);
                     }
                     else
                     {
-                        var boundValue = typeOrValue.Data.Binder.BindIdentifier(identifier, invoked: false, indexed: false, diagnostics: diagnostics);
+                        var boundValue = typeOrValue.Binder.BindIdentifier(identifier, invoked: false, indexed: false, diagnostics: diagnostics);
 
                         Debug.Assert(typeOrValue.Type.Equals(boundValue.Type, TypeCompareKind.ConsiderEverything));
-                        Debug.Assert(typeOrValue.Data.ValueSymbol == (boundValue.ExpressionSymbol ?? ((BoundConversion)boundValue).Operand.ExpressionSymbol));
+                        Debug.Assert(typeOrValue.ValueSymbol == (boundValue.ExpressionSymbol ?? ((BoundConversion)boundValue).Operand.ExpressionSymbol));
 
                         boundValue = BindToNaturalType(boundValue, diagnostics);
                         return CheckValue(boundValue, BindValueKind.RValue, diagnostics);
@@ -1999,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (receiver)
             {
                 case BoundTypeOrValueExpression typeOrValueExpression:
-                    return typeOrValueExpression.Data.ValueSymbol;
+                    return typeOrValueExpression.ValueSymbol;
 
                 case BoundQueryClause queryClause:
                     // a query clause may wrap a TypeOrValueExpression.

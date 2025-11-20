@@ -2158,7 +2158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        // The type calculation here should be kept in sync with logic in BindLeftIdentifierOfPotentialColorColorMemberAccess.
+                        // The Type calculation for the node that we return here should be kept in sync with logic in BindLeftIdentifierOfPotentialColorColorMemberAccess.
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -7630,8 +7630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!leftType.IsDynamic());
                     Debug.Assert(IsPotentialColorColorReceiver(left, leftType));
 
-                    return new BoundTypeOrValueExpression(left,
-                        new BoundTypeOrValueData(this, leftSymbol), leftType);
+                    return new BoundTypeOrValueExpression(left, this, leftSymbol, leftType);
                 }
             }
 
@@ -10197,7 +10196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                 // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                 bool inStaticContext;
-                bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                 receiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
             }

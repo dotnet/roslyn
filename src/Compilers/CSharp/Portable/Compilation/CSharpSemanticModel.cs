@@ -3424,9 +3424,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // If we're seeing a node of this kind, then we failed to resolve the member access
                         // as either a type or a property/field/event/local/parameter.  In such cases,
-                        // the second interpretation applies so just visit the node for that.
+                        // the second interpretation applies.
                         Debug.Assert(boundNode is not BoundTypeOrValueExpression);
-                        symbols = OneOrMany.Create(((BoundTypeOrValueExpression)boundNode).Data.ValueSymbol);
+                        symbols = OneOrMany.Create(((BoundTypeOrValueExpression)boundNode).ValueSymbol);
                     }
                     break;
 
