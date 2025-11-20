@@ -742,6 +742,19 @@ try {
     &(Ensure-DotNetSdk) tool restore
   }
 
+  # Above InitializeDotNetCli or Ensure-DotNetSdk may have installed a local .NET SDK.
+  # $global:_DotNetInstallDir will point to the correct global or local SDK location.
+  # We need to make sure DOTNET_HOST_PATH points to that SDK as a workaround for older MSBuild
+  # which will not set it correctly.  Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
+  if (-not $env:DOTNET_HOST_PATH -and (Test-Path variable:global:_DotNetInstallDir)) {
+    $env:DOTNET_HOST_PATH = Join-Path $global:_DotNetInstallDir 'dotnet'
+    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
+      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
+    }
+
+    Write-Host "Setting DOTNET_HOST_PATH to $env:DOTNET_HOST_PATH"
+  }
+
   if ($bootstrap -and $bootstrapDir -eq "") {
     Write-Host "Building bootstrap Compiler"
     $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
