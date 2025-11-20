@@ -1129,4 +1129,52 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             "see",
             deletedCharTrigger: 'b');
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public Task ExtensionBlock_01()
+        => VerifyItemsExistAsync("""
+            public static class E
+            {
+                /// $$ 
+                extension<T>(int i) { }
+            }
+            """, """
+            typeparam name="T"
+            """, """
+            param name="i"
+            """,
+            "summary");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public Task ExtensionBlock_02()
+        => VerifyItemsExistAsync("""
+            public static class E
+            {
+                /// <summary> $$ </summary>
+                extension<T>(int i)
+                {
+                } 
+            }
+            """, """
+            paramref name="i"
+            """, """
+            typeparamref name="T"
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public Task ExtensionBlock_03()
+        => VerifyItemsExistAsync("""
+            public static class E
+            {
+                extension<T>(int i)
+                {
+                    /// <summary> $$ </summary>
+                    void M() { }
+                } 
+            }
+            """, """
+            paramref name="i"
+            """, """
+            typeparamref name="T"
+            """);
 }

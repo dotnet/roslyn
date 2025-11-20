@@ -6028,12 +6028,9 @@ parse_member_name:;
             if (this.IsCurrentTokenWhereOfConstraintClause())
                 return false;
 
-            // possible attributes
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
-                return true;
-
+            // possible attributes.
             // Variance.
-            if (this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
                 return true;
 
             return IsTrueIdentifier();
@@ -6041,21 +6038,22 @@ parse_member_name:;
 
         private TypeParameterSyntax ParseTypeParameter()
         {
-            if (this.IsCurrentTokenWhereOfConstraintClause())
-            {
-                return _syntaxFactory.TypeParameter(
-                    default(SyntaxList<AttributeListSyntax>),
-                    varianceKeyword: null,
-                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
-            }
-
             var attrs = default(SyntaxList<AttributeListSyntax>);
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
                 attrs = this.ParseAttributeDeclarations(inExpressionContext: false);
                 _termState = saveTerm;
+            }
+
+            if (this.IsCurrentTokenWhereOfConstraintClause() ||
+                this.IsCurrentTokenPartialKeywordOfPartialMemberOrType())
+            {
+                return _syntaxFactory.TypeParameter(
+                    attrs,
+                    varianceKeyword: null,
+                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
             return _syntaxFactory.TypeParameter(
