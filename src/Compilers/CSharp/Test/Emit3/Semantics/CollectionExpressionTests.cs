@@ -29238,8 +29238,7 @@ partial class Program
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
-            VerifyFlowGraph(comp, method,
-                """
+            VerifyFlowGraph(comp, method, """
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
@@ -29254,7 +29253,7 @@ partial class Program
                             ICollectionExpressionOperation (2 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[..x, y]')
                               ConstructArguments(1):
                                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[..x, y]')
-                                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
+                                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Elements(2):

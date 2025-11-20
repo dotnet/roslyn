@@ -1573,7 +1573,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(t)')
-                              IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with(t)')
+                              ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with(t)')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Elements(1):
