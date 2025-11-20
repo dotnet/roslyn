@@ -1897,6 +1897,9 @@ endRegion:
                          simpleAssignment.Parent.Kind == OperationKind.AnonymousObjectCreation);
 
                 case OperationKind.None:
+                    if (n is IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements })
+                        return true;
+
                     return !(n is IPlaceholderOperation);
 
                 case OperationKind.FunctionPointerInvocation:

@@ -6556,10 +6556,6 @@ oneMoreTime:
             }
             else
             {
-                arguments = arguments is [.. var nonPlaceholderArguments, IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements } }]
-                    ? nonPlaceholderArguments
-                    : arguments;
-
                 VisitAndPushArguments(arguments, instancePushed: false);
             }
 
@@ -7439,6 +7435,9 @@ oneMoreTime:
                         return OperationCloner.CloneOperation(_currentAggregationGroup);
                     }
                     break;
+                case PlaceholderKind.CollectionBuilderElements:
+                    // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
+                    return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
             }
 
             Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
