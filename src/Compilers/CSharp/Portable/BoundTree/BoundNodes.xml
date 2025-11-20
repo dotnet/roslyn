@@ -302,11 +302,12 @@
     NOTE:
     * The node can only be a qualifier of a method or a property group access 
       as only those may require overload resolution.
-    * It is possible for a node of this type to appear in a tree where there
-      are no errors.  Consider (Color.M is Object).  M may be overloaded to
-      contain both static and instance methods.  In this case the expression is
-      always *false*, but the left-hand-side of the is operator is a method
-      group whose receiver is a BoundTypeOrValueExpression.
+    
+    * The Binder should make sure that such a node doesn't escape the binding
+      process, especially for success scenarios. The binder should resolve
+      the node in a most appropriate way, usually to a member access. Asserts
+      were added in some components to help detect a "leak". 
+      
     -->
   <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" HasValidate="true">
     <!-- Type is required for this node type; may not be null -->
