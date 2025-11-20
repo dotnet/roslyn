@@ -698,7 +698,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 (CollectionExpression)
                               Operand:
-                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.ICollection<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}) (Syntax: '[with(), 1, 2, 3]')
                                   Elements(3):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1676,7 +1676,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(), 1, 2, 3]')
                                   ConstructArguments(1):
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                                        IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                                        ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
