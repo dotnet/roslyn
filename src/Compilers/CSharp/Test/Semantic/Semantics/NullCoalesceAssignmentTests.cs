@@ -197,25 +197,30 @@ class C
                     void M()
                     {
                         C c = default;
-                        c ??= /*<bind>*/new(a)/*</bind>*/;
+                        c ??= new(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'a' does not exist in the current context
-                //         c ??= /*<bind>*/new(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
+                // (6,19): error CS0103: The name 'a' does not exist in the current context
+                //         c ??= new(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 19));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("C", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Collection(semanticInfo.CandidateSymbols,
-                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -227,25 +232,30 @@ class C
                     void M()
                     {
                         S? s = default;
-                        s ??= /*<bind>*/new(a)/*</bind>*/;
+                        s ??= new(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'a' does not exist in the current context
-                //         s ??= /*<bind>*/new(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
+                // (6,19): error CS0103: The name 'a' does not exist in the current context
+                //         s ??= new(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 19));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("S", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("S", semanticInfo.ConvertedType.ToTestDisplayString());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Collection(semanticInfo.CandidateSymbols,
-                static c => Assert.Equal("S..ctor()", c.ToTestDisplayString()));
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("S", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["S..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["S..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -257,24 +267,28 @@ class C
                     void M()
                     {
                         S s = default;
-                        s ??= /*<bind>*/new(a)/*</bind>*/;
+                        s ??= new(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'a' does not exist in the current context
-                //         s ??= /*<bind>*/new(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
+                // (6,19): error CS0103: The name 'a' does not exist in the current context
+                //         s ??= new(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 19));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
-            Assert.True(semanticInfo.ConvertedType.IsErrorType());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Empty(semanticInfo.CandidateSymbols);
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(objectCreationExpressionTypeInfo.ConvertedType.IsErrorType());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionSymbolInfo.IsEmpty);
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -286,25 +300,30 @@ class C
                     void M<T>() where T : new()
                     {
                         T t = default;
-                        t ??= /*<bind>*/new(a)/*</bind>*/;
+                        t ??= new(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'a' does not exist in the current context
-                //         t ??= /*<bind>*/new(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
+                // (6,19): error CS0103: The name 'a' does not exist in the current context
+                //         t ??= new(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 19));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("T", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("T", semanticInfo.ConvertedType.ToTestDisplayString());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Collection(semanticInfo.CandidateSymbols,
-                static c => Assert.Equal("T", c.ToTestDisplayString()));
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("T", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.NotCreatable, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["T"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -327,14 +346,19 @@ class C
                 //         t ??= /*<bind>*/new(a)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("T", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("T", semanticInfo.ConvertedType.ToTestDisplayString());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Collection(semanticInfo.CandidateSymbols,
-                static c => Assert.Equal("T", c.ToTestDisplayString()));
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("T", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.NotCreatable, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["T"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -346,25 +370,30 @@ class C
                     void M<T>() where T : struct
                     {
                         T? t = default;
-                        t ??= /*<bind>*/new(a)/*</bind>*/;
+                        t ??= new(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'a' does not exist in the current context
-                //         t ??= /*<bind>*/new(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
+                // (6,19): error CS0103: The name 'a' does not exist in the current context
+                //         t ??= new(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 19));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("T", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("T", semanticInfo.ConvertedType.ToTestDisplayString());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Collection(semanticInfo.CandidateSymbols,
-                static c => Assert.Equal("T", c.ToTestDisplayString()));
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("T", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.NotCreatable, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["T"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -376,24 +405,28 @@ class C
                     void M<T>() where T : struct
                     {
                         T t = default;
-                        t ??= /*<bind>*/new(a)/*</bind>*/;
+                        t ??= new(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'a' does not exist in the current context
-                //         t ??= /*<bind>*/new(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 29));
+                // (6,19): error CS0103: The name 'a' does not exist in the current context
+                //         t ??= new(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 19));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
-            Assert.True(semanticInfo.ConvertedType.IsErrorType());
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Empty(semanticInfo.CandidateSymbols);
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(objectCreationExpressionTypeInfo.ConvertedType.IsErrorType());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionSymbolInfo.IsEmpty);
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -404,22 +437,36 @@ class C
                 {
                     void M()
                     {
-                        int[] arr = default;
-                        arr ??= /*<bind>*/[a]/*</bind>*/;
+                        C[] arr = default;
+                        arr ??= [new(a)];
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,28): error CS0103: The name 'a' does not exist in the current context
-                //         arr ??= /*<bind>*/[a]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 28));
+                // (6,22): error CS0103: The name 'a' does not exist in the current context
+                //         arr ??= [new(a)];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 22));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
+            var collectionExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var collectionExpressionTypeInfo = model.GetTypeInfo(collectionExpression);
+            Assert.Null(collectionExpressionTypeInfo.Type);
+            Assert.Equal("C[]", collectionExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = collectionExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -432,22 +479,36 @@ class C
                 {
                     void M()
                     {
-                        ImmutableArray<int>? arr = default;
-                        arr ??= /*<bind>*/[a]/*</bind>*/;
+                        ImmutableArray<C>? arr = default;
+                        arr ??= [new(a)];
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             comp.VerifyDiagnostics(
-                // (8,28): error CS0103: The name 'a' does not exist in the current context
-                //         arr ??= /*<bind>*/[a]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 28));
+                // (8,22): error CS0103: The name 'a' does not exist in the current context
+                //         arr ??= [new(a)];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 22));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.Collections.Immutable.ImmutableArray<System.Int32>", semanticInfo.ConvertedType.ToTestDisplayString());
+            var collectionExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var collectionExpressionTypeInfo = model.GetTypeInfo(collectionExpression);
+            Assert.Null(collectionExpressionTypeInfo.Type);
+            Assert.Equal("System.Collections.Immutable.ImmutableArray<C>", collectionExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = collectionExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -461,21 +522,33 @@ class C
                     void M()
                     {
                         ImmutableArray<int> arr = default;
-                        arr ??= /*<bind>*/[a]/*</bind>*/;
+                        arr ??= [new(a)];
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             comp.VerifyDiagnostics(
-                // (8,28): error CS0103: The name 'a' does not exist in the current context
-                //         arr ??= /*<bind>*/[a]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 28));
+                // (8,22): error CS0103: The name 'a' does not exist in the current context
+                //         arr ??= [new(a)];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 22));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            var collectionExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var collectionExpressionTypeInfo = model.GetTypeInfo(collectionExpression);
+            Assert.Null(collectionExpressionTypeInfo.Type);
+            Assert.Null(collectionExpressionTypeInfo.ConvertedType);
+
+            var objectCreationExpression = collectionExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(objectCreationExpressionTypeInfo.ConvertedType.IsErrorType());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionSymbolInfo.IsEmpty);
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -487,21 +560,35 @@ class C
                     void M()
                     {
                         (C, int)? t = default;
-                        t ??= /*<bind>*/(new(a), 1)/*</bind>*/;
+                        t ??= (new(a), 1);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,30): error CS0103: The name 'a' does not exist in the current context
-                //         t ??= /*<bind>*/(new(a), 1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 30));
+                // (6,20): error CS0103: The name 'a' does not exist in the current context
+                //         t ??= (new(a), 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 20));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("(C, System.Int32)", semanticInfo.ConvertedType.ToTestDisplayString());
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Null(tupleTypeInfo.Type);
+            Assert.Equal("(C, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = tupleExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -513,21 +600,35 @@ class C
                     void M(bool b)
                     {
                         C c = default;
-                        c ??= /*<bind>*/b ? new(a) : default/*</bind>*/;
+                        c ??= b ? new(a) : default;
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS0103: The name 'a' does not exist in the current context
-                //         c ??= /*<bind>*/b ? new(a) : default/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 33));
+                // (6,23): error CS0103: The name 'a' does not exist in the current context
+                //         c ??= b ? new(a) : default;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 23));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString());
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var conditionalExpressionTypeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(conditionalExpressionTypeInfo.Type);
+            Assert.Equal("C", conditionalExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = conditionalExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -539,21 +640,35 @@ class C
                     void M(bool b)
                     {
                         S? s = default;
-                        s ??= /*<bind>*/b ? new(a) : default/*</bind>*/;
+                        s ??= b ? new(a) : default;
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS0103: The name 'a' does not exist in the current context
-                //         s ??= /*<bind>*/b ? new(a) : default/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 33));
+                // (6,23): error CS0103: The name 'a' does not exist in the current context
+                //         s ??= b ? new(a) : default;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 23));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("S", semanticInfo.ConvertedType.ToTestDisplayString());
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var conditionalExpressionTypeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(conditionalExpressionTypeInfo.Type);
+            Assert.Equal("S", conditionalExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = conditionalExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("S", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["S..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["S..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -565,21 +680,33 @@ class C
                     void M(bool b)
                     {
                         S s = default;
-                        s ??= /*<bind>*/b ? new(a) : default/*</bind>*/;
+                        s ??= b ? new(a) : default;
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS0103: The name 'a' does not exist in the current context
-                //         s ??= /*<bind>*/b ? new(a) : default/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 33));
+                // (6,23): error CS0103: The name 'a' does not exist in the current context
+                //         s ??= b ? new(a) : default;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 23));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
-            Assert.True(semanticInfo.ConvertedType.IsErrorType());
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var conditionalExpressionTypeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.True(conditionalExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(conditionalExpressionTypeInfo.ConvertedType.IsErrorType());
+
+            var objectCreationExpression = conditionalExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(objectCreationExpressionTypeInfo.ConvertedType.IsErrorType());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionSymbolInfo.IsEmpty);
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -591,11 +718,11 @@ class C
                     void M(int i)
                     {
                         C c = default;
-                        c ??= /*<bind>*/i switch
+                        c ??= i switch
                         {
                             1 => new(a),
                             _ => default,
-                        }/*</bind>*/;
+                        };
                     }
                 }
                 """;
@@ -606,10 +733,24 @@ class C
                 //             1 => new(a),
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 22));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString());
+            var switchExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var switchExpressionTypeInfo = model.GetTypeInfo(switchExpression);
+            Assert.Null(switchExpressionTypeInfo.Type);
+            Assert.Equal("C", switchExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = switchExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["C..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -621,11 +762,11 @@ class C
                     void M(int i)
                     {
                         S? s = default;
-                        s ??= /*<bind>*/i switch
+                        s ??= i switch
                         {
                             1 => new(a),
                             _ => default,
-                        }/*</bind>*/;
+                        };
                     }
                 }
                 """;
@@ -636,10 +777,24 @@ class C
                 //             1 => new(a),
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 22));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("S", semanticInfo.ConvertedType.ToTestDisplayString());
+            var switchExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var switchExpressionTypeInfo = model.GetTypeInfo(switchExpression);
+            Assert.Null(switchExpressionTypeInfo.Type);
+            Assert.Equal("S", switchExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var objectCreationExpression = switchExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("S", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.Null(objectCreationExpressionSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, objectCreationExpressionSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["S..ctor()"], objectCreationExpressionSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            AssertEx.SetEqual(["S..ctor()"], objectCreationExpressionMemberGroup.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -651,11 +806,11 @@ class C
                     void M(int i)
                     {
                         S s = default;
-                        s ??= /*<bind>*/i switch
+                        s ??= i switch
                         {
                             1 => new(a),
                             _ => default,
-                        }/*</bind>*/;
+                        };
                     }
                 }
                 """;
@@ -666,10 +821,22 @@ class C
                 //             1 => new(a),
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 22));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
-            Assert.True(semanticInfo.ConvertedType.IsErrorType());
+            var switchExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var switchExpressionTypeInfo = model.GetTypeInfo(switchExpression);
+            Assert.True(switchExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(switchExpressionTypeInfo.ConvertedType.IsErrorType());
+
+            var objectCreationExpression = switchExpression.DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionTypeInfo.Type.IsErrorType());
+            Assert.True(objectCreationExpressionTypeInfo.ConvertedType.IsErrorType());
+            var objectCreationExpressionSymbolInfo = model.GetSymbolInfo(objectCreationExpression);
+            Assert.True(objectCreationExpressionSymbolInfo.IsEmpty);
+            var objectCreationExpressionMemberGroup = model.GetMemberGroup(objectCreationExpression);
+            Assert.Empty(objectCreationExpressionMemberGroup);
         }
 
         [Fact]
@@ -681,21 +848,24 @@ class C
                     void M(int i)
                     {
                         CustomInterpolatedStringHandler h = default;
-                        h ??= /*<bind>*/$"The value is {a}"/*</bind>*/;
+                        h ??= $"The value is {a}";
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, GetInterpolatedStringCustomHandlerType("CustomInterpolatedStringHandler", "class", useBoolReturns: false)]);
             comp.VerifyDiagnostics(
-                // (6,41): error CS0103: The name 'a' does not exist in the current context
-                //         h ??= /*<bind>*/$"The value is {a}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 41));
+                // (6,31): error CS0103: The name 'a' does not exist in the current context
+                //         h ??= $"The value is {a}";
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 31));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("CustomInterpolatedStringHandler", semanticInfo.ConvertedType.ToTestDisplayString());
+            var interpolatedString = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().Single();
+            var interpolatedStringTypeInfo = model.GetTypeInfo(interpolatedString);
+            Assert.Equal("System.String", interpolatedStringTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("CustomInterpolatedStringHandler", interpolatedStringTypeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -707,21 +877,24 @@ class C
                     void M(int i)
                     {
                         CustomInterpolatedStringHandler? h = default;
-                        h ??= /*<bind>*/$"The value is {a}"/*</bind>*/;
+                        h ??= $"The value is {a}";
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, GetInterpolatedStringCustomHandlerType("CustomInterpolatedStringHandler", "struct", useBoolReturns: false)]);
             comp.VerifyDiagnostics(
-                // (6,41): error CS0103: The name 'a' does not exist in the current context
-                //         h ??= /*<bind>*/$"The value is {a}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 41));
+                // (6,31): error CS0103: The name 'a' does not exist in the current context
+                //         h ??= $"The value is {a}";
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 31));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("CustomInterpolatedStringHandler", semanticInfo.ConvertedType.ToTestDisplayString());
+            var interpolatedString = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().Single();
+            var interpolatedStringTypeInfo = model.GetTypeInfo(interpolatedString);
+            Assert.Equal("System.String", interpolatedStringTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("CustomInterpolatedStringHandler", interpolatedStringTypeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -733,21 +906,24 @@ class C
                     void M(int i)
                     {
                         CustomInterpolatedStringHandler h = default;
-                        h ??= /*<bind>*/$"The value is {a}"/*</bind>*/;
+                        h ??= $"The value is {a}";
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, GetInterpolatedStringCustomHandlerType("CustomInterpolatedStringHandler", "struct", useBoolReturns: false)]);
             comp.VerifyDiagnostics(
-                // (6,41): error CS0103: The name 'a' does not exist in the current context
-                //         h ??= /*<bind>*/$"The value is {a}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 41));
+                // (6,31): error CS0103: The name 'a' does not exist in the current context
+                //         h ??= $"The value is {a}";
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 31));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            var interpolatedString = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().Single();
+            var interpolatedStringTypeInfo = model.GetTypeInfo(interpolatedString);
+            Assert.Equal("System.String", interpolatedStringTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String", interpolatedStringTypeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -759,26 +935,30 @@ class C
                     void M()
                     {
                         object o = default;
-                        o ??= /*<bind>*/new C(a)/*</bind>*/;
+                        o ??= new C(a);
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS1729: 'C' does not contain a constructor that takes 1 arguments
-                //         o ??= /*<bind>*/new C(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "1").WithLocation(6, 29),
-                // (6,31): error CS0103: The name 'a' does not exist in the current context
-                //         o ??= /*<bind>*/new C(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 31));
+                // (6,19): error CS1729: 'C' does not contain a constructor that takes 1 arguments
+                //         o ??= new C(a);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "1").WithLocation(6, 19),
+                // (6,21): error CS0103: The name 'a' does not exist in the current context
+                //         o ??= new C(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 21));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("C", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("C", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
+            var conversion = model.GetConversion(objectCreationExpression);
+            Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
         }
 
         [Fact]
@@ -790,7 +970,7 @@ class C
                     void M()
                     {
                         S? s = default;
-                        s ??= /*<bind>*/new ConvertibleToS(a)/*</bind>*/;
+                        s ??= new ConvertibleToS(a);
                     }
                 }
 
@@ -802,20 +982,24 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS1729: 'ConvertibleToS' does not contain a constructor that takes 1 arguments
-                //         s ??= /*<bind>*/new ConvertibleToS(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ConvertibleToS").WithArguments("ConvertibleToS", "1").WithLocation(6, 29),
-                // (6,44): error CS0103: The name 'a' does not exist in the current context
-                //         s ??= /*<bind>*/new ConvertibleToS(a)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 44));
+                // (6,19): error CS1729: 'ConvertibleToS' does not contain a constructor that takes 1 arguments
+                //         s ??= new ConvertibleToS(a);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ConvertibleToS").WithArguments("ConvertibleToS", "1").WithLocation(6, 19),
+                // (6,34): error CS0103: The name 'a' does not exist in the current context
+                //         s ??= new ConvertibleToS(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 34));
 
-            var semanticInfo = GetSemanticInfoForTest(comp);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("ConvertibleToS", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("S", semanticInfo.ConvertedType.ToTestDisplayString());
+            var objectCreationExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var objectCreationExpressionTypeInfo = model.GetTypeInfo(objectCreationExpression);
+            Assert.Equal("ConvertibleToS", objectCreationExpressionTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S", objectCreationExpressionTypeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.Equal(ConversionKind.ImplicitUserDefined, semanticInfo.ImplicitConversion.Kind);
-            Assert.Equal("S ConvertibleToS.op_Implicit(ConvertibleToS c)", semanticInfo.ImplicitConversion.Method.ToTestDisplayString());
+            var conversion = model.GetConversion(objectCreationExpression);
+            Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
+            Assert.Equal("S ConvertibleToS.op_Implicit(ConvertibleToS c)", conversion.MethodSymbol.ToTestDisplayString());
         }
     }
 }
