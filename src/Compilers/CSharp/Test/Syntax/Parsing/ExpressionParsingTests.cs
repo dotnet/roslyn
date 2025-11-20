@@ -8413,10 +8413,15 @@ select t";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
         public void InProgressMultipleExpressionsInTupleExpression()
         {
-            // Note: 'b c' is parsed as a declaration, which produces a binding error later.
             UsingTree("""
-                var v = (a, b c);
-                """);
+                var v = (a, b, 0 0);
+                """,
+                // (1,18): error CS1026: ) expected
+                // var v = (a, b, 0 0);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "0").WithLocation(1, 18),
+                // (1,18): error CS1003: Syntax error, ',' expected
+                // var v = (a, b, 0 0);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 18));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8449,19 +8454,20 @@ select t";
                                         N(SyntaxKind.CommaToken);
                                         N(SyntaxKind.Argument);
                                         {
-                                            N(SyntaxKind.DeclarationExpression);
+                                            N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "b");
-                                                }
-                                                N(SyntaxKind.SingleVariableDesignation);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "c");
-                                                }
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                         }
-                                        N(SyntaxKind.CloseParenToken);
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
                                     }
                                 }
                             }
@@ -8479,8 +8485,23 @@ select t";
         {
             // Note: 'b c' is parsed as a declaration, which produces a binding error later.
             UsingTree("""
-                (a, b c) = (a, b, c);
-                """);
+                (a, b, 0 0) = (a, b, c);
+                """,
+                // (1,10): error CS1026: ) expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "0").WithLocation(1, 10),
+                // (1,10): error CS1002: ; expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "0").WithLocation(1, 10),
+                // (1,11): error CS1002: ; expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 11),
+                // (1,11): error CS1022: Type or namespace definition, or end-of-file expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 11),
+                // (1,13): error CS1525: Invalid expression term '='
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 13));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8488,34 +8509,57 @@ select t";
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
                         N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.TupleExpression);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "a");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.DeclarationExpression);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "b");
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "c");
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.TupleExpression);
