@@ -36,6 +36,10 @@ parameters:
     type: boolean
     default: true
 
+  - name: PMEOverride
+    type: boolean
+    default: false
+
 schedules:
   - cron: "0 8 22-28 * 0"
     displayName: "Monthly smoke test"
