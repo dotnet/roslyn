@@ -282,13 +282,13 @@ extends:
 
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: ${{ parameters.SignType }}
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
             ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+          condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
         - download: profilingInputs
           artifact: merged mibc
@@ -316,7 +316,7 @@ extends:
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
                        /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
-                       /p:DotNetSignType=$(SignType)
+                       /p:DotNetSignType=${{ parameters.SignType }}
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
