@@ -3723,17 +3723,6 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICollectionExpressionElementsOperation" Base="IOperation" HasType="true">
-    <Comments>
-      <summary>
-        Represents the elements of a collection expression as they are passed to some construction method
-        specified by a <c>[CollectionBuilder]</c> attribute.  This is distinct from <see cref="ICollectionExpressionOperation.Elements"/>
-        which contains the elements as they appear in source.  This will appear in <see cref="ICollectionExpressionOperation.ConstructArguments"/>
-        when the construction method is a collection builder method, representing the final <c>ReadOnlySpan</c> passed to that
-        construction method containing the fully evaluated elements of the collection expression.
-      </summary>
-    </Comments>
-  </Node>
   <Node Name="ISpreadOperation" Base="IOperation" HasType="false">
       <Comments>
       <summary>
@@ -3766,5 +3755,16 @@
         </summary>
       </Comments>
     </Property>
+  </Node>
+  <Node Name="ICollectionExpressionElementsOperation" Base="IOperation" HasType="true">
+    <Comments>
+      <summary>
+        Represents the elements of a collection expression as they are passed to some construction method
+        specified by a <c>[CollectionBuilder]</c> attribute.  This is distinct from <see cref="ICollectionExpressionOperation.Elements"/>
+        which contains the elements as they appear in source.  This will appear in <see cref="ICollectionExpressionOperation.ConstructArguments"/>
+        when the construction method is a collection builder method, representing the final <c>ReadOnlySpan</c> passed to that
+        construction method containing the fully evaluated elements of the collection expression.
+      </summary>
+    </Comments>
   </Node>
 </Tree>

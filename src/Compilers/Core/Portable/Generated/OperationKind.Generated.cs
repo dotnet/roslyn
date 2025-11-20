@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis
         InlineArrayAccess = 0x7e,
         /// <summary>Indicates an <see cref="ICollectionExpressionOperation"/>.</summary>
         CollectionExpression = 0x7f,
-        /// <summary>Indicates an <see cref="ICollectionExpressionElementsOperation"/>.</summary>
-        CollectionExpressionElements = 0x80,
         /// <summary>Indicates an <see cref="ISpreadOperation"/>.</summary>
-        Spread = 0x81,
+        Spread = 0x80,
+        /// <summary>Indicates an <see cref="ICollectionExpressionElementsOperation"/>.</summary>
+        CollectionExpressionElements = 0x81,
     }
 }
