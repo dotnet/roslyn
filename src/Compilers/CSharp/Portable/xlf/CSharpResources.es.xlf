@@ -1013,8 +1013,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalNamespaceUnexpected">
-        <source>The global namespace cannot directly contain members such as fields or methods</source>
-        <target state="new">The global namespace cannot directly contain members such as fields or methods</target>
+        <source>The global namespace cannot directly contain members such as fields or properties</source>
+        <target state="new">The global namespace cannot directly contain members such as fields or properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
