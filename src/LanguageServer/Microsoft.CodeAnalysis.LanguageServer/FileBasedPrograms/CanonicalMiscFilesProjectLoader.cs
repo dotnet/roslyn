@@ -314,10 +314,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         Contract.ThrowIfNull(newDocumentPath);
 
         var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{newDocumentPath}'");
-
-        var documentInfos = canonicalProject.Documents.SelectAsArrayAsync(async document => GetDocumentInfoAsync(document, document.FilePath));
-        var additionalDocumentInfos = canonicalProject.AdditionalDocuments.SelectAsArrayAsync(async document => GetDocumentInfoAsync(document, document.FilePath));
-
         var syntaxTree = CSharpSyntaxTree.ParseText(text: documentText, canonicalProject.ParseOptions as CSharpParseOptions, path: newDocumentPath, cancellationToken);
         var hasAllInformation = await VirtualProjectXmlProvider.HasTopLevelStatementsAsync(syntaxTree, cancellationToken);
         var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
