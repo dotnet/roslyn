@@ -36877,5 +36877,84 @@ static class E4
             // _ = object.Member(42);
             Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member(int)", "E1.extension(object).Member").WithLocation(1, 5));
     }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/81180")]
+    public void InternalsVisibleTo_01()
+    {
+        var sourceA =
+@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+
+internal static class Extensions
+{
+    extension(string text)
+    {
+        internal bool IsEmpty => string.IsNullOrEmpty(text);
+    }
+}
+";
+        var compA = CreateCompilation(sourceA, assemblyName: "A");
+        CompileAndVerify(compA).VerifyDiagnostics();
+
+        var sourceB =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((null as string).IsEmpty);
+        System.Console.Write("""".IsEmpty);
+        System.Console.Write(""\t"".IsEmpty);
+    }
+}
+";
+        var compB = CreateCompilation(sourceB, references: [compA.ToMetadataReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+
+        compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+        _ = ErrorCode.ERR_BindToBogus;
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/81180")]
+    public void InternalsVisibleTo_02()
+    {
+        var sourceA =
+@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+
+internal static class Extensions
+{
+    extension(string text)
+    {
+        internal bool IsEmpty() => string.IsNullOrEmpty(text);
+    }
+}
+";
+        var compA = CreateCompilation(sourceA, assemblyName: "A");
+        CompileAndVerify(compA).VerifyDiagnostics();
+
+        var sourceB =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((null as string).IsEmpty());
+        System.Console.Write("""".IsEmpty());
+        System.Console.Write(""\t"".IsEmpty());
+    }
+}
+";
+        var compB = CreateCompilation(sourceB, references: [compA.ToMetadataReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+
+        compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+    }
 }
 
