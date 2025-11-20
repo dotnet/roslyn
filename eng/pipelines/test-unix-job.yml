@@ -28,7 +28,7 @@ jobs:
   pool:
     name: NetCore-Svc-Public
     demands: ImageOverride -equals ${{ parameters.queueName }}
-  timeoutInMinutes: 40
+  timeoutInMinutes: 90
   steps:
     - checkout: none
 
