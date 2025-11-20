@@ -1140,7 +1140,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
-            Assert.True(operation.PlaceholderKind is PlaceholderKind.AggregationGroup or PlaceholderKind.CollectionBuilderElements);
+            Assert.True(operation.PlaceholderKind is PlaceholderKind.AggregationGroup);
+        }
+
+        public override void VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation)
+        {
+            LogString(nameof(ICollectionExpressionElementsOperation));
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)

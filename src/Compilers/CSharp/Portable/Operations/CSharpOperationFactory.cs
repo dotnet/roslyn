@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 case BoundKind.CollectionBuilderElementsPlaceholder:
-                    return new PlaceholderOperation(
-                        PlaceholderKind.CollectionBuilderElements, _semanticModel, boundNode.Syntax,
+                    return new CollectionExpressionElementsOperation(
+                        _semanticModel, boundNode.Syntax,
                         boundNode switch
                         {
                             BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),

@@ -743,6 +743,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
+        public override void VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation)
+        {
+            Assert.Equal(OperationKind.CollectionExpressionElements, operation.Kind);
+            Assert.Empty(operation.ChildOperations);
+        }
+
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {
             Assert.Equal(OperationKind.UnaryOperator, operation.Kind);

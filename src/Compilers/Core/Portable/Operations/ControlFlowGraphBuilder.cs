@@ -7435,13 +7435,16 @@ oneMoreTime:
                         return OperationCloner.CloneOperation(_currentAggregationGroup);
                     }
                     break;
-                case PlaceholderKind.CollectionBuilderElements:
-                    // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
-                    return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
             }
 
             Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
             return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation? VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation, int? argument)
+        {
+            // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
+            return new CollectionExpressionElementsOperation(semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)

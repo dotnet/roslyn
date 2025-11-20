@@ -16397,14 +16397,13 @@ partial class Program
 """);
             // We should extend IOperation conversions to represent IsCollectionExpression
             // Tracked by https://github.com/dotnet/roslyn/issues/68826
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                """
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyCollection<System.Int32> MyCollectionBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>) (Syntax: '[1, 2, 3]')
-                ConstructArguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[1, 2, 3]')
-                      IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: '[1, 2, 3]')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  ConstructArguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[1, 2, 3]')
+                        ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: '[1, 2, 3]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(3):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -29113,8 +29112,7 @@ partial class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
-            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp,
-                """
+            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp, """
                 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return [..x, y];')
                   ReturnedValue:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Object>, IsImplicit) (Syntax: '[..x, y]')
@@ -29123,7 +29121,7 @@ partial class Program
                         ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Object> MyCollectionBuilder.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Object>) (Syntax: '[..x, y]')
                           ConstructArguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[..x, y]')
-                                IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
+                                ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Elements(2):
@@ -29180,19 +29178,18 @@ partial class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
-            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp,
-                """
+            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp, """
                 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return [a, b];')
                   ReturnedValue:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: IMyCollection<T>, IsImplicit) (Syntax: '[a, b]')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand:
                         ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<T> MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: IMyCollection<T>) (Syntax: '[a, b]')
-                            ConstructArguments(1):
-                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
-                                  IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: '[a, b]')
-                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          ConstructArguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
+                                ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: '[a, b]')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Elements(2):
                               IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
                               IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
@@ -29220,12 +29217,11 @@ partial class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                """
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
                 ICollectionExpressionOperation (2 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[..x, y]')
                   ConstructArguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[..x, y]')
-                        IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
+                        ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(2):
@@ -41093,7 +41089,7 @@ partial class Program
                 ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[new()]')
                   ConstructArguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[new()]')
-                        IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[new()]')
+                        ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[new()]')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(1):
