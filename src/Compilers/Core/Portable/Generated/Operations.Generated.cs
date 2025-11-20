@@ -3975,6 +3975,24 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IOperation> Elements { get; }
     }
     /// <summary>
+    /// Represents the elements of a collection expression as they are passed to some construction method
+    /// specified by a <c>[CollectionBuilder]</c> attribute.  This is distinct from <see cref="ICollectionExpressionOperation.Elements" />
+    /// which contains the elements as they appear in source.  This will appear in <see cref="ICollectionExpressionOperation.ConstructArguments" />
+    /// when the construction method is a collection builder method, representing the final <c>ReadOnlySpan</c> passed to that
+    /// construction method containing the fully evaluated elements of the collection expression.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.CollectionExpressionElements"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface ICollectionExpressionElementsOperation : IOperation
+    {
+    }
+    /// <summary>
     /// Represents a collection expression spread element.
     /// <para>
     /// Current usage:
@@ -10753,6 +10771,23 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionExpression(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionExpression(this, argument);
     }
+    internal sealed partial class CollectionExpressionElementsOperation : Operation, ICollectionExpressionElementsOperation
+    {
+        internal CollectionExpressionElementsOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Type = type;
+        }
+        internal override int ChildOperationsCount => 0;
+        internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CollectionExpressionElements;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionExpressionElements(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionExpressionElements(this, argument);
+    }
     internal sealed partial class SpreadOperation : Operation, ISpreadOperation
     {
         internal SpreadOperation(IOperation operand, ITypeSymbol? elementType, IConvertibleConversion elementConversion, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
@@ -11427,6 +11462,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (CollectionExpressionOperation)operation;
             return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.ConstructArguments), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation, object? argument)
+        {
+            var internalOperation = (CollectionExpressionElementsOperation)operation;
+            return new CollectionExpressionElementsOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {
             var internalOperation = (SpreadOperation)operation;
@@ -11573,6 +11613,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitAttribute(IAttributeOperation operation) => DefaultVisit(operation);
         public virtual void VisitInlineArrayAccess(IInlineArrayAccessOperation operation) => DefaultVisit(operation);
         public virtual void VisitCollectionExpression(ICollectionExpressionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation) => DefaultVisit(operation);
         public virtual void VisitSpread(ISpreadOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
@@ -11712,6 +11753,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitAttribute(IAttributeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitCollectionExpression(ICollectionExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSpread(ISpreadOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
