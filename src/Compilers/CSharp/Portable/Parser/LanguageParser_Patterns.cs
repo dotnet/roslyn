@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return AddLeadingSkippedSyntax(
                     skippedSyntax: AddError(this.EatToken(), ErrorCode.ERR_EqualityOperatorInPatternNotSupported),
-                    node: ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern));
+                    node: ParseNegatedPattern(precedence, afterIs, inSwitchArmPattern));
             }
             else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
             {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddTrailingSkippedSyntax(
                         SyntaxFactory.MissingToken(SyntaxKind.NotKeyword),
                         this.AddError(this.EatToken(), ErrorCode.ERR_InequalityOperatorInPatternNotSupported)),
-                    ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern));
+                    ParseNegatedPattern(precedence, afterIs, inSwitchArmPattern));
             }
             else
             {
