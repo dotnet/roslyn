@@ -13378,7 +13378,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/81022")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73894")>
         Public Async Function TestStartTypingOnRightHandSideOfNullCoalescingExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
