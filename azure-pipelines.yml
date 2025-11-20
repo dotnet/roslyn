@@ -109,7 +109,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    vmImageName: 'ubuntu-20.04'
+    queueName: 'Build.Ubuntu.2004.Amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
