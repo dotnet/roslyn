@@ -284,7 +284,35 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Span<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int32>, IsInvalid) (Syntax: '[with(), 1, 2, 3]')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -321,7 +349,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Span<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(0), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(0), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(0), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int32>, IsInvalid) (Syntax: '[with(0), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -358,7 +416,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Span<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int32>, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -393,7 +481,35 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.IEnumerable<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -433,7 +549,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.IEnumerable<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(0), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(0), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(0), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid) (Syntax: '[with(0), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -473,7 +619,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.IEnumerable<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -503,7 +679,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
 
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
-        VerifyFlowGraph(comp, method, """
+        VerifyFlowGraph(comp, method, $$"""
             Block[B0] - Entry
                 Statements (0)
                 Next (Regular) Block[B1]
@@ -514,11 +690,11 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                 Block[B1] - Block
                     Predecessors: [B0]
                     Statements (1)
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.ICollection<System.Int32>, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
                           Left:
-                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.ICollection<System.Int32>, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
                           Right:
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.ICollection<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 (CollectionExpression)
                               Operand:
@@ -895,7 +1071,40 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.HashSet<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.HashSet<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 0')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -935,7 +1144,40 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyCollection<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyCollection<System.Int32>, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: MyCollection<System.Int32>, IsImplicit) (Syntax: 'a = [with(), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: MyCollection<System.Int32>..ctor([System.Int32 capacity = 42])) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: capacity) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsImplicit) (Syntax: 'with()')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -969,7 +1211,40 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.HashSet<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(0), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(0), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: '[with(0), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.HashSet<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>) (Syntax: '[with(0), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: '0')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1092,7 +1367,48 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.HashSet<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.HashSet<System.Int32>..ctor(System.Int32 capacity, System.Collections.Generic.IEqualityComparer<System.Int32>? comparer)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  ConstructArguments(2):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 0')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'comparer: null')
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<System.Int32>, Constant: null, IsImplicit) (Syntax: 'null')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                          Operand:
+                                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1133,7 +1449,48 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.HashSet<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.HashSet<System.Int32>, IsImplicit) (Syntax: '[with(compa ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.HashSet<System.Int32>..ctor(System.Int32 capacity, System.Collections.Generic.IEqualityComparer<System.Int32>? comparer)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>) (Syntax: '[with(compa ... ), 1, 2, 3]')
+                                  ConstructArguments(2):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'comparer: null')
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<System.Int32>, Constant: null, IsImplicit) (Syntax: 'null')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                          Operand:
+                                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 0')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1169,7 +1526,39 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.HashSet<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(0 ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(0 ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(0, nu ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid) (Syntax: '[with(0, nu ... ), 1, 2, 3]')
+                                  ConstructArguments(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1203,7 +1592,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.HashSet<System.Int32> a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(""), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'a = [with(""), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[with(""), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid) (Syntax: '[with(""), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1225,6 +1644,17 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
               ConstructArguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
                     IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Actual:
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(), 1, 2, 3]')
+              ConstructArguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1294,7 +1724,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1331,7 +1761,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(0)')
-                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0)')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1368,7 +1798,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capacity: 0)')
-                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capacity: 0)')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capacity: 0)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1413,7 +1843,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyHashSet a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: 'a = [with(u ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: 'a = [with(u ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: '[with(unkno ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyHashSet, IsInvalid) (Syntax: '[with(unkno ... ), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1446,7 +1906,37 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyHashSet a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: 'a = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyHashSet, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
@@ -1478,7 +1968,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(0, null)')
-                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0, null)')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0, null)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1567,7 +2057,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
-                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1611,7 +2101,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
-                    IPlaceholderOperation (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
+                    ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1658,7 +2148,39 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
         var tree = comp.SyntaxTrees[0];
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "M");
         VerifyFlowGraph(comp, method, """
-
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyHashSet a]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: 'a = [with(0 ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: 'a = [with(0 ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyHashSet, IsInvalid, IsImplicit) (Syntax: '[with(0, nu ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyHashSet, IsInvalid) (Syntax: '[with(0, nu ... ), 1, 2, 3]')
+                                  ConstructArguments(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
             """);
     }
 
