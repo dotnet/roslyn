@@ -30,15 +30,6 @@ internal static partial class ProtocolConversions
         });
     }
 
-    private static readonly ImmutableDictionary<string, PerLanguageOption2<bool>> s_diagnosticToFadingOption = new Dictionary<string, PerLanguageOption2<bool>>
-    {
-        { IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, FadingOptions.FadeOutUnusedMembers },
-        { IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,FadingOptions.FadeOutUnusedMembers },
-        { IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId, FadingOptions.FadeOutUnreachableCode },
-        { IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, FadingOptions.FadeOutUnusedImports },
-        { IDEDiagnosticIds.RemoveUnnecessaryImportsGeneratedCodeDiagnosticId, FadingOptions.FadeOutUnusedImports },
-    }.ToImmutableDictionary();
-
     /// <summary>
     /// Converts from <see cref="DiagnosticData"/> to <see cref="LSP.Diagnostic"/>
     /// </summary>
@@ -63,7 +54,7 @@ internal static partial class ProtocolConversions
         }
 
         // DiagnosticId supports fading, check if the corresponding VS option is turned on.
-        if (s_diagnosticToFadingOption.TryGetValue(diagnosticData.Id, out var fadingOption))
+        if (FadingOptions.TryGetFadingOptionForDiagnostic(diagnosticData.Id, out var fadingOption))
         {
             Contract.ThrowIfNull(diagnosticData.Language, $"diagnostic {diagnosticData.Id} is missing a language");
             if (!globalOptionService.GetOption(fadingOption, diagnosticData.Language))
