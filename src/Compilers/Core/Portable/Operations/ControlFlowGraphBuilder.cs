@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     || slot.operationOpt.Kind == OperationKind.DeclarationExpression
                     || slot.operationOpt.Kind == OperationKind.Discard
                     || slot.operationOpt.Kind == OperationKind.OmittedArgument
-                    || slot.operationOpt.Kind == OperationKind.CollectionExpressionElements));
+                    || slot.operationOpt.Kind == OperationKind.CollectionExpressionElementsPlaceholder));
 #endif
             if (statement == null)
             {
@@ -1851,7 +1851,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     && operationOpt.Kind != OperationKind.DeclarationExpression
                     && operationOpt.Kind != OperationKind.Discard
                     && operationOpt.Kind != OperationKind.OmittedArgument
-                    && operationOpt.Kind != OperationKind.CollectionExpressionElements)
+                    && operationOpt.Kind != OperationKind.CollectionExpressionElementsPlaceholder)
                 {
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
@@ -7443,10 +7443,10 @@ oneMoreTime:
             return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-        public override IOperation? VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation, int? argument)
+        public override IOperation? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, int? argument)
         {
             // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
-            return new CollectionExpressionElementsOperation(semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
+            return new CollectionExpressionElementsPlaceholderOperation(semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)

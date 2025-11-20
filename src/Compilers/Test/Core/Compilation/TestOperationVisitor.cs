@@ -743,9 +743,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
-        public override void VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation)
+        public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
         {
-            Assert.Equal(OperationKind.CollectionExpressionElements, operation.Kind);
+            Assert.Equal(OperationKind.CollectionExpressionElementsPlaceholder, operation.Kind);
             Assert.Empty(operation.ChildOperations);
         }
 

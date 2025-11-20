@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 case BoundKind.CollectionBuilderElementsPlaceholder:
-                    return new CollectionExpressionElementsOperation(
+                    return new CollectionExpressionElementsPlaceholderOperation(
                         _semanticModel, boundNode.Syntax,
                         boundNode switch
                         {

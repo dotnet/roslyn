@@ -4017,12 +4017,12 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <remarks>
     /// <para>This node is associated with the following operation kinds:</para>
     /// <list type="bullet">
-    /// <item><description><see cref="OperationKind.CollectionExpressionElements"/></description></item>
+    /// <item><description><see cref="OperationKind.CollectionExpressionElementsPlaceholder"/></description></item>
     /// </list>
     /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.</para>
     /// </remarks>
-    public interface ICollectionExpressionElementsOperation : IOperation
+    public interface ICollectionExpressionElementsPlaceholderOperation : IOperation
     {
     }
     #endregion
@@ -10827,9 +10827,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitSpread(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSpread(this, argument);
     }
-    internal sealed partial class CollectionExpressionElementsOperation : Operation, ICollectionExpressionElementsOperation
+    internal sealed partial class CollectionExpressionElementsPlaceholderOperation : Operation, ICollectionExpressionElementsPlaceholderOperation
     {
-        internal CollectionExpressionElementsOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionElementsPlaceholderOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Type = type;
@@ -10840,9 +10840,9 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
-        public override OperationKind Kind => OperationKind.CollectionExpressionElements;
-        public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionExpressionElements(this);
-        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionExpressionElements(this, argument);
+        public override OperationKind Kind => OperationKind.CollectionExpressionElementsPlaceholder;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionExpressionElementsPlaceholder(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionExpressionElementsPlaceholder(this, argument);
     }
     #endregion
     #region Cloner
@@ -11467,10 +11467,10 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (SpreadOperation)operation;
             return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ElementType, internalOperation.ElementConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
-        public override IOperation VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation, object? argument)
+        public override IOperation VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, object? argument)
         {
-            var internalOperation = (CollectionExpressionElementsOperation)operation;
-            return new CollectionExpressionElementsOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            var internalOperation = (CollectionExpressionElementsPlaceholderOperation)operation;
+            return new CollectionExpressionElementsPlaceholderOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #endregion
@@ -11614,7 +11614,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitInlineArrayAccess(IInlineArrayAccessOperation operation) => DefaultVisit(operation);
         public virtual void VisitCollectionExpression(ICollectionExpressionOperation operation) => DefaultVisit(operation);
         public virtual void VisitSpread(ISpreadOperation operation) => DefaultVisit(operation);
-        public virtual void VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -11754,7 +11754,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitCollectionExpression(ICollectionExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSpread(ISpreadOperation operation, TArgument argument) => DefaultVisit(operation, argument);
-        public virtual TResult? VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

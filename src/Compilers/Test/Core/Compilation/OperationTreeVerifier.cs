@@ -1143,9 +1143,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(operation.PlaceholderKind is PlaceholderKind.AggregationGroup);
         }
 
-        public override void VisitCollectionExpressionElements(ICollectionExpressionElementsOperation operation)
+        public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
         {
-            LogString(nameof(ICollectionExpressionElementsOperation));
+            LogString(nameof(ICollectionExpressionElementsPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
         }
 
