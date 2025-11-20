@@ -8035,4 +8035,129 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 Statements (0)
             """, graph, symbol);
     }
+
+    [Fact]
+    public void ControlFlowBuilder()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public MyCollection(ReadOnlySpan<T> items) {
+                }
+                IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                IEnumerator IEnumerable.GetEnumerator() => throw null;
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int capacity, ReadOnlySpan<T> items)
+                {
+                    return new(items);
+                }
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyCollection<int> c = [with(ComputeCapacity()), args.Length == 0 ? TrueBranch() : FalseBranch()];
+                }
+            
+                static int ComputeCapacity() => 0;
+                static int TrueBranch() => 1;
+                static int FalseBranch() => 2;
+            }
+            """;
+        var verifier = CompileAndVerify([sourceA, sourceB], targetFramework: TargetFramework.Net80);
+        verifier.VerifyDiagnostics();
+
+        var compilation = (CSharpCompilation)verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
+        SyntaxNode root = semanticModel.SyntaxTree.GetRoot();
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Single(), semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyCollection<System.Int32> c]
+                CaptureIds: [0] [1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ComputeCapacity()')
+                          Value:
+                            IInvocationOperation (System.Int32 Program.ComputeCapacity()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'ComputeCapacity()')
+                              Instance Receiver:
+                                null
+                              Arguments(0)
+                    Jump if False (Regular) to Block[B3]
+                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'args.Length == 0')
+                          Left:
+                            IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'args.Length')
+                              Instance Receiver:
+                                IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
+                          Right:
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    Next (Regular) Block[B2]
+                Block[B2] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'TrueBranch()')
+                          Value:
+                            IInvocationOperation (System.Int32 Program.TrueBranch()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'TrueBranch()')
+                              Instance Receiver:
+                                null
+                              Arguments(0)
+                    Next (Regular) Block[B4]
+                Block[B3] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'FalseBranch()')
+                          Value:
+                            IInvocationOperation (System.Int32 Program.FalseBranch()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'FalseBranch()')
+                              Instance Receiver:
+                                null
+                              Arguments(0)
+                    Next (Regular) Block[B4]
+                Block[B4] - Block
+                    Predecessors: [B2] [B3]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyCollection<System.Int32>, IsImplicit) (Syntax: 'c = [with(C ... seBranch()]')
+                          Left:
+                            ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: MyCollection<System.Int32>, IsImplicit) (Syntax: 'c = [with(C ... seBranch()]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsImplicit) (Syntax: '[with(Compu ... seBranch()]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<System.Int32> MyBuilder.Create<System.Int32>(System.Int32 capacity, System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>) (Syntax: '[with(Compu ... seBranch()]')
+                                  ConstructArguments(2):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'ComputeCapacity()')
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'ComputeCapacity()')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(ComputeCapacity())')
+                                        ICollectionExpressionElementsOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(ComputeCapacity())')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Elements(1):
+                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length ... lseBranch()')
+                    Next (Regular) Block[B5]
+                        Leaving: {R1}
+            }
+            Block[B5] - Exit
+                Predecessors: [B4]
+                Statements (0)
+            """, graph, symbol);
+    }
 }

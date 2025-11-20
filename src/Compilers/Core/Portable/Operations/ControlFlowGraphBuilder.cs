@@ -1280,7 +1280,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
                     || slot.operationOpt.Kind == OperationKind.DeclarationExpression
                     || slot.operationOpt.Kind == OperationKind.Discard
-                    || slot.operationOpt.Kind == OperationKind.OmittedArgument));
+                    || slot.operationOpt.Kind == OperationKind.OmittedArgument
+                    || slot.operationOpt.Kind == OperationKind.CollectionExpressionElements));
 #endif
             if (statement == null)
             {
@@ -1849,7 +1850,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
                     && operationOpt.Kind != OperationKind.DeclarationExpression
                     && operationOpt.Kind != OperationKind.Discard
-                    && operationOpt.Kind != OperationKind.OmittedArgument)
+                    && operationOpt.Kind != OperationKind.OmittedArgument
+                    && operationOpt.Kind != OperationKind.CollectionExpressionElements)
                 {
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
