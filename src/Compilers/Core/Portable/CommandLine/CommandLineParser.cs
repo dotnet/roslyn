@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis
         internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
         internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|2|2.1}]";
+        private static bool s_registeredEncodingProvider = CodePagesEncodingProvider.Instance == null;
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
@@ -1220,9 +1221,23 @@ namespace Microsoft.CodeAnalysis
                 && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out long codepage)
                 && (codepage > 0))
             {
+try_again:
                 try
                 {
                     return Encoding.GetEncoding((int)codepage);
+                }
+                catch (NotSupportedException) when (!s_registeredEncodingProvider)
+                {
+                    try
+                    {
+                        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    }
+                    catch
+                    {
+                    }
+
+                    s_registeredEncodingProvider = true;
+                    goto try_again;
                 }
                 catch (Exception)
                 {
