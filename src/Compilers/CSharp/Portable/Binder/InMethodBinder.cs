@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = _methodSymbol.Parameters;
             var typeParameters = _methodSymbol.TypeParameters;
 
-            if (_methodSymbol.GetIsNewExtensionMember())
+            if (_methodSymbol.IsExtensionBlockMember())
             {
                 typeParameters = _methodSymbol.ContainingType.TypeParameters.Concat(typeParameters);
 

@@ -204,8 +204,8 @@
   <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
     <value>Generate Equals and GetHashCode</value>
   </data>
-  <data name="Generate_Equals_object" xml:space="preserve">
-    <value>Generate Equals(object)</value>
+  <data name="Generate_Equals" xml:space="preserve">
+    <value>Generate Equals(...)</value>
   </data>
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>

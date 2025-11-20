@@ -958,9 +958,9 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (32,17): error CS0035: Operator '-' is ambiguous on an operand of type 'I2'
+                // (32,17): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator -(I1)' and 'I3.operator -(I3)'
                 //         var y = -x;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "I2").WithLocation(32, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1)", "I3.operator -(I3)").WithLocation(32, 17)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -1024,11 +1024,10 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
-                // (34,21): error CS0035: Operator '-' is ambiguous on an operand of type 'I2'
+                // (34,21): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(I1).operator -(I1)' and 'Extensions2.extension(I3).operator -(I3)'
                 //             var y = -x;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "I2").WithLocation(34, 21)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("NS1.Extensions2.extension(I1).operator -(I1)", "NS1.Extensions2.extension(I3).operator -(I3)").WithLocation(34, 21)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -1732,14 +1731,25 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyEmitDiagnostics(
-                // (35,13): error CS0035: Operator '-' is ambiguous on an operand of type 'C1'
+                // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1)' and 'Extensions1.extension(C1).operator -(C1)'
                 //         _ = -c1;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-c1").WithArguments("-", "C1").WithLocation(35, 13),
-                // (39,17): error CS0035: Operator '-' is ambiguous on an operand of type 'C1'
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1)", "Extensions1.extension(C1).operator -(C1)").WithLocation(35, 13),
+                // (39,17): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
                 //             _ = -c1;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-c1").WithArguments("-", "C1").WithLocation(39, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
                 );
+#else
+            comp.VerifyEmitDiagnostics(
+                // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
+                //         _ = -c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(35, 13),
+                // (39,17): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
+                //             _ = -c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
+                );
+#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4258,11 +4268,19 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyDiagnostics(
-                // (26,13): error CS0035: Operator '-' is ambiguous on an operand of type 'S2'
+                // (26,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(S2).operator -(S2)' and 'Extensions1.extension(S2).operator -(S2)'
                 //         _ = -s2;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-s2").WithArguments("-", "S2").WithLocation(26, 13)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(S2).operator -(S2)", "Extensions1.extension(S2).operator -(S2)").WithLocation(26, 13)
                 );
+#else
+            comp.VerifyDiagnostics(
+                // (26,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator -(S2)' and 'Extensions2.extension(S2).operator -(S2)'
+                //         _ = -s2;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(S2).operator -(S2)", "Extensions2.extension(S2).operator -(S2)").WithLocation(26, 13)
+                );
+#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -5839,9 +5857,9 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (33,17): error CS0035: Operator '--' is ambiguous on an operand of type 'I2'
+                // (33,17): error CS9339: Operator resolution is ambiguous between the following members:'I1.operator --(I1)' and 'I3.operator --(I3)'
                 //         var y = --x;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--x").WithArguments("--", "I2").WithLocation(33, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("I1.operator --(I1)", "I3.operator --(I3)").WithLocation(33, 17)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -6035,11 +6053,10 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
-                // (35,21): error CS0035: Operator '--' is ambiguous on an operand of type 'I2'
+                // (35,21): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(I1).operator --(I1)' and 'Extensions2.extension(I3).operator --(I3)'
                 //             var y = --x;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--x").WithArguments("--", "I2").WithLocation(35, 21)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("NS1.Extensions2.extension(I1).operator --(I1)", "NS1.Extensions2.extension(I3).operator --(I3)").WithLocation(35, 21)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -6341,9 +6358,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (20,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                // (20,13): error CS9341: Operator cannot be applied to operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator ++()'
                 //         _ = ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1?").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1?", "Extensions1.extension(ref S1).operator ++()").WithLocation(20, 13)
                 );
         }
 
@@ -6463,9 +6480,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (19,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                // (19,13): error CS9341: Operator cannot be applied to operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1?).operator ++()'
                 //         _ = ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(19, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1", "Extensions1.extension(ref S1?).operator ++()").WithLocation(19, 13),
                 // (20,44): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         Extensions1.op_IncrementAssignment(s1);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("1", "ref").WithLocation(20, 44),
@@ -6562,15 +6579,15 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (22,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                // (22,13): error CS9341: Operator cannot be applied to operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator ++()'
                 //         _ = ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(22, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1", "Extensions1.extension(ref S2).operator ++()").WithLocation(22, 13),
                 // (23,48): error CS1503: Argument 1: cannot convert from 'ref S1' to 'ref S2'
                 //         Extensions1.op_IncrementAssignment(ref s1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s1").WithArguments("1", "ref S1", "ref S2").WithLocation(23, 48),
-                // (26,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                // (26,13): error CS9341: Operator cannot be applied to operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator ++()'
                 //         _ = ++s2;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s2").WithArguments("++", "S1?").WithLocation(26, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1?", "Extensions1.extension(ref S2).operator ++()").WithLocation(26, 13),
                 // (27,48): error CS1503: Argument 1: cannot convert from 'ref S1?' to 'ref S2'
                 //         Extensions1.op_IncrementAssignment(ref s2);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s2").WithArguments("1", "ref S1?", "ref S2").WithLocation(27, 48)
@@ -6643,12 +6660,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                // (17,13): error CS9341: Operator cannot be applied to operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(object).operator ++()'
                 //         _ = ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(17, 13),
-                // (21,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1", "Extensions1.extension(object).operator ++()").WithLocation(17, 13),
+                // (21,13): error CS9341: Operator cannot be applied to operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(object).operator ++()'
                 //         _ = ++s2;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s2").WithArguments("++", "S1?").WithLocation(21, 13)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1?", "Extensions1.extension(object).operator ++()").WithLocation(21, 13)
                 );
         }
 
@@ -6849,9 +6866,9 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'int[]'
+                // (17,13): error CS9341: Operator cannot be applied to operand of type 'int[]'. The closest inapplicable candidate is 'Extensions1.extension(ref Span<int>).operator ++()'
                 //         _ = ++a1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++a1").WithArguments("++", "int[]").WithLocation(17, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("int[]", "Extensions1.extension(ref System.Span<int>).operator ++()").WithLocation(17, 13),
                 // (18,48): error CS1503: Argument 1: cannot convert from 'ref int[]' to 'ref System.Span<int>'
                 //         Extensions1.op_IncrementAssignment(ref a1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a1").WithArguments("1", "ref int[]", "ref System.Span<int>").WithLocation(18, 48)
@@ -7190,9 +7207,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1<int>'
+                // (17,13): error CS9341: Operator cannot be applied to operand of type 'S1<int>'. The closest inapplicable candidate is 'Extensions1.extension<int>(ref S1<int>).operator ++()'
                 //         _ = ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1<int>").WithLocation(17, 13)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1<int>", "Extensions1.extension<int>(ref S1<int>).operator ++()").WithLocation(17, 13)
                 );
         }
 
@@ -7647,14 +7664,25 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyEmitDiagnostics(
-                // (35,13): error CS0035: Operator '--' is ambiguous on an operand of type 'C1'
+                // (35,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator --(C1)' and 'Extensions1.extension(C1).operator --(C1)'
                 //         _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--c1").WithArguments("--", "C1").WithLocation(35, 13),
-                // (39,17): error CS0035: Operator '--' is ambiguous on an operand of type 'C1'
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions2.extension(C1).operator --(C1)", "Extensions1.extension(C1).operator --(C1)").WithLocation(35, 13),
+                // (39,17): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
                 //             _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--c1").WithArguments("--", "C1").WithLocation(39, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator checked --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(39, 17)
                 );
+#else
+            comp.VerifyEmitDiagnostics(
+                // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(35, 13),
+                // (39,17): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator checked --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(39, 17)
+                );
+#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -10532,11 +10560,19 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyDiagnostics(
-                // (26,9): error CS0035: Operator '++' is ambiguous on an operand of type 'S2'
+                // (26,9): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(S2).operator ++(S2)' and 'Extensions1.extension(S2).operator ++(S2)'
                 //         ++s2;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "++s2").WithArguments("++", "S2").WithLocation(26, 9)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("Extensions2.extension(S2).operator ++(S2)", "Extensions1.extension(S2).operator ++(S2)").WithLocation(26, 9)
                 );
+#else
+            comp.VerifyDiagnostics(
+                // (26,9): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator ++(S2)' and 'Extensions2.extension(S2).operator ++(S2)'
+                //         ++s2;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("Extensions1.extension(S2).operator ++(S2)", "Extensions2.extension(S2).operator ++(S2)").WithLocation(26, 9)
+                );
+#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -11828,9 +11864,9 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (32,17): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
+                // (32,19): error CS9339: Operator resolution is ambiguous between the following members:'I1.operator -(I1, I1)' and 'I3.operator -(I3, I3)'
                 //         var y = x - x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(32, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1, I1)", "I3.operator -(I3, I3)").WithLocation(32, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -11894,11 +11930,10 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
-                // (34,21): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
+                // (34,23): error CS9339: Operator resolution is ambiguous between the following members:'Extensions2.extension(I1).operator -(I1, I1)' and 'Extensions2.extension(I3).operator -(I3, I3)'
                 //             var y = x - x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(34, 21)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("NS1.Extensions2.extension(I1).operator -(I1, I1)", "NS1.Extensions2.extension(I3).operator -(I3, I3)").WithLocation(34, 23)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -13249,15 +13284,25 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyEmitDiagnostics(
-                // (35,13): error CS0034: Operator '-' is ambiguous on operands of type 'C1' and 'C1'
+                // (35,16): error CS9339: Operator resolution is ambiguous between the following members:'Extensions2.extension(C1).operator -(C1, C1)' and 'Extensions1.extension(C1).operator -(C1, C1)'
                 //         _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 - c1").WithArguments("-", "C1", "C1").WithLocation(35, 13),
-                // (39,17): error CS0034: Operator '-' is ambiguous on operands of type 'C1' and 'C1'
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1, C1)", "Extensions1.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
+                // (39,20): error CS9339: Operator resolution is ambiguous between the following members:'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //             _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 - c1").WithArguments("-", "C1", "C1").WithLocation(39, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
                 );
-
+#else
+            comp.VerifyEmitDiagnostics(
+                // (35,16): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
+                //         _ = c1 - c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
+                // (39,20): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
+                //             _ = c1 - c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
+              );
+#endif
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().Last();
@@ -15167,9 +15212,9 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (38,17): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
+                // (38,19): error CS9339: Operator resolution is ambiguous between the following members:'I1.operator &(I1, I1)' and 'I3.operator &(I3, I3)'
                 //         var y = x && x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x && x").WithArguments("&&", "I2", "I2").WithLocation(38, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("I1.operator &(I1, I1)", "I3.operator &(I3, I3)").WithLocation(38, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -15232,9 +15277,9 @@ class Test2 : I2
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
             comp.VerifyEmitDiagnostics(
-                // (34,17): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
+                // (34,19): error CS9339: Operator resolution is ambiguous between the following members:'I1.operator &(I1, I1)' and 'I3.operator &(I3, I3)'
                 //         var y = x && x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x && x").WithArguments("&&", "I2", "I2").WithLocation(34, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("I1.operator &(I1, I1)", "I3.operator &(I3, I3)").WithLocation(34, 19)
                 );
         }
 
@@ -15290,11 +15335,10 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
-                // (40,21): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
+                // (40,23): error CS9339: Operator resolution is ambiguous between the following members:'Extensions2.extension(I1).operator &(I1, I1)' and 'Extensions2.extension(I3).operator &(I3, I3)'
                 //             var y = x && x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x && x").WithArguments("&&", "I2", "I2").WithLocation(40, 21)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("NS1.Extensions2.extension(I1).operator &(I1, I1)", "NS1.Extensions2.extension(I3).operator &(I3, I3)").WithLocation(40, 23)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -15360,9 +15404,9 @@ namespace NS1
             var comp = CreateCompilation(src);
 
             comp.VerifyEmitDiagnostics(
-                // (36,21): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
+                // (36,23): error CS9339: Operator resolution is ambiguous between the following members:'Extensions2.extension(I1).operator &(I1, I1)' and 'Extensions2.extension(I3).operator &(I3, I3)'
                 //             var y = x && x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x && x").WithArguments("&&", "I2", "I2").WithLocation(36, 21)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("NS1.Extensions2.extension(I1).operator &(I1, I1)", "NS1.Extensions2.extension(I3).operator &(I3, I3)").WithLocation(36, 23)
                 );
         }
 
@@ -15403,9 +15447,9 @@ class Test2 : I2
             var comp = CreateCompilation(src);
 
             comp.VerifyEmitDiagnostics(
-                // (26,17): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
+                // (26,19): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(I1).operator &(I1, I1)' and 'Extensions2.extension(I3).operator &(I3, I3)'
                 //         var y = x && x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x && x").WithArguments("&&", "I2", "I2").WithLocation(26, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("Extensions2.extension(I1).operator &(I1, I1)", "Extensions2.extension(I3).operator &(I3, I3)").WithLocation(26, 19)
                 );
         }
 
@@ -15845,7 +15889,7 @@ class Program
             // Note, an attempt to do compile time optimization using non-dynamic static type of 's2' ignores true/false extensions.
             // This is desirable because runtime binder wouldn't be able to use them as well.
             comp.VerifyEmitDiagnostics(
-                // (26,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'object' must define operator 'false'.
+                // (26,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'object' must not be an interface and must define operator 'false'.
                 //         _ = s2 && s1;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s2").WithArguments("object", "false").WithLocation(26, 13)
                 );
@@ -19867,9 +19911,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (22,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S2'
+                // (22,16): error CS9340: Operator cannot be applied to operands of type 'S2' and 'S2'. The closest inapplicable candidate is 'Extensions1.extension(S2).operator +(S2, int)'
                 //         _ = s2 + s2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s2").WithArguments("+", "S2", "S2").WithLocation(22, 13)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+").WithArguments("S2", "S2", "Extensions1.extension(S2).operator +(S2, int)").WithLocation(22, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -19922,9 +19966,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (29,13): error CS0034: Operator '+' is ambiguous on operands of type 'S2' and 'S2'
+                // (29,16): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator +(S2, C1)' and 'Extensions1.extension(S2).operator +(S2, C2)'
                 //         _ = s2 + s2;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s2 + s2").WithArguments("+", "S2", "S2").WithLocation(29, 13)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Extensions1.extension(S2).operator +(S2, C1)", "Extensions1.extension(S2).operator +(S2, C2)").WithLocation(29, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21475,9 +21519,9 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (33,17): error CS0034: Operator '-=' is ambiguous on operands of type 'I2' and 'I2'
+                // (33,19): error CS9339: Operator resolution is ambiguous between the following members:'I1.operator -(I1, I1)' and 'I3.operator -(I3, I3)'
                 //         var y = x -= x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x -= x").WithArguments("-=", "I2", "I2").WithLocation(33, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("I1.operator -(I1, I1)", "I3.operator -(I3, I3)").WithLocation(33, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21671,11 +21715,10 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
-                // (35,21): error CS0034: Operator '-=' is ambiguous on operands of type 'I2' and 'I2'
+                // (35,23): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(I1).operator -(I1, I1)' and 'Extensions2.extension(I3).operator -(I3, I3)'
                 //             var y = x -= x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x -= x").WithArguments("-=", "I2", "I2").WithLocation(35, 21)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("NS1.Extensions2.extension(I1).operator -(I1, I1)", "NS1.Extensions2.extension(I3).operator -(I3, I3)").WithLocation(35, 23)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21926,11 +21969,11 @@ class Program
 
 """ + CompilerFeatureRequiredAttribute;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (18,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1?' and 'S1?'
-                //         _ = s11 += s12;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s11 " + op + "= s12").WithArguments(op + "=", "S1?", "S1?").WithLocation(18, 13)
+                // (18,17): error CS9340: Operator cannot be applied to operands of type 'S1?' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
+                //         _ = s11 %= s12;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, op + "=").WithArguments("S1?", "S1?", "Extensions1.extension(ref S1).operator " + op + "=(S1)").WithLocation(18, 17)
                 );
         }
 
@@ -22046,14 +22089,14 @@ class Program
 
 """ + CompilerFeatureRequiredAttribute;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (18,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1?' and 'S1'
-                //         _ = s11 += s12;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s11 " + op + "= s12").WithArguments(op + "=", "S1?", "S1").WithLocation(18, 13),
-                // (19,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1?'
-                //         _ = s12 += s11;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s12 " + op + "= s11").WithArguments(op + "=", "S1", "S1?").WithLocation(19, 13)
+                // (18,17): error CS9340: Operator cannot be applied to operands of type 'S1?' and 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
+                //         _ = s11 %= s12;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, op + "=").WithArguments("S1?", "S1", "Extensions1.extension(ref S1).operator " + op + "=(S1)").WithLocation(18, 17),
+                // (19,17): error CS9340: Operator cannot be applied to operands of type 'S1' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
+                //         _ = s12 %= s11;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, op + "=").WithArguments("S1", "S1?", "Extensions1.extension(ref S1).operator " + op + "=(S1)").WithLocation(19, 17)
                 );
         }
 
@@ -22317,9 +22360,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1'
+                // (17,16): error CS9340: Operator could not be resolved on operands of type 'S1' and 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1?).operator +=(S1?)'
                 //         _ = s1 += s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += s1").WithArguments("+=", "S1", "S1").WithLocation(17, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1", "S1", "Extensions1.extension(ref S1?).operator +=(S1?)").WithLocation(17, 16),
                 // (18,43): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         Extensions1.op_AdditionAssignment(s1, s1);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("1", "ref").WithLocation(18, 43),
@@ -22516,18 +22559,18 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (23,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S2'
+                // (23,16): error CS9340: Operator could not be resolved on operands of type 'S1' and 'S2'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator +=(S2)'
                 //         _ = s1 += s2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += s2").WithArguments("+=", "S1", "S2").WithLocation(23, 13),
-                // (25,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1'
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1", "S2", "Extensions1.extension(ref S2).operator +=(S2)").WithLocation(23, 16),
+                // (25,16): error CS9340: Operator could not be resolved on operands of type 'S1' and 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator +=(S2)'
                 //         _ = s1 += s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += s1").WithArguments("+=", "S1", "S1").WithLocation(25, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1", "S1", "Extensions1.extension(ref S2).operator +=(S2)").WithLocation(25, 16),
                 // (26,47): error CS1503: Argument 1: cannot convert from 'ref S1' to 'ref S2'
                 //         Extensions1.op_AdditionAssignment(ref s1, s1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s1").WithArguments("1", "ref S1", "ref S2").WithLocation(26, 47),
-                // (29,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1?' and 'S1?'
+                // (29,16): error CS9340: Operator could not be resolved on operands of type 'S1?' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator +=(S2)'
                 //         _ = s3 += s3;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s3 += s3").WithArguments("+=", "S1?", "S1?").WithLocation(29, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1?", "S1?", "Extensions1.extension(ref S2).operator +=(S2)").WithLocation(29, 16),
                 // (30,47): error CS1503: Argument 1: cannot convert from 'ref S1?' to 'ref S2'
                 //         Extensions1.op_AdditionAssignment(ref s3, s3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s3").WithArguments("1", "ref S1?", "ref S2").WithLocation(30, 47),
@@ -22603,12 +22646,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'int'
+                // (17,12): error CS9340: Operator could not be resolved on operands of type 'S1' and 'int'. The closest inapplicable candidate is 'Extensions1.extension(object).operator +=(int)'
                 //         s1 += 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += 1").WithArguments("+=", "S1", "int").WithLocation(17, 9),
-                // (21,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S1?' and 'int'
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1", "int", "Extensions1.extension(object).operator +=(int)").WithLocation(17, 12),
+                // (21,12): error CS9340: Operator could not be resolved on operands of type 'S1?' and 'int'. The closest inapplicable candidate is 'Extensions1.extension(object).operator +=(int)'
                 //         s2 += 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 += 1").WithArguments("+=", "S1?", "int").WithLocation(21, 9)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1?", "int", "Extensions1.extension(object).operator +=(int)").WithLocation(21, 12)
                 );
         }
 
@@ -22815,9 +22858,9 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS0019: Operator '+=' cannot be applied to operands of type 'int[]' and 'int'
+                // (17,16): error CS9340: Operator could not be resolved on operands of type 'int[]' and 'int'. The closest inapplicable candidate is 'Extensions1.extension(ref Span<int>).operator +=(int)'
                 //         _ = a1 += 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a1 += 1").WithArguments("+=", "int[]", "int").WithLocation(17, 13),
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("int[]", "int", "Extensions1.extension(ref System.Span<int>).operator +=(int)").WithLocation(17, 16),
                 // (18,47): error CS1503: Argument 1: cannot convert from 'ref int[]' to 'ref System.Span<int>'
                 //         Extensions1.op_AdditionAssignment(ref a1, 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a1").WithArguments("1", "ref int[]", "ref System.Span<int>").WithLocation(18, 47)
@@ -23156,9 +23199,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS0019: Operator '+=' cannot be applied to operands of type 'S1<int>' and 'int'
+                // (17,16): error CS9340: Operator could not be resolved on operands of type 'S1<int>' and 'int'. The closest inapplicable candidate is 'Extensions1.extension<int>(ref S1<int>).operator +=(int)'
                 //         _ = s1 += 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += 1").WithArguments("+=", "S1<int>", "int").WithLocation(17, 13)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S1<int>", "int", "Extensions1.extension<int>(ref S1<int>).operator +=(int)").WithLocation(17, 16)
                 );
         }
 
@@ -23796,14 +23839,25 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyEmitDiagnostics(
-                // (35,13): error CS0034: Operator '-=' is ambiguous on operands of type 'C1' and 'C1'
+                // (35,16): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1, C1)' and 'Extensions1.extension(C1).operator -(C1, C1)'
                 //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 -= c1").WithArguments("-=", "C1", "C1").WithLocation(35, 13),
-                // (39,17): error CS0034: Operator '-=' is ambiguous on operands of type 'C1' and 'C1'
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions2.extension(C1).operator -(C1, C1)", "Extensions1.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
+                // (39,20): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 -= c1").WithArguments("-=", "C1", "C1").WithLocation(39, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
                 );
+#else
+            comp.VerifyEmitDiagnostics(
+                // (35,16): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
+                //         _ = c1 -= c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
+                // (39,20): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
+                //             _ = c1 -= c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
+                );
+#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -24692,9 +24746,18 @@ static class Extensions
                 // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return Y(c += c1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
                 // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27),
                 // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27)
@@ -24893,9 +24956,12 @@ static class Extensions
                 // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "left").WithLocation(12, 22),
+                // (12,24): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(12, 24)
                 );
         }
 
@@ -24942,16 +25008,19 @@ static class Extensions
                 // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, scoped C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, scoped C)", "left").WithLocation(12, 22),
+                // (12,24): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(12, 24)
                 );
         }
 
         /// <summary>
         /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_04
         /// </summary>
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
         public void CompoundAssignment_089_RefSafety()
         {
             var source = """
@@ -24978,14 +25047,7 @@ static class Extensions
     }
 }
 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
-                //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
-                //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
-                );
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -27367,9 +27429,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (22,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S2' and 'S2'
+                // (22,12): error CS9340: Operator could not be resolved on operands of type 'S2' and 'S2'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator +=(int)'
                 //         s2 += s2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 += s2").WithArguments("+=", "S2", "S2").WithLocation(22, 9)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S2", "S2", "Extensions1.extension(ref S2).operator +=(int)").WithLocation(22, 12)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -27471,9 +27533,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (22,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S2' and 'S2'
+                // (22,12): error CS9340: Operator could not be resolved on operands of type 'S2' and 'S2'. The closest inapplicable candidate is 'Extensions1.extension(S2).operator +(S2, int)'
                 //         s2 += s2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 += s2").WithArguments("+=", "S2", "S2").WithLocation(22, 9)
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("S2", "S2", "Extensions1.extension(S2).operator +(S2, int)").WithLocation(22, 12)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -27526,9 +27588,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (29,9): error CS0034: Operator '+=' is ambiguous on operands of type 'S2' and 'S2'
+                // (29,12): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator +(S2, C1)' and 'Extensions1.extension(S2).operator +(S2, C2)'
                 //         s2 += s2;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s2 += s2").WithArguments("+=", "S2", "S2").WithLocation(29, 9)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+=").WithArguments("Extensions1.extension(S2).operator +(S2, C1)", "Extensions1.extension(S2).operator +(S2, C2)").WithLocation(29, 12)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -27692,9 +27754,9 @@ static class E2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'S' and 'S'
+                // (1,13): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(S).operator +(S, S)' and 'E2.extension(in S).operator +(S, S)'
                 // _ = new S() + new S();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new S() + new S()").WithArguments("+", "S", "S").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("E1.extension(S).operator +(S, S)", "E2.extension(in S).operator +(S, S)").WithLocation(1, 13));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -27771,9 +27833,9 @@ namespace N2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+                // (4,13): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator +(C, C)' and 'E2.extension(C).operator +(C, C)'
                 // _ = new C() + new C();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("N1.E1.extension(C).operator +(C, C)", "N2.E2.extension(C).operator +(C, C)").WithLocation(4, 13));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -27859,9 +27921,9 @@ namespace N2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+                // (4,13): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator +(C, C)' and 'E2.extension(C).operator +(C, C)'
                 // _ = new C() + new C();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("N1.E1.extension(C).operator +(C, C)", "N2.E2.extension(C).operator +(C, C)").WithLocation(4, 13));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -28278,9 +28340,9 @@ namespace N2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (5,1): error CS0034: Operator '+=' is ambiguous on operands of type 'C' and 'C'
+                // (5,3): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator +(C, C)' and 'E2.extension(C).operator +(C, C)'
                 // c += new C();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c += new C()").WithArguments("+=", "C", "C").WithLocation(5, 1));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+=").WithArguments("N1.E1.extension(C).operator +(C, C)", "N2.E2.extension(C).operator +(C, C)").WithLocation(5, 3));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -28441,9 +28503,9 @@ namespace N2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (5,5): error CS0035: Operator '+' is ambiguous on an operand of type 'C'
+                // (5,5): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator +(C)' and 'E2.extension(C).operator +(C)'
                 // _ = +c;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "+c").WithArguments("+", "C").WithLocation(5, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("N1.E1.extension(C).operator +(C)", "N2.E2.extension(C).operator +(C)").WithLocation(5, 5));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -28608,9 +28670,9 @@ namespace N2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (5,5): error CS0035: Operator '++' is ambiguous on an operand of type 'C'
+                // (5,6): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator ++(C)' and 'E2.extension(C).operator ++(C)'
                 // _ = c++;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "c++").WithArguments("++", "C").WithLocation(5, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("N1.E1.extension(C).operator ++(C)", "N2.E2.extension(C).operator ++(C)").WithLocation(5, 6));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -28735,9 +28797,9 @@ namespace N2
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (5,5): error CS0035: Operator '++' is ambiguous on an operand of type 'C'
+                // (5,5): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator ++(C)' and 'E2.extension(C).operator ++(C)'
                 // _ = ++c;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "++c").WithArguments("++", "C").WithLocation(5, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("N1.E1.extension(C).operator ++(C)", "N2.E2.extension(C).operator ++(C)").WithLocation(5, 5));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -29411,6 +29473,751 @@ _ = ++s;
                 // (4,5): error CS0023: Operator '++' cannot be applied to operand of type 'S'
                 // _ = ++s;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s").WithArguments("++", "S").WithLocation(4, 5));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_01()
+        {
+            // inner scope has inapplicable operator, outer scope too
+            var src = """
+using N;
+
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i1, I2 i2) => throw null;
+    }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        extension(I1)
+        {
+            public static I1 operator +(I1 i1, I2 i2) => throw null;
+        }
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,4): error CS9340: Operator 'I1' could not be resolved on operands of type 'I1' and 'int'. The closest inapplicable candidate is 'E1.extension(I1).operator +(I1, I2)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("I1", "int", "E1.extension(I1).operator +(I1, I2)").WithLocation(4, 4)
+                );
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_02()
+        {
+            // inner scope has inapplicable operator, outer scope has two applicable/worse operators
+            var src = """
+using N;
+
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i1, I2 i2) => throw null;
+    }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        extension(I1)
+        {
+            public static I1 operator +(I1 i1, int i) => throw null;
+        }
+    }
+    public static class E3
+    {
+        extension(I1)
+        {
+            public static I1 operator +(I1 i1, int i) => throw null;
+        }
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,4): error CS9340: Operator 'I1' could not be resolved on operands of type 'I1' and 'int'. The closest inapplicable candidate is 'E1.extension(I1).operator +(I1, I2)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("I1", "int", "E1.extension(I1).operator +(I1, I2)").WithLocation(4, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_03()
+        {
+            // inner scope has two inapplicable operators, outer scope has two applicable/worse operators
+            var src = """
+using N;
+
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i1, I2 i2) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i1, I2 i2) => throw null;
+    }
+}
+
+namespace N
+{
+    public static class E3
+    {
+        extension(I1)
+        {
+            public static I1 operator +(I1 i1, int i) => throw null;
+        }
+    }
+    public static class E4
+    {
+        extension(I1)
+        {
+            public static I1 operator +(I1 i1, int i) => throw null;
+        }
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,1): error CS0034: Operator '+=' is ambiguous on operands of type 'I1' and 'int'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i1 += 42").WithArguments("+=", "I1", "int").WithLocation(4, 1));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_04()
+        {
+            // outer scope has inapplicable operator, inner scope has two applicable/worse operators
+            var src = """
+using N;
+
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i1, int i) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i1, int i) => throw null;
+    }
+}
+
+namespace N
+{
+    public static class E3
+    {
+        extension(I1)
+        {
+            public static I1 operator +(I1 i1, I2 i2) => throw null;
+        }
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,4): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(I1).operator +(I1, int)' and 'E2.extension(I1).operator +(I1, int)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+=").WithArguments("E1.extension(I1).operator +(I1, int)", "E2.extension(I1).operator +(I1, int)").WithLocation(4, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_05()
+        {
+            // single inapplicable instance operator and single inapplicable static operator
+            var src = """
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1 i1)
+    {
+        public void operator +=(I2 i2) => throw null;
+        public static I1 operator +(I1 i2, I2 i3) => throw null;
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9340: Operator 'I1' could not be resolved on operands of type 'I1' and 'int'. The closest inapplicable candidate is 'E1.extension(I1).operator +=(I2)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("I1", "int", "E1.extension(I1).operator +=(I2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_06()
+        {
+            // single inapplicable instance operator
+            var src = """
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1 i1)
+    {
+        public void operator +=(I2 i2) => throw null;
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9340: Operator 'I1' could not be resolved on operands of type 'I1' and 'int'. The closest inapplicable candidate is 'E1.extension(I1).operator +=(I2)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("I1", "int", "E1.extension(I1).operator +=(I2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_07()
+        {
+            // single inapplicable static operator
+            var src = """
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1 i1)
+    {
+        public static I1 operator +(I1 i2, I2 i3) => throw null;
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9340: Operator 'I1' could not be resolved on operands of type 'I1' and 'int'. The closest inapplicable candidate is 'E1.extension(I1).operator +(I1, I2)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("I1", "int", "E1.extension(I1).operator +(I1, I2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_08()
+        {
+            // inapplicable static operator and irrelevant static operator (not compatible with receiver)
+            var src = """
+I1 i1 = null;
+i1 += 42;
+
+public static class E1
+{
+    extension(I1)
+    {
+        public static I1 operator +(I1 i2, I2 i3) => throw null;
+    }
+
+    extension(I2)
+    {
+        public static I2 operator +(I2 i, I2 j) => throw null;
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9340: Operator 'I1' could not be resolved on operands of type 'I1' and 'int'. The closest inapplicable candidate is 'E1.extension(I1).operator +(I1, I2)'
+                // i1 += 42;
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("I1", "int", "E1.extension(I1).operator +(I1, I2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_09()
+        {
+            // inapplicable non-extension static operator
+            var src = """
+C1 c1 = null;
+c1 += new C3();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public class C2 { }
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'C3'
+                // c1 += new C3();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += new C3()").WithArguments("+=", "C1", "C3").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_10()
+        {
+            // inapplicable non-extension static operator, single inapplicable extension static operator
+            var src = """
+C1 c1 = null;
+c1 += new C3();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public class C2 { }
+public class C3 { }
+""";
+
+            // Note: GetUserDefinedOperators clears its results when no candidate was applicable. That's why we report the extension operator rather than the equivalent non-extension operator
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9340: Operator 'C1' could not be resolved on operands of type 'C1' and 'C3'. The closest inapplicable candidate is 'E1.extension(C1).operator +(C1, C2)'
+                // c1 += new C3();
+                Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("C1", "C3", "E1.extension(C1).operator +(C1, C2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_11()
+        {
+            // inapplicable non-extension static operator, two inapplicable extension static operators
+            var src = """
+C1 c1 = null;
+c1 += new C3();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public class C2 { }
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'C3'
+                // c1 += new C3();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += new C3()").WithArguments("+=", "C1", "C3").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_12()
+        {
+            // inapplicable non-extension static operator, two applicable extension static operators
+            var src = """
+C1 c1 = null;
+c1 += new C3();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C3 c3) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C3 c3) => throw null;
+    }
+}
+
+public class C2 { }
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9339: Operator resolution is ambiguous between the following members: 'E1.extension(C1).operator +(C1, C3)' and 'E2.extension(C1).operator +(C1, C3)'
+                // c1 += new C3();
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+=").WithArguments("E1.extension(C1).operator +(C1, C3)", "E2.extension(C1).operator +(C1, C3)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_13()
+        {
+            // two applicable non-extension static operators
+            var src = """
+C1 c1 = null;
+c1 += new C2();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public class C2 
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9339: Operator resolution is ambiguous between the following members: 'C1.operator +(C1, C2)' and 'C2.operator +(C1, C2)'
+                // c1 += new C2();
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+=").WithArguments("C1.operator +(C1, C2)", "C2.operator +(C1, C2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_14()
+        {
+            // two applicable non-extension static operators, single applicable extension static operator
+            var src = """
+C1 c1 = null;
+c1 += new C2();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public class C2 
+{ 
+    public static C1 operator +(C1 c1, C2 c2) => throw null;
+}
+
+public static class E
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,4): error CS9339: Operator resolution is ambiguous between the following members: 'C1.operator +(C1, C2)' and 'C2.operator +(C1, C2)'
+                // c1 += new C2();
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+=").WithArguments("C1.operator +(C1, C2)", "C2.operator +(C1, C2)").WithLocation(2, 4));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_15()
+        {
+            // two inapplicable non-extension static operators
+            var src = """
+C1 c1 = null;
+c1 += new C2();
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C3 c3) => throw null;
+}
+
+public class C2 
+{ 
+    public static C1 operator +(C3 c3, C2 c2) => throw null;
+}
+
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'C2'
+                // c1 += new C2();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += new C2()").WithArguments("+=", "C1", "C2").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_CompoundAssignment_16()
+        {
+            // two inapplicable non-extension static operators, second operand type is integer
+            var src = """
+C1 c1 = null;
+c1 += 42;
+
+public class C1
+{ 
+    public static C1 operator +(C1 c1, C3 c3) => throw null;
+}
+
+public class C2 
+{ 
+    public static C1 operator +(C3 c3, C2 c2) => throw null;
+}
+
+public class C3 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                // c1 += 42;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 42").WithArguments("+=", "C1", "int").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_Binary_01()
+        {
+            var src = """
+_ = new C1() + new C2();
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public class C1 { }
+public class C2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (1,14): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C1).operator +(C1, C2)' and 'E2.extension(C1).operator +(C1, C2)'
+                // _ = new C1() + new C2();
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("E1.extension(C1).operator +(C1, C2)", "E2.extension(C1).operator +(C1, C2)").WithLocation(1, 14));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_Binary_02()
+        {
+            var src = """
+_ = new C1() == new C2();
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static bool operator ==(C1 c1, C2 c2) => throw null;
+        public static bool operator !=(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1)
+    {
+        public static bool operator ==(C1 c1, C2 c2) => throw null;
+        public static bool operator !=(C1 c1, C2 c2) => throw null;
+    }
+}
+
+public class C1 { }
+public class C2 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (1,14): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C1).operator ==(C1, C2)' and 'E2.extension(C1).operator ==(C1, C2)'
+                // _ = new C1() == new C2();
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "==").WithArguments("E1.extension(C1).operator ==(C1, C2)", "E2.extension(C1).operator ==(C1, C2)").WithLocation(1, 14));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_Binary_03()
+        {
+            var src = """
+_ = null == null;
+_ = null == default;
+_ = null == (() => { });
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
+                // _ = null == default;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "null == default").WithArguments("==", "<null>", "default").WithLocation(2, 5));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_Unary_01()
+        {
+            var src = """
+C1 c1 = null;
+_ = +c1;
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 c1) => throw null;
+    }
+}
+
+public class C1 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C1).operator +(C1)' and 'E2.extension(C1).operator +(C1)'
+                // _ = +c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("E1.extension(C1).operator +(C1)", "E2.extension(C1).operator +(C1)").WithLocation(2, 5));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_Increment_01()
+        {
+            var src = """
+C1 c1 = null;
+_ = ++c1;
+
+public static class E1
+{
+    extension(C1)
+    {
+        public static C1 operator ++(C1 c1) => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1)
+    {
+        public static C1 operator ++(C1 c1) => throw null;
+    }
+}
+
+public class C1 { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C1).operator ++(C1)' and 'E2.extension(C1).operator ++(C1)'
+                // _ = ++c1;
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("E1.extension(C1).operator ++(C1)", "E2.extension(C1).operator ++(C1)").WithLocation(2, 5));
+        }
+
+        [Fact]
+        public void ReportDiagnostics_Increment_02()
+        {
+            var src = """
+C1 c1 = null;
+_ = ++c1;
+
+public static class E1
+{
+    extension(C1 c1)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public static class E2
+{
+    extension(C1 c1)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public class C1 { }
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(C1).operator ++()' and 'E2.extension(C1).operator ++()'
+                // _ = ++c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("E1.extension(C1).operator ++()", "E2.extension(C1).operator ++()").WithLocation(2, 5));
         }
     }
 }

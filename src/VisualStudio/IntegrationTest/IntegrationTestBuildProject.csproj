@@ -18,7 +18,6 @@
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\arm64\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x64\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" />
-    <ProjectReference Include="..\..\Setup\Installer\Installer.Package.csproj" />
     <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" />
     <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" />
     <ProjectReference Include="..\..\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj" />

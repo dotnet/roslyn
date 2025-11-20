@@ -386,6 +386,63 @@ internal sealed class ClassificationTypeFormatDefinitions
         }
     }
     #endregion
+    #region User Types - Arrays
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ArrayName)]
+    [Name(ClassificationTypeNames.ArrayName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypeArraysFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypeArraysFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Arrays;
+        }
+    }
+    #endregion
+    #region User Types - Pointers
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PointerName)]
+    [Name(ClassificationTypeNames.PointerName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypePointersFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypePointersFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Pointers;
+        }
+    }
+    #endregion
+    #region User Types - Function Pointers
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FunctionPointerName)]
+    [Name(ClassificationTypeNames.FunctionPointerName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypeFunctionPointersFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypeFunctionPointersFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Function_Pointers;
+        }
+    }
+    #endregion
 
     #region User Members - Fields
     [Export(typeof(EditorFormatDefinition))]

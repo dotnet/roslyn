@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.AwaitOpt is { } awaitableInfo)
             {
                 SafeContext valEscapeScope = node.ExpressionOpt is { } expr
-                    ? GetValEscape(expr, _localScopeDepth)
+                    ? GetValEscape(expr)
                     : _localScopeDepth;
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, valEscapeScope);
             }
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             using var _1 = new LocalScope(this, node.InnerLocals);
-            using var _2 = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            using var _2 = new PatternInput(this, GetValEscape(node.Expression));
             this.VisitList(node.SwitchSections);
             this.Visit(node.DefaultLabel);
             return null;
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             this.Visit(node.Expression);
-            using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            using var _ = new PatternInput(this, GetValEscape(node.Expression));
             this.VisitList(node.SwitchArms);
             return null;
         }
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the initializer. Validate the escape values for the initializer instead.
 
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        GetRefEscape(initializer, _localScopeDepth).IsConvertibleTo(refEscapeScope));
+                        GetRefEscape(initializer).IsConvertibleTo(refEscapeScope));
 
                     if (node.DeclaredTypeOpt?.Type.IsRefLikeOrAllowsRefLikeType() == true)
                     {
@@ -563,10 +563,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // default to the current scope in case we need to handle self-referential error cases.
                     SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
 
-                    valEscapeScope = GetValEscape(initializer, _localScopeDepth);
+                    valEscapeScope = GetValEscape(initializer);
                     if (localSymbol.RefKind != RefKind.None)
                     {
-                        refEscapeScope = GetRefEscape(initializer, _localScopeDepth);
+                        refEscapeScope = GetRefEscape(initializer);
                     }
 
                     SetLocalScopes(localSymbol, refEscapeScope, valEscapeScope);
@@ -617,7 +617,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckInvocationArgMixing(
                     node.Syntax,
                     in methodInvocationInfo,
-                    _localScopeDepth,
                     symbolForReporting: compoundMethod,
                     _diagnostics);
 
@@ -634,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             this.Visit(node.Expression);
-            using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            using var _ = new PatternInput(this, GetValEscape(node.Expression));
             this.Visit(node.Pattern);
             return null;
         }
@@ -687,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
                 }
-                else if (method.GetIsNewExtensionMember())
+                else if (method.IsExtensionBlockMember())
                 {
                     return method.ContainingType.ExtensionParameter;
                 }
@@ -855,14 +854,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
 
-            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Method.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Method.IsExtensionBlockMember());
 
             if (!node.HasErrors)
             {
                 CheckInvocationArgMixing(
                     node.Syntax,
                     in methodInvocationInfo,
-                    _localScopeDepth,
                     node.Method,
                     _diagnostics);
             }
@@ -896,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
+                            valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver) : GetValEscape(receiver);
                         }
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
@@ -924,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SafeContext valEscapeScope;
                 if (argIndex < nArgumentsVisited)
                 {
-                    valEscapeScope = GetValEscape(arguments[argIndex], _localScopeDepth);
+                    valEscapeScope = GetValEscape(arguments[argIndex]);
                 }
                 else
                 {
@@ -971,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodInvocationInfo = MethodInvocationInfo.FromObjectCreation(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
-            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isNewExtensionMethod: node.Constructor.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isNewExtensionMethod: node.Constructor.IsExtensionBlockMember());
             Visit(node.InitializerExpressionOpt);
 
             if (node.HasErrors)
@@ -981,7 +979,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckInvocationArgMixing(
                 node.Syntax,
                 in methodInvocationInfo,
-                _localScopeDepth,
                 node.Constructor,
                 _diagnostics);
 
@@ -1002,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // change. Customers can respond to failures like this by putting scoped on
                 // such parameters in the constructor.
                 var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
-                var escapeFrom = GetValEscape(node.InitializerExpressionOpt, _localScopeDepth);
+                var escapeFrom = GetValEscape(node.InitializerExpressionOpt);
                 GetEscapeValues(
                     in methodInvocationInfo,
                     ignoreArglistRefKinds: false,
@@ -1022,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (!escapeFrom.IsConvertibleTo(GetValEscape(argument, _localScopeDepth)))
+                    if (!escapeFrom.IsConvertibleTo(GetValEscape(argument)))
                     {
                         Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, node.Constructor, parameter.Name);
                     }
@@ -1044,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
             Visit(methodInvocationInfo.Receiver);
-            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.IsExtensionBlockMember());
 
             if (!node.HasErrors)
             {
@@ -1052,7 +1049,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckInvocationArgMixing(
                     node.Syntax,
                     in methodInvocationInfo,
-                    _localScopeDepth,
                     indexer,
                     _diagnostics);
             }
@@ -1070,7 +1066,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckInvocationArgMixing(
                     node.Syntax,
                     in methodInvocationInfo,
-                    _localScopeDepth,
                     node.FunctionPointer.Signature,
                     _diagnostics);
             }
@@ -1082,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
-            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression, _localScopeDepth));
+            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression));
             using var _ = new PlaceholderRegion(this, placeholders);
             this.Visit(node.AwaitableInfo);
             return null;
@@ -1150,11 +1145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
 
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
-            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, SafeContextAndLocation.Create(GetValEscape(right, _localScopeDepth))));
+            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, SafeContextAndLocation.Create(GetValEscape(right))));
 
             var parameters = methodInvocationInfo.Parameters;
             int n = variables.Count;
-            int offset = invocation.InvokedAsExtensionMethod || invocation.Method.GetIsNewExtensionMember() ? 1 : 0;
+            int offset = invocation.InvokedAsExtensionMethod || invocation.Method.IsExtensionBlockMember() ? 1 : 0;
             Debug.Assert(parameters.Length - offset == n);
 
             for (int i = 0; i < n; i++)
@@ -1163,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var nestedVariables = variable.NestedVariables;
                 var arg = (BoundDeconstructValuePlaceholder)methodInvocationInfo.ArgsOpt[i + offset];
                 SafeContext valEscape = nestedVariables is null
-                    ? GetValEscape(variable.Expression, _localScopeDepth)
+                    ? GetValEscape(variable.Expression)
                     : _localScopeDepth;
                 placeholders.Add((arg, SafeContextAndLocation.Create(valEscape)));
             }
@@ -1184,7 +1179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckInvocationArgMixing(
                 syntax,
                 in methodInvocationInfo,
-                _localScopeDepth,
                 invocation.Method,
                 _diagnostics);
 
@@ -1229,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return expr is BoundTupleExpression tuple
                     ? new DeconstructionVariable(expr, valEscape: SafeContext.Empty, GetDeconstructionAssignmentVariables(tuple))
-                    : new DeconstructionVariable(expr, GetValEscape(expr, _localScopeDepth), null);
+                    : new DeconstructionVariable(expr, GetValEscape(expr), null);
             }
         }
 
@@ -1270,12 +1264,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 collectionEscape = GetInvocationEscapeScope(
                     MethodInvocationInfo.FromInlineArrayConversion(equivalentSignatureMethod, arguments, refKinds, node.HasAnyErrors),
-                    _localScopeDepth,
                     isRefEscape: false);
             }
             else
             {
-                collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+                collectionEscape = GetValEscape(node.Expression);
             }
 
             using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty);
