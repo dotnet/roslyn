@@ -5777,36 +5777,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
-            TypeSymbol leftType = leftOperand.Type;
-
+            // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
-                leftOperand = BindToTypeForErrorRecovery(leftOperand);
-
-                var rightOperandTargetType = leftType switch
-                {
-                    { IsReferenceType: true } or { IsValueType: false, TypeKind: TypeKind.TypeParameter } => leftType,
-                    { IsValueType: true } when leftType.IsNullableType() => leftType.GetNullableUnderlyingType(),
-                    _ => null
-                };
-
-                if (rightOperandTargetType is not null)
-                {
-                    // If we can infer what type of right operand should be, generate a conversion to that type.
-                    // This will massively help with target-typed expressions especially for IDE scenarios, but also
-                    // lead to more consistent binding for error and success cases
-                    var conversion = GenerateConversionForAssignment(rightOperandTargetType, rightOperand, BindingDiagnosticBag.Discarded, ConversionForAssignmentFlags.CompoundAssignment);
-                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, conversion, rightOperandTargetType, hasErrors: true);
-                }
-                else
-                {
-                    rightOperand = BindToTypeForErrorRecovery(rightOperand);
-                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
-                }
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
             // non-nullable value type of A is A0.
+            TypeSymbol leftType = leftOperand.Type;
             Debug.Assert((object)leftType != null);
 
             // If A is a non-nullable value type, a compile-time error occurs
