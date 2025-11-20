@@ -3,10 +3,13 @@
 // See the License.txt file in the project root for more information.
 
 using System.Net.Http.Headers;
+using Azure.Core;
+using Azure.Identity;
 using Maestro.Common;
 using Maestro.Common.AzureDevOpsTokens;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.OAuth;
 using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Microsoft.RoslynTools.Utilities;
@@ -49,7 +52,20 @@ internal record RemoteConnections : IDisposable
     private static VssConnection CreateVssConnection(string accountName, IAzureDevOpsTokenProvider tokenProvider)
     {
         var accountUri = new Uri($"https://dev.azure.com/{accountName}");
-        var creds = new VssCredentials(new VssBasicCredential("", tokenProvider.GetTokenForAccount(accountName)));
+        var pat = tokenProvider.GetTokenForAccount(accountName);
+
+        VssCredentials creds;
+        if (!string.IsNullOrEmpty(pat) && pat != "unset")
+        {
+            creds = new VssCredentials(new VssBasicCredential("", pat));
+        }
+        else
+        {
+            var credential = new DefaultAzureCredential();
+            var accessToken = credential.GetToken(new TokenRequestContext(["499b84ac-1321-427f-aa17-267ca6975798/.default"]));
+            creds = new VssOAuthAccessTokenCredential(accessToken.Token);
+        }
+
         return new VssConnection(accountUri, creds);
     }
 

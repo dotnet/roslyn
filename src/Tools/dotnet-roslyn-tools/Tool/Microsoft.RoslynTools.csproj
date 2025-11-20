@@ -28,8 +28,8 @@
     <PackageReference Include="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25074.4" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="19.246.0-preview" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="19.246.0-preview" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="20.262.0-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="20.262.0-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="NuGet.Protocol" Version="6.12.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.25072.1" />
