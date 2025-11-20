@@ -11,26 +11,35 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(ExtensionMethodImportCompletionProvider), LanguageNames.VisualBasic), [Shared]>
+    <ExportCompletionProvider(NameOf(ExtensionMethodImportCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(TypeImportCompletionProvider))>
     <ExtensionOrder(Before:=NameOf(LastBuiltInCompletionProvider))>
+    <[Shared]>
     Friend NotInheritable Class ExtensionMethodImportCompletionProvider
-        Inherits AbstractExtensionMemberImportCompletionProvider
+        Inherits AbstractExtensionMethodImportCompletionProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Friend Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
-        Protected Overrides ReadOnly Property SupportsStaticExtensionMembers As Boolean = False
-        Protected Overrides ReadOnly Property GenericSuffix As String = "(Of ...)"
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
+        Protected Overrides ReadOnly Property GenericSuffix As String
+            Get
+                Return "(Of ...)"
+            End Get
+        End Property
 
         Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
+
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
 
         Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean
             Return False

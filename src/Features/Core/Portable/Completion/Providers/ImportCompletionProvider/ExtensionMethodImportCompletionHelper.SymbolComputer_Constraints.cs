@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal static partial class ExtensionMemberImportCompletionHelper
+internal static partial class ExtensionMethodImportCompletionHelper
 {
     private sealed partial class SymbolComputer
     {

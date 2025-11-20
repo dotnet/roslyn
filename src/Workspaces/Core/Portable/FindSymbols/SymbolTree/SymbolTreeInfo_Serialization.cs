@@ -128,18 +128,18 @@ internal sealed partial class SymbolTreeInfo
             }
         }
 
-        if (_receiverTypeNameToExtensionMemberMap == null)
+        if (_receiverTypeNameToExtensionMethodMap == null)
         {
             writer.WriteInt32(0);
         }
         else
         {
-            writer.WriteInt32(_receiverTypeNameToExtensionMemberMap.Count);
-            foreach (var key in _receiverTypeNameToExtensionMemberMap.Keys)
+            writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
+            foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
             {
                 writer.WriteString(key);
 
-                var values = _receiverTypeNameToExtensionMemberMap[key];
+                var values = _receiverTypeNameToExtensionMethodMap[key];
                 writer.WriteInt32(values.Count);
 
                 foreach (var value in values)
@@ -224,16 +224,16 @@ internal sealed partial class SymbolTreeInfo
                 }
             }
 
-            MultiDictionary<string, ExtensionMemberInfo>? receiverTypeNameToExtensionMemberMap;
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap;
 
             var keyCount = reader.ReadInt32();
             if (keyCount == 0)
             {
-                receiverTypeNameToExtensionMemberMap = null;
+                receiverTypeNameToExtensionMethodMap = null;
             }
             else
             {
-                receiverTypeNameToExtensionMemberMap = [];
+                receiverTypeNameToExtensionMethodMap = [];
 
                 for (var i = 0; i < keyCount; i++)
                 {
@@ -245,7 +245,7 @@ internal sealed partial class SymbolTreeInfo
                         var containerName = reader.ReadRequiredString();
                         var name = reader.ReadRequiredString();
 
-                        receiverTypeNameToExtensionMemberMap.Add(typeName, new ExtensionMemberInfo(containerName, name));
+                        receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                     }
                 }
             }
@@ -259,7 +259,7 @@ internal sealed partial class SymbolTreeInfo
                 : null;
 
             return new SymbolTreeInfo(
-                checksum, nodes.ToImmutableAndClear(), spellChecker, inheritanceMap, receiverTypeNameToExtensionMemberMap);
+                checksum, nodes.ToImmutableAndClear(), spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
         catch
         {

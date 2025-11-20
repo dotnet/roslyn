@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal interface IRemoteExtensionMemberImportCompletionService
+internal interface IRemoteExtensionMethodImportCompletionService
 {
-    ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMembersAsync(
+    ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         int position,
         string receiverTypeSymbolKeyData,
-        bool isStatic,
         ImmutableArray<string> namespaceInScope,
         ImmutableArray<string> targetTypesSymbolKeyData,
         bool forceCacheCreation,

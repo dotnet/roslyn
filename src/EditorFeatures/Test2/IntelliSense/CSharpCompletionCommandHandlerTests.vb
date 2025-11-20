@@ -7012,7 +7012,7 @@ namespace NS2
                 Dim completionService = document.GetLanguageService(Of CompletionService)()
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
@@ -7020,7 +7020,7 @@ namespace NS2
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
 
                 ' Make sure any background work would be completed.
-                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function

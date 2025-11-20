@@ -17,23 +17,23 @@ internal sealed partial class TopLevelSyntaxTreeIndex
         var infoFactory = project.LanguageServices.GetRequiredService<IDeclaredSymbolInfoFactoryService>();
 
         using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
-        using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMemberInfo);
+        using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
         try
         {
             infoFactory.AddDeclaredSymbolInfos(
-                project, root, declaredSymbolInfos, extensionMemberInfo, cancellationToken);
+                project, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
 
             return new TopLevelSyntaxTreeIndex(
                 checksum,
                 new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
-                new ExtensionMemberInfo(
-                    extensionMemberInfo.ToImmutableDictionary(
+                new ExtensionMethodInfo(
+                    extensionMethodInfo.ToImmutableDictionary(
                         static kvp => kvp.Key,
                         static kvp => kvp.Value.ToImmutable())));
         }
         finally
         {
-            foreach (var (_, builder) in extensionMemberInfo)
+            foreach (var (_, builder) in extensionMethodInfo)
                 builder.Free();
         }
     }

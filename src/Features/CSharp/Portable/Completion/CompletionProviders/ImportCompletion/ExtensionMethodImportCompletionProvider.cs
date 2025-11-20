@@ -17,15 +17,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(ExtensionMemberImportCompletionProvider), LanguageNames.CSharp), Shared]
+[ExportCompletionProvider(nameof(ExtensionMethodImportCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(TypeImportCompletionProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtensionMemberImportCompletionProvider
+internal sealed class ExtensionMethodImportCompletionProvider() : AbstractExtensionMethodImportCompletionProvider
 {
     internal override string Language => LanguageNames.CSharp;
 
-    protected override bool SupportsStaticExtensionMembers => true;
     protected override string GenericSuffix => "<>";
 
     public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
@@ -59,10 +58,11 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
         // Therefore at here we always assume the user always wants to add parenthesis.
         => Task.FromResult(commitKey is ';' or '.');
 
-    protected override (ITypeSymbol? receiverTypeSymbol, bool isStatic) TryGetReceiverTypeSymbol(
+    protected override bool TryGetReceiverTypeSymbol(
         SemanticModel semanticModel,
         SyntaxNode node,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
     {
         // If we have:
         //
@@ -76,9 +76,10 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
             expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container) &&
             container is not null and not IErrorTypeSymbol)
         {
-            return (container, isStatic: false);
+            receiverTypeSymbol = container;
+            return true;
         }
 
-        return base.TryGetReceiverTypeSymbol(semanticModel, node, cancellationToken);
+        return base.TryGetReceiverTypeSymbol(semanticModel, node, cancellationToken, out receiverTypeSymbol);
     }
 }
