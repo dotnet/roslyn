@@ -1552,7 +1552,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                       ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
                         ConstructArguments(1):
                             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                              ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with()')
+                              ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with()')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Elements(1):
@@ -1573,7 +1573,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(t)')
-                              ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with(t)')
+                              ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with(t)')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Elements(1):

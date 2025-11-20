@@ -1643,7 +1643,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
             ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(), 1, 2, 3]')
               ConstructArguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1676,7 +1676,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(), 1, 2, 3]')
                                   ConstructArguments(1):
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -1713,7 +1713,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1750,7 +1750,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with()')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -1787,7 +1787,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(0)')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0)')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1824,7 +1824,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(0)')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0)')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0)')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -1861,7 +1861,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capacity: 0)')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capacity: 0)')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capacity: 0)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -1898,7 +1898,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capacity: 0)')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capacity: 0)')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capacity: 0)')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -2068,7 +2068,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(0, null)')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0, null)')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0, null)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -2113,7 +2113,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(0, null)')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0, null)')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(0, null)')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -2157,7 +2157,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -2202,7 +2202,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(capaci ... arer: null)')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -2246,7 +2246,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
-                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
+                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Elements(3):
@@ -2291,7 +2291,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(compar ... apacity: 0)')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
@@ -2772,7 +2772,7 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(ComputeCapacity())')
-                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElements, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(ComputeCapacity())')
+                                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'with(ComputeCapacity())')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(1):
