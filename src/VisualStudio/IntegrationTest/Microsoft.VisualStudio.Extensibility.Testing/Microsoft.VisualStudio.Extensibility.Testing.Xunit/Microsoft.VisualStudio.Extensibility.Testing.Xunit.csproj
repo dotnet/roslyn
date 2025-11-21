@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Xunit</RootNamespace>
+    <DefineConstants>$(DefineConstants);MERGED_PIA</DefineConstants>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.0-previews-3-31605-261" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" VersionOverride="1.16.30" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
+    <!--
+      A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
+      Override the reference to a secure version, but exclude it from the build and packaging.
+    -->
+    <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.extensibility.execution" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev17\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj" Private="false" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded assemblies -->
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
+
+    <!-- Embedded extensions -->
+    <EmbeddedResource Condition="'$(SkipVsixBuild)' != 'true'" Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems" Label="Shared" />
+
+</Project>
