@@ -14170,6 +14170,7 @@ public class C
         public void CompoundRightShiftWithAwait()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 public struct S0
@@ -14182,8 +14183,9 @@ public class C
 
                     public async Task M0_ThisRef()
                     {
+                        Console.Write(this.F2);
                         this.F2 >>= await Program.M1();
-                        System.Console.Write(this.F2);
+                        Console.Write(this.F2);
                     }
                 }
 
@@ -14194,28 +14196,43 @@ public class C
                     public static async Task Main()
                     {
                         await M0_Local();
-                        await M0_Param(new S0(1));
-                        await new S0(1).M0_ThisRef();
-                        await new Program().M0_Field();
+                        Console.WriteLine();
+                        var s0 = new S0(1);
+                        Console.Write(s0.F2);
+                        await M0_Param(s0);
+                        Console.Write(s0.F2);
+                        Console.WriteLine();
+                        s0 = new S0(1);
+                        Console.Write(s0.F2);
+                        await s0.M0_ThisRef();
+                        Console.Write(s0.F2);
+                        Console.WriteLine();
+                        var p = new Program();
+                        Console.Write(p._s0.F2);
+                        await p.M0_Field();
+                        Console.Write(p._s0.F2);
                     }
 
                     public static async Task M0_Local()
                     {
                         S0 var0 = new S0(1);
+                        Console.Write(var0.F2);
                         var0.F2 >>= await M1();
-                        System.Console.Write(var0.F2);
+                        Console.Write(var0.F2);
                     }
 
                     public static async Task M0_Param(S0 var0)
                     {
+                        Console.Write(var0.F2);
                         var0.F2 >>= await M1();
-                        System.Console.Write(var0.F2);
+                        Console.Write(var0.F2);
                     }
 
                     public async Task M0_Field()
                     {
+                        Console.Write(_s0.F2);
                         _s0.F2 >>= await M1();
-                        System.Console.Write(_s0.F2);
+                        Console.Write(_s0.F2);
                     }
 
                     public static async Task<int> M1()
@@ -14224,7 +14241,12 @@ public class C
                     }
                 }
                 """;
-            var expectedOutput = "0000";
+            var expectedOutput = """
+                10
+                1101
+                1101
+                1100
+                """;
 
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
@@ -14235,7 +14257,7 @@ public class C
 
             verifier.VerifyIL("Program.M0_Local()", """
                 {
-                  // Code size       53 (0x35)
+                  // Code size       64 (0x40)
                   .maxstack  4
                   .locals init (S0 V_0, //var0
                                 long V_1,
@@ -14246,55 +14268,61 @@ public class C
                   IL_0004:  call       "S0..ctor(long)"
                   IL_0009:  ldloc.0
                   IL_000a:  ldfld      "long S0.F2"
-                  IL_000f:  stloc.1
-                  IL_0010:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0015:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_001a:  stloc.2
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  ldflda     "long S0.F2"
-                  IL_0022:  ldloc.1
-                  IL_0023:  ldloc.2
-                  IL_0024:  ldc.i4.s   63
-                  IL_0026:  and
-                  IL_0027:  shr
-                  IL_0028:  stind.i8
-                  IL_0029:  ldloc.0
-                  IL_002a:  ldfld      "long S0.F2"
-                  IL_002f:  call       "void System.Console.Write(long)"
-                  IL_0034:  ret
+                  IL_000f:  call       "void System.Console.Write(long)"
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldfld      "long S0.F2"
+                  IL_001a:  stloc.1
+                  IL_001b:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_0020:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0025:  stloc.2
+                  IL_0026:  ldloca.s   V_0
+                  IL_0028:  ldflda     "long S0.F2"
+                  IL_002d:  ldloc.1
+                  IL_002e:  ldloc.2
+                  IL_002f:  ldc.i4.s   63
+                  IL_0031:  and
+                  IL_0032:  shr
+                  IL_0033:  stind.i8
+                  IL_0034:  ldloc.0
+                  IL_0035:  ldfld      "long S0.F2"
+                  IL_003a:  call       "void System.Console.Write(long)"
+                  IL_003f:  ret
                 }
                 """);
 
             verifier.VerifyIL("Program.M0_Param(S0)", """
                 {
-                  // Code size       44 (0x2c)
+                  // Code size       55 (0x37)
                   .maxstack  4
                   .locals init (long V_0,
                                 int V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  ldfld      "long S0.F2"
-                  IL_0006:  stloc.0
-                  IL_0007:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_000c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0011:  stloc.1
-                  IL_0012:  ldarga.s   V_0
-                  IL_0014:  ldflda     "long S0.F2"
-                  IL_0019:  ldloc.0
-                  IL_001a:  ldloc.1
-                  IL_001b:  ldc.i4.s   63
-                  IL_001d:  and
-                  IL_001e:  shr
-                  IL_001f:  stind.i8
-                  IL_0020:  ldarg.0
-                  IL_0021:  ldfld      "long S0.F2"
-                  IL_0026:  call       "void System.Console.Write(long)"
-                  IL_002b:  ret
+                  IL_0006:  call       "void System.Console.Write(long)"
+                  IL_000b:  ldarg.0
+                  IL_000c:  ldfld      "long S0.F2"
+                  IL_0011:  stloc.0
+                  IL_0012:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_0017:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_001c:  stloc.1
+                  IL_001d:  ldarga.s   V_0
+                  IL_001f:  ldflda     "long S0.F2"
+                  IL_0024:  ldloc.0
+                  IL_0025:  ldloc.1
+                  IL_0026:  ldc.i4.s   63
+                  IL_0028:  and
+                  IL_0029:  shr
+                  IL_002a:  stind.i8
+                  IL_002b:  ldarg.0
+                  IL_002c:  ldfld      "long S0.F2"
+                  IL_0031:  call       "void System.Console.Write(long)"
+                  IL_0036:  ret
                 }
                 """);
 
             verifier.VerifyIL("S0.M0_ThisRef()", """
                 {
-                  // Code size       50 (0x32)
+                  // Code size       61 (0x3d)
                   .maxstack  4
                   .locals init (S0 V_0,
                                 long V_1,
@@ -14304,51 +14332,58 @@ public class C
                   IL_0006:  stloc.0
                   IL_0007:  ldloc.0
                   IL_0008:  ldfld      "long S0.F2"
-                  IL_000d:  stloc.1
-                  IL_000e:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0018:  stloc.2
-                  IL_0019:  ldloca.s   V_0
-                  IL_001b:  ldloc.1
-                  IL_001c:  ldloc.2
-                  IL_001d:  ldc.i4.s   63
-                  IL_001f:  and
-                  IL_0020:  shr
-                  IL_0021:  stfld      "long S0.F2"
-                  IL_0026:  ldloc.0
-                  IL_0027:  ldfld      "long S0.F2"
-                  IL_002c:  call       "void System.Console.Write(long)"
-                  IL_0031:  ret
+                  IL_000d:  call       "void System.Console.Write(long)"
+                  IL_0012:  ldloc.0
+                  IL_0013:  ldfld      "long S0.F2"
+                  IL_0018:  stloc.1
+                  IL_0019:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_001e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0023:  stloc.2
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldloc.1
+                  IL_0027:  ldloc.2
+                  IL_0028:  ldc.i4.s   63
+                  IL_002a:  and
+                  IL_002b:  shr
+                  IL_002c:  stfld      "long S0.F2"
+                  IL_0031:  ldloc.0
+                  IL_0032:  ldfld      "long S0.F2"
+                  IL_0037:  call       "void System.Console.Write(long)"
+                  IL_003c:  ret
                 }
                 """);
 
             verifier.VerifyIL("Program.M0_Field()", """
                 {
-                  // Code size       58 (0x3a)
+                  // Code size       74 (0x4a)
                   .maxstack  4
                   .locals init (long V_0,
                                 int V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  ldflda     "S0 Program._s0"
                   IL_0006:  ldfld      "long S0.F2"
-                  IL_000b:  stloc.0
-                  IL_000c:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0011:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0016:  stloc.1
-                  IL_0017:  ldarg.0
-                  IL_0018:  ldflda     "S0 Program._s0"
-                  IL_001d:  ldflda     "long S0.F2"
-                  IL_0022:  ldloc.0
-                  IL_0023:  ldloc.1
-                  IL_0024:  ldc.i4.s   63
-                  IL_0026:  and
-                  IL_0027:  shr
-                  IL_0028:  stind.i8
-                  IL_0029:  ldarg.0
-                  IL_002a:  ldflda     "S0 Program._s0"
-                  IL_002f:  ldfld      "long S0.F2"
-                  IL_0034:  call       "void System.Console.Write(long)"
-                  IL_0039:  ret
+                  IL_000b:  call       "void System.Console.Write(long)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  ldflda     "S0 Program._s0"
+                  IL_0016:  ldfld      "long S0.F2"
+                  IL_001b:  stloc.0
+                  IL_001c:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_0021:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0026:  stloc.1
+                  IL_0027:  ldarg.0
+                  IL_0028:  ldflda     "S0 Program._s0"
+                  IL_002d:  ldflda     "long S0.F2"
+                  IL_0032:  ldloc.0
+                  IL_0033:  ldloc.1
+                  IL_0034:  ldc.i4.s   63
+                  IL_0036:  and
+                  IL_0037:  shr
+                  IL_0038:  stind.i8
+                  IL_0039:  ldarg.0
+                  IL_003a:  ldflda     "S0 Program._s0"
+                  IL_003f:  ldfld      "long S0.F2"
+                  IL_0044:  call       "void System.Console.Write(long)"
+                  IL_0049:  ret
                 }
                 """);
         }
@@ -14357,6 +14392,7 @@ public class C
         public void CompoundRightShiftWithAwait_TypeParameter_Struct()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 public interface IHasField
@@ -14376,7 +14412,7 @@ public class C
                 public class FieldHolder<T>
                     where T : struct, IHasField
                 {
-                    private T _value;
+                    public T _value;
 
                     public FieldHolder(T value)
                     {
@@ -14385,8 +14421,9 @@ public class C
 
                     public async Task M0_Field()
                     {
+                        Console.Write(_value.F2);
                         _value.F2 >>= await Program.M1();
-                        System.Console.Write(_value.F2);
+                        Console.Write(_value.F2);
                     }
                 }
 
@@ -14395,22 +14432,32 @@ public class C
                     public static async Task Main()
                     {
                         await M0_Local<S0>();
-                        await M0_Param(new S0(1));
-                        await new FieldHolder<S0>(new S0(1)).M0_Field();
+                        Console.WriteLine();
+                        var s0 = new S0(1);
+                        Console.Write(s0.F2);
+                        await M0_Param(s0);
+                        Console.Write(s0.F2);
+                        Console.WriteLine();
+                        var f = new FieldHolder<S0>(new S0(1));
+                        Console.Write(f._value.F2);
+                        await f.M0_Field();
+                        Console.Write(f._value.F2);
                     }
 
                     public static async Task M0_Local<T>() where T : struct, IHasField
                     {
                         T var0 = default;
                         var0.F2 = 1;
+                        Console.Write(var0.F2);
                         var0.F2 >>= await M1();
-                        System.Console.Write(var0.F2);
+                        Console.Write(var0.F2);
                     }
 
                     public static async Task M0_Param<T>(T var0) where T : struct, IHasField
                     {
+                        Console.Write(var0.F2);
                         var0.F2 >>= await M1();
-                        System.Console.Write(var0.F2);
+                        Console.Write(var0.F2);
                     }
 
                     public static async Task<int> M1()
@@ -14419,7 +14466,11 @@ public class C
                     }
                 }
                 """;
-            var expectedOutput = "000";
+            var expectedOutput = """
+                10
+                1101
+                1100
+                """;
 
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
@@ -14430,7 +14481,7 @@ public class C
 
             verifier.VerifyIL("Program.M0_Local<T>()", """
                 {
-                  // Code size       86 (0x56)
+                  // Code size      104 (0x68)
                   .maxstack  4
                   .locals init (T V_0, //var0
                                 long V_1,
@@ -14445,58 +14496,66 @@ public class C
                   IL_0017:  ldloca.s   V_0
                   IL_0019:  constrained. "T"
                   IL_001f:  callvirt   "long IHasField.F2.get"
-                  IL_0024:  stloc.1
-                  IL_0025:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_002a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_002f:  stloc.2
-                  IL_0030:  ldloca.s   V_0
-                  IL_0032:  ldloc.1
-                  IL_0033:  ldloc.2
-                  IL_0034:  ldc.i4.s   63
-                  IL_0036:  and
-                  IL_0037:  shr
-                  IL_0038:  constrained. "T"
-                  IL_003e:  callvirt   "void IHasField.F2.set"
-                  IL_0043:  ldloca.s   V_0
-                  IL_0045:  constrained. "T"
-                  IL_004b:  callvirt   "long IHasField.F2.get"
-                  IL_0050:  call       "void System.Console.Write(long)"
-                  IL_0055:  ret
+                  IL_0024:  call       "void System.Console.Write(long)"
+                  IL_0029:  ldloca.s   V_0
+                  IL_002b:  constrained. "T"
+                  IL_0031:  callvirt   "long IHasField.F2.get"
+                  IL_0036:  stloc.1
+                  IL_0037:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_003c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0041:  stloc.2
+                  IL_0042:  ldloca.s   V_0
+                  IL_0044:  ldloc.1
+                  IL_0045:  ldloc.2
+                  IL_0046:  ldc.i4.s   63
+                  IL_0048:  and
+                  IL_0049:  shr
+                  IL_004a:  constrained. "T"
+                  IL_0050:  callvirt   "void IHasField.F2.set"
+                  IL_0055:  ldloca.s   V_0
+                  IL_0057:  constrained. "T"
+                  IL_005d:  callvirt   "long IHasField.F2.get"
+                  IL_0062:  call       "void System.Console.Write(long)"
+                  IL_0067:  ret
                 }
                 """);
 
             verifier.VerifyIL("Program.M0_Param<T>(T)", """
                 {
-                  // Code size       63 (0x3f)
+                  // Code size       81 (0x51)
                   .maxstack  4
                   .locals init (long V_0,
                                 int V_1)
                   IL_0000:  ldarga.s   V_0
                   IL_0002:  constrained. "T"
                   IL_0008:  callvirt   "long IHasField.F2.get"
-                  IL_000d:  stloc.0
-                  IL_000e:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0018:  stloc.1
-                  IL_0019:  ldarga.s   V_0
-                  IL_001b:  ldloc.0
-                  IL_001c:  ldloc.1
-                  IL_001d:  ldc.i4.s   63
-                  IL_001f:  and
-                  IL_0020:  shr
-                  IL_0021:  constrained. "T"
-                  IL_0027:  callvirt   "void IHasField.F2.set"
-                  IL_002c:  ldarga.s   V_0
-                  IL_002e:  constrained. "T"
-                  IL_0034:  callvirt   "long IHasField.F2.get"
-                  IL_0039:  call       "void System.Console.Write(long)"
-                  IL_003e:  ret
+                  IL_000d:  call       "void System.Console.Write(long)"
+                  IL_0012:  ldarga.s   V_0
+                  IL_0014:  constrained. "T"
+                  IL_001a:  callvirt   "long IHasField.F2.get"
+                  IL_001f:  stloc.0
+                  IL_0020:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_0025:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_002a:  stloc.1
+                  IL_002b:  ldarga.s   V_0
+                  IL_002d:  ldloc.0
+                  IL_002e:  ldloc.1
+                  IL_002f:  ldc.i4.s   63
+                  IL_0031:  and
+                  IL_0032:  shr
+                  IL_0033:  constrained. "T"
+                  IL_0039:  callvirt   "void IHasField.F2.set"
+                  IL_003e:  ldarga.s   V_0
+                  IL_0040:  constrained. "T"
+                  IL_0046:  callvirt   "long IHasField.F2.get"
+                  IL_004b:  call       "void System.Console.Write(long)"
+                  IL_0050:  ret
                 }
                 """);
 
             verifier.VerifyIL("FieldHolder<T>.M0_Field()", """
                 {
-                  // Code size       75 (0x4b)
+                  // Code size       97 (0x61)
                   .maxstack  4
                   .locals init (long V_0,
                                 int V_1)
@@ -14504,25 +14563,30 @@ public class C
                   IL_0001:  ldflda     "T FieldHolder<T>._value"
                   IL_0006:  constrained. "T"
                   IL_000c:  callvirt   "long IHasField.F2.get"
-                  IL_0011:  stloc.0
-                  IL_0012:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0017:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_001c:  stloc.1
-                  IL_001d:  ldarg.0
-                  IL_001e:  ldflda     "T FieldHolder<T>._value"
-                  IL_0023:  ldloc.0
-                  IL_0024:  ldloc.1
-                  IL_0025:  ldc.i4.s   63
-                  IL_0027:  and
-                  IL_0028:  shr
-                  IL_0029:  constrained. "T"
-                  IL_002f:  callvirt   "void IHasField.F2.set"
-                  IL_0034:  ldarg.0
-                  IL_0035:  ldflda     "T FieldHolder<T>._value"
-                  IL_003a:  constrained. "T"
-                  IL_0040:  callvirt   "long IHasField.F2.get"
-                  IL_0045:  call       "void System.Console.Write(long)"
-                  IL_004a:  ret
+                  IL_0011:  call       "void System.Console.Write(long)"
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldflda     "T FieldHolder<T>._value"
+                  IL_001c:  constrained. "T"
+                  IL_0022:  callvirt   "long IHasField.F2.get"
+                  IL_0027:  stloc.0
+                  IL_0028:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_002d:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0032:  stloc.1
+                  IL_0033:  ldarg.0
+                  IL_0034:  ldflda     "T FieldHolder<T>._value"
+                  IL_0039:  ldloc.0
+                  IL_003a:  ldloc.1
+                  IL_003b:  ldc.i4.s   63
+                  IL_003d:  and
+                  IL_003e:  shr
+                  IL_003f:  constrained. "T"
+                  IL_0045:  callvirt   "void IHasField.F2.set"
+                  IL_004a:  ldarg.0
+                  IL_004b:  ldflda     "T FieldHolder<T>._value"
+                  IL_0050:  constrained. "T"
+                  IL_0056:  callvirt   "long IHasField.F2.get"
+                  IL_005b:  call       "void System.Console.Write(long)"
+                  IL_0060:  ret
                 }
                 """);
         }
@@ -14531,6 +14595,7 @@ public class C
         public void CompoundRightShiftWithAwait_TypeParameter_Unconstrained()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 public interface IHasField
@@ -14550,7 +14615,7 @@ public class C
                 public class FieldHolder<T>
                     where T : IHasField
                 {
-                    private T _value;
+                    public T _value;
 
                     public FieldHolder(T value)
                     {
@@ -14559,6 +14624,7 @@ public class C
 
                     public async Task M0_Field()
                     {
+                        System.Console.Write(_value.F2);
                         _value.F2 >>= await Program.M1();
                         System.Console.Write(_value.F2);
                     }
@@ -14569,20 +14635,30 @@ public class C
                     public static async Task Main()
                     {
                         await M0_Local<S0>();
-                        await M0_Param(new S0(1));
-                        await new FieldHolder<S0>(new S0(1)).M0_Field();
+                        Console.WriteLine();
+                        var s0 = new S0(1);
+                        Console.Write(s0.F2);
+                        await M0_Param(s0);
+                        Console.Write(s0.F2);
+                        Console.WriteLine();
+                        var f = new FieldHolder<S0>(new S0(1));
+                        Console.Write(f._value.F2);
+                        await f.M0_Field();
+                        Console.Write(f._value.F2);
                     }
 
                     public static async Task M0_Local<T>() where T : IHasField, new()
                     {
                         T var0 = new();
                         var0.F2 = 1;
+                        System.Console.Write(var0.F2);
                         var0.F2 >>= await M1();
                         System.Console.Write(var0.F2);
                     }
 
                     public static async Task M0_Param<T>(T var0) where T : IHasField
                     {
+                        System.Console.Write(var0.F2);
                         var0.F2 >>= await M1();
                         System.Console.Write(var0.F2);
                     }
@@ -14593,7 +14669,11 @@ public class C
                     }
                 }
                 """;
-            var expectedOutput = "000";
+            var expectedOutput = """
+                10
+                1101
+                1100
+                """;
 
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
@@ -14604,7 +14684,7 @@ public class C
 
             verifier.VerifyIL("Program.M0_Local<T>()", """
                 {
-                  // Code size      145 (0x91)
+                  // Code size      163 (0xa3)
                   .maxstack  4
                   .locals init (T V_0, //var0
                                 T V_1,
@@ -14618,131 +14698,81 @@ public class C
                   IL_0009:  conv.i8
                   IL_000a:  constrained. "T"
                   IL_0010:  callvirt   "void IHasField.F2.set"
-                  IL_0015:  ldloca.s   V_4
-                  IL_0017:  initobj    "T"
-                  IL_001d:  ldloc.s    V_4
-                  IL_001f:  box        "T"
-                  IL_0024:  brtrue.s   IL_0028
-                  IL_0026:  ldloc.0
-                  IL_0027:  stloc.1
-                  IL_0028:  ldloca.s   V_4
-                  IL_002a:  initobj    "T"
-                  IL_0030:  ldloc.s    V_4
-                  IL_0032:  box        "T"
-                  IL_0037:  brtrue.s   IL_003d
-                  IL_0039:  ldloca.s   V_1
-                  IL_003b:  br.s       IL_003f
-                  IL_003d:  ldloca.s   V_0
-                  IL_003f:  constrained. "T"
-                  IL_0045:  callvirt   "long IHasField.F2.get"
-                  IL_004a:  stloc.2
-                  IL_004b:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0050:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0055:  stloc.3
-                  IL_0056:  ldloca.s   V_4
-                  IL_0058:  initobj    "T"
-                  IL_005e:  ldloc.s    V_4
-                  IL_0060:  box        "T"
-                  IL_0065:  brtrue.s   IL_006b
-                  IL_0067:  ldloca.s   V_1
-                  IL_0069:  br.s       IL_006d
-                  IL_006b:  ldloca.s   V_0
-                  IL_006d:  ldloc.2
-                  IL_006e:  ldloc.3
-                  IL_006f:  ldc.i4.s   63
-                  IL_0071:  and
-                  IL_0072:  shr
-                  IL_0073:  constrained. "T"
-                  IL_0079:  callvirt   "void IHasField.F2.set"
-                  IL_007e:  ldloca.s   V_0
-                  IL_0080:  constrained. "T"
-                  IL_0086:  callvirt   "long IHasField.F2.get"
-                  IL_008b:  call       "void System.Console.Write(long)"
-                  IL_0090:  ret
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  constrained. "T"
+                  IL_001d:  callvirt   "long IHasField.F2.get"
+                  IL_0022:  call       "void System.Console.Write(long)"
+                  IL_0027:  ldloca.s   V_4
+                  IL_0029:  initobj    "T"
+                  IL_002f:  ldloc.s    V_4
+                  IL_0031:  box        "T"
+                  IL_0036:  brtrue.s   IL_003a
+                  IL_0038:  ldloc.0
+                  IL_0039:  stloc.1
+                  IL_003a:  ldloca.s   V_4
+                  IL_003c:  initobj    "T"
+                  IL_0042:  ldloc.s    V_4
+                  IL_0044:  box        "T"
+                  IL_0049:  brtrue.s   IL_004f
+                  IL_004b:  ldloca.s   V_1
+                  IL_004d:  br.s       IL_0051
+                  IL_004f:  ldloca.s   V_0
+                  IL_0051:  constrained. "T"
+                  IL_0057:  callvirt   "long IHasField.F2.get"
+                  IL_005c:  stloc.2
+                  IL_005d:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_0062:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0067:  stloc.3
+                  IL_0068:  ldloca.s   V_4
+                  IL_006a:  initobj    "T"
+                  IL_0070:  ldloc.s    V_4
+                  IL_0072:  box        "T"
+                  IL_0077:  brtrue.s   IL_007d
+                  IL_0079:  ldloca.s   V_1
+                  IL_007b:  br.s       IL_007f
+                  IL_007d:  ldloca.s   V_0
+                  IL_007f:  ldloc.2
+                  IL_0080:  ldloc.3
+                  IL_0081:  ldc.i4.s   63
+                  IL_0083:  and
+                  IL_0084:  shr
+                  IL_0085:  constrained. "T"
+                  IL_008b:  callvirt   "void IHasField.F2.set"
+                  IL_0090:  ldloca.s   V_0
+                  IL_0092:  constrained. "T"
+                  IL_0098:  callvirt   "long IHasField.F2.get"
+                  IL_009d:  call       "void System.Console.Write(long)"
+                  IL_00a2:  ret
                 }
                 """);
 
             verifier.VerifyIL("Program.M0_Param<T>(T)", """
                 {
-                  // Code size      121 (0x79)
+                  // Code size      139 (0x8b)
                   .maxstack  4
                   .locals init (T V_0,
                                 long V_1,
                                 int V_2,
                                 T V_3)
-                  IL_0000:  ldloca.s   V_3
-                  IL_0002:  initobj    "T"
-                  IL_0008:  ldloc.3
-                  IL_0009:  box        "T"
-                  IL_000e:  brtrue.s   IL_0012
-                  IL_0010:  ldarg.0
-                  IL_0011:  stloc.0
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  constrained. "T"
+                  IL_0008:  callvirt   "long IHasField.F2.get"
+                  IL_000d:  call       "void System.Console.Write(long)"
                   IL_0012:  ldloca.s   V_3
                   IL_0014:  initobj    "T"
                   IL_001a:  ldloc.3
                   IL_001b:  box        "T"
-                  IL_0020:  brtrue.s   IL_0026
-                  IL_0022:  ldloca.s   V_0
-                  IL_0024:  br.s       IL_0028
-                  IL_0026:  ldarga.s   V_0
-                  IL_0028:  constrained. "T"
-                  IL_002e:  callvirt   "long IHasField.F2.get"
-                  IL_0033:  stloc.1
-                  IL_0034:  call       "System.Threading.Tasks.Task<int> Program.M1()"
-                  IL_0039:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_003e:  stloc.2
-                  IL_003f:  ldloca.s   V_3
-                  IL_0041:  initobj    "T"
-                  IL_0047:  ldloc.3
-                  IL_0048:  box        "T"
-                  IL_004d:  brtrue.s   IL_0053
-                  IL_004f:  ldloca.s   V_0
-                  IL_0051:  br.s       IL_0055
-                  IL_0053:  ldarga.s   V_0
-                  IL_0055:  ldloc.1
-                  IL_0056:  ldloc.2
-                  IL_0057:  ldc.i4.s   63
-                  IL_0059:  and
-                  IL_005a:  shr
-                  IL_005b:  constrained. "T"
-                  IL_0061:  callvirt   "void IHasField.F2.set"
-                  IL_0066:  ldarga.s   V_0
-                  IL_0068:  constrained. "T"
-                  IL_006e:  callvirt   "long IHasField.F2.get"
-                  IL_0073:  call       "void System.Console.Write(long)"
-                  IL_0078:  ret
-                }
-                """);
-
-            verifier.VerifyIL("FieldHolder<T>.M0_Field()", """
-                {
-                  // Code size      147 (0x93)
-                  .maxstack  4
-                  .locals init (T V_0,
-                                long V_1,
-                                int V_2,
-                                T V_3)
-                  IL_0000:  ldloca.s   V_3
-                  IL_0002:  initobj    "T"
-                  IL_0008:  ldloc.3
-                  IL_0009:  box        "T"
-                  IL_000e:  brtrue.s   IL_0019
-                  IL_0010:  ldarg.0
-                  IL_0011:  ldfld      "T FieldHolder<T>._value"
-                  IL_0016:  stloc.0
-                  IL_0017:  br.s       IL_0020
-                  IL_0019:  ldarg.0
-                  IL_001a:  ldfld      "T FieldHolder<T>._value"
-                  IL_001f:  pop
-                  IL_0020:  ldloca.s   V_3
-                  IL_0022:  initobj    "T"
-                  IL_0028:  ldloc.3
-                  IL_0029:  box        "T"
-                  IL_002e:  brtrue.s   IL_0034
-                  IL_0030:  ldloca.s   V_0
-                  IL_0032:  br.s       IL_003a
-                  IL_0034:  ldarg.0
-                  IL_0035:  ldflda     "T FieldHolder<T>._value"
+                  IL_0020:  brtrue.s   IL_0024
+                  IL_0022:  ldarg.0
+                  IL_0023:  stloc.0
+                  IL_0024:  ldloca.s   V_3
+                  IL_0026:  initobj    "T"
+                  IL_002c:  ldloc.3
+                  IL_002d:  box        "T"
+                  IL_0032:  brtrue.s   IL_0038
+                  IL_0034:  ldloca.s   V_0
+                  IL_0036:  br.s       IL_003a
+                  IL_0038:  ldarga.s   V_0
                   IL_003a:  constrained. "T"
                   IL_0040:  callvirt   "long IHasField.F2.get"
                   IL_0045:  stloc.1
@@ -14755,22 +14785,85 @@ public class C
                   IL_005a:  box        "T"
                   IL_005f:  brtrue.s   IL_0065
                   IL_0061:  ldloca.s   V_0
-                  IL_0063:  br.s       IL_006b
-                  IL_0065:  ldarg.0
-                  IL_0066:  ldflda     "T FieldHolder<T>._value"
-                  IL_006b:  ldloc.1
-                  IL_006c:  ldloc.2
-                  IL_006d:  ldc.i4.s   63
-                  IL_006f:  and
-                  IL_0070:  shr
-                  IL_0071:  constrained. "T"
-                  IL_0077:  callvirt   "void IHasField.F2.set"
-                  IL_007c:  ldarg.0
-                  IL_007d:  ldflda     "T FieldHolder<T>._value"
-                  IL_0082:  constrained. "T"
-                  IL_0088:  callvirt   "long IHasField.F2.get"
-                  IL_008d:  call       "void System.Console.Write(long)"
-                  IL_0092:  ret
+                  IL_0063:  br.s       IL_0067
+                  IL_0065:  ldarga.s   V_0
+                  IL_0067:  ldloc.1
+                  IL_0068:  ldloc.2
+                  IL_0069:  ldc.i4.s   63
+                  IL_006b:  and
+                  IL_006c:  shr
+                  IL_006d:  constrained. "T"
+                  IL_0073:  callvirt   "void IHasField.F2.set"
+                  IL_0078:  ldarga.s   V_0
+                  IL_007a:  constrained. "T"
+                  IL_0080:  callvirt   "long IHasField.F2.get"
+                  IL_0085:  call       "void System.Console.Write(long)"
+                  IL_008a:  ret
+                }
+                """);
+
+            verifier.VerifyIL("FieldHolder<T>.M0_Field()", """
+                {
+                  // Code size      169 (0xa9)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                long V_1,
+                                int V_2,
+                                T V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldflda     "T FieldHolder<T>._value"
+                  IL_0006:  constrained. "T"
+                  IL_000c:  callvirt   "long IHasField.F2.get"
+                  IL_0011:  call       "void System.Console.Write(long)"
+                  IL_0016:  ldloca.s   V_3
+                  IL_0018:  initobj    "T"
+                  IL_001e:  ldloc.3
+                  IL_001f:  box        "T"
+                  IL_0024:  brtrue.s   IL_002f
+                  IL_0026:  ldarg.0
+                  IL_0027:  ldfld      "T FieldHolder<T>._value"
+                  IL_002c:  stloc.0
+                  IL_002d:  br.s       IL_0036
+                  IL_002f:  ldarg.0
+                  IL_0030:  ldfld      "T FieldHolder<T>._value"
+                  IL_0035:  pop
+                  IL_0036:  ldloca.s   V_3
+                  IL_0038:  initobj    "T"
+                  IL_003e:  ldloc.3
+                  IL_003f:  box        "T"
+                  IL_0044:  brtrue.s   IL_004a
+                  IL_0046:  ldloca.s   V_0
+                  IL_0048:  br.s       IL_0050
+                  IL_004a:  ldarg.0
+                  IL_004b:  ldflda     "T FieldHolder<T>._value"
+                  IL_0050:  constrained. "T"
+                  IL_0056:  callvirt   "long IHasField.F2.get"
+                  IL_005b:  stloc.1
+                  IL_005c:  call       "System.Threading.Tasks.Task<int> Program.M1()"
+                  IL_0061:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0066:  stloc.2
+                  IL_0067:  ldloca.s   V_3
+                  IL_0069:  initobj    "T"
+                  IL_006f:  ldloc.3
+                  IL_0070:  box        "T"
+                  IL_0075:  brtrue.s   IL_007b
+                  IL_0077:  ldloca.s   V_0
+                  IL_0079:  br.s       IL_0081
+                  IL_007b:  ldarg.0
+                  IL_007c:  ldflda     "T FieldHolder<T>._value"
+                  IL_0081:  ldloc.1
+                  IL_0082:  ldloc.2
+                  IL_0083:  ldc.i4.s   63
+                  IL_0085:  and
+                  IL_0086:  shr
+                  IL_0087:  constrained. "T"
+                  IL_008d:  callvirt   "void IHasField.F2.set"
+                  IL_0092:  ldarg.0
+                  IL_0093:  ldflda     "T FieldHolder<T>._value"
+                  IL_0098:  constrained. "T"
+                  IL_009e:  callvirt   "long IHasField.F2.get"
+                  IL_00a3:  call       "void System.Console.Write(long)"
+                  IL_00a8:  ret
                 }
                 """);
         }
