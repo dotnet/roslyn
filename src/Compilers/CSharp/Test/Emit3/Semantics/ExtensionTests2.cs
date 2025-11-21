@@ -36915,7 +36915,6 @@ class Program
 
         compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
         CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
-        _ = ErrorCode.ERR_BindToBogus;
     }
 
     [Fact]
