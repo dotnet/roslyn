@@ -73,6 +73,41 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_Variable_SafeContext_InIterator()
+    {
+        var source = """
+            unsafe
+            {
+                M();
+                System.Collections.Generic.IEnumerable<int> M()
+                {
+                    int* p = null;
+                    yield return 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         int* p = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 9));
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         int* p = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(6, 9));
+    }
+
+    [Fact]
     public void Pointer_Variable_UnsafeContext()
     {
         var source = """
@@ -966,5 +1001,358 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // delegate*<string> x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Pointer_AddressOf_SafeContext()
+    {
+        var source = """
+            int x;
+            int* p = &x;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 1),
+            // (2,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(2, 10),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(2, 10));
+    }
+
+    [Fact]
+    public void Pointer_AddressOf_SafeContext_Const()
+    {
+        var source = """
+            const int x = 1;
+            int* p = &x;
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 1),
+            // (2,11): error CS0211: Cannot take the address of the given expression
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(2, 11));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,11): error CS0211: Cannot take the address of the given expression
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(2, 11),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,11): error CS0211: Cannot take the address of the given expression
+            // int* p = &x;
+            Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(2, 11));
+    }
+
+    [Fact]
+    public void Pointer_AddressOf_UnsafeContext()
+    {
+        var source = """
+            int x;
+            unsafe { int* p = &x; }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe { int* p = &x; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 1),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_Fixed_SafeContext()
+    {
+        var source = """
+            class C
+            {
+                static int x;
+                static void Main()
+                {
+                    fixed (int* p = &x) { }
+                }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (int* p = &x) { }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 16),
+            // (6,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(6, 25),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = &x) { }").WithArguments("updated memory safety rules").WithLocation(6, 9),
+            // (6,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(6, 16),
+            // (6,25): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(6, 25));
+    }
+
+    [Fact]
+    public void Pointer_Fixed_SafeContext_AlreadyFixed()
+    {
+        var source = """
+            int x;
+            fixed (int* p = &x) { }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (int* p = &x) { }").WithLocation(2, 1),
+            // (2,8): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 8),
+            // (2,17): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&x").WithLocation(2, 17));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,17): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&x").WithLocation(2, 17),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = &x) { }").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,8): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 8),
+            // (2,17): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+            // fixed (int* p = &x) { }
+            Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&x").WithLocation(2, 17));
+    }
+
+    [Fact]
+    public void Pointer_Fixed_UnsafeContext()
+    {
+        var source = """
+            class C
+            {
+                static int x;
+                static void Main()
+                {
+                    unsafe { fixed (int* p = &x) { } }
+                }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,9): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            //         unsafe { fixed (int* p = &x) { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(6, 9),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_Arithmetic_SafeContext()
+    {
+        var source = """
+            int* p = null;
+            p++;
+            int* p2 = p + 2;
+            long x = p - p;
+            bool b = p > p2;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // p++;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(2, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // p++;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p++").WithLocation(2, 1),
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p2 = p + 2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 1),
+            // (3,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p2 = p + 2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(3, 11),
+            // (3,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p2 = p + 2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p + 2").WithLocation(3, 11),
+            // (4,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // long x = p - p;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 10),
+            // (4,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // long x = p - p;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 14),
+            // (5,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // bool b = p > p2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(5, 10),
+            // (5,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // bool b = p > p2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p2").WithLocation(5, 14),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // p++;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // p++;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p++").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (3,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p2 = p + 2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(3, 1),
+            // (3,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p2 = p + 2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("updated memory safety rules").WithLocation(3, 11),
+            // (3,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p2 = p + 2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p + 2").WithArguments("updated memory safety rules").WithLocation(3, 11),
+            // (4,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // long x = p - p;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("updated memory safety rules").WithLocation(4, 10),
+            // (4,14): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // long x = p - p;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("updated memory safety rules").WithLocation(4, 14),
+            // (5,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // bool b = p > p2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("updated memory safety rules").WithLocation(5, 10),
+            // (5,14): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // bool b = p > p2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p2").WithArguments("updated memory safety rules").WithLocation(5, 14));
     }
 }
