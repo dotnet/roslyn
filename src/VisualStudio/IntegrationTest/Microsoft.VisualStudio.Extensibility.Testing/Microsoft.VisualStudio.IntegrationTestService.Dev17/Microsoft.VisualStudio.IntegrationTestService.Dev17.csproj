@@ -6,6 +6,8 @@
     <Description>Integration test service extension for Visual Studio 2022</Description>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTestService</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTestService</AssemblyName>
+    <!-- Using specifc version of vssdk build tools. -->
+    <NoWarn>$(NoWarn);NETSDK1023</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,13 +26,20 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{78D5A8B5-1634-434B-802D-E3E4A46B1AA6}"
+                               Name="IntegrationTestServicePackage"
+                               Class="Microsoft.VisualStudio.IntegrationTestService.IntegrationTestServicePackage"/>
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" VersionOverride="17.14.2094" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.0-previews-3-31605-261" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.VSSDK.BuildTools" VersionOverride="17.14.2094" PrivateAssets="all" IsImplicitlyDefined="" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" PrivateAssets="all" />
     <!--
       A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
       Override the reference to a secure version, but exclude it from the build and packaging.
@@ -39,11 +48,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\LICENSE" IncludeInVSIX="true" />
+    <Content Include="$(RepoRoot)\License.txt" IncludeInVSIX="true" />
   </ItemGroup>
 
   <ItemGroup>
-    <VSCTCompile Include="IntegrationTestServiceCommands.vsct" ResourceName="Menus.ctmenu" />
+    <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
+      <SubType>Designer</SubType>
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
   </ItemGroup>
 
   <ItemGroup>
@@ -52,12 +64,11 @@
 
   <Import Project="..\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems" Label="Shared" />
 
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
-
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(SkipVsixBuild)' != 'true' AND Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
-  <PropertyGroup Condition="'$(SkipVsixBuild)' != 'true' AND Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')">
-    <VsSdkTargetsImported>true</VsSdkTargetsImported>
-    <VsSdkUnzipTargetImported>true</VsSdkUnzipTargetImported>
-  </PropertyGroup>
-
 </Project>

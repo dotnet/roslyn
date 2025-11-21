@@ -13,15 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.0-previews-3-31605-261" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" PrivateAssets="all" />
     <!--
       A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
       Override the reference to a secure version, but exclude it from the build and packaging.
     -->
     <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,5 +49,6 @@
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\..\src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 
 </Project>

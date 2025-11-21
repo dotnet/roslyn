@@ -223,7 +223,7 @@ namespace Xunit.InProcess
                         throw new InvalidOperationException("Failed to obtain the console window.");
                     }
 
-                    if (!PInvoke.SetWindowPos(consoleWindow, hWndInsertAfter: (HWND)0, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOZORDER))
+                    if (!PInvoke.SetWindowPos(consoleWindow, hWndInsertAfter: HWND.Null, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOZORDER))
                     {
                         Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                     }

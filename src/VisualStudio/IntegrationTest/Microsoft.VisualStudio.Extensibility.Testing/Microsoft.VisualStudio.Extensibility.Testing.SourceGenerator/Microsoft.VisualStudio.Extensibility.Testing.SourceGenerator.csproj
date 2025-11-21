@@ -15,7 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <!-- This needs to be a package reference to avoid attempting to use a newer compiler version than either the CLI or IDE has. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Dependencies\Contracts\NullableAttributes.cs" />
   </ItemGroup>
 
   <Target Name="PackBuildOutputs" DependsOnTargets="ResolveProjectReferences;SatelliteDllsProjectOutputGroup;SatelliteDllsProjectOutputGroupDependencies">
@@ -27,5 +32,4 @@
       <TfmSpecificPackageFile Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="'%(FileName)' != 'Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.VisualBasic'" PackagePath="analyzers\dotnet\roslyn4.0\cs\" />
     </ItemGroup>
   </Target>
-
 </Project>
