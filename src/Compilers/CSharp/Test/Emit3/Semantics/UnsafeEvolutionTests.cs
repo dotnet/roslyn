@@ -1384,4 +1384,68 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // _ = sizeof(S);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("updated memory safety rules").WithLocation(2, 5));
     }
+
+    [Fact]
+    public void FixedSizeBuffer_SafeContext()
+    {
+        var source = """
+            var s = new S();
+            int* p = s.y;
+            int z = s.x[100];
+
+            struct S
+            {
+                public fixed int x[5], y[10];
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p = s.y;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 1),
+            // (2,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* p = s.y;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.y").WithLocation(2, 10),
+            // (3,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int z = s.x[100];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(3, 9),
+            // (7,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public fixed int x[5], y[10];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[5]").WithLocation(7, 22));
+
+        var expectedDiagnostics = new[]
+        {
+            // (3,12): error CS9500: This operation may only be used in an unsafe context
+            // int z = s.x[100];
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 12),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p = s.y;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* p = s.y;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.y").WithArguments("updated memory safety rules").WithLocation(2, 10),
+            // (3,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int z = s.x[100];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.x").WithArguments("updated memory safety rules").WithLocation(3, 9),
+            // (3,12): error CS9500: This operation may only be used in an unsafe context
+            // int z = s.x[100];
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 12),
+            // (7,22): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public fixed int x[5], y[10];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[5]").WithArguments("updated memory safety rules").WithLocation(7, 22));
+    }
 }
