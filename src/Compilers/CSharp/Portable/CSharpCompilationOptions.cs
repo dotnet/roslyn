@@ -442,12 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MemorySafetyRules = version };
         }
 
-        // PROTOTYPE: determine what the "evolved" number should be
-        private const int EvolvedMemorySafetyRulesVersion = 2;
+        // PROTOTYPE: determine what the "updated" number should be
+        private const int UpdatedMemorySafetyRulesVersion = 2;
 
-        internal CSharpCompilationOptions WithEvolvedMemorySafetyRules() => WithMemorySafetyRules(EvolvedMemorySafetyRulesVersion);
+        internal CSharpCompilationOptions WithUpdatedMemorySafetyRules() => WithMemorySafetyRules(UpdatedMemorySafetyRulesVersion);
 
-        internal bool HasEvolvedMemorySafetyRules => MemorySafetyRules >= EvolvedMemorySafetyRulesVersion;
+        internal bool UseUpdatedMemorySafetyRules => MemorySafetyRules >= UpdatedMemorySafetyRulesVersion;
 
         public new CSharpCompilationOptions WithPlatform(Platform platform)
         {

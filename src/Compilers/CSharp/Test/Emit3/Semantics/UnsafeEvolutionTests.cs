@@ -29,19 +29,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.RegularNext,
-            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules())
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
     }
 
     [Fact]
@@ -52,18 +52,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             int* GetPointer() => null;
             """;
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,9): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // var x = GetPointer();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "GetPointer()").WithArguments("evolved memory safety rules").WithLocation(1, 9),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "GetPointer()").WithArguments("updated memory safety rules").WithLocation(1, 9),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* GetPointer() => null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1));
     }
 
     [Fact]
@@ -80,16 +80,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe { int* x = null; }
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1));
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -109,21 +109,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = *x;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (2,9): error CS9500: This operation may only be used in an unsafe context
             // int y = *x;
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 9));
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules())
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,10): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = *x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 10),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 10),
             // (2,9): error CS9500: This operation may only be used in an unsafe context
             // int y = *x;
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 9));
@@ -144,10 +144,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
 
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -159,15 +159,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { int y = *x; }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
     }
 
     [Fact]
@@ -186,21 +186,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // string s = x->ToString();
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 12));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = x->ToString();
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13));
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,12): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string s = x->ToString();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 12),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 12),
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = x->ToString();
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13));
@@ -221,10 +221,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
 
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -236,15 +236,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { string s = x->ToString(); }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
     }
 
     [Fact]
@@ -263,21 +263,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // string s = (*x).ToString();
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 14));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = (*x).ToString();
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 13));
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,14): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,14): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string s = (*x).ToString();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 14),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 14),
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = (*x).ToString();
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 13));
@@ -291,15 +291,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { string s = (*x).ToString(); }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
     }
 
     [Fact]
@@ -322,7 +322,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = x[1];
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(3, 9));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (2,2): error CS9500: This operation may only be used in an unsafe context
             // x[0] = 1;
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(2, 2),
@@ -332,20 +332,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = 1;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 1),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 1),
             // (2,2): error CS9500: This operation may only be used in an unsafe context
             // x[0] = 1;
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(2, 2),
-            // (3,9): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = x[1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(3, 9),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(3, 9),
             // (3,10): error CS9500: This operation may only be used in an unsafe context
             // int y = x[1];
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 10));
@@ -377,7 +377,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = x[2, 3];
             Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (2,1): error CS0196: A pointer must be indexed by only one value
             // x[0, 1] = 1;
             Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[0, 1]").WithLocation(2, 1),
@@ -387,20 +387,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0, 1] = 1;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 1),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 1),
             // (2,1): error CS0196: A pointer must be indexed by only one value
             // x[0, 1] = 1;
             Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[0, 1]").WithLocation(2, 1),
-            // (3,9): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = x[2, 3];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(3, 9),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(3, 9),
             // (3,9): error CS0196: A pointer must be indexed by only one value
             // int y = x[2, 3];
             Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9));
@@ -438,33 +438,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // _ = x[1];
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = x[1]").WithLocation(3, 1));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int*[] x = [];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 1),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[0]").WithArguments("evolved memory safety rules").WithLocation(2, 1),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[0]").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[0] = null").WithArguments("evolved memory safety rules").WithLocation(2, 1),
-            // (3,5): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[0] = null").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = x[1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(3, 5),
-            // (3,5): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(3, 5),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = x[1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[1]").WithArguments("evolved memory safety rules").WithLocation(3, 5),
-            // (3,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[1]").WithArguments("updated memory safety rules").WithLocation(3, 5),
+            // (3,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = x[1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = x[1]").WithArguments("evolved memory safety rules").WithLocation(3, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = x[1]").WithArguments("updated memory safety rules").WithLocation(3, 1));
     }
 
     [Fact]
@@ -493,7 +493,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // _ = x[1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
             // x[0] = null;
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("delegate*<void>").WithLocation(2, 1),
@@ -503,20 +503,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // delegate*<void> x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("evolved memory safety rules").WithLocation(1, 1),
-            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(2, 1),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 1),
             // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
             // x[0] = null;
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("delegate*<void>").WithLocation(2, 1),
-            // (3,5): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = x[1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("evolved memory safety rules").WithLocation(3, 5),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(3, 5),
             // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
             // _ = x[1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5));
@@ -534,14 +534,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
     }
 }

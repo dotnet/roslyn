@@ -62,26 +62,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (disallowedUnder is MemorySafetyRules.Legacy)
                 {
-                    if (this.Compilation.Options.HasEvolvedMemorySafetyRules)
+                    if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
                     {
                         return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
                     }
 
-                    // PROTOTYPE: Update the error message to hint that one can enable evolved memory safety rules.
+                    // PROTOTYPE: Update the error message to hint that one can enable updated memory safety rules.
                     return ((object?)sizeOfTypeOpt == null)
                         ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
                         : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
                 }
 
-                Debug.Assert(disallowedUnder is MemorySafetyRules.Evolved);
+                Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
 
-                if (this.Compilation.Options.HasEvolvedMemorySafetyRules)
+                if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
                 {
                     // PROTOTYPE: What about sizeOfTypeOpt/ERR_SizeofUnsafe?
                     return new CSDiagnosticInfo(ErrorCode.ERR_UnsafeOperation);
                 }
 
-                // This location is disallowed only under evolved memory safety rules which are not enabled.
+                // This location is disallowed only under updated memory safety rules which are not enabled.
                 // We report an error elsewhere, usually at the pointer type itself
                 // (where we are called with `disallowedUnder: MemorySafetyRules.Legacy`).
                 return null;
@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return unsafeInIteratorDiagnosticInfo;
                 }
 
-                // This location is disallowed only under evolved memory safety rules.
+                // This location is disallowed only under updated memory safety rules.
                 // We report the RefUnsafeInIteratorAsync langversion error elsewhere, usually at the pointer type itself
                 // (where we are called with `disallowedUnder: MemorySafetyRules.Legacy`).
-                Debug.Assert(disallowedUnder is MemorySafetyRules.Evolved);
+                Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
                 return null;
             }
             else
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         Legacy,
 
         /// <summary>
-        /// <see cref="CSharpCompilationOptions.HasEvolvedMemorySafetyRules"/>
+        /// <see cref="CSharpCompilationOptions.UseUpdatedMemorySafetyRules"/>
         /// </summary>
-        Evolved,
+        Updated,
     }
 }

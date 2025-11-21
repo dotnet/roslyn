@@ -7498,7 +7498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!boundLeft.HasAnyErrors)
                 {
-                    ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
+                    ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
                 }
             }
 
@@ -9383,7 +9383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
             {
                 Debug.Assert(receiver.Type?.IsFunctionPointer() != true, "There should have been an error reported for indexing into a function pointer.");
-                ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
+                ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
             }
 
             return result;

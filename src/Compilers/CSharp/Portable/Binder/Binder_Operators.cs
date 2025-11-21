@@ -4072,7 +4072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.HasAnyErrors)
             {
-                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
+                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
             }
 
             return result;

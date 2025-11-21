@@ -2963,8 +2963,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
-        <source>evolved memory safety rules</source>
-        <target state="new">evolved memory safety rules</target>
+        <source>updated memory safety rules</source>
+        <target state="new">updated memory safety rules</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">

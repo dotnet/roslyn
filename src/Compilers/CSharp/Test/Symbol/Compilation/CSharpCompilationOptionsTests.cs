@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "AllowUnsafe",
                 "MemorySafetyRules",
                 "Usings",
-                "HasEvolvedMemorySafetyRules",
+                "UseUpdatedMemorySafetyRules",
                 "TopLevelBinderFlags",
                 "NullableContextOptions");
         }
