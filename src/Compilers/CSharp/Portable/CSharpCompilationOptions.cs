@@ -22,8 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     public sealed class CSharpCompilationOptions : CompilationOptions, IEquatable<CSharpCompilationOptions>
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
     {
-        // When adding new fields/properties, you will need to update:
+        // When adding new fields/properties, you should update
+        // Equals, GetHashCode, CSharpDeterministicKeyBuilder, and the following tests:
         // - CSharpCompilationOptionsTests.TestFieldsForEqualsAndGetHashCode
+        // - CSharpDeterministicKeyBuilderTests.CSharpCompilationOptionsCombination
         // - CSharpDeterministicKeyBuilderTests.VerifyUpToDate
 
         /// <summary>
