@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// Tests related to binding (but not lowering) lock statements.
     /// </summary>
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class UnsafeTests : CompilingTestBase
     {
         private static string GetEscapedNewLine()
