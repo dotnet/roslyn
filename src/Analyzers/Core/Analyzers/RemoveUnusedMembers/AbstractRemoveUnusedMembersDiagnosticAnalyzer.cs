@@ -27,8 +27,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
     : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
-        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        FadingOptions.FadeOutUnusedMembers)
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule])
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
