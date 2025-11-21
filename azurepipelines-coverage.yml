@@ -1,6 +1,0 @@
-# https://learn.microsoft.com/azure/devops/pipelines/test/codecoverage-for-pullrequests?view=azure-devops
-coverage:
-  status:
-    comments: on    # add comment to PRs reporting diff in coverage of modified files
-    diff:           # diff coverage is code coverage only for the lines changed in a pull request.
-      target: 70%   # set this to a desired %. Default is 70%

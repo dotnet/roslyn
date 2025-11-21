@@ -1,1 +1,0 @@
-'Visual Studio - VS Core'

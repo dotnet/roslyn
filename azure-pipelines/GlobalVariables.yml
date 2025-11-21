@@ -1,6 +1,0 @@
-variables:
-  # These variables are required for MicroBuild tasks
-  TeamName: VS IDE
-  TeamEmail: vsidemicrobuild@microsoft.com
-  # These variables influence insertion pipelines
-  ContainsVsix: false # This should be true when the repo builds a VSIX that should be inserted to VS.

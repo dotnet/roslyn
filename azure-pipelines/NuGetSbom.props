@@ -1,6 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <GenerateSBOMThisProject>true</GenerateSBOMThisProject>
-    <UseMicroBuildSbomPluginVersion>2</UseMicroBuildSbomPluginVersion>
-  </PropertyGroup>
-</Project>
