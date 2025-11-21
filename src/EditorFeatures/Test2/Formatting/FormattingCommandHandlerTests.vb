@@ -79,7 +79,7 @@ class TestClass
             End Using
         End Sub
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35702")>
+        <WpfFact>
         Public Sub TypingElseKeywordDoesNotIndentFollowingNonBlockConstruct()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>using System;
@@ -107,13 +107,13 @@ class TestClass
         else
 
         if (v != null) 
-            Console.WriteLine(""v is not null"");         
+            Console.WriteLine(""v is not null"");
     }
 }", state.GetDocumentText())
             End Using
         End Sub
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35702")>
+        <WpfFact>
         Public Sub TypingElseKeywordDoesNotIndentFollowingBlockConstruct()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>using System;
