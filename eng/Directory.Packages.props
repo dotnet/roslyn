@@ -117,6 +117,7 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
     <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageVersion Include="StreamJsonRpc" Version="2.18.48" />
+    <PackageVersion Include="MessagePack" Version="2.5.187" />
 
     <!--
       VS Debugger
