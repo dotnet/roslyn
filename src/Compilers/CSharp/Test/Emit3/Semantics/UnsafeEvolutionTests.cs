@@ -55,6 +55,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -88,6 +92,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
@@ -109,10 +117,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = *x;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,9): error CS9500: This operation may only be used in an unsafe context
             // int y = *x;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 9));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 9),
+        };
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -144,7 +163,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
 
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
@@ -160,6 +186,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -186,10 +216,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // string s = x->ToString();
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 12));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = x->ToString();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -221,7 +261,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
 
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
@@ -237,6 +285,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -263,10 +315,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // string s = (*x).ToString();
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 14));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = (*x).ToString();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 13),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -292,6 +354,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -322,13 +388,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = x[1];
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(3, 9));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,2): error CS9500: This operation may only be used in an unsafe context
             // x[0] = 1;
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(2, 2),
             // (3,10): error CS9500: This operation may only be used in an unsafe context
             // int y = x[1];
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 10));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 10),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -377,13 +453,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = x[2, 3];
             Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,1): error CS0196: A pointer must be indexed by only one value
             // x[0, 1] = 1;
             Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[0, 1]").WithLocation(2, 1),
             // (3,9): error CS0196: A pointer must be indexed by only one value
             // int y = x[2, 3];
-            Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9));
+            Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -441,6 +527,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -493,13 +583,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // _ = x[1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
             // x[0] = null;
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("delegate*<void>").WithLocation(2, 1),
             // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
             // _ = x[1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -535,6 +635,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
