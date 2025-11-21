@@ -92,7 +92,7 @@ class TestClass
     els$$
 
         if (v != null) 
-            Console.WriteLine("v is not null");         
+            Console.WriteLine("v is not null");
     }
 }</Document>, includeFormatCommandHandler:=True)
                 state.SendTypeChars("e")
