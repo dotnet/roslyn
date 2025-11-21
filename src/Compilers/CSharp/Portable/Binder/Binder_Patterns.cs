@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 isUnionMatching = true;
                 unionType = unionTypeOverride;
             }
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 hasUnionMatching = true;
                 unionType = unionTypeOverride;
             }
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 hasUnionMatching = true;
                 unionType = unionTypeOverride;
             }
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 isUnionMatching = true;
                 unionType = unionTypeOverride;
             }
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (unionTypeOverride is not null)
                 {
-                    // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                    // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                     isUnionMatching = true;
                     unionType = unionTypeOverride;
                 }
@@ -1897,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 hasUnionMatching = true;
                 unionType = unionTypeOverride;
             }
@@ -1922,7 +1922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 hasUnionMatching = true;
                 unionType = unionTypeOverride;
             }
@@ -2028,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unionTypeOverride is not null)
             {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchnaged unless we get here
+                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
                 isUnionMatching = true;
                 unionType = unionTypeOverride;
             }

@@ -2750,6 +2750,7 @@ class Program
 #line 1100
         _ = u is [] and C2;
         _ = u is [] and C4;
+        _ = u is string and ['a'];
     } 
 }
 ";
