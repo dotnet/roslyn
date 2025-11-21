@@ -1355,4 +1355,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // bool b = p > p2;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "p2").WithArguments("updated memory safety rules").WithLocation(5, 14));
     }
+
+    [Fact]
+    public void SizeOf_SafeContext()
+    {
+        var source = """
+            _ = sizeof(int);
+            _ = sizeof(S);
+            struct S;
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (2,5): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+            // _ = sizeof(S);
+            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S").WithLocation(2, 5));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = sizeof(S);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("updated memory safety rules").WithLocation(2, 5));
+    }
 }

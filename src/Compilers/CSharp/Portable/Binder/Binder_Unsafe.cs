@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(TypeSymbol? sizeOfTypeOpt, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
+            Debug.Assert(sizeOfTypeOpt is null || disallowedUnder is MemorySafetyRules.Legacy);
+
             if (this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
             {
                 return null;
@@ -77,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
                 {
-                    // PROTOTYPE: What about sizeOfTypeOpt/ERR_SizeofUnsafe?
                     return new CSDiagnosticInfo(ErrorCode.ERR_UnsafeOperation);
                 }
 
