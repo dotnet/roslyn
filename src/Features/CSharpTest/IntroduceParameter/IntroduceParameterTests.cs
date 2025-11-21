@@ -1874,4 +1874,142 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 };
             }
             """);
+
+    [Fact]
+    public Task TestDuplicateParameterName_Refactor()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return [|v + 1|];
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v, int v1)
+                {
+                }
+            }
+            """, index: 0);
+
+    [Fact]
+    public Task TestDuplicateParameterName_Trampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return [|v + 1|];
+                }
+
+                void Caller()
+                {
+                    M(5);
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int GetV1(int v)
+                {
+                    return v + 1;
+                }
+
+                int M(int v, int v1)
+                {
+                }
+
+                void Caller()
+                {
+                    M(5, GetV1(5));
+                }
+            }
+            """, index: 1);
+
+    [Fact]
+    public Task TestDuplicateParameterName_Overload()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return [|v + 1|];
+                }
+
+                void Caller()
+                {
+                    M(5);
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return M(v, v + 1);
+                }
+
+                int M(int v, int v1)
+                {
+                }
+
+                void Caller()
+                {
+                    M(5);
+                }
+            }
+            """, index: 2);
+
+    [Fact]
+    public Task TestDuplicateParameterName_MultipleConflicts()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v, int v1)
+                {
+                    return [|v + v1 + 1|];
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v, int v1, int v2)
+                {
+                }
+            }
+            """, index: 0);
+
+    [Fact]
+    public Task TestDuplicateParameterName_WithLocalVariable()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    int result = [|v + 1|];
+                    return result;
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v, int v1)
+                {
+                    int result = v1;
+                    return result;
+                }
+            }
+            """, index: 0);
 }
