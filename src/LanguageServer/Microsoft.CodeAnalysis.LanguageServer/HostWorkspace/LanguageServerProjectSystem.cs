@@ -108,7 +108,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         return ValueTask.CompletedTask;
     }
 
-    protected override async ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,
