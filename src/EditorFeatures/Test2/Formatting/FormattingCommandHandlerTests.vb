@@ -79,6 +79,74 @@ class TestClass
             End Using
         End Sub
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35702")>
+        Public Sub TypingElseKeywordDoesNotIndentFollowingNonBlockConstruct()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine("v is not null");
+    els$$
+
+        if (v != null) 
+            Console.WriteLine("v is not null");         
+    }
+}</Document>, includeFormatCommandHandler:=True)
+                state.SendTypeChars("e")
+
+                AssertEx.Equal("using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine(""v is not null"");
+        else
+
+        if (v != null) 
+            Console.WriteLine(""v is not null"");         
+    }
+}", state.GetDocumentText())
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35702")>
+        Public Sub TypingElseKeywordDoesNotIndentFollowingBlockConstruct()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine("v is not null");
+    els$$
+    {
+        Console.WriteLine("v is null");
+    }
+    }
+}</Document>, includeFormatCommandHandler:=True)
+                state.SendTypeChars("e")
+
+                AssertEx.Equal("using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine(""v is not null"");
+        else
+        {
+            Console.WriteLine(""v is null"");
+        }
+    }
+}", state.GetDocumentText())
+            End Using
+        End Sub
+
         Private Shared Sub AssertVirtualCaretColumn(state As TestState, expectedCol As Integer)
             Dim caretLine = state.GetLineFromCurrentCaretPosition()
             Dim caret = state.GetCaretPoint()
