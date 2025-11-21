@@ -145,13 +145,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Equal(2, primordialDocument.Project.Documents.Count());
         Assert.Empty(primordialDocument.Project.MetadataReferences);
 
+        // No errors for '#:' are expected.
         var primordialSyntaxTree = await primordialDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        // TODO: we probably don't want to report syntax errors for '#:' in the primordial non-file document.
-        // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
-        primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
-            // vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-            // #:sdk Microsoft.Net.Sdk
-            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
+        Assert.Empty(primordialSyntaxTree.GetDiagnostics(CancellationToken.None));
 
         // Wait for the canonical project to finish loading.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
@@ -164,13 +160,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
 
+        // No errors for '#:' are expected.
         var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        // TODO: we probably don't want to report syntax errors for '#:' in the canonical non-file document.
-        // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
-        canonicalSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
-            // vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-            // #:sdk Microsoft.Net.Sdk
-            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
+        Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
     [Theory, CombinatorialData]
