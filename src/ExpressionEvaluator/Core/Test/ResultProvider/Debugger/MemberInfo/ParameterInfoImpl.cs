@@ -37,20 +37,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             get { throw new NotImplementedException(); }
         }
 
-        public override string Name
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public override string Name => Parameter.Name;
 
-        public override Type ParameterType
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public override Type ParameterType => new TypeImpl(Parameter.ParameterType);
 
-        public override int Position
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public override int Position => Parameter.Position;
 
         public override object RawDefaultValue
         {
