@@ -79,17 +79,97 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { int* x = null; }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe { int* x = null; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
-            // unsafe { int* x = null; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1));
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_Variable_UsingAlias_SafeContext()
+    {
+        var source = """
+            using X = int*;
+            X x = null;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // using X = int*;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 11),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // X x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(2, 1),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using X = int*;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 11),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // X x = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("updated memory safety rules").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Pointer_Variable_UsingAlias_UnsafeContext()
+    {
+        var source = """
+            using unsafe X = int*;
+            unsafe { X x = null; }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using unsafe X = int*;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
+            // (2,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe { X x = null; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 1),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
@@ -649,5 +729,176 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Pointer_Function_Variable_SafeContext()
+    {
+        var source = """
+            delegate*<void> f = null;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // delegate*<void> f = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // delegate*<void> f = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Pointer_Function_Variable_UnsafeContext()
+    {
+        var source = """
+            unsafe { delegate*<void> f = null; }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe { delegate*<void> f = null; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_Function_Variable_UsingAlias_SafeContext()
+    {
+        var source = """
+            using X = delegate*<void>;
+            X x = null;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // using X = delegate*<void>;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 11),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // X x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(2, 1),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        // https://github.com/dotnet/roslyn/issues/77389
+        expectedDiagnostics =
+        [
+            // error CS8911: Using a function pointer type in this context is not supported.
+            Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1),
+        ];
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using X = delegate*<void>;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 11),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // X x = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("updated memory safety rules").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Pointer_Function_Variable_UsingAlias_UnsafeContext()
+    {
+        var source = """
+            using unsafe X = delegate*<void>;
+            unsafe { X x = null; }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using unsafe X = delegate*<void>;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
+            // (2,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe { X x = null; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 1),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        // https://github.com/dotnet/roslyn/issues/77389
+        expectedDiagnostics =
+        [
+            // error CS8911: Using a function pointer type in this context is not supported.
+            Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1),
+        ];
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(expectedDiagnostics);
     }
 }
