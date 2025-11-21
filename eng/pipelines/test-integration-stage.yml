@@ -58,7 +58,7 @@ stages:
     - checkout: RoslynMirror
       fetchDepth: 1
       fetchTags: false
-    - template: eng/pipelines/test-integration-job.yml
+    - template: test-integration-job.yml
       parameters:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
