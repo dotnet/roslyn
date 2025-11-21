@@ -73,11 +73,31 @@ Practical guide for common development tasks:
 - Testing strategies
 - Debugging tips
 
+### 6. [C# Compiler Internals](06-compiler-internals.md) **← HIGH-RESOLUTION MAP FOR LANGUAGE MODIFICATION**
+Surgical guide for modifying the C# language itself:
+- **Complete compiler pipeline** with exact file locations
+- **Parser files** - Every parsing file and method (60+ files)
+- **Binder files** - All semantic analysis files (30+ files)
+- **Symbol system** - Source, metadata, and synthesized symbols
+- **Lowering system** - 60+ LocalRewriter files for desugaring
+- **Async/Iterator rewriting** - State machine generation
+- **Closure conversion** - Lambda and display classes
+- **Flow analysis** - Definite assignment, nullable analysis
+- **Code generation** - IL emission for all constructs
+- **Error system** - Error codes and diagnostics
+- **Modification workflows** - Step-by-step guides for adding operators, statements, patterns
+- **Language feature reference** - Where every C# feature is implemented
+
 ---
 
 ## Quick Start: Common Scenarios
 
 ### I want to...
+
+#### Modify C# Language (Add Operators, Statements, Syntax)
+→ **See [C# Compiler Internals](06-compiler-internals.md) - COMPLETE HIGH-RESOLUTION MAP**
+→ Exact files and methods for: Parser, Binder, Lowering, Code Gen
+→ Step-by-step workflows for adding operators, statements, and patterns
 
 #### Modify the C# Compiler
 → See [Component Guide - Compilers](02-component-guide.md#compilers) for compiler structure
