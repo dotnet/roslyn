@@ -7494,11 +7494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
-                }
 
-                if (!boundLeft.HasAnyErrors)
-                {
-                    ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+                    if (!boundLeft.HasErrors)
+                    {
+                        ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+                    }
                 }
             }
 
@@ -9380,7 +9380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
             var result = BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
 
-            if (!result.HasAnyErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
+            if (!result.HasErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
             {
                 Debug.Assert(receiver.Type?.IsFunctionPointer() != true, "There should have been an error reported for indexing into a function pointer.");
                 ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);

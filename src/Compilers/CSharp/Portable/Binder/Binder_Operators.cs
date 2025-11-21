@@ -4070,7 +4070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = new BoundPointerIndirectionOperator(node, operand, refersToLocation: false, pointedAtType ?? CreateErrorType(), hasErrors);
 
-            if (!result.HasAnyErrors)
+            if (!result.HasErrors)
             {
                 ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
             }
