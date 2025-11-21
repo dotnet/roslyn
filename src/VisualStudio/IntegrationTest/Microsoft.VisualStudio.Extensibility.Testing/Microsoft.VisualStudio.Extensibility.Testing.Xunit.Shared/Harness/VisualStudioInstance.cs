@@ -14,9 +14,8 @@ namespace Xunit.Harness
     using System.Runtime.Remoting.Channels.Ipc;
     using System.Runtime.Serialization.Formatters;
     using Microsoft.VisualStudio.IntegrationTestService;
-    using Windows.Win32;
+    using Windows.Wdk.System.Threading;
     using Windows.Win32.Foundation;
-    using Windows.Win32.System.Threading;
     using Xunit.InProcess;
     using Xunit.OutOfProcess;
     using DTE = EnvDTE.DTE;
@@ -174,7 +173,7 @@ namespace Xunit.Harness
                 {
                     PROCESS_BASIC_INFORMATION pbi = default;
                     var returnLength = 0U;
-                    var status = PInvoke.NtQueryInformationProcess((HANDLE)process.Handle, PROCESSINFOCLASS.ProcessBasicInformation, &pbi, (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(), &returnLength);
+                    var status = Windows.Wdk.PInvoke.NtQueryInformationProcess((HANDLE)process.Handle, PROCESSINFOCLASS.ProcessBasicInformation, &pbi, (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(), &returnLength);
                     if (status != 0)
                     {
                         return null;

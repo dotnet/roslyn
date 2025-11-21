@@ -5,7 +5,7 @@
     <DisplayName>Visual Studio Integration Test Service</DisplayName>
     <Description>Integration test service.</Description>
     <MoreInfo>https://github.com/Microsoft/vs-extension-testing</MoreInfo>
-    <License>LICENSE</License>
+    <License>License.txt</License>
     <!-- Don't include the GettingStartedGuide because it makes a web browser pop up after installation -->
     <!--<GettingStartedGuide>https://marketplace.visualstudio.com/items?itemName=SamHarwell.MouseFastScroll</GettingStartedGuide>-->
     <ReleaseNotes>https://github.com/Microsoft/vs-extension-testing/releases/tag/1.0.0</ReleaseNotes>

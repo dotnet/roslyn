@@ -4,9 +4,9 @@
 namespace Xunit.Harness
 {
     using System;
+    using System.Runtime.InteropServices;
     using Windows.Win32.Media;
     using IMessageFilter = Windows.Win32.Media.Audio.IMessageFilter;
-    using INTERFACEINFO = Windows.Win32.System.Com.INTERFACEINFO;
     using PENDINGMSG = Windows.Win32.System.Com.PENDINGMSG;
     using SERVERCALL = Windows.Win32.System.Com.SERVERCALL;
 
@@ -28,11 +28,6 @@ namespace Xunit.Harness
             _timeout = timeout;
             _retryDelay = retryDelay;
             _messageFilterRegistration = MessageFilterSafeHandle.Register(this);
-        }
-
-        public virtual uint HandleInComingCall(uint dwCallType, HTASK htaskCaller, uint dwTickCount, in INTERFACEINFO lpInterfaceInfo)
-        {
-            return (uint)SERVERCALL.SERVERCALL_ISHANDLED;
         }
 
         public virtual uint RetryRejectedCall(HTASK htaskCallee, uint dwTickCount, uint dwRejectType)
@@ -68,6 +63,11 @@ namespace Xunit.Harness
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public unsafe uint HandleInComingCall(uint dwCallType, HTASK htaskCaller, uint dwTickCount, [Optional] Windows.Win32.System.Com.INTERFACEINFO_unmanaged* lpInterfaceInfo)
+        {
+            return (uint)SERVERCALL.SERVERCALL_ISHANDLED;
         }
     }
 }
