@@ -1,0 +1,49 @@
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
+
+# C# files
+[*.cs]
+
+# We don't want any analyzer diagnostics to be reported for people consuming this as a source package.
+dotnet_analyzer_diagnostic.severity = none
+
+generated_code = true
+
+# The above configurations don't apply to compiler warnings.  Requiring all params to be documented
+# is not something we require for this project, so suppressing it directly here.
+dotnet_diagnostic.CS1573.severity = none
+
+# As above, we need to specifically disable compiler warnings that we don't want to break downstream
+# builds
+dotnet_diagnostic.IDE0005.severity = none
+
+# Disable nullability checks when targeting netstandard2.0
+dotnet_diagnostic.CS8774.severity = none # Member not null
+dotnet_diagnostic.CS8775.severity = none # Member not null when
+dotnet_diagnostic.CS8776.severity = none # Member not null bad member
+dotnet_diagnostic.CS8777.severity = none # Parameter disallows null
+dotnet_diagnostic.CS8778.severity = none # Const out of range checked
+dotnet_diagnostic.CS8600.severity = none # Converting nullable to non-nullable
+dotnet_diagnostic.CS8601.severity = none # Null reference assignment
+dotnet_diagnostic.CS8602.severity = none # Null reference receiver
+dotnet_diagnostic.CS8603.severity = none # Null reference return
+dotnet_diagnostic.CS8604.severity = none # Null reference argument
+dotnet_diagnostic.CS8605.severity = none # Unbox possible null
+dotnet_diagnostic.CS8607.severity = none # Disallow null attribute forbids maybe null assignment
+dotnet_diagnostic.CS8608.severity = none # Nullability mismatch in type on override
+dotnet_diagnostic.CS8609.severity = none # Nullability mismatch in return type on override
+dotnet_diagnostic.CS8610.severity = none # Nullability mismatch in parameter type on override
+dotnet_diagnostic.CS8611.severity = none # Nullability mismatch in parameter type on partial
+dotnet_diagnostic.CS8612.severity = none # Nullability mismatch in type on implicit implementation
+dotnet_diagnostic.CS8613.severity = none # Nullability mismatch in return type on implicit implementation
+dotnet_diagnostic.CS8614.severity = none # Nullability mismatch in parameter type on implicit implementation
+dotnet_diagnostic.CS8615.severity = none # Nullability mismatch in type on explicit implementation
+dotnet_diagnostic.CS8616.severity = none # Nullability mismatch in return type on explicit implementation
+dotnet_diagnostic.CS8617.severity = none # Nullability mismatch in parameter type on explicit implementation
+dotnet_diagnostic.CS8618.severity = none # Uninitialized non-nullable field
+dotnet_diagnostic.CS8619.severity = none # Nullability mismatch in assignment
+dotnet_diagnostic.CS8620.severity = none # Nullability mismatch in argument
+dotnet_diagnostic.CS8621.severity = none # Nullability mismatch in return type of target delegate
+dotnet_diagnostic.CS8622.severity = none # Nullability mismatch in parameter type of target delegate
+dotnet_diagnostic.CS8624.severity = none # Nullability mismatch in argument for output
+dotnet_diagnostic.CS8625.severity = none # Null as non-nullable

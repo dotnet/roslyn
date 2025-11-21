@@ -6028,12 +6028,9 @@ parse_member_name:;
             if (this.IsCurrentTokenWhereOfConstraintClause())
                 return false;
 
-            // possible attributes
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
-                return true;
-
+            // possible attributes.
             // Variance.
-            if (this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
                 return true;
 
             return IsTrueIdentifier();
@@ -6041,21 +6038,22 @@ parse_member_name:;
 
         private TypeParameterSyntax ParseTypeParameter()
         {
-            if (this.IsCurrentTokenWhereOfConstraintClause())
-            {
-                return _syntaxFactory.TypeParameter(
-                    default(SyntaxList<AttributeListSyntax>),
-                    varianceKeyword: null,
-                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
-            }
-
             var attrs = default(SyntaxList<AttributeListSyntax>);
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
                 attrs = this.ParseAttributeDeclarations(inExpressionContext: false);
                 _termState = saveTerm;
+            }
+
+            if (this.IsCurrentTokenWhereOfConstraintClause() ||
+                this.IsCurrentTokenPartialKeywordOfPartialMemberOrType())
+            {
+                return _syntaxFactory.TypeParameter(
+                    attrs,
+                    varianceKeyword: null,
+                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
             return _syntaxFactory.TypeParameter(
@@ -11872,10 +11870,6 @@ done:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.StringLiteralToken:
                     case SyntaxKind.Utf8StringLiteralToken:
-                    case SyntaxKind.SingleLineRawStringLiteralToken:
-                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
-                    case SyntaxKind.MultiLineRawStringLiteralToken:
-                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                     case SyntaxKind.CharacterLiteralToken:
                         return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                     case SyntaxKind.InterpolatedStringStartToken:
@@ -11885,6 +11879,11 @@ done:
                         throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
                     case SyntaxKind.InterpolatedStringToken:
                         return this.ParseInterpolatedStringToken();
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
+                        return this.ParseRawStringToken();
                     case SyntaxKind.OpenParenToken:
                         {
                             return IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda

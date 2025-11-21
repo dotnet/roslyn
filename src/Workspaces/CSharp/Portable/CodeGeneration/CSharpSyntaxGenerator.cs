@@ -3433,7 +3433,9 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => CreateBinaryExpression(SyntaxKind.LogicalOrExpression, left, right);
 
     public override SyntaxNode LogicalNotExpression(SyntaxNode expression)
-        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression));
+        => SyntaxFactory.PrefixUnaryExpression(
+            SyntaxKind.LogicalNotExpression,
+            (ExpressionSyntax)ParenthesizeNonSimple(expression.WithoutLeadingTrivia())).WithLeadingTrivia(expression.GetLeadingTrivia());
 
     public override SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
         => SyntaxFactory.ConditionalExpression((ExpressionSyntax)ParenthesizeNonSimple(condition), (ExpressionSyntax)ParenthesizeNonSimple(whenTrue), (ExpressionSyntax)ParenthesizeNonSimple(whenFalse));
