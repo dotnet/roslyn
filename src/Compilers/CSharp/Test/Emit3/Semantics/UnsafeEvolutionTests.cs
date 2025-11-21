@@ -901,4 +901,70 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics()
             .VerifyEmitDiagnostics(expectedDiagnostics);
     }
+
+    [Fact]
+    public void Pointer_Function_Call_SafeContext()
+    {
+        var source = """
+            delegate*<string> x = null;
+            string s = x();
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // delegate*<string> x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+            // (2,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string s = x();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x()").WithLocation(2, 12));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,12): error CS9500: This operation may only be used in an unsafe context
+            // string s = x();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "x()").WithLocation(2, 12),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // delegate*<string> x = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (2,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // string s = x();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x()").WithArguments("updated memory safety rules").WithLocation(2, 12));
+    }
+
+    [Fact]
+    public void Pointer_Function_Call_UnsafeContext()
+    {
+        var source = """
+            delegate*<string> x = null;
+            unsafe { string s = x(); }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // delegate*<string> x = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1));
+    }
 }
