@@ -2401,6 +2401,7 @@ record C(int X) : Base`(X`)
 `}
 ";
             var members = new[] {
+                "System.Boolean C.Equals(Base? other)",
                 "System.Boolean C.Equals(C? other)",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2575,6 +2576,7 @@ record C : Base(X)
                     "Microsoft",
                     "C"),
                 Add( // Members
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2611,6 +2613,7 @@ partial record C : Base(X, Y)
                     "Microsoft",
                     "C"),
                 Add( // Members
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2684,6 +2687,7 @@ partial record C : Base(X)
                     "Microsoft",
                     "C"),
                 Add( // Members + parameters
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2702,6 +2706,7 @@ partial record C : Base(X)
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2720,6 +2725,7 @@ partial record C : Base(X)
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2760,6 +2766,7 @@ partial record C(int X) : Base`(X`)
                     "Microsoft",
                     "C"),
                 Add( // Members
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2778,6 +2785,7 @@ partial record C(int X) : Base`(X`)
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members + parameters
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
@@ -2796,6 +2804,7 @@ partial record C(int X) : Base`(X`)
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
+                    "System.Boolean C.Equals(Base? other)",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
