@@ -1300,9 +1300,6 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
@@ -1346,9 +1343,6 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
-                // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
-                // record E : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),

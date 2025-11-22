@@ -11052,9 +11052,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // 0.cs(1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
                 // 0.cs(1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),

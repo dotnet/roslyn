@@ -102,16 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var baseEqualsSymbol = ContainingType.GetMembersUnordered().OfType<SynthesizedRecordBaseEquals>().SingleOrDefault();
-                    if (baseEqualsSymbol is null)
-                    {
-                        // If the base is not a record, SynthesizedRecordBaseEquals won't have been created. In that
-                        // case, ERR_BadRecordBase will have been reported elsewhere, so just generate a throw.
-                        F.CloseMethod(F.ThrowNull());
-                        return;
-                    }
-
-                    MethodSymbol? baseEquals = baseEqualsSymbol.OverriddenMethod;
+                    MethodSymbol? baseEquals = ContainingType.GetMembersUnordered().OfType<SynthesizedRecordBaseEquals>().SingleOrDefault()?.OverriddenMethod;
 
                     if (baseEquals is null || !baseEquals.ContainingType.Equals(ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions) ||
                         baseEquals.ReturnType.SpecialType != SpecialType.System_Boolean)
