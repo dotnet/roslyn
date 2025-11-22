@@ -1659,11 +1659,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
             // will have already been reported, and we don't need to report cascaded warnings.
-            if (hidingMember is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers)
+            if (hidingMember is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers &&
+                hidingMember.ContainingType.IsRecord)
             {
                 var baseType = hidingMember.ContainingType.BaseTypeNoUseSiteDiagnostics;
-                if (!baseType.IsObjectType() && !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+                if (!baseType.IsObjectType() &&
+                    !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+                {
                     return true;
+                }
             }
 
             return false;
