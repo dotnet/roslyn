@@ -9,7 +9,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisPackageVersion>3.11.0</MicrosoftCodeAnalysisPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>4.10.0-1.24061.4</MicrosoftNetCompilersToolsetPackageVersion>
     <!-- dotnet/dotnet dependencies -->
-    <SystemCommandLinePackageVersion>2.0.0-rc.1.25509.115</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-alpha.1.25571.109</SystemCommandLinePackageVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>9.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>9.0.0</MicrosoftExtensionsConfigurationPackageVersion>
