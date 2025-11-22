@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -236,8 +235,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundLiteral literal:
                         {
-                            ConstantValue? constantValueOpt = literal.ConstantValueOpt;
-                            appendConstantValue(constantValueOpt);
+                            var value = literal.ConstantValueOpt?.Value?.ToString();
+                            if (value is null)
+                            {
+                                append("null");
+                                break;
+                            }
+                            switch (literal.ConstantValueOpt?.Discriminator)
+                            {
+                                case ConstantValueTypeDiscriminator.String:
+                                    append($@"""{value}""");
+                                    break;
+                                default:
+                                    append(value);
+                                    break;
+                            }
                             break;
                         }
                     case BoundAssignmentOperator assignment:
@@ -346,133 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             appendSource(binary.Right);
                             break;
                         }
-                    case BoundBinaryPattern binaryPattern:
-                        {
-                            append("(");
-                            appendSource(binaryPattern.Left);
-                            append(binaryPattern.Disjunction ? " or " : " and ");
-                            appendSource(binaryPattern.Right);
-                            append(")");
-                            break;
-                        }
-                    case BoundConstantPattern constantPattern:
-                        {
-                            appendConstantValue(constantPattern.ConstantValue);
-                            break;
-                        }
-                    case BoundNegatedPattern negatedPattern:
-                        {
-                            append("(not ");
-                            appendSource(negatedPattern.Negated);
-                            append(")");
-                            break;
-                        }
-                    case BoundListPattern listPattern:
-                        {
-                            append("[");
-                            for (int i = 0; i < listPattern.Subpatterns.Length; i++)
-                            {
-                                if (i != 0) append(", ");
-                                appendSource(listPattern.Subpatterns[i]);
-                            }
-                            append("]");
-                            break;
-                        }
-                    case BoundSlicePattern slicePattern:
-                        {
-                            append("..");
-                            if (slicePattern.Pattern is not null)
-                            {
-                                appendSource(slicePattern.Pattern);
-                            }
-                            break;
-                        }
-                    case BoundDiscardPattern:
-                        {
-                            append("_");
-                            break;
-                        }
-                    case BoundTypePattern typePattern:
-                        {
-                            append(typePattern.DeclaredType.Type.ToString());
-                            break;
-                        }
-                    case BoundRecursivePattern recursivePattern:
-                        {
-                            if (recursivePattern.DeclaredType is { } declaredType)
-                            {
-                                append(declaredType.Type.Name);
-                                append(" ");
-                            }
-
-                            if (recursivePattern.Deconstruction is { IsDefault: false } deconstruction)
-                            {
-                                append("(");
-                                for (int i = 0; i < deconstruction.Length; i++)
-                                {
-                                    if (i != 0) append(", ");
-                                    appendSource(deconstruction[i].Pattern);
-                                }
-                                append(")");
-                            }
-
-                            if (recursivePattern.Properties is { IsDefault: false } properties)
-                            {
-                                append("{");
-                                for (int i = 0; i < properties.Length; i++)
-                                {
-                                    if (i != 0) append(", ");
-                                    BoundPropertySubpattern property = properties[i];
-                                    append(property.Member?.Symbol?.Name);
-                                    append(": ");
-                                    appendSource(property.Pattern);
-                                }
-                                append("}");
-                            }
-                            break;
-                        }
-                    case BoundDeclarationPattern declarationPattern:
-                        {
-                            if (declarationPattern.IsVar)
-                            {
-                                append("var ");
-                            }
-                            else
-                            {
-                                append(declarationPattern.DeclaredType.Type.Name);
-                                append(" ");
-                            }
-
-                            append(declarationPattern.Variable?.Name);
-                            break;
-                        }
-                    case BoundITuplePattern ituplePattern:
-                        {
-                            append("(");
-                            for (int i = 0; i < ituplePattern.Subpatterns.Length; i++)
-                            {
-                                if (i != 0) append(", ");
-                                appendSource(ituplePattern.Subpatterns[i].Pattern);
-                            }
-                            append(")");
-                            break;
-                        }
-                    case BoundRelationalPattern relationalPattern:
-                        {
-                            string relation = (relationalPattern.Relation & BinaryOperatorKind.OpMask) switch
-                            {
-                                BinaryOperatorKind.GreaterThan => ">",
-                                BinaryOperatorKind.GreaterThanOrEqual => ">=",
-                                BinaryOperatorKind.LessThan => "<",
-                                BinaryOperatorKind.LessThanOrEqual => "<=",
-                                _ => relationalPattern.Relation.ToString()
-                            };
-
-                            append(relation);
-                            append(" ");
-                            appendConstantValue(relationalPattern.ConstantValue);
-                            break;
-                        }
                     default:
                         appendLine(node.Kind.ToString());
                         break;
@@ -549,26 +434,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         append($"({symbol.GetDebuggerDisplay()})");
-                    }
-                }
-
-                void appendConstantValue(ConstantValue? constantValueOpt)
-                {
-                    var value = constantValueOpt?.Value?.ToString();
-                    if (value is null)
-                    {
-                        append("null");
-                        return;
-                    }
-
-                    switch (constantValueOpt?.Discriminator)
-                    {
-                        case ConstantValueTypeDiscriminator.String:
-                            append($@"""{value}""");
-                            break;
-                        default:
-                            append(value);
-                            break;
                     }
                 }
             }
