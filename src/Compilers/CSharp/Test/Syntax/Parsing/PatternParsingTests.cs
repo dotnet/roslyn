@@ -13196,5 +13196,108 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
+        public void InvalidUnaryOperatorInPattern10()
+        {
+            UsingStatement(@"if (x is != 5 or == 6) ;",
+                // (1,10): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                // if (x is != 5 or == 6) ;
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 10),
+                // (1,18): error CS9344: The '==' operator is not supported in a pattern.
+                // if (x is != 5 or == 6) ;
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 18));
+
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.OrPattern);
+                    {
+                        N(SyntaxKind.NotPattern);
+                        {
+                            M(SyntaxKind.NotKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.OrKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "6");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
+        public void InvalidUnaryOperatorInPattern11()
+        {
+            UsingStatement(@"if (x is == > 10 and < 15) ;",
+                // (1,10): error CS9344: The '==' operator is not supported in a pattern.
+                // if (x is == > 10 and < 15) ;
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 10));
+
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.AndPattern);
+                    {
+                        N(SyntaxKind.RelationalPattern);
+                        {
+                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "10");
+                            }
+                        }
+                        N(SyntaxKind.AndKeyword);
+                        N(SyntaxKind.RelationalPattern);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "15");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
     }
 }
