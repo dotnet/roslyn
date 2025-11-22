@@ -501,9 +501,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
+            var baseType = this.BaseTypeNoUseSiteDiagnostics;
+            if (baseType?.IsErrorType() == true)
             {
                 // Avoid cascading diagnostics
+                return;
+            }
+
+            // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
+            // will have already been reported, and we don't need to report cascaded warnings and errors for the
+            // members in this type.
+            if (this.IsRecord &&
+                !baseType.IsObjectType() &&
+                !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+            {
                 return;
             }
 
@@ -784,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)associatedPropertyOrEvent == null)
                     {
-                        bool suppressError = ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(overridingMember);
+                        bool suppressError = false;
                         if (!suppressError && (overridingMemberIsMethod || overridingMember.IsIndexer()))
                         {
                             var parameterTypes = overridingMemberIsMethod
@@ -1604,8 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!hidingMemberIsNew && hiddenMember.Kind == hidingMember.Kind &&
                             !hidingMember.IsAccessor() &&
                             (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride) &&
-                            !IsShadowingSynthesizedRecordMember(hidingMember) &&
-                            !ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(hidingMember))
+                            !IsShadowingSynthesizedRecordMember(hidingMember))
                         {
                             diagnostics.Add(ErrorCode.WRN_NewOrOverrideExpected, hidingMemberLocation, hidingMember, hiddenMember);
                             diagnosticAdded = true;
@@ -1627,7 +1637,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!hidingMemberIsNew &&
                     !IsShadowingSynthesizedRecordMember(hidingMember) &&
-                    !ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(hidingMember) &&
                     !diagnosticAdded && !hidingMember.IsAccessor() &&
                     (!hidingMember.IsOperator() || hiddenMembers[0].IsOperator()))
                 {
@@ -1653,24 +1662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool IsShadowingSynthesizedRecordMember(Symbol hidingMember)
         {
             return hidingMember is SynthesizedRecordEquals || hidingMember is SynthesizedRecordDeconstruct || hidingMember is SynthesizedRecordClone;
-        }
-
-        private static bool ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(Symbol hidingMember)
-        {
-            // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
-            // will have already been reported, and we don't need to report cascaded warnings.
-            if (hidingMember is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers &&
-                hidingMember.ContainingType.IsRecord)
-            {
-                var baseType = hidingMember.ContainingType.BaseTypeNoUseSiteDiagnostics;
-                if (!baseType.IsObjectType() &&
-                    !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
