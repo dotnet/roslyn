@@ -11017,10 +11017,10 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // 0.cs(1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
-                // 0.cs(1,32): error CS8864: Records may only inherit from object or another record
+                // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
             );
