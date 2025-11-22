@@ -3692,9 +3692,10 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(2,19): error CS8864: Records may only inherit from object or another record
+                // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
 
             Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
