@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)associatedPropertyOrEvent == null)
                     {
                         bool suppressError = false;
-                        if (!suppressError && (overridingMemberIsMethod || overridingMember.IsIndexer()))
+                        if (overridingMemberIsMethod || overridingMember.IsIndexer())
                         {
                             var parameterTypes = overridingMemberIsMethod
                                 ? ((MethodSymbol)overridingMember).ParameterTypesWithAnnotations
