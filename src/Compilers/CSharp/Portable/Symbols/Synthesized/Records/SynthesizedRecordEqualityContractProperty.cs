@@ -113,26 +113,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the base type is not a record, ERR_BadRecordBase will already be reported.
             // Don't cascade an override error in this case.
-            if (baseType.IsObjectType() ||
-                !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
             {
                 return;
             }
 
             bool reportAnError = false;
-
-            if (!overriding.IsOverride)
+            if (!baseType.IsObjectType() && SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
             {
-                reportAnError = true;
-            }
-            else
-            {
-                var overridden = overriding.OverriddenProperty;
-
-                if (overridden is object &&
-                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                if (!overriding.IsOverride)
                 {
                     reportAnError = true;
+                }
+                else
+                {
+                    var overridden = overriding.OverriddenProperty;
+
+                    if (overridden is object &&
+                        !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        reportAnError = true;
+                    }
                 }
             }
 
