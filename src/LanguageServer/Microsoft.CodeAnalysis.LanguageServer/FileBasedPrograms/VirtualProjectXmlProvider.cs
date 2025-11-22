@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -115,6 +116,15 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
             if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
                 return true;
         }
+
+        return false;
+    }
+
+    internal static async Task<bool> HasTopLevelStatementsAsync(SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        var root = await tree.GetRootAsync(cancellationToken);
+        if (root is CompilationUnitSyntax compilationUnit)
+            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
 
         return false;
     }
