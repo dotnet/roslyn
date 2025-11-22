@@ -38,19 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private :
                 DeclarationModifiers.Protected;
 
+            // Only mark as override if the base type is actually a record.
+            // If it's not a record, ERR_BadRecordBase will be reported separately.
             var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-            if (containingType.IsRecord && !baseType.IsObjectType())
+            if (containingType.IsRecord && !baseType.IsObjectType() && SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
             {
-                // Only mark as override if the base type is actually a record.
-                // If it's not a record, ERR_BadRecordBase will be reported separately.
-                if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-                {
-                    result |= DeclarationModifiers.Override;
-                }
-                else
-                {
-                    result |= containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
-                }
+                result |= DeclarationModifiers.Override;
             }
             else
             {
