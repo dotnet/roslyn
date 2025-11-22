@@ -17,27 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordBaseEquals : SynthesizedRecordOrdinaryMethod
     {
         public SynthesizedRecordBaseEquals(SourceMemberContainerTypeSymbol containingType, int memberOffset)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, MakeDeclarationModifiers(containingType))
+            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, DeclarationModifiers.Public | DeclarationModifiers.Override | DeclarationModifiers.Sealed)
         {
             Debug.Assert(!containingType.IsRecordStruct);
-        }
-
-        private static DeclarationModifiers MakeDeclarationModifiers(SourceMemberContainerTypeSymbol containingType)
-        {
-            var modifiers = DeclarationModifiers.Public | DeclarationModifiers.Sealed;
-
-            // Only mark as override if the base type is actually a record.
-            // If it's not a record, ERR_BadRecordBase will be reported separately.
-            if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(containingType.BaseTypeNoUseSiteDiagnostics))
-            {
-                modifiers |= DeclarationModifiers.Override;
-            }
-            else
-            {
-                modifiers |= DeclarationModifiers.New;
-            }
-
-            return modifiers;
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)

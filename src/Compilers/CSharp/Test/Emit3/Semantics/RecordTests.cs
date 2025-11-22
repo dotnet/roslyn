@@ -11052,10 +11052,13 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // 0.cs(1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
+                // 0.cs(1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
-                // (1,32): error CS8864: Records may only inherit from object or another record
+                // 0.cs(1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
             );
@@ -11189,16 +11192,19 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
+                // 0.cs(1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
+                // 0.cs(1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
-                // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // 0.cs(1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
-                // (1,27): warning CS8907: Parameter 'Q' is unread. Did you forget to use it to initialize the property with that name?
+                // 0.cs(1,27): warning CS8907: Parameter 'Q' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Q").WithArguments("Q").WithLocation(1, 27),
-                // (1,42): error CS8864: Records may only inherit from object or another record
+                // 0.cs(1,42): error CS8864: Records may only inherit from object or another record
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
                 );
