@@ -4511,51 +4511,53 @@ record D(int X) : C(X)
 ";
             var comp4 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp3Ref }, parseOptions: TestOptions.Regular9);
             comp4.VerifyEmitDiagnostics(
-                // 0.cs(2,8): error CS8869: 'D.Equals(object?)' does not override expected method from 'object'.
+                // (2,8): error CS8869: 'D.Equals(object?)' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.Equals(object?)").WithLocation(2, 8),
-                // 0.cs(2,8): error CS8869: 'D.GetHashCode()' does not override expected method from 'object'.
+                // (2,8): error CS8869: 'D.GetHashCode()' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.GetHashCode()").WithLocation(2, 8),
-                // 0.cs(2,8): error CS8869: 'D.ToString()' does not override expected method from 'object'.
+                // (2,8): error CS8869: 'D.ToString()' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.ToString()").WithLocation(2, 8),
-                // 0.cs(2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // 0.cs(2,19): error CS8864: Records may only inherit from object or another record
+                // (2,19): error CS8864: Records may only inherit from object or another record
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "C").WithLocation(2, 19),
-                // 0.cs(2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // 0.cs(6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new D(1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22)
+                );
 
             var comp5 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp3Ref }, parseOptions: TestOptions.Regular9);
             comp5.VerifyEmitDiagnostics(
-                // 0.cs(2,8): error CS8869: 'D.Equals(object?)' does not override expected method from 'object'.
+                // (2,8): error CS8869: 'D.Equals(object?)' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.Equals(object?)").WithLocation(2, 8),
-                // 0.cs(2,8): error CS8869: 'D.GetHashCode()' does not override expected method from 'object'.
+                // (2,8): error CS8869: 'D.GetHashCode()' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.GetHashCode()").WithLocation(2, 8),
-                // 0.cs(2,8): error CS8869: 'D.ToString()' does not override expected method from 'object'.
+                // (2,8): error CS8869: 'D.ToString()' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.ToString()").WithLocation(2, 8),
-                // 0.cs(2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // 0.cs(2,19): error CS8864: Records may only inherit from object or another record
+                // (2,19): error CS8864: Records may only inherit from object or another record
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "C").WithLocation(2, 19),
-                // 0.cs(2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // 0.cs(6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new D(1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22)
+                );
         }
 
         [Fact]
@@ -4652,9 +4654,10 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(2,19): error CS8864: Records may only inherit from object or another record
+                // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
 
             Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
@@ -4754,9 +4757,10 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(2,19): error CS8864: Records may only inherit from object or another record
+                // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
 
             Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
@@ -11072,13 +11076,13 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // 0.cs(1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
-                // (1,27): warning CS8907: Parameter 'Q' is unread. Did you forget to use it to initialize the property with that name?
+                // 0.cs(1,27): warning CS8907: Parameter 'Q' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Q").WithArguments("Q").WithLocation(1, 27),
-                // (1,32): error CS8864: Records may only inherit from object or another record
+                // 0.cs(1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
                 );
@@ -11171,21 +11175,6 @@ End Class
                 "System.Object C.R { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63270")]
-        public void RecordInheritingFromNonRecord_OnlyReportsBaseError()
-        {
-            var source = """
-                class Base { }
-
-                record Derived : Base { }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (3,18): error CS8864: Records may only inherit from object or another record
-                // record Derived : Base { }
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));
         }
 
         [Fact]
@@ -12619,6 +12608,21 @@ record B : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8));
 
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63270")]
+        public void RecordInheritingFromNonRecord_OnlyReportsBaseError()
+        {
+            var source = """
+                class Base { }
+
+                record Derived : Base { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,18): error CS8864: Records may only inherit from object or another record
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
