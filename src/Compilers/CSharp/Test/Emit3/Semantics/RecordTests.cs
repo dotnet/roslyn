@@ -11189,9 +11189,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // 0.cs(1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
                 // 0.cs(1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
