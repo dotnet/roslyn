@@ -1314,7 +1314,8 @@ enum G : C { }";
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(7, 12),
                 // (8,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
                 // enum G : C { }
-                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(8, 10));
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(8, 10)
+            );
         }
 
         [Theory]
@@ -1354,7 +1355,8 @@ enum H : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(5, 12),
                 // (6,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
                 // enum H : C { }
-                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(6, 10));
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(6, 10)
+            );
         }
 
         [Fact]
