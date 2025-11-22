@@ -125,14 +125,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
+                var baseCloneMethod = SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo);
                 if (declaration.Kind == DeclarationKind.Record)
                 {
-                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is null)
+                    if (baseCloneMethod is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
                     }
                 }
-                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is object)
+                else if (baseCloneMethod is object)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
                 }
