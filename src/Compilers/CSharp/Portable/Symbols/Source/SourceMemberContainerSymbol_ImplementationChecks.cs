@@ -784,8 +784,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)associatedPropertyOrEvent == null)
                     {
-                        bool suppressError = false;
-                        if (overridingMemberIsMethod || overridingMember.IsIndexer())
+                        bool suppressError = ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(overridingMember);
+                        if (!suppressError && (overridingMemberIsMethod || overridingMember.IsIndexer()))
                         {
                             var parameterTypes = overridingMemberIsMethod
                                 ? ((MethodSymbol)overridingMember).ParameterTypesWithAnnotations
@@ -1604,7 +1604,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!hidingMemberIsNew && hiddenMember.Kind == hidingMember.Kind &&
                             !hidingMember.IsAccessor() &&
                             (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride) &&
-                            !shouldSuppressNewOrOverrideWarningForSynthesizedRecordMember(hidingMember))
+                            !IsShadowingSynthesizedRecordMember(hidingMember) &&
+                            !ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(hidingMember))
                         {
                             diagnostics.Add(ErrorCode.WRN_NewOrOverrideExpected, hidingMemberLocation, hidingMember, hiddenMember);
                             diagnosticAdded = true;
@@ -1624,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (!hidingMemberIsNew && !shouldSuppressNewOrOverrideWarningForSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() &&
+                if (!hidingMemberIsNew && !IsShadowingSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() &&
                     (!hidingMember.IsOperator() || hiddenMembers[0].IsOperator()))
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
@@ -1644,22 +1645,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         invokedAsExtensionMethod: false);
                 }
             }
+        }
 
-            static bool shouldSuppressNewOrOverrideWarningForSynthesizedRecordMember(Symbol hidingMember)
-            {
-                if (hidingMember is SynthesizedRecordEquals or SynthesizedRecordDeconstruct or SynthesizedRecordClone)
-                    return true;
+        private static bool IsShadowingSynthesizedRecordMember(Symbol hidingMember)
+        {
+            return hidingMember is SynthesizedRecordEquals || hidingMember is SynthesizedRecordDeconstruct || hidingMember is SynthesizedRecordClone;
+        }
 
-                // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
-                // will have already been reported, and we don't need to report cascaded warnings.
-                if (hidingMember is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers &&
-                    !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(hidingMember.ContainingType.BaseTypeNoUseSiteDiagnostics))
-                {
-                    return true;
-                }
-
-                return false;
-            }
+        private static bool ShouldSuppressNewOrOverrideDiagnosticForSynthesizedRecordMember(Symbol hidingMember)
+        {
+            // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
+            // will have already been reported, and we don't need to report cascaded warnings.
+            return hidingMember is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers &&
+                !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(hidingMember.ContainingType.BaseTypeNoUseSiteDiagnostics);
         }
 
         /// <summary>

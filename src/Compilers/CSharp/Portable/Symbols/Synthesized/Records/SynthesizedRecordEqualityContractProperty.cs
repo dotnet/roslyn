@@ -24,7 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExplicitInterfaceImplementation: false,
                 explicitInterfaceType: null,
                 aliasQualifierOpt: null,
-                modifiers: MakeModifiers(containingType),
+                modifiers: (containingType.IsSealed, containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType()) switch
+                {
+                    (true, true) => DeclarationModifiers.Private,
+                    (false, true) => DeclarationModifiers.Protected | DeclarationModifiers.Virtual,
+                    (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
+                },
                 hasInitializer: false,
                 hasExplicitAccessMod: false,
                 hasAutoPropertyGet: false,
@@ -40,20 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics)
         {
             Debug.Assert(!containingType.IsRecordStruct);
-        }
-
-        private static DeclarationModifiers MakeModifiers(SourceMemberContainerTypeSymbol containingType)
-        {
-            var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-
-            // Only mark as override if the base type is actually a record.
-            // If it's not a record, ERR_BadRecordBase will be reported separately.
-            if (!baseType.IsObjectType() && SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-                return DeclarationModifiers.Protected | DeclarationModifiers.Override;
-
-            return containingType.IsSealed
-                ? DeclarationModifiers.Private
-                : DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
         }
 
         public override bool IsImplicitlyDeclared => true;
