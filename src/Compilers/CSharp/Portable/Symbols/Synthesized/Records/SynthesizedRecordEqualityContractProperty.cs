@@ -45,20 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static DeclarationModifiers MakeModifiers(SourceMemberContainerTypeSymbol containingType)
         {
             var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-            bool baseIsObject = baseType.IsObjectType();
-
-            if (containingType.IsSealed && baseIsObject)
-                return DeclarationModifiers.Private;
-
-            if (baseIsObject)
-                return DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
 
             // Only mark as override if the base type is actually a record.
             // If it's not a record, ERR_BadRecordBase will be reported separately.
-            if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+            if (!baseType.IsObjectType() && SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
                 return DeclarationModifiers.Protected | DeclarationModifiers.Override;
 
-            // Base is not a record, so treat like object base.
             return containingType.IsSealed
                 ? DeclarationModifiers.Private
                 : DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
