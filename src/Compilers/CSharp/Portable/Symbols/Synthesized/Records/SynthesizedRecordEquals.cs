@@ -102,12 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // If the base is not a record, SynthesizedRecordBaseEquals won't have been created.
-                    // In that case, ERR_BadRecordBase will have been reported, so just generate a throw.
                     var baseEqualsSymbol = ContainingType.GetMembersUnordered().OfType<SynthesizedRecordBaseEquals>().SingleOrDefault();
                     if (baseEqualsSymbol is null)
                     {
-                        // Base is not a record, error was reported elsewhere
+                        // If the base is not a record, SynthesizedRecordBaseEquals won't have been created. In that
+                        // case, ERR_BadRecordBase will have been reported elsewhere, so just generate a throw.
                         F.CloseMethod(F.ThrowNull());
                         return;
                     }

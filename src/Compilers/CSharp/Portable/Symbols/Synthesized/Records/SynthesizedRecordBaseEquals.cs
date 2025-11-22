@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.AccessControl;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -31,7 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Only mark as override if the base type is actually a record.
             // If it's not a record, ERR_BadRecordBase will be reported separately.
             if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(containingType.BaseTypeNoUseSiteDiagnostics))
+            {
                 modifiers |= DeclarationModifiers.Override;
+            }
+            else
+            {
+                modifiers |= DeclarationModifiers.New;
+            }
 
             return modifiers;
         }
