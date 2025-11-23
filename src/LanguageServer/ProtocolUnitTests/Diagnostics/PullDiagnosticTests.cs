@@ -45,13 +45,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-
-        Assert.Empty(results);
+        Assert.Empty(results.Single().Diagnostics!);
 
         // Verify document pull diagnostics are unaffected by running code analysis.
         await testLspServer.RunCodeAnalysisAsync(document.Project.Id);
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Empty(results);
+        Assert.Empty(results.Single().Diagnostics!);
     }
 
     [Theory, CombinatorialData]
