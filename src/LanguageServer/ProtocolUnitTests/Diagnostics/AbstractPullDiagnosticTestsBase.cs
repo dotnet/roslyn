@@ -277,7 +277,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
                 CancellationToken.None).ConfigureAwait(false);
             if (useProgress)
             {
-                Assert.IsType<FullDocumentDiagnosticReport>(diagnostics);
+                Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
                 Assert.Empty(diagnostics.First.Items);
                 AssertEx.NotNull(progress);
                 diagnostics = progress.Value.GetValues()!.Single().First;
