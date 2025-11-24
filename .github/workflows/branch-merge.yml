@@ -1,16 +1,17 @@
 # See https://github.com/dotnet/arcade/blob/e52018a/Documentation/Maestro/New-Inter-Branch-Merge-Approach.md
 
-name: Scheduled branch merge
+name: Branch merge
 on:
-  schedule:
-    # Create a merge every day (works only for merges from `main`, others would need a `push` trigger).
-    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       configuration_file_branch:
         description: 'Branch to use for configuration file'
         required: true
         default: 'main'
+      configuration_file:
+        description: 'Path to configuration file to use to run the merge'
+        required: true
+        default: 'eng/config/branch-merge.jsonc'
 
 permissions:
   contents: write
@@ -21,5 +22,5 @@ jobs:
     if: github.repository == 'dotnet/roslyn'
     uses: dotnet/arcade/.github/workflows/inter-branch-merge-base.yml@main
     with:
-      configuration_file_path: 'eng/config/feature-branch-merge.jsonc'
+      configuration_file_path: ${{ inputs.configuration_file }}
       configuration_file_branch: ${{ inputs.configuration_file_branch || 'main' }}
