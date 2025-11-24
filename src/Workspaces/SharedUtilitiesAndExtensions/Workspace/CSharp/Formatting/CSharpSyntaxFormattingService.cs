@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -139,16 +140,30 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
             //          Process(item);
             //  els  //<-- user types 'e' here
             //  
-            // In this case we want to indent 'else' to match the 'if' above.  We do not want to adjust the formatting of
-            // anything else.  This is especially important as 'else' takes an embedded statement, and we don't want the
-            // following unrelated statement to get reformatted (unless it's a block that should travel with the else.
-            if (token.Kind() != SyntaxKind.ElseKeyword)
+            // In this case we want to indent 'else' to match the 'if' above.  We do not want to adjust the formatting
+            // of anything else.  This is especially important as 'else' takes an embedded statement, and we don't want
+            // a following unrelated statement to get reformatted.  Exceptions to this are:
+            //
+            // 1. if a 'block' follows.  Naked if blocks are rare, so it's much more likely that this is a block that belongs
+            //    to the else-clause.
+            // 2. if an 'if statement' follows and the `else if` are on the same line.  This is clearly an associated
+            //    construct that we want to format together.
+            if (token.Kind() != SyntaxKind.ElseKeyword ||
+                token.Parent is not ElseClauseSyntax elseClause)
+            {
+                return false;
+            }
+
+            if (elseClause.Statement is BlockSyntax)
                 return false;
 
-            if (token.Parent is not ElseClauseSyntax elseClause)
+            if (elseClause.Statement is IfStatementSyntax ifStatement &&
+                document.Text.AreOnSameLine(token, ifStatement.IfKeyword))
+            {
                 return false;
+            }
 
-            return elseClause.Statement is not BlockSyntax;
+            return true;
         }
     }
 
