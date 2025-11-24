@@ -373,9 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private protected override GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+        private protected override GeneratorDriver CreateGeneratorDriver(string baseDirectory, string? trackingName, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.Host, baseDirectory: baseDirectory));
+            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.Host, baseDirectory: baseDirectory, trackingName: trackingName));
         }
 
         private protected override void DiagnoseBadAccesses(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics)

@@ -55,8 +55,8 @@ internal sealed class TestCSharpCompilationFactoryServiceWithIncrementalGenerato
         return new CSharpCompilationOptions(outputKind: outputKind);
     }
 
-    GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory)
+    GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory, string? trackingName)
     {
-        return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true, baseDirectory: TempRoot.Root));
+        return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true, baseDirectory: TempRoot.Root, trackingName: trackingName));
     }
 }
