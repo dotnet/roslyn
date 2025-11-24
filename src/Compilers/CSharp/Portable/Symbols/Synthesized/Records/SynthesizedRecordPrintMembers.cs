@@ -268,9 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            bool reportAnError = false;
             // If the base type is not a record, ERR_BadRecordBase will already be reported.
             // Don't cascade an override error in this case.
+            if (!baseType.IsRecord)
+            {
+                return;
+            }
+
+            bool reportAnError = false;
+
             if (baseType.IsRecord)
             {
                 if (!overriding.IsOverride)
