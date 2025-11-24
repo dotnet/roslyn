@@ -565,9 +565,45 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            var array = (System.Array)RawValue;
-            var element = array.GetValue(indices);
-            var type = DkmClrType.Create(this.Type.AppDomain, (TypeImpl)((element == null) ? array.GetType().GetElementType() : element.GetType()));
+            object element;
+            System.Type elementType;
+            if (RawValue is Array array)
+            {
+                element = array.GetValue(indices);
+                elementType = (element == null) ? array.GetType().GetElementType() : element.GetType();
+            }
+            else
+            {
+#if NET8_0_OR_GREATER
+                // Might be an inline array struct
+                if (indices.Length == 1 && InlineArrayHelpers.TryGetInlineArrayInfo(Type.GetLmrType(), out _, out _))
+                {
+                    // Since reflection is inadequate to dynamically access inline array elements,
+                    // we have to assume it's the special SampleInlineArray type we define for testing and 
+                    // cast appropriately.
+                    element = RawValue switch
+                    {
+                        SampleInlineArray<int> intInlineArray => intInlineArray[indices[0]],
+                        // Add more cases here for other types as needed for testing
+                        _ => throw new InvalidOperationException($"Missing cast case for SampleInlineArray"),
+                    };
+
+                    var fields = RawValue.GetType().GetFields(System.Reflection.BindingFlags.Public |
+                                                              System.Reflection.BindingFlags.NonPublic |
+                                                              System.Reflection.BindingFlags.Instance |
+                                                              System.Reflection.BindingFlags.DeclaredOnly);
+                    elementType = fields[0].FieldType;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Not an array");
+                }
+#else
+                throw new InvalidOperationException("Not an array");
+#endif
+            }
+
+            var type = DkmClrType.Create(this.Type.AppDomain, (TypeImpl)(elementType));
             return new DkmClrValue(
                 element,
                 element,

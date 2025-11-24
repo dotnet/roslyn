@@ -15,12 +15,12 @@
              KeyDown="Adornment_KeyDown"
              MouseDown="Adornment_ConsumeMouseEvent"
              MouseUp="Adornment_ConsumeMouseEvent"
-             GotKeyboardFocus="Adornment_GotKeyboardFocus"
-             Focusable="False"
+             Focusable="True"
              UseLayoutRounding="True"
              Cursor="Arrow"
              Visibility="{Binding Path=Visibility}"
-             x:Name="control">
+             x:Name="control"
+             KeyboardNavigation.TabNavigation="Cycle">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -45,7 +45,8 @@
                 <rename:RenameUserInputPresenter
                     Grid.Column="0"
                     x:Name="RenameUserInputPresenter"
-                    HorizontalAlignment="Stretch"/>
+                    HorizontalAlignment="Stretch"
+                    Focusable="False"/>
 
                 <!-- Expand/Collapse button and glyph -->
                 <Button
@@ -58,20 +59,29 @@
                     platformimaging:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, ElementName=Outline, Converter={StaticResource BrushToColorConverter}}" >
                     <Button.Style>
                         <Style TargetType="Button">
+                            <Setter Property="IsTabStop" Value="True"/>
+                            <Setter Property="Focusable" Value="True"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="Button">
                                         <Border Name="border"
                                         BorderThickness="1"
+                                        BorderBrush="Transparent"
                                         Background="{TemplateBinding Background}">
                                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.SnaplinesBrushKey}}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
                         </Style>
                     </Button.Style>
-                    <imaging:CrispImage Grid.Column="0">
+                    <imaging:CrispImage Focusable="False" Grid.Column="0">
                         <imaging:CrispImage.Style>
                             <Style TargetType="imaging:CrispImage">
                                 <Style.Triggers>
@@ -109,15 +119,19 @@
 
             <StackPanel Orientation="Vertical" Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <CheckBox Content="{Binding ElementName=control, Path=RenameOverloads}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"
-                      Name="OverloadsCheckbox" Visibility="{Binding IsRenameOverloadsVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" IsEnabled="{Binding IsRenameOverloadsEditable}" />
-                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=control, Path=SearchInComments}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
-                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
+                    Name="OverloadsCheckbox" Visibility="{Binding IsRenameOverloadsVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" IsEnabled="{Binding IsRenameOverloadsEditable}"
+                    IsTabStop="True" Focusable="True" />
+                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=control, Path=SearchInComments}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}"
+                    IsTabStop="True" Focusable="True" />
+                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}"
+                    IsTabStop="True" Focusable="True" />
                 <CheckBox Name="FileRenameCheckbox"
                     Content="{Binding Path=FileRenameString}"
                     Margin="0,5,0,0"
                     IsChecked="{Binding Path=RenameFileFlag, Mode=TwoWay}"
                     IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}"
-                    Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+                    Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                    IsTabStop="True" Focusable="True" />
             </StackPanel>
 
             <TextBlock

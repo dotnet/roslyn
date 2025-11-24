@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -48,17 +49,12 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         nextOperation.Invoke();
 
         AddAlignmentBlockOperation(list, node);
-
         AddBlockIndentationOperation(list, node);
-
         AddBracketIndentationOperation(list, node);
-
+        AddParenthesizedPatternIndentationOperation(list, node);
         AddLabelIndentationOperation(list, node);
-
         AddSwitchIndentationOperation(list, node);
-
         AddEmbeddedStatementsIndentationOperation(list, node);
-
         AddTypeParameterConstraintClauseOperation(list, node);
     }
 
@@ -253,7 +249,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     {
         // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
         // operations are skipped for switch patterns, as they are not formatted like blocks.
-        if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
+        if (IsWithinSwitchExpressionArmPattern(node))
         {
             return;
         }
@@ -284,6 +280,26 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
     }
 
+    private static void AddParenthesizedPatternIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    {
+        var (openParen, closeParen) = node switch
+        {
+            ParenthesizedPatternSyntax parenthesizedPattern => (parenthesizedPattern.OpenParenToken, parenthesizedPattern.CloseParenToken),
+            PositionalPatternClauseSyntax positionalPatternClause => (positionalPatternClause.OpenParenToken, positionalPatternClause.CloseParenToken),
+            _ => default,
+        };
+
+        if (openParen == default || closeParen == default)
+            return;
+
+        // This indents the pattern content between the opening and closing parens.
+        var startToken = openParen.GetNextToken(includeZeroWidth: true);
+        var endToken = closeParen.GetPreviousToken(includeZeroWidth: true);
+        AddIndentBlockOperation(
+            list, startToken, endToken,
+            TextSpan.FromBounds(openParen.Span.End, closeParen.Span.Start));
+    }
+
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
     {
         var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
@@ -292,29 +308,50 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
-        // increase indentation - embedded statement cases
-        var statement = node switch
+        // An else-if on the same line should not cause an extra indentation.  Instead, the indentation will be
+        // controlled entirely by the IfStatement.
+        if (node is ElseClauseSyntax { ElseKeyword: var elseKeyword, Statement: IfStatementSyntax { IfKeyword: var ifKeyword } } &&
+            FormattingHelpers.AreOnSameLine(elseKeyword, ifKeyword))
         {
-            // Basic cases that want to unilaterally indent their embedded statements (unless they are blocks) 
-            IfStatementSyntax ifStatement => ifStatement.Statement,
-            WhileStatementSyntax whileStatement => whileStatement.Statement,
-            ForStatementSyntax forStatement => forStatement.Statement,
-            CommonForEachStatementSyntax foreachStatement => foreachStatement.Statement,
-            DoStatementSyntax doStatement => doStatement.Statement,
-            LockStatementSyntax lockStatement => lockStatement.Statement,
-            // A few special cases where if we see certain nesting of statements, we don't want to double indent.
-            ElseClauseSyntax { Statement: not IfStatementSyntax } elseClause => elseClause.Statement,
-            UsingStatementSyntax { Statement: not UsingStatementSyntax } usingStatement => usingStatement.Statement,
-            FixedStatementSyntax { Statement: not FixedStatementSyntax } fixedStatement => fixedStatement.Statement,
-            _ => null,
-        };
+            return;
+        }
 
-        // We never want to indent a block.  It is its own indentation region.
-        if (statement is null or BlockSyntax)
+        // Handle common idiom in C# of nested usings (or nested fixed-statements) not getting extra indentation.
+        if (node is UsingStatementSyntax { Statement: UsingStatementSyntax } ||
+            node is FixedStatementSyntax { Statement: FixedStatementSyntax })
+        {
+            return;
+        }
+
+        // Labels don't increase indent.  Instead, the label itself is placed normally at a higher level and the content
+        // stays at the same level as the label's container.
+        if (node is LabeledStatementSyntax)
             return;
 
-        var firstToken = statement.GetFirstToken(includeZeroWidth: true);
-        var lastToken = statement.GetLastToken(includeZeroWidth: true);
+        var embeddedStatement = node.GetEmbeddedStatement();
+
+        // If it's not a construct that has embedded statements, we def don't want to increase the indent.
+        if (embeddedStatement is null)
+            return;
+
+        // We also never want to indent if the embedded statement is a block.  It is its own indentation region.
+        if (embeddedStatement is BlockSyntax)
+            return;
+
+        var firstToken = embeddedStatement.GetFirstToken(includeZeroWidth: true);
+        var lastToken = embeddedStatement.GetLastToken(includeZeroWidth: true);
+
+        // If the embedded statement is itself an embedded statement owner (e.g., if, using, while, for, etc.)
+        // and it's on the same line as the outer statement, don't add extra indentation. This generalizes
+        // the else-if logic to all nested embedded statements (e.g., if-if, if-using, while-for, etc.)
+        if (embeddedStatement.IsEmbeddedStatementOwner())
+        {
+            var tokenBeforeEmbedded = firstToken.GetPreviousToken(includeZeroWidth: true);
+            if (tokenBeforeEmbedded != default && FormattingHelpers.AreOnSameLine(tokenBeforeEmbedded, firstToken))
+            {
+                return;
+            }
+        }
 
         if (lastToken.IsMissing)
         {
@@ -326,5 +363,22 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // embedded statement is done
             AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
         }
+    }
+
+    private static bool IsWithinSwitchExpressionArmPattern(SyntaxNode node)
+    {
+        // Walk up the parent chain to see if this node is within the pattern of a switch expression arm.
+        // This handles cases like ['a'] or "b" where the list pattern is inside a binary pattern.
+        for (var current = node; current != null; current = current.Parent)
+        {
+            if (current.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == current)
+                return true;
+
+            // Stop walking if we've left the pattern context
+            if (current is SwitchExpressionArmSyntax)
+                return false;
+        }
+
+        return false;
     }
 }

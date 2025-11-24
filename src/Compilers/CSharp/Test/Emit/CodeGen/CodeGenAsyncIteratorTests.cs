@@ -1996,13 +1996,28 @@ class C
             comp.VerifyDiagnostics(
                 // (4,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerator<int>'
                 //     static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
-                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 61),
-                // (7,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<IAsyncEnumerator<int>>'.
-                //         await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await System.Threading.Tasks.Task.CompletedTask").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 61)
                 );
+        }
 
-            // This error message is rather poor. Tracked by https://github.com/dotnet/roslyn/issues/31113
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31113")]
+        public void AsyncIteratorReturningEnumerable_WithoutAsync()
+        {
+            string source = """
+                class C
+                {
+                    static System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+                    {
+                        yield return value;
+                        await System.Threading.Tasks.Task.CompletedTask;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (3,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
+                //     static System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(3, 61));
         }
 
         [Fact]

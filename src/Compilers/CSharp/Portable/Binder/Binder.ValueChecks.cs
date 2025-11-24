@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -806,6 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedObjectCreationExpression:
                 case BoundKind.UnconvertedCollectionExpression:
                 case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.TupleLiteral:
                     if (valueKind == BindValueKind.RValue)
                     {
@@ -872,14 +871,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Since we have a concrete member in hand, we can resolve the receiver.
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
                         receiver = otherSymbol.RequiresInstanceReceiver()
-                            ? typeOrValue.Data.ValueExpression
+                            ? ReplaceTypeOrValueReceiver(typeOrValue, useType: false, BindingDiagnosticBag.Discarded)
                             : null; // no receiver required
                     }
+
                     return new BoundBadExpression(
                         expr.Syntax,
                         methodGroup.ResultKind,
                         (object)otherSymbol == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(otherSymbol),
-                        receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(receiver),
+                        receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(AdjustBadExpressionChild(receiver)),
                         GetNonMethodMemberType(otherSymbol));
                 }
             }
@@ -1190,6 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     // Strict RValue
                     break;
 
@@ -4361,6 +4362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -5002,6 +5004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);

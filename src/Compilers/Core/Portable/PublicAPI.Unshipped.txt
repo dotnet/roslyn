@@ -21,6 +21,9 @@ Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionMarkerName.get -> string?
 Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsExtension.get -> bool
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
+Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 static readonly Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.Default -> Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.IEventSymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.IEventSymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
@@ -50,3 +53,5 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOper
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
