@@ -1581,7 +1581,7 @@ public class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
         Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1628,7 +1628,7 @@ public class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
         Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerWithMinusEquals() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1675,7 +1675,7 @@ public class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
         Public Async Function AwaitCompletionChangesVoidToTask_ForNonEventHandlerMethod() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[

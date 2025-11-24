@@ -834,7 +834,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             await VerifyAbsenceAsync(code);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")]
     public Task TestEventHandlerMethod_DoesNotChangeVoidToTask()
         => VerifyKeywordAsync("""
             using System;
@@ -855,7 +855,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")]
     public Task TestEventHandlerMethod_WithDifferentEventType()
         => VerifyKeywordAsync("""
             using System;
@@ -878,7 +878,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")]
     public Task TestEventHandlerMethod_InDifferentMethod()
         => VerifyKeywordAsync("""
             using System;
@@ -899,7 +899,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")]
     public Task TestEventHandlerMethod_WithMinusEquals()
         => VerifyKeywordAsync("""
             using System;
@@ -920,7 +920,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")]
     public Task TestNonEventHandlerMethod_ChangesVoidToTask()
         => VerifyKeywordAsync("""
             using System;
