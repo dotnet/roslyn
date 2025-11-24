@@ -86,24 +86,16 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         {
             var semanticModel = await _originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            string baseName;
-            if (ShouldRemoveVariableDeclaratorContainingExpression(out var varDeclName, out _))
-            {
-                baseName = varDeclName;
-            }
-            else
-            {
-                baseName = _semanticFacts.GenerateNameForExpression(semanticModel, _expression, capitalize: false, cancellationToken);
-            }
+            var baseName = ShouldRemoveVariableDeclaratorContainingExpression(out var varDeclName, out _)
+                ? varDeclName
+                : _semanticFacts.GenerateNameForExpression(semanticModel, _expression, capitalize: false, cancellationToken);
 
             // Ensure the parameter name doesn't conflict with existing parameters
-            var existingParameterNames = _methodSymbol.Parameters.Select(p => p.Name);
-            var uniqueName = _semanticFacts.GenerateUniqueName(
+            var uniqueName = _semanticFacts.GenerateUniqueLocalName(
                 semanticModel,
-                _containerMethod,
-                _containerMethod,
+                _expression,
+                container: null,
                 baseName,
-                existingParameterNames,
                 cancellationToken);
 
             return uniqueName.ValueText;
