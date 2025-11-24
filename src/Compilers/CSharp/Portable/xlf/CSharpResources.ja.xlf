@@ -1012,6 +1012,11 @@
         <target state="translated">インターフェイス '{0}' は型引数として使用できません。静的メンバー '{1}' は、インターフェイスに最も限定的な実装がありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GlobalNamespaceUnexpected">
+        <source>The global namespace cannot directly contain members such as fields or properties</source>
+        <target state="new">The global namespace cannot directly contain members such as fields or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
         <source>A global using directive cannot be used in a namespace declaration.</source>
         <target state="translated">グローバル using ディレクティブを名前空間宣言で使用することはできません。</target>

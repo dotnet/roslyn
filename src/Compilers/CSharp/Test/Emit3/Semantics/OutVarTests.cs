@@ -30712,27 +30712,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool b { get; } = H.TakeOutParam(1, out int x1);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(3, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool d { get; } = H.TakeOutParam(2, out int x2);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 6),
+                    // (9,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool f { get; } = H.TakeOutParam(3, out int x3);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 6),
+                    // (12,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool h { get; } = H.Dummy(H.TakeOutParam(41, out int x4),
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "h").WithLocation(12, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 6),
                     // (13,54): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           H.TakeOutParam(42, out int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                    // (15,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool x5 { get; } = 
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x5").WithLocation(15, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
                     //     H.Dummy(x1, x2, x3, x4, x5);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -30883,27 +30883,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool b { get; } = H.TakeOutParam(1, out var x1);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(3, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool d { get; } = H.TakeOutParam(2, out var x2);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 6),
+                    // (9,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool f { get; } = H.TakeOutParam(3, out var x3);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 6),
+                    // (12,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool h { get; } = H.Dummy(H.TakeOutParam(41, out var x4),
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "h").WithLocation(12, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 6),
                     // (13,54): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           H.TakeOutParam(42, out var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                    // (15,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9344: The global namespace cannot directly contain members such as fields or properties
                     // bool x5 { get; } = 
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x5").WithLocation(15, 6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
                     //     H.Dummy(x1, x2, x3, x4, x5);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -31248,12 +31248,30 @@ class H
                 int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                    // (3,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action b = H.TakeOutParam(1, out int x1);
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 21),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
+                    // (7,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action d = H.TakeOutParam(2, out int x2);
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 21),
+                    // (9,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action f = H.TakeOutParam(3, out int x3);
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 21),
+                    // (12,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action h = H.Dummy(H.TakeOutParam(41, out int x4),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 21),
                     // (13,52): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                         H.TakeOutParam(42, out int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
+                    // (15,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action x5 = 
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 21),
+                    // (18,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action i = H.TakeOutParam(5, out int x6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "i").WithLocation(18, 21),
                     // (21,6): warning CS8321: The local function 'Test' is declared but never used
                     // void Test()
                     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test").WithArguments("Test").WithLocation(21, 6),
@@ -31421,12 +31439,30 @@ class H
                 int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                    // (3,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action b = H.TakeOutParam(1, out var x1);
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "b").WithLocation(3, 21),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
+                    // (7,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action d = H.TakeOutParam(2, out var x2);
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "d").WithLocation(7, 21),
+                    // (9,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action f = H.TakeOutParam(3, out var x3);
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "f").WithLocation(9, 21),
+                    // (12,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action h = H.Dummy(H.TakeOutParam(41, out var x4),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "h").WithLocation(12, 21),
                     // (13,52): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                         H.TakeOutParam(42, out var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
+                    // (15,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action x5 = 
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "x5").WithLocation(15, 21),
+                    // (18,21): error CS9344: The global namespace cannot directly contain members such as fields or properties
+                    // event System.Action i = H.TakeOutParam(5, out var x6),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "i").WithLocation(18, 21),
                     // (21,6): warning CS8321: The local function 'Test' is declared but never used
                     // void Test()
                     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test").WithArguments("Test").WithLocation(21, 6),
@@ -32032,21 +32068,21 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,12): error CS9344: The global namespace cannot directly contain members such as fields or properties 
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(3, 12),
+                    Diagnostic(ErrorCode.ERR_GlobalNamespaceUnexpected, "a").WithLocation(3, 12),
                     // (3,18): error CS1642: Fixed size buffer fields may only be members of structs
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_FixedNotInStruct, "b").WithLocation(3, 18),
-                    // (3,20): error CS0133: The expression being assigned to '<invalid-global-code>.b' must be constant
-                    // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, "H.TakeOutParam(1, out var x1)").WithArguments("<invalid-global-code>.b").WithLocation(3, 20),
                     // (3,12): error CS1642: Fixed size buffer fields may only be members of structs
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_FixedNotInStruct, "a").WithLocation(3, 12),
                     // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[2]").WithLocation(3, 12),
+                    // (3,20): error CS0133: The expression being assigned to '<invalid-global-code>.b' must be constant
+                    // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, "H.TakeOutParam(1, out var x1)").WithArguments("<invalid-global-code>.b").WithLocation(3, 20),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
