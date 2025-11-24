@@ -114,19 +114,21 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
             if (containingType is null)
                 return false;
 
-            // Get the syntax root for the containing type
-            var documents = containingType.DeclaringSyntaxReferences.Select(r => solution.GetDocument(r.SyntaxTree)).WhereNotNull().ToImmutableHashSet();
+            // For perf, only search for usages of the containing method within the same file. This may miss something
+            // in the case of a partial type, but it allows us to easily scope this to a single document.
+            var document = solution.GetDocument(containingType.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == methodDeclaration.SyntaxTree)?.SyntaxTree);
+            if (document is null)
+                return false;
+
             var references = await SymbolFinder.FindReferencesAsync(
-                methodSymbol, solution, documents, cancellationToken).ConfigureAwait(false);
+                methodSymbol, solution, [document], cancellationToken).ConfigureAwait(false);
 
             foreach (var group in references.SelectMany(r => r.Locations).GroupBy(l => l.Location.SourceTree))
             {
                 var tree = group.Key;
-                var document = solution.GetDocument(tree);
-                if (document is null)
+                if (tree != methodDeclaration.SyntaxTree)
                     continue;
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var location in group)
                 {
                     var node = location.Location.FindNode(cancellationToken) as ExpressionSyntax;
