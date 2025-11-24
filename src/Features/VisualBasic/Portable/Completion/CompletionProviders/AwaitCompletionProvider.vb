@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function GetReturnTypeChangeAsync(semanticModel As SemanticModel, declaration As SyntaxNode, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Protected Overrides Function GetReturnTypeChangeAsync(solution As Solution, semanticModel As SemanticModel, declaration As SyntaxNode, cancellationToken As CancellationToken) As Task(Of TextChange?)
             ' Todo: Add support if desired.
             Return SpecializedTasks.Default(Of TextChange?)
         End Function
