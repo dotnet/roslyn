@@ -4033,7 +4033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check if the base type is a valid record base first.
                 // If it's not a record, then ERR_BadRecordBase will have already been reported,
                 // so we should not report a copy constructor error.
-                if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+                if (baseType.IsRecord)
                     diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
                 return null;
             }

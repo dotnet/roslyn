@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If the base type is not a record, ERR_BadRecordBase will already be reported.
             // Don't cascade an override error in this case.
             bool reportAnError = false;
-            if (!baseType.IsObjectType() && SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+            if (!baseType.IsObjectType() && baseType.IsRecord)
             {
                 if (!overriding.IsOverride)
                 {
