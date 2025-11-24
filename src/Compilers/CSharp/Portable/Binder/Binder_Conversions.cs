@@ -2408,6 +2408,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
+                    // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
+                    // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
+                    bool errorReported = false;
+                    if (boundStackAlloc.InitializerOpt is null &&
+                        ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
+                    {
+                        errorReported = ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
+                    }
+
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
                     break;

@@ -1448,4 +1448,162 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //     public fixed int x[5], y[10];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[5]").WithArguments("updated memory safety rules").WithLocation(7, 22));
     }
+
+    [Fact]
+    public void StackAlloc_SafeContext()
+    {
+        var source = """
+            int* x = stackalloc int[3];
+            System.Span<int> y = stackalloc int[5];
+            M();
+
+            [System.Runtime.CompilerServices.SkipLocalsInit]
+            void M()
+            {
+                System.Span<int> a = stackalloc int[5];
+                System.Span<int> b = stackalloc int[] { 1 };
+                System.Span<int> d = stackalloc int[2] { 1, 2 };
+                System.Span<int> e = stackalloc int[3] { 1, 2 };
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (1,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[3]").WithLocation(1, 10),
+            // (11,26): error CS0847: An array initializer of length '3' is expected
+            //     System.Span<int> e = stackalloc int[3] { 1, 2 };
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,26): error CS9501: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //     System.Span<int> a = stackalloc int[5];
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 26),
+            // (11,26): error CS0847: An array initializer of length '3' is expected
+            //     System.Span<int> e = stackalloc int[3] { 1, 2 };
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26),
+        };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (1,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[3]").WithArguments("updated memory safety rules").WithLocation(1, 10),
+            // (8,26): error CS9501: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //     System.Span<int> a = stackalloc int[5];
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 26),
+            // (11,26): error CS0847: An array initializer of length '3' is expected
+            //     System.Span<int> e = stackalloc int[3] { 1, 2 };
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
+    }
+
+    [Fact]
+    public void StackAlloc_UnsafeContext()
+    {
+        var source = $$"""
+            int* x = stackalloc int[3];
+            System.Span<int> y = stackalloc int[5];
+            M();
+
+            [System.Runtime.CompilerServices.SkipLocalsInit]
+            void M()
+            {
+                unsafe { System.Span<int> a = stackalloc int[5]; }
+                System.Span<int> b = stackalloc int[] { 1 };
+                System.Span<int> d = stackalloc int[2] { 1, 2 };
+                unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (1,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[3]").WithLocation(1, 10),
+            // (11,35): error CS0847: An array initializer of length '3' is expected
+            //     unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 35));
+
+        var expectedDiagnostics = new[]
+        {
+            // (11,35): error CS0847: An array initializer of length '3' is expected
+            //     unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 35),
+        };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (1,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* x = stackalloc int[3];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[3]").WithArguments("updated memory safety rules").WithLocation(1, 10),
+            // (11,35): error CS0847: An array initializer of length '3' is expected
+            //     unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 35));
+    }
+
+    [Fact]
+    public void StackAlloc_Lambda()
+    {
+        var source = """
+            var lam = [System.Runtime.CompilerServices.SkipLocalsInit] () =>
+            {
+                System.Span<int> a = stackalloc int[5];
+                int* b = stackalloc int[3];
+                unsafe { System.Span<int> c = stackalloc int[1]; }
+            };
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,26): error CS9501: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //     System.Span<int> a = stackalloc int[5];
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
+    }
 }
