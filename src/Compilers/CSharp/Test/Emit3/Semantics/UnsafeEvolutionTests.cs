@@ -1176,6 +1176,58 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_Fixed_PatternBased()
+    {
+        var source = """
+            class C
+            {
+                static void Main()
+                {
+                    fixed (int* p = new S()) { }
+                }
+            }
+
+            struct S
+            {
+                public ref readonly int GetPinnableReference() => throw null;
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = new S()) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (int* p = new S()) { }").WithLocation(5, 9),
+            // (5,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = new S()) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 16),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (int* p = new S()) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = new S()) { }").WithArguments("updated memory safety rules").WithLocation(5, 9),
+            // (5,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (int* p = new S()) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(5, 16));
+    }
+
+    [Fact]
     public void Pointer_Fixed_SafeContext_AlreadyFixed()
     {
         var source = """
@@ -1361,14 +1413,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     {
         var source = """
             _ = sizeof(int);
+            _ = sizeof(nint);
             _ = sizeof(S);
             struct S;
             """;
 
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-            // (2,5): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+            // (2,5): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+            // _ = sizeof(nint);
+            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(2, 5),
+            // (3,5): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context
             // _ = sizeof(S);
-            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S").WithLocation(3, 5));
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
@@ -1381,8 +1437,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = sizeof(nint);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("updated memory safety rules").WithLocation(2, 5),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = sizeof(S);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("updated memory safety rules").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("updated memory safety rules").WithLocation(3, 5));
     }
 
     [Fact]
@@ -1447,6 +1506,38 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,22): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public fixed int x[5], y[10];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[5]").WithArguments("updated memory safety rules").WithLocation(7, 22));
+    }
+
+    [Fact]
+    public void SkipLocalsInit_NeedsUnsafe()
+    {
+        var source = """
+            class C { [System.Runtime.CompilerServices.SkipLocalsInit] void M() { } }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,12): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // class C { [System.Runtime.CompilerServices.SkipLocalsInit] void M() { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "System.Runtime.CompilerServices.SkipLocalsInit").WithLocation(1, 12),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
