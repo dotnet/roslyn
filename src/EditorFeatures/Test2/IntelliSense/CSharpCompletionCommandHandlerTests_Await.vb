@@ -1706,5 +1706,230 @@ public class C
 ", state.GetDocumentText())
             End Using
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod_WithDifferentEventType() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+delegate void CustomEventHandler(object sender, EventArgs e);
+
+public class C
+{
+    public event CustomEventHandler MyEvent;
+
+    public C()
+    {
+        MyEvent += HandleMyEvent;
+    }
+
+    private void HandleMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+delegate void CustomEventHandler(object sender, EventArgs e);
+
+public class C
+{
+    public event CustomEventHandler MyEvent;
+
+    public C()
+    {
+        MyEvent += HandleMyEvent;
+    }
+
+    private async void HandleMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod_InDifferentMethod() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void RegisterHandler()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private void OnMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void RegisterHandler()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private async void OnMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod_WithoutConstructor() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public event EventHandler MyEvent;
+
+    public C()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private void OnMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+class C
+{
+    public event EventHandler MyEvent;
+
+    public C()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private async void OnMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod_WithPlusEquals() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void RegisterHandler()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private void OnMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void RegisterHandler()
+    {
+        MyEvent += OnMyEvent;
+    }
+
+    private async void OnMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
+        Public Async Function AwaitCompletionChangesVoidToTask_ForNonEventHandlerMethod_PrivateMethod() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+class C
+{
+    private void RegularMethod()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+class C
+{
+    private async Task RegularMethod()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
     End Class
 End Namespace
