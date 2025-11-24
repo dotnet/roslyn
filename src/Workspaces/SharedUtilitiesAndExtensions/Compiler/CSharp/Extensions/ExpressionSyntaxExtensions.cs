@@ -66,7 +66,7 @@ internal static partial class ExpressionSyntaxExtensions
     public static bool IsRightSideOfColonColon(this ExpressionSyntax expression)
         => expression?.Parent is AliasQualifiedNameSyntax aliasName && aliasName.Name == expression;
 
-    public static bool IsRightSideOfDot(this ExpressionSyntax name)
+    public static bool IsRightSideOfDot([NotNullWhen(true)] this ExpressionSyntax? name)
         => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
     public static bool IsRightSideOfDotOrArrow([NotNullWhen(true)] this ExpressionSyntax? name)
