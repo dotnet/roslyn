@@ -277,21 +277,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool reportAnError = false;
 
-            if (baseType.IsRecord)
+            if (!overriding.IsOverride)
             {
-                if (!overriding.IsOverride)
+                reportAnError = true;
+            }
+            else
+            {
+                var overridden = overriding.OverriddenMethod;
+
+                if (overridden is object &&
+                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
                 {
                     reportAnError = true;
-                }
-                else
-                {
-                    var overridden = overriding.OverriddenMethod;
-
-                    if (overridden is object &&
-                        !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        reportAnError = true;
-                    }
                 }
             }
 
