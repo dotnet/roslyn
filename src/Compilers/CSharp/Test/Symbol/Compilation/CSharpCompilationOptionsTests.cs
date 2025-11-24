@@ -366,7 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 typeof(CSharpCompilationOptions),
                 "Language",
                 "AllowUnsafe",
+                "MemorySafetyRules",
                 "Usings",
+                "UseUpdatedMemorySafetyRules",
                 "TopLevelBinderFlags",
                 "NullableContextOptions");
         }

@@ -646,6 +646,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     => true,
 
                 ErrorCode.Void
+
+                // PROTOTYPE: move new error codes down
+                or ErrorCode.ERR_UnsafeOperation
+
                 or ErrorCode.Unknown
                 or ErrorCode.ERR_NoMetadataFile
                 or ErrorCode.FTL_MetadataCantOpenFile

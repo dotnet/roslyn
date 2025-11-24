@@ -2450,5 +2450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
         //  5) Add message and '_Title' to CSharpResources.resx
+
+        // PROTOTYPE: pack numbers and move this up with others
+        ERR_UnsafeOperation = 9500,
     }
 }

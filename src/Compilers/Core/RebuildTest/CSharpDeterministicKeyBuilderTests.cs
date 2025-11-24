@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             verifyCount<ParseOptions>(11);
             verifyCount<CSharpParseOptions>(13);
             verifyCount<CompilationOptions>(63);
-            verifyCount<CSharpCompilationOptions>(9);
+            verifyCount<CSharpCompilationOptions>(12);
 
             static void verifyCount<T>(int expected)
             {
@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
+      ""memorySafetyRules"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
@@ -257,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
+      ""memorySafetyRules"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     }}
@@ -271,17 +273,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void CSharpCompilationOptionsCombination(bool @unsafe, NullableContextOptions nullableContextOptions)
+        public void CSharpCompilationOptionsCombination(
+            bool @unsafe,
+            [CombinatorialValues(0, 2)] int memorySafetyRules,
+            NullableContextOptions nullableContextOptions)
         {
             foreach (BinderFlags binderFlags in Enum.GetValues(typeof(BinderFlags)))
             {
                 var options = Options
                     .WithAllowUnsafe(@unsafe)
+                    .WithMemorySafetyRules(memorySafetyRules)
                     .WithTopLevelBinderFlags(binderFlags)
                     .WithNullableContextOptions(nullableContextOptions);
 
                 var value = GetCompilationOptionsValue(options);
                 Assert.Equal(@unsafe, value.Value<bool>("unsafe"));
+                Assert.Equal(memorySafetyRules, value.Value<int>("memorySafetyRules"));
                 Assert.Equal(binderFlags.ToString(), value.Value<string>("topLevelBinderFlags"));
                 Assert.Equal(nullableContextOptions.ToString(), value.Value<string>("nullableContextOptions"));
             }
@@ -457,6 +464,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
+      ""memorySafetyRules"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
@@ -527,6 +535,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "specificDiagnosticOptions": [],
       "localtime": null,
       "unsafe": false,
+      "memorySafetyRules": 0,
       "topLevelBinderFlags": "None",
       "usings": []
     },

@@ -2582,6 +2582,11 @@
         <target state="translated">'{0}' est défini dans un module avec une version RefSafetyRulesAttribute non reconnue, '11' attendu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="new">This operation may only be used in an unsafe context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
         <target state="translated">UnscopedRefAttribute ne peut pas être appliqué à une implémentation d’interface, car le membre implémenté « {0} » n’a pas cet attribut.</target>
@@ -2955,6 +2960,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">types génériques indépendants dans l’opérateur nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="new">updated memory safety rules</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">

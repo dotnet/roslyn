@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -23,11 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
+        /// <param name="disallowedUnder">
+        /// Memory safety rules which the current location is disallowed under.
+        /// PROTOTYPE: Consider removing the default parameter value.
+        /// </param>
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
+        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol? sizeOfTypeOpt = null, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
-            Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);
+            Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object?)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt, disallowedUnder);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -37,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics)
+        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules)"/>
+        internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null, disallowedUnder);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private CSDiagnosticInfo GetUnsafeDiagnosticInfo(TypeSymbol sizeOfTypeOpt)
+        private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(TypeSymbol? sizeOfTypeOpt, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
             if (this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
             {
@@ -58,18 +60,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!this.InUnsafeRegion)
             {
-                return ((object)sizeOfTypeOpt == null)
-                    ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
-                    : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
+                if (disallowedUnder is MemorySafetyRules.Legacy)
+                {
+                    if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
+                    {
+                        return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
+                    }
+
+                    // PROTOTYPE: Update the error message to hint that one can enable updated memory safety rules.
+                    return ((object?)sizeOfTypeOpt == null)
+                        ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
+                        : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
+                }
+
+                Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
+
+                if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
+                {
+                    // PROTOTYPE: What about sizeOfTypeOpt/ERR_SizeofUnsafe?
+                    return new CSDiagnosticInfo(ErrorCode.ERR_UnsafeOperation);
+                }
+
+                // This location is disallowed only under updated memory safety rules which are not enabled.
+                // We report an error elsewhere, usually at the pointer type itself
+                // (where we are called with `disallowedUnder: MemorySafetyRules.Legacy`).
+                return null;
             }
             else if (this.IsIndirectlyInIterator && MessageID.IDS_FeatureRefUnsafeInIteratorAsync.GetFeatureAvailabilityDiagnosticInfo(Compilation) is { } unsafeInIteratorDiagnosticInfo)
             {
-                return unsafeInIteratorDiagnosticInfo;
+                if (disallowedUnder is MemorySafetyRules.Legacy)
+                {
+                    return unsafeInIteratorDiagnosticInfo;
+                }
+
+                // This location is disallowed only under updated memory safety rules.
+                // We report the RefUnsafeInIteratorAsync langversion error elsewhere, usually at the pointer type itself
+                // (where we are called with `disallowedUnder: MemorySafetyRules.Legacy`).
+                Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
+                return null;
             }
             else
             {
                 return null;
             }
         }
+    }
+
+    internal enum MemorySafetyRules
+    {
+        Legacy,
+
+        /// <summary>
+        /// <see cref="CSharpCompilationOptions.UseUpdatedMemorySafetyRules"/>
+        /// </summary>
+        Updated,
     }
 }
