@@ -1900,6 +1900,53 @@ public class C
         End Function
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
+        Public Async Function AwaitCompletionDoesNotChangeReturnType_ForEventHandlerMethod_WithPlusEquals2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void RegisterHandler()
+    {
+        this.MyEvent += this.OnMyEvent;
+    }
+
+    private void OnMyEvent(object sender, EventArgs e)
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+
+public class C
+{
+    public event EventHandler MyEvent;
+
+    public void RegisterHandler()
+    {
+        this.MyEvent += this.OnMyEvent;
+    }
+
+    private async void OnMyEvent(object sender, EventArgs e)
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77848")>
         Public Async Function AwaitCompletionChangesVoidToTask_ForNonEventHandlerMethod_PrivateMethod() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
