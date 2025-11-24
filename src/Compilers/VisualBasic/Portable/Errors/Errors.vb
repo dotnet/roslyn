@@ -1791,8 +1791,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_MethodImplAttributeAsyncCannotBeUsed = 37337
         ERR_AttributeCannotBeAppliedManually = 37338
+        ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 37339
 
-        ERR_NextAvailable = 37339
+        ERR_NextAvailable = 37340
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

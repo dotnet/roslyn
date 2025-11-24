@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract bool FieldRvaSupported { get; }
 
         /// <summary>
+        /// True if MethodImpl table is supported by the runtime.
+        /// </summary>
+        public abstract bool MethodImplSupported { get; }
+
+        /// <summary>
         /// Previous EnC generation baseline, or null if this is not EnC delta.
         /// </summary>
         public abstract EmitBaseline? PreviousGeneration { get; }

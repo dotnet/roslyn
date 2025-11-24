@@ -2865,6 +2865,44 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+    public async Task Capabilities_ExplicitInterfaceImplementation()
+    {
+        var source1 = "class C { System.Collections.Generic.IEnumerable<int> M() => [1]; }";
+        var source2 = "class C { System.Collections.Generic.IEnumerable<int> M() => [2]; }";
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+        solution = AddDefaultTestProject(solution, [source1]);
+        var project = solution.Projects.Single();
+        var documentId = solution.Projects.Single().Documents.Single().Id;
+
+        EmitAndLoadLibraryToDebuggee(project.Id, source1);
+
+        // attached to processes that doesn't allow creating new types
+        _debuggerService.GetCapabilitiesImpl = () => EditAndContinueTestVerifier.NetFrameworkCapabilities.ToStringArray();
+
+        // F5
+        var debuggingSession = StartDebuggingSession(service, solution);
+
+        // update document:
+        solution = solution.WithDocumentText(documentId, CreateText(source2));
+        var document2 = solution.Projects.Single().Documents.Single();
+
+        // The error isn't reported as document diagnostic:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        // The error is reported as emit diagnostic:
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        AssertEx.Equal([$"proj: <no location>: Error CS9344: {CSharpResources.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime}"], InspectDiagnostics(results.Diagnostics));
+
+        // no emitted delta:
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
     public async Task ValidSignificantChange_EmitError()
     {
         var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
