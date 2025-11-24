@@ -1875,7 +1875,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
     public Task TestDuplicateParameterName_Refactor()
         => TestInRegularAndScriptAsync("""
             using System;
@@ -1896,7 +1896,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """, index: 0);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
     public Task TestDuplicateParameterName_Trampoline()
         => TestInRegularAndScriptAsync("""
             using System;
@@ -1932,7 +1932,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """, index: 1);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
     public Task TestDuplicateParameterName_Overload()
         => TestInRegularAndScriptAsync("""
             using System;
@@ -1968,7 +1968,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """, index: 2);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
     public Task TestDuplicateParameterName_MultipleConflicts()
         => TestInRegularAndScriptAsync("""
             using System;
@@ -1989,7 +1989,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """, index: 0);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
     public Task TestDuplicateParameterName_WithLocalVariable()
         => TestInRegularAndScriptAsync("""
             using System;
