@@ -41,8 +41,8 @@ internal static partial class ExpressionSyntaxExtensions
         return expression;
     }
 
-    public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
-        => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
+    public static bool IsQualifiedCrefName([NotNullWhen(true)] this ExpressionSyntax? expression)
+        => expression is { Parent: NameMemberCrefSyntax { Parent: QualifiedCrefSyntax } };
 
     public static bool IsSimpleMemberAccessExpressionName([NotNullWhen(true)] this ExpressionSyntax? expression)
         => expression?.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess && memberAccess.Name == expression;
