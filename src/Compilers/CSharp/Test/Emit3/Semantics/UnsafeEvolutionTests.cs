@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
@@ -858,11 +859,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         // https://github.com/dotnet/roslyn/issues/77389
-        expectedDiagnostics =
-        [
-            // error CS8911: Using a function pointer type in this context is not supported.
-            Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1),
-        ];
+        expectedDiagnostics = PlatformInformation.IsWindows
+            ? [
+                // error CS8911: Using a function pointer type in this context is not supported.
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1),
+            ]
+            : [];
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics()
@@ -910,11 +912,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         // https://github.com/dotnet/roslyn/issues/77389
-        expectedDiagnostics =
-        [
-            // error CS8911: Using a function pointer type in this context is not supported.
-            Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1),
-        ];
+        expectedDiagnostics = PlatformInformation.IsWindows
+            ? [
+                // error CS8911: Using a function pointer type in this context is not supported.
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1),
+            ]
+            : [];
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics()
