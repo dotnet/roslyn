@@ -24,6 +24,9 @@ internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBase
     public sealed override ImmutableArray<string> FixableDiagnosticIds
        => [IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId];
 
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
+
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Simplify_LINQ_expression, nameof(AnalyzersResources.Simplify_LINQ_expression));
