@@ -511,12 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
             // will have already been reported, and we don't need to report cascaded warnings and errors for the
             // members in this type.
-            if (this.IsRecord &&
-                !baseType.IsObjectType() &&
-                !SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-            {
-                return;
-            }
+            var hasInvalidRecordInheritance = this.IsRecord && !baseType.IsObjectType() && !baseType.IsRecord;
 
             switch (this.TypeKind)
             {
@@ -539,6 +534,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in this.GetMembersUnordered())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // If we have invalid record inheritance (a record deriving from a non-record), skip checking the
+                // synthesized members for proper new/override usage as we're very likely to just report cascaded
+                // errors that all stem from the same root cause.
+                if (hasInvalidRecordInheritance &&
+                    member is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers)
+                {
+                    continue;
+                }
 
                 bool suppressAccessors;
                 switch (member.Kind)
