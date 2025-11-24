@@ -393,17 +393,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray()[1]);
         VerifyOperationTree(compilation, operation, """
             ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
-            ConstructArguments(2):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 10')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: name) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capacity: 10)')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "default", IsImplicit) (Syntax: 'with(capacity: 10)')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Elements(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                Elements(1):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             """);
     }
 
@@ -464,15 +455,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                                 (CollectionExpression)
                               Operand:
                                 ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
-                                  ConstructArguments(2):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 10')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: name) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capacity: 10)')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "default", IsImplicit) (Syntax: 'with(capacity: 10)')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(1):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                     Next (Regular) Block[B4]
@@ -486,15 +468,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                                 (CollectionExpression)
                               Operand:
                                 ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capac ... "both"), 4]')
-                                  ConstructArguments(2):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 20')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: name) (OperationKind.Argument, Type: null) (Syntax: 'name: "both"')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "both") (Syntax: '"both"')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(1):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
                     Next (Regular) Block[B4]
@@ -550,6 +523,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
         var root = semanticModel.SyntaxTree.GetRoot();
 
+        // PROTOTYPE: Update IOp to represent with(...) creation.
+
         var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().ToArray()[1], semanticModel);
         ControlFlowGraphVerifier.VerifyGraph(compilation, """
             Block[B0] - Entry
@@ -559,29 +534,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             .locals {R1}
             {
                 Locals: [MyList<System.Int32> list2]
-                CaptureIds: [0]
                 Block[B1] - Block
                     Predecessors: [B0]
-                    Statements (0)
-                    Jump if False (Regular) to Block[B3]
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
-                    Next (Regular) Block[B2]
-                Block[B2] - Block
-                    Predecessors: [B1]
-                    Statements (1)
-                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '10')
-                          Value:
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
-                    Next (Regular) Block[B4]
-                Block[B3] - Block
-                    Predecessors: [B1]
-                    Statements (1)
-                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
-                          Value:
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
-                    Next (Regular) Block[B4]
-                Block[B4] - Block
-                    Predecessors: [B2] [B3]
                     Statements (1)
                         ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... 0 : 20), 2]')
                           Left:
@@ -592,22 +546,13 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                                 (CollectionExpression)
                               Operand:
                                 ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capac ... 0 : 20), 2]')
-                                  ConstructArguments(2):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: a ? 10 : 20')
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ? 10 : 20')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: name) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(capaci ...  ? 10 : 20)')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "default", IsImplicit) (Syntax: 'with(capaci ...  ? 10 : 20)')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(1):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                    Next (Regular) Block[B5]
+                    Next (Regular) Block[B2]
                         Leaving: {R1}
             }
-            Block[B5] - Exit
-                Predecessors: [B4]
+            Block[B2] - Exit
+                Predecessors: [B1]
                 Statements (0)
             """, graph, symbol);
     }

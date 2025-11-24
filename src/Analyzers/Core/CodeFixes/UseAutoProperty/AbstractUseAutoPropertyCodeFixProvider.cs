@@ -484,12 +484,9 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         CancellationToken cancellationToken)
     {
         var isWrittenOutsideConstructor = false;
-
-        // Only include constructors that match the static-ness of the field. For a static field, only static
-        // constructors are relevant. For an instance field, only instance constructors are relevant.
         var constructorSpans = field.ContainingType
             .GetMembers()
-            .Where(m => field.IsStatic ? m.IsStaticConstructor() : m.IsConstructor())
+            .Where(m => m.IsConstructor())
             .SelectMany(c => c.DeclaringSyntaxReferences)
             .Select(s => s.GetSyntax(cancellationToken))
             .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())

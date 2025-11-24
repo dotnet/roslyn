@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
         {
             Assert.Equal(OperationKind.CollectionExpression, operation.Kind);
-            AssertEx.Equal([.. operation.ConstructArguments, .. operation.Elements], operation.ChildOperations);
+            AssertEx.Equal(operation.Elements, operation.ChildOperations);
         }
 
         public override void VisitSpread(ISpreadOperation operation)
@@ -740,12 +740,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal override void VisitPlaceholder(IPlaceholderOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
-            Assert.Empty(operation.ChildOperations);
-        }
-
-        public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
-        {
-            Assert.Equal(OperationKind.CollectionExpressionElementsPlaceholder, operation.Kind);
             Assert.Empty(operation.ChildOperations);
         }
 

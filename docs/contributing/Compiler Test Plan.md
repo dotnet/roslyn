@@ -36,7 +36,6 @@ This document provides guidance for thinking about language interactions and tes
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
 - LangVersion
-- IL verification (file issue on `runtime` repo as needed and track [here](https://github.com/dotnet/roslyn/issues/22872))
 
 - Does the feature use cryptographic hashes in any way? (examples: metadata names of file-local types, extension types, assembly strong naming, PDB document table, etc.)
     - Consider using non-cryptographic hash such as `XxHash128` instead.

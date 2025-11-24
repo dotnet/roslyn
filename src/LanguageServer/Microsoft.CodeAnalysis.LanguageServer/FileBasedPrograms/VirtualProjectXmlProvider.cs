@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -12,7 +11,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -94,39 +92,17 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     /// Adjusts a path to a file-based program for use in passing the virtual project to msbuild.
     /// (msbuild needs the path to end in .csproj to recognize as a C# project and apply all the standard props/targets to it.)
     /// </summary>
-    [return: NotNullIfNotNull(nameof(documentFilePath))]
-    internal static string? GetVirtualProjectPath(string? documentFilePath)
+    internal static string GetVirtualProjectPath(string documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    /// <summary>
-    /// Indicates whether the editor considers the text to be a file-based program.
-    /// If this returns false, the text is either a miscellaneous file or is part of an ordinary project.
-    /// </summary>
-    /// <remarks>
-    /// The editor considers the text to be a file-based program if it has any '#!' or '#:' directives at the top.
-    /// Note that a file with top-level statements but no directives can still work with 'dotnet app.cs' etc. on the CLI, but will be treated as a misc file in the editor.
-    /// </remarks>
-    internal static bool IsFileBasedProgram(SourceText text)
+    internal static bool IsFileBasedProgram(string documentFilePath, SourceText text)
     {
-        var tokenizer = SyntaxFactory.CreateTokenParser(text, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
-        var result = tokenizer.ParseLeadingTrivia();
-        var triviaList = result.Token.LeadingTrivia;
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
-                return true;
-        }
-
-        return false;
-    }
-
-    internal static async Task<bool> HasTopLevelStatementsAsync(SyntaxTree tree, CancellationToken cancellationToken)
-    {
-        var root = await tree.GetRootAsync(cancellationToken);
-        if (root is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
-
-        return false;
+        // https://github.com/dotnet/roslyn/issues/78878: this needs to be adjusted to be more sustainable.
+        // When we adopt the dotnet run-api, we need to get rid of this or adjust it to be more sustainable (e.g. using the appropriate document to get a syntax tree)
+        var tree = CSharpSyntaxTree.ParseText(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), path: documentFilePath);
+        var root = tree.GetRoot();
+        var isFileBasedProgram = root.GetLeadingTrivia().Any(SyntaxKind.IgnoredDirectiveTrivia) || root.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement));
+        return isFileBasedProgram;
     }
 
     #region Temporary copy of subset of dotnet run-api behavior for fallback: https://github.com/dotnet/roslyn/issues/78618

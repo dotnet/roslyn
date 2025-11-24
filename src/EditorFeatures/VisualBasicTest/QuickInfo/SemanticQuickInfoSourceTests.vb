@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
-            Return TestWithReferencesAsync(markup, System.Array.Empty(Of String)(), expectedResults)
+            Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
         Protected Shared Async Function TestSharedAsync(workspace As EditorTestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task

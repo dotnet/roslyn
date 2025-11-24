@@ -607,13 +607,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         return;
                     }
 
-                    body = ExtensionMethodReferenceRewriter.Rewrite(body);
-
-                    if (body.HasErrors)
-                    {
-                        return;
-                    }
-
                     // Variables may have been captured by lambdas in the original method
                     // or in the expression, and we need to preserve the existing values of
                     // those variables in the expression. This requires rewriting the variables

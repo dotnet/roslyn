@@ -100,7 +100,8 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 (s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption),
                 (s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
                 (s_unusedParameterRule, CodeStyleOptions2.UnusedParameters)
-            ])
+            ],
+            fadingOption: null)
     {
     }
 

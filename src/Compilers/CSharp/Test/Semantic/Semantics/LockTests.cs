@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -312,10 +313,21 @@ class Res
 {
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,19): error CS1073: Unexpected token 'd'
+            CreateCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
+                                                        //         lock (Res d = new Res ())// Invalid
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
+                // (6,33): error CS1002: ; expected
                 //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "d").WithArguments("d").WithLocation(6, 19));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+                // (6,33): error CS1513: } expected
+                //         lock (Res d = new Res ())// Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
+                // (6,15): error CS0119: 'Res' is a type, which is not valid in the given context
+                //         lock (Res d = new Res ())// Invalid
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Res").WithArguments("Res", "type"),
+                // (6,19): error CS0103: The name 'd' does not exist in the current context
+                //         lock (Res d = new Res ())// Invalid
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d"));
         }
 
         [Fact]
@@ -435,12 +447,25 @@ class D
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,26): error CS1525: Invalid expression term 'object'
+                // (6,26): error CS1026: ) expected
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "object").WithArguments("object").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "object").WithLocation(6, 26),
+                // (6,32): error CS1001: Identifier expected
+                //             lock (varnew object)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 32),
+                // (6,32): error CS1003: Syntax error, ',' expected
+                //             lock (varnew object)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 32),
+                // (6,33): error CS1002: ; expected
+                //             lock (varnew object)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 33),
                 // (6,19): error CS0103: The name 'varnew' does not exist in the current context
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "varnew").WithArguments("varnew").WithLocation(6, 19));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "varnew").WithArguments("varnew").WithLocation(6, 19),
+                // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             lock (varnew object)
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, @"object)
+").WithLocation(6, 26));
         }
 
         [Fact]

@@ -305,9 +305,8 @@ stages:
           PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
           is1ESPipeline: ${{ parameters.is1ESPipeline }}
 
-      - task: NuGetAuthenticate@1
+      - task: NuGetAuthenticate@1 # Populate internal runtime variables.
 
-      # Populate internal runtime variables.
       - template: /eng/common/templates/steps/enable-internal-sources.yml
         parameters:
           legacyCredential: $(dn-bot-dnceng-artifact-feeds-rw)

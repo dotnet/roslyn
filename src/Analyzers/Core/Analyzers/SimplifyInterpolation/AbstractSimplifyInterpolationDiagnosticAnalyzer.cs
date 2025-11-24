@@ -17,6 +17,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
     TExpressionSyntax>() : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.SimplifyInterpolationId,
         EnforceOnBuildValues.SimplifyInterpolation,
         CodeStyleOptions2.PreferSimplifiedInterpolation,
+        fadingOption: null,
         new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TInterpolationSyntax : SyntaxNode

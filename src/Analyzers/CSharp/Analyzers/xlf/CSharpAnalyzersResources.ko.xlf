@@ -82,9 +82,9 @@
         <target state="translated">포함 문은 고유한 줄에 있어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement">
-        <source>Implement</source>
-        <target state="new">Implement</target>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">

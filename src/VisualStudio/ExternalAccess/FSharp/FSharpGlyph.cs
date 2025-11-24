@@ -112,6 +112,5 @@ internal enum FSharpGlyph
 
     AddReference,
     NuGet,
-    TargetTypeMatch,
-    Copilot
+    TargetTypeMatch
 }

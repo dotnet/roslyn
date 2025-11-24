@@ -495,13 +495,6 @@ stages:
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
-      - task: DotNetCoreCLI@2
-        displayName: Verify Synchronized Sources
-        inputs:
-          command: 'custom'
-          custom: 'run'
-          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs'
-
       - template: eng/pipelines/publish-logs.yml
         parameters:
           jobName: Correctness_Build_Artifacts

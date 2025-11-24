@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(extensionMember.IsExtensionBlockMember());
 
             NamedTypeSymbol extension = extensionMember.ContainingType;
-            if (extension.ExtensionParameter is not { } extensionParameter || extension.ContainingType?.Arity != 0)
+            if (extension.ExtensionParameter is not { } extensionParameter || extension.ContainingType.Arity != 0)
             {
                 // error cases, already reported elsewhere
                 return;

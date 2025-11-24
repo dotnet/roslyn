@@ -107,7 +107,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Naming\NamingExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\AbstractMultipleBlankLinesCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\FadingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchExpressionCodeFixProvider.cs" />

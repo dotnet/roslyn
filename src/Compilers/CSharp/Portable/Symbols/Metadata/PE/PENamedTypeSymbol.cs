@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     }
 
-                    if (candidate.DeclaredAccessibility != method.DeclaredAccessibility)
+                    if (candidate.DeclaredAccessibility != @this.DeclaredAccessibility)
                     {
                         continue;
                     }

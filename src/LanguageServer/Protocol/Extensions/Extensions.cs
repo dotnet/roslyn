@@ -467,8 +467,6 @@ internal static partial class Extensions
 
             Glyph.TypeParameter => (KnownImageIds.ImageCatalogGuid, KnownImageIds.Type),
 
-            Glyph.Copilot => (KnownImageIds.ImageCatalogGuid, KnownImageIds.SparkleNoColor),
-
             _ => throw new ArgumentException($"Unknown glyph value: {glyph}", nameof(glyph)),
         };
     }

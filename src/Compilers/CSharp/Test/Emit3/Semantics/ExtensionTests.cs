@@ -3277,22 +3277,6 @@ public static class E
     }
 
     [Fact]
-    public void ReceiverParameter_TypeParameter_TopLevelExtension()
-    {
-        var src = """
-extension<T>(int i)
-{
-    public int P => 0;
-}
-""";
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
-            // extension<T>(int)
-            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
-    }
-
-    [Fact]
     public void ReceiverParameter_TypeParameter_Missing_Local()
     {
         var src = """
@@ -4259,7 +4243,6 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         AssertEx.Equal("?", symbol.ExtensionParameter.ToTestDisplayString());
-        Assert.True(symbol.ExtensionParameter.Type.IsErrorType());
     }
 
     [Fact]
@@ -4590,50 +4573,6 @@ public static class Extensions
             // (6,27): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).P'
             //         public static int P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 27));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81251")]
-    public void ReceiverParameter_Name()
-    {
-        // Unnamed extension parameter should not default to "value" as its name when round-tripped
-        var libSrc = """
-using System;
-
-public static class ArrayEx
-{
-    extension(Array)
-    {
-        public static T[] Init<T>(T value)
-            => throw null;
-    }
-}
-""";
-        var libComp = CreateCompilation(libSrc);
-        libComp.VerifyDiagnostics();
-
-        var src = """
-using System;
-
-Array.Init(value: 10);
-""";
-        var comp = CreateCompilation([src, libSrc]);
-        comp.VerifyEmitDiagnostics();
-        validate(comp);
-
-        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
-        comp.VerifyEmitDiagnostics();
-        validate(comp);
-
-        comp = CreateCompilation(src, references: [libComp.ToMetadataReference()]);
-        comp.VerifyEmitDiagnostics();
-        validate(comp);
-
-        void validate(CSharpCompilation comp)
-        {
-            var extension = comp.GlobalNamespace.GetTypeMember("ArrayEx").GetTypeMembers("").Single();
-            Assert.True(extension.IsExtension);
-            Assert.Equal("", extension.ExtensionParameter.Name);
-        }
     }
 
     [Fact]
@@ -9146,7 +9085,7 @@ public static class Extensions
             AssertEx.Equal("Extensions.extension(object).M(object, string)", m1.ToDisplayString());
             AssertEx.Equal([], m1.GetAttributes());
 
-            AssertEx.Equal("System.Object", extensions[1].ExtensionParameter.ToTestDisplayString());
+            AssertEx.Equal("System.Object value", extensions[1].ExtensionParameter.ToTestDisplayString());
             AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", extensions[1].MetadataName);
             Symbol m2 = extensions[1].GetMembers().Single();
             AssertEx.Equal("Extensions.extension(object).M(object, string, int)", m2.ToDisplayString());
@@ -29859,7 +29798,7 @@ public static partial class C
             var container = m.GlobalNamespace.GetTypeMember("C");
             var extension = container.GetTypeMembers().Single();
 
-            AssertEx.Equal("System.Object", extension.ExtensionParameter.ToTestDisplayString());
+            AssertEx.Equal("System.Object value", extension.ExtensionParameter.ToTestDisplayString());
             AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", extension.MetadataName);
 
             var methods = extension.GetMembers();
@@ -51325,47 +51264,6 @@ public class D { }
     }
 
     [Fact]
-    public void XmlDoc_18()
-    {
-        // Extension without containing type
-        var src = """
-/// <summary>Summary for extension block</summary>
-extension<T>(T t)
-{
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "Test");
-        comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
-            // extension<T>(T t)
-            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1));
-
-        var extension = comp.GlobalNamespace.GetTypeMember("");
-        AssertEx.Equal("T:<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
-        AssertEx.Equal("""
-<member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
-    <summary>Summary for extension block</summary>
-</member>
-
-""", extension.GetDocumentationCommentXml());
-
-        var expected = """
-<?xml version="1.0"?>
-<doc>
-    <assembly>
-        <name>Test</name>
-    </assembly>
-    <members>
-        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
-            <summary>Summary for extension block</summary>
-        </member>
-    </members>
-</doc>
-""";
-        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
-    }
-
-    [Fact]
     public void XmlDoc_Param_01()
     {
         // Unnamed extension parameter, with an attempted corresponding param
@@ -51429,10 +51327,6 @@ static class E
             // (9,30): warning CS1573: Parameter 'o2' has no matching param tag in the XML comment for 'E.extension(object).M(object)' (but other parameters do)
             //         public void M(object o2) => throw null!;
             Diagnostic(ErrorCode.WRN_MissingParamTag, "o2").WithArguments("o2", "E.extension(object).M(object)").WithLocation(9, 30));
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(o, null)"], PrintXmlNameSymbols(tree, model));
     }
 
     [Fact]
@@ -51453,10 +51347,6 @@ static class E
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(o, System.Object o)"], PrintXmlNameSymbols(tree, model));
     }
 
     [Fact]
@@ -51575,7 +51465,7 @@ static class E
     /// <summary>Summary for extension block</summary>
     extension<T>(T t)
     {
-        /// <summary>Summary for M <typeparamref name="T"/> </summary>
+        /// <summary>Summary for M</summary>
         /// <typeparam name="T">Description for T</typeparam>
         public static void M<U>(U u) => throw null!;
     }
@@ -51801,86 +51691,6 @@ static class E
             Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "E.extension(object).P2").WithLocation(8, 53));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81217")]
-    public void XmlDoc_ParamRef_04()
-    {
-        // No parameter on method
-        var src = """
-static class E
-{
-    extension(object o)
-    {
-        /// <returns><paramref name="o"/></returns>
-        public object M() => o;
-    }
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
-            assemblyName: "paramref_04");
-        comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(o, System.Object o)"], PrintXmlNameSymbols(tree, model));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81217")]
-    public void XmlDoc_ParamRef_05()
-    {
-        // One parameter on method
-        var src = """
-static class E
-{
-    extension(object o)
-    {
-        /// <summary><paramref name="o"/></summary>
-        public object M(int i) => o;
-    }
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
-            assemblyName: "paramref_05");
-        comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(o, System.Object o)"], PrintXmlNameSymbols(tree, model));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81217")]
-    public void XmlDoc_ParamRef_06()
-    {
-        // <params> preceeds <paramref>
-        var src = """
-using System;
-
-static class E
-{
-    /// <param name="value">Param value</param>
-    extension(ReadOnlySpan<char> value)
-    {
-        /// <param name="n">Param n</param>
-        /// <param name="delimiter">Param delimiter</param>
-        /// <returns><paramref name="value"/></returns>
-        public ReadOnlySpan<char> GetNthDelimitedItem(int n, ReadOnlySpan<char> delimiter) => throw null !;
-    }
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
-            assemblyName: "paramref_06", targetFramework: TargetFramework.Net100);
-
-        comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual([
-            "(value, System.ReadOnlySpan<System.Char> value)",
-            "(n, System.Int32 n)",
-            "(delimiter, System.ReadOnlySpan<System.Char> delimiter)",
-            "(value, System.ReadOnlySpan<System.Char> value)"],
-            PrintXmlNameSymbols(tree, model));
-    }
-
     [Fact]
     public void XmlDoc_TypeParamRef_01()
     {
@@ -51935,73 +51745,6 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.SequenceEqual(["(T, null)", "(T, T)"], PrintXmlNameSymbols(tree, model));
-    }
-
-    [Fact]
-    public void XmlDoc_TypeParamRef_03()
-    {
-        var src = """
-static class E
-{
-    /// <typeparam name="T1"/>
-    extension<T1>(int)
-    {
-        /// <summary><typeparamref name="T1"/></summary>
-        /// <typeparam name="T2"/>
-        public static void M<T2>() => throw null!;
-    }
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(T1, T1)", "(T1, T1)", "(T2, T2)"], PrintXmlNameSymbols(tree, model));
-    }
-
-    [Fact]
-    public void XmlDoc_TypeParamRef_04()
-    {
-        var src = """
-static class E
-{
-    /// <typeparam name="T1"/>
-    extension<T1>(int)
-    {
-        /// <summary><typeparamref name="T1"/></summary>
-        public static void M() => throw null!;
-    }
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(T1, T1)", "(T1, T1)"], PrintXmlNameSymbols(tree, model));
-    }
-
-    [Fact]
-    public void XmlDoc_TypeParamRef_05()
-    {
-        var src = """
-static class E
-{
-    /// <typeparam name="T1"/>
-    extension<T1>(T1)
-    {
-        /// <summary><typeparamref name="T1"/></summary>
-        public static int Property => throw null!;
-    }
-}
-""";
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics();
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        AssertEx.SequenceEqual(["(T1, T1)", "(T1, T1)"], PrintXmlNameSymbols(tree, model));
     }
 
     [Fact]

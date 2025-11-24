@@ -22,10 +22,5 @@
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\..\CSharp\csc\csc.rsp" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\..\VisualBasic\vbc\vbc.rsp" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
   <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

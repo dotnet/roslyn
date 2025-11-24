@@ -32,24 +32,23 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
     protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
     protected abstract string GetReplacementText(string parameterName);
 
-    public async Task AddInlineHintsAsync(
+    public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
         Document document,
         TextSpan textSpan,
         InlineParameterHintsOptions options,
         SymbolDescriptionOptions displayOptions,
         bool displayAllOverride,
-        ArrayBuilder<InlineHint> result,
         CancellationToken cancellationToken)
     {
         var enabledForParameters = displayAllOverride || options.EnabledForParameters;
         if (!enabledForParameters)
-            return;
+            return [];
 
         var literalParameters = displayAllOverride || options.ForLiteralParameters;
         var objectCreationParameters = displayAllOverride || options.ForObjectCreationParameters;
         var otherParameters = displayAllOverride || options.ForOtherParameters;
         if (!literalParameters && !objectCreationParameters && !otherParameters)
-            return;
+            return [];
 
         var indexerParameters = displayAllOverride || options.ForIndexerParameters;
         var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;
@@ -60,7 +59,9 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        using var _ = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
+        // Allow large array instances in the pool, as these arrays often exceed the ArrayBuilder reuse size threshold
+        using var _1 = ArrayBuilder<InlineHint>.GetInstance(discardLargeInstances: false, out var result);
+        using var _2 = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
         foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
         {
@@ -74,7 +75,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             }
         }
 
-        return;
+        return result.ToImmutableAndClear();
 
         void AddHintsIfAppropriate(SyntaxNode node)
         {

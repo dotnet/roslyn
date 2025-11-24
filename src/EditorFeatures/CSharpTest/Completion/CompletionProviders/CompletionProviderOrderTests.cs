@@ -62,7 +62,7 @@ public sealed class CompletionProviderOrderTests
             typeof(InternalsVisibleToCompletionProvider),
             typeof(PropertySubpatternCompletionProvider),
             typeof(TypeImportCompletionProvider),
-            typeof(ExtensionMemberImportCompletionProvider),
+            typeof(ExtensionMethodImportCompletionProvider),
             typeof(AggregateEmbeddedLanguageCompletionProvider),
             typeof(FunctionPointerUnmanagedCallingConventionCompletionProvider),
             typeof(CSharpSnippetCompletionProvider),

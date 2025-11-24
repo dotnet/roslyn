@@ -3803,7 +3803,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     // 1
                     from/* 3 *//* 2 *//* 4 */x /* 5 */ in/* 6 */nums/* 7 */// 8
                                                                            // 9
-                    /* 10 */
+                        /* 10 */
                     from/* 12 *//* 11 */int /* 13 */ y /* 14 */ in/* 15 */nums/* 16 *//* 17 */// 18
                                                                                               // 19
                         /*20 */
@@ -3877,8 +3877,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return /*30*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
                    /*31*//* 6 */
                    (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-                    /* 14 */// 15
-                    /* 16 *//* 17 */
+                        /* 14 */// 15
+                        /* 16 *//* 17 */
                     let y /* 18 */ = /* 19 */ x + 1/* 20 *///21
                     select y)/* 24 *//*27*///28
             .ToList()/* 22 *//* 23 *//* 25 *///26

@@ -471,13 +471,15 @@ internal partial class StreamingFindUsagesPresenter
             var document = documentSpan.Document;
             var sourceSpan = documentSpan.SourceSpan;
 
+            var excerptService = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
+
             // Fetching options is expensive enough to try to avoid it if we can.  So only fetch this if absolutely necessary.
             ClassificationOptions? options = null;
-            if (DocumentExcerptHelper.CanExcerpt(document))
+            if (excerptService != null)
             {
                 options ??= _globalOptions.GetClassificationOptions(document.Project.Language);
 
-                var result = await DocumentExcerptHelper.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options.Value, cancellationToken).ConfigureAwait(false);
+                var result = await excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options.Value, cancellationToken).ConfigureAwait(false);
                 if (result != null)
                     return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
             }

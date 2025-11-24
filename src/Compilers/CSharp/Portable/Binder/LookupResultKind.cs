@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal enum LookupResultKind : byte
     {
-        // Note: order is important! High values take precedence over lower values. 
+        // Note: order is important! High values take precedences over lower values. 
 
         Empty,
         NotATypeOrNamespace,

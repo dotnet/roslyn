@@ -2592,11 +2592,6 @@
         <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
-        <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
-        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">予期しないパラメーター リストです。</target>

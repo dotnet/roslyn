@@ -377,14 +377,6 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return (workspace, document as Document);
     }
 
-    private protected static async Task<(Workspace workspace, Document document)> GetRequiredLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
-    {
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(uri, testLspServer);
-        Assert.NotNull(workspace);
-        Assert.NotNull(document);
-        return (workspace, document);
-    }
-
     private protected static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
     {
         var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);

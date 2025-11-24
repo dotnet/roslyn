@@ -12,13 +12,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 [ExportWorkspaceService(typeof(ISourceGeneratedDocumentSpanMappingService))]
 [Shared]
-[PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGeneratedDocumentSpanMappingService
@@ -27,7 +25,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
 
     public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
     {
-        return sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
+        throw new NotImplementedException();
     }
 
     public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
@@ -35,15 +33,13 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
         throw new NotImplementedException();
     }
 
-    public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         if (document.IsRazorSourceGeneratedDocument())
         {
-            var sourceText = await document.GetTextAsync(cancellationToken);
             DidMapSpans = true;
-            return spans.SelectAsArray(s => new MappedSpanResult(document.FilePath, sourceText.Lines.GetLinePositionSpan(s), s));
         }
 
-        return [];
+        return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);
     }
 }

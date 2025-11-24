@@ -1112,32 +1112,12 @@ public partial class ExtractMethodTests
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545263")]
         public Task SyntacticErrorInSelection()
-            => TestExtractMethodAsync("""
+            => ExpectExtractMethodToFailAsync("""
                 class Program
                 {
                     static void Main(string[] args)
                     {
                         if ((true)NewMethod()[|)|]
-                        {
-                        }
-                    }
-
-                    private static string NewMethod()
-                    {
-                        return "true";
-                    }
-                }
-                """, """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        NewMethod1();
-                    }
-
-                    private static void NewMethod1()
-                    {
-                        if ((true)NewMethod())
                         {
                         }
                     }

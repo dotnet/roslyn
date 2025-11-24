@@ -25,7 +25,7 @@ internal sealed class IgnoredFrameViewModel : FrameViewModel
 
     protected override IEnumerable<Inline> CreateInlines()
     {
-        var run = MakeClassifiedRun(ClassificationTypeNames.Comment, _frame.ToString());
+        var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.ToString());
         yield return run;
     }
 }

@@ -15,6 +15,7 @@ internal sealed partial class CSharpRemoveUnnecessaryNullableWarningSuppressions
         IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression,
         EnforceOnBuildValues.RemoveUnnecessaryNullableWarningSuppression,
         option: null,
+        fadingOption: null,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_suppression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Suppression_is_unnecessary), AnalyzersResources.ResourceManager, typeof(CompilerExtensionsResources)))
 {

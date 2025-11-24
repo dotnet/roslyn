@@ -2112,9 +2112,9 @@ class M
                     "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                     "RefLib",
                     "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                    "mscorlib").WithLocation(1, 1);
+                    "mscorlib");
 
-            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
         [Fact, WorkItem(61284, "https://github.com/dotnet/roslyn/issues/61284")]
@@ -2182,7 +2182,7 @@ class M
                 // warning CS0612: 'Color.Red' is obsolete
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
 
-            compilation.VerifyEmitDiagnostics(obsoleteWarning);
+            compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
         }
 
         [WorkItem(718761, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
@@ -2366,146 +2366,6 @@ public class Tree2 : Tree1
             var compilation = CreateCompilationWithIL(genericTreeDefinitionSource, implementingTreeWithModoptObjectILSource);
 
             compilation.VerifyDiagnostics();
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
-        [Fact]
-        public void ConstFieldEnum_01()
-        {
-            const string source = @"
-using Color2 = Color;
-
-enum Color
-{
-    Red,
-    Green,
-    Blue,
-    Yellow,
-}
-
-class M
-{
-    public const Color Color = Color.Red;
-    public const Color2 Color2 = Color2.Yellow;
-}
-
-class M2
-{
-    public const Color Color = Color.Green | Color.Green;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(M.Color == Color.Red);
-        System.Console.Write(M.Color2 == Color.Yellow);
-        System.Console.Write(M2.Color == Color.Green);
-    }
-}
-";
-
-            CompileAndVerify(source, expectedOutput: "TrueTrueTrue")
-                .VerifyDiagnostics();
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
-        [Fact]
-        public void ConstFieldEnum_02()
-        {
-            const string source = @"
-using Color2 = Color;
-
-enum Color
-{
-    Red,
-    Green,
-    Blue,
-    Yellow,
-}
-
-class M
-{
-    public const Color Color = Color | Color.Red;
-    public const Color2 Color2 = Color2 | Color2.Yellow;
-}
-";
-
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (14,24): error CS0110: The evaluation of the constant value for 'M.Color' involves a circular definition
-                //     public const Color Color = Color | Color.Red;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Color").WithArguments("M.Color").WithLocation(14, 24),
-                // (15,25): error CS0110: The evaluation of the constant value for 'M.Color2' involves a circular definition
-                //     public const Color2 Color2 = Color2 | Color2.Yellow;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Color2").WithArguments("M.Color2").WithLocation(15, 25)
-                );
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
-        [Fact]
-        public void ConstFieldPrimitives()
-        {
-            const string source = @"
-using System;
-using SystemChar = System.Char;
-
-class M
-{
-    public const Int32 Int32 = Int32.MaxValue;
-    public const SystemChar SystemChar = SystemChar.MaxValue;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(M.Int32 == Int32.MaxValue);
-        System.Console.Write(M.SystemChar == SystemChar.MaxValue);
-    }
-}
-";
-
-            CompileAndVerify(source, expectedOutput: "TrueTrue")
-                .VerifyDiagnostics();
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
-        [Fact]
-        public void ConstFieldPrimitivesActualCircular()
-        {
-            string source = @"
-using System;
-using SystemChar = System.Char;
-
-class M
-{
-    public const Int32 Int32 = Int32.Increment();
-    public const SystemChar SystemChar = SystemChar.Increment();
-}
-
-public static class Extensions
-{
-    public static int Increment(this int i) => i + 1;
-    public static char Increment(this ref char c) => ++c;
-}
-";
-
-            var compilation = CreateCompilation(source);
-
-            compilation.VerifyDiagnostics(
-                // (7,24): error CS0110: The evaluation of the constant value for 'M.Int32' involves a circular definition
-                //     public const Int32 Int32 = Int32.Increment();
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Int32").WithArguments("M.Int32").WithLocation(7, 24),
-                // (7,32): error CS0133: The expression being assigned to 'M.Int32' must be constant
-                //     public const Int32 Int32 = Int32.Increment();
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Int32.Increment()").WithArguments("M.Int32").WithLocation(7, 32),
-                // (8,29): error CS0110: The evaluation of the constant value for 'M.SystemChar' involves a circular definition
-                //     public const SystemChar SystemChar = SystemChar.Increment();
-                Diagnostic(ErrorCode.ERR_CircConstValue, "SystemChar").WithArguments("M.SystemChar").WithLocation(8, 29),
-                // (8,42): error CS1510: A ref or out value must be an assignable variable
-                //     public const SystemChar SystemChar = SystemChar.Increment();
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "SystemChar").WithLocation(8, 42)
-                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]

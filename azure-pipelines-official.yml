@@ -55,10 +55,10 @@ schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
     branches:
-      include:
+      include: 
         - main
         - release/*
-      exclude:
+      exclude: 
         - ""
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
@@ -125,7 +125,7 @@ extends:
       sbom:
         enabled: false
       suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
+        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
       policheck:
           enabled: true
       tsa:
@@ -171,7 +171,7 @@ extends:
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
+            artifactName: 'Build Diagnostic Files'
             publishLocation: Container
 
           - output: pipelineArtifact
@@ -226,7 +226,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-
+          
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -319,10 +319,10 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests ${{ parameters.SkipTests }}
+                       -officialSkipTests $(SkipTests)
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
-                       -officialIbcDrop ${{ parameters.IbcDrop }}
+                       -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -362,7 +362,7 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ${{ not(parameters.SkipTests) }})
+          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self

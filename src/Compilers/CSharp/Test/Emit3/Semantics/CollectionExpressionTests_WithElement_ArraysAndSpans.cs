@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -520,7 +518,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             """;
 
         CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (7,17): error CS9401: 'with(...)' elements are not supported for type 'Span<int>'
+            // (7,16): error CS9203: A collection expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the current scope.
+            //         return [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1, 2, 3]").WithArguments("System.Span<int>").WithLocation(7, 16),
+            // (7,17): error CS9336: Collection arguments are not supported for type 'Span<int>'.
             //         return [with(), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(7, 17));
     }
@@ -561,7 +562,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,24): error CS9401: 'with(...)' elements are not supported for type 'int[]'
+            // (5,13): warning CS0219: The variable 'x' is assigned but its value is never used
+            //         int x = 10;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(5, 13),
+            // (6,24): error CS9336: Collection arguments are not supported for type 'int[]'.
             //         int[] array = [with(ref x), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("int[]").WithLocation(6, 24));
     }
@@ -582,21 +586,13 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (8,27): error CS9401: 'with(...)' elements are not supported for type 'Span<int>'
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,13): warning CS0219: The variable 'x' is assigned but its value is never used
+            //         int x = 10;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(7, 13),
+            // (8,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
             //         Span<int> span = [with(in x), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 27));
-        var tree = compilation.SyntaxTrees.Single();
-        var root = tree.GetRoot();
-        compilation.VerifyOperationTree(root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
-            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int32>, IsInvalid) (Syntax: '[with(in x), 1, 2, 3]')
-              ConstructArguments(1):
-                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-              Elements(3):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-            """);
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]

@@ -73,7 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (name.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                var local = new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object));
+                var valueText = name.Substring(2);
+                ulong address;
+                if (!ulong.TryParse(valueText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out address))
+                {
+                    // Invalid value should have been caught by Lexer.
+                    throw ExceptionUtilities.UnexpectedValue(valueText);
+                }
+                var local = new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object), address);
                 result.MergeEqual(this.CheckViability(local, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
             }
             else

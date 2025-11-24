@@ -47,18 +47,6 @@ public static partial class FormattedClassifications
         => New(text, ClassificationTypeNames.TypeParameterName);
 
     [DebuggerStepThrough]
-    public static FormattedClassification Array(string text)
-        => New(text, ClassificationTypeNames.ArrayName);
-
-    [DebuggerStepThrough]
-    public static FormattedClassification Pointer(string text)
-        => New(text, ClassificationTypeNames.PointerName);
-
-    [DebuggerStepThrough]
-    public static FormattedClassification FunctionPointer(string text)
-        => New(text, ClassificationTypeNames.FunctionPointerName);
-
-    [DebuggerStepThrough]
     public static FormattedClassification Namespace(string text)
         => New(text, ClassificationTypeNames.NamespaceName);
 

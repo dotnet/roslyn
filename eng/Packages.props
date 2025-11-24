@@ -45,10 +45,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.15.0-preview-25353-11" />
   </ItemGroup>
 
   <ItemGroup>
@@ -310,7 +310,7 @@
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
     <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
     <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
     <!--
       Infra

@@ -285,12 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (source is BoundMethodGroup methodGroup)
-                {
-                    source = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
-                    Debug.Assert(source == (object)methodGroup || !conversion.IsValid);
-                }
-
                 return new BoundConversion(
                     syntax,
                     BindToNaturalType(source, diagnostics),
@@ -841,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
 
             private BoundCollectionExpression CreateCollectionExpression(
-                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = null)
+                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundValuePlaceholder? collectionBuilderElementsPlaceholder = null)
             {
                 return new BoundCollectionExpression(
                     _node.Syntax,
@@ -1153,7 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
                         _node.WithElement.Syntax.GetFirstToken().GetLocation(),
                         _targetType);
-                    return null;
                 }
 
                 return CreateCollectionExpression(collectionTypeKind, elements);
@@ -1161,15 +1154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(ImmutableArray<BoundNode> elements)
             {
-                if (_node.WithElement?.Arguments.Length > 0 &&
-                    _targetType.IsReadOnlyArrayInterface(out _))
-                {
-                    // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
-                    // the parameterless `with()` is allowed.
-                    _diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, _node.WithElement.Syntax.GetFirstToken().GetLocation());
-                    return null;
-                }
-
                 return CreateCollectionExpression(
                     CollectionExpressionTypeKind.ArrayInterface,
                     elements,
@@ -1186,6 +1170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var withSyntax = withElement.Syntax;
                     if (@this._targetType.IsReadOnlyArrayInterface(out _))
                     {
+                        // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
+                        // the parameterless `with()` is allowed.
+                        if (withElement.Arguments.Length > 0)
+                        {
+                            @this._diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
+                        }
+
                         // Note: we intentionally report null here.  Even though the code has `with()` in it, we're not actually
                         // going to call a particular constructor.  The lowering phase will properly handle creating a read-only
                         // interface instance.
@@ -1260,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionBuilderMethod: collectionBuilderMethod,
                     collectionBuilderElementsPlaceholder: collectionBuilderElementsPlaceholder);
 
-                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
+                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
                     ref readonly CollectionExpressionConverter @this)
                 {
                     var namedType = (NamedTypeSymbol)@this._targetType;
@@ -1343,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
                     var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
-                    var collectionBuilderElementsPlaceholder = new BoundCollectionBuilderElementsPlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
+                    var collectionBuilderElementsPlaceholder = new BoundValuePlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
 
                     var arguments = projectionCall.Arguments;
                     var argumentNames = projectionCall.ArgumentNamesOpt;
@@ -1374,9 +1365,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
-                        resultKind: projectionCall.ResultKind,
-                        type: collectionBuilderMethod.ReturnType,
-                        hasErrors: projectionCall.HasErrors)
+                        resultKind: LookupResultKind.Viable,
+                        type: collectionBuilderMethod.ReturnType)
                     {
                         WasCompilerGenerated = @this._node.WithElement is null,
                     };
@@ -2964,7 +2954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
+        private static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
         {
             if (node.Kind != BoundKind.MethodGroup)
             {

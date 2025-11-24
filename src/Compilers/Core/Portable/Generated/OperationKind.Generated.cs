@@ -285,7 +285,5 @@ namespace Microsoft.CodeAnalysis
         CollectionExpression = 0x7f,
         /// <summary>Indicates an <see cref="ISpreadOperation"/>.</summary>
         Spread = 0x80,
-        /// <summary>Indicates an <see cref="ICollectionExpressionElementsPlaceholderOperation"/>.</summary>
-        CollectionExpressionElementsPlaceholder = 0x81,
     }
 }

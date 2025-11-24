@@ -32,14 +32,14 @@
         <target state="translated">Copilot이 생각하는 중...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe">
-        <source>Describe</source>
-        <target state="new">Describe</target>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Copilot으로 설명</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe' is unavailable since the referenced document is excluded by your organization.</target>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">참조된 문서가 조직에서 제외되었므로 'Copilot로 설명'을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -437,11 +437,6 @@
         <target state="translated">사용자 멤버 - 속성</target>
         <note />
       </trans-unit>
-      <trans-unit id="User_Types_Arrays">
-        <source>User Types - Arrays</source>
-        <target state="new">User Types - Arrays</target>
-        <note />
-      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">사용자 형식 - 클래스</target>
@@ -457,19 +452,9 @@
         <target state="translated">사용자 형식 - 열거형</target>
         <note />
       </trans-unit>
-      <trans-unit id="User_Types_Function_Pointers">
-        <source>User Types - Function Pointers</source>
-        <target state="new">User Types - Function Pointers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">사용자 형식 - 인터페이스</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Types_Pointers">
-        <source>User Types - Pointers</source>
-        <target state="new">User Types - Pointers</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">

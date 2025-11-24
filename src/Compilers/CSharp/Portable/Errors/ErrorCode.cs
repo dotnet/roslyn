@@ -2440,8 +2440,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleInapplicableUnaryOperator = 9341,
         ERR_AmbigOperator = 9342,
 
-        ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
-
         // PROTOTYPE: Renumber accordingly.
         ERR_CollectionArgumentsMustBeFirst = 9400,
         ERR_CollectionArgumentsNotSupportedForType = 9401,

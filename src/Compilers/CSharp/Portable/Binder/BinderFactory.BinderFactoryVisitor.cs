@@ -1175,10 +1175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (elementKind)
                 {
                     case XmlNameAttributeElementKind.Parameter:
-                        extraInfo = NodeUsage.DocumentationCommentParameter;
-                        break;
                     case XmlNameAttributeElementKind.ParameterReference:
-                        extraInfo = NodeUsage.DocumentationCommentParameterReference;
+                        extraInfo = NodeUsage.DocumentationCommentParameter;
                         break;
                     case XmlNameAttributeElementKind.TypeParameter:
                         extraInfo = NodeUsage.DocumentationCommentTypeParameter;
@@ -1238,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, bool isParamRef, Binder nextBinder)
             {
-                if (memberSyntax is BaseMethodDeclarationSyntax baseMethodDeclSyntax)
+                if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
@@ -1248,14 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         nextBinder = new WithExtensionParameterBinder(method.ContainingType, nextBinder);
                     }
 
-                    if (method.ParameterCount > 0)
-                    {
-                        return new WithParametersBinder(method.Parameters, nextBinder);
-                    }
-                    else
-                    {
-                        return nextBinder;
-                    }
+                    return new WithParametersBinder(method.Parameters, nextBinder);
                 }
                 else if (memberSyntax is ExtensionBlockDeclarationSyntax extensionDeclaration)
                 {

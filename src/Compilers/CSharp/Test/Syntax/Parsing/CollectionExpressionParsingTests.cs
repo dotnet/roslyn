@@ -13467,9 +13467,15 @@ class C
     public void LambdaAttributeVersusCollectionLookahead5A()
     {
         UsingExpression("[A][B](C, D) ? ([e] f) : g",
-            // (1,21): error CS1073: Unexpected token 'f'
+            // (1,1): error CS1073: Unexpected token ')'
             // [A][B](C, D) ? ([e] f) : g
-            Diagnostic(ErrorCode.ERR_UnexpectedToken, "f").WithArguments("f").WithLocation(1, 21));
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A][B](C, D) ? ([e] f").WithArguments(")").WithLocation(1, 1),
+            // (1,21): error CS1026: ) expected
+            // [A][B](C, D) ? ([e] f) : g
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "f").WithLocation(1, 21),
+            // (1,21): error CS1003: Syntax error, ':' expected
+            // [A][B](C, D) ? ([e] f) : g
+            Diagnostic(ErrorCode.ERR_SyntaxError, "f").WithArguments(":").WithLocation(1, 21));
 
         N(SyntaxKind.ConditionalExpression);
         {
@@ -13539,12 +13545,12 @@ class C
                     }
                     N(SyntaxKind.CloseBracketToken);
                 }
-                N(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.CloseParenToken);
             }
-            N(SyntaxKind.ColonToken);
+            M(SyntaxKind.ColonToken);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "g");
+                N(SyntaxKind.IdentifierToken, "f");
             }
         }
         EOF();
@@ -13647,9 +13653,15 @@ class C
     public void LambdaAttributeVersusCollectionLookahead6A()
     {
         UsingExpression("[A][B](C, D) ? ((e,f) g) : h",
-            // (1,23): error CS1073: Unexpected token 'g'
+            // (1,1): error CS1073: Unexpected token ')'
             // [A][B](C, D) ? ((e,f) g) : h
-            Diagnostic(ErrorCode.ERR_UnexpectedToken, "g").WithArguments("g").WithLocation(1, 23));
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A][B](C, D) ? ((e,f) g").WithArguments(")").WithLocation(1, 1),
+            // (1,23): error CS1026: ) expected
+            // [A][B](C, D) ? ((e,f) g) : h
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "g").WithLocation(1, 23),
+            // (1,23): error CS1003: Syntax error, ':' expected
+            // [A][B](C, D) ? ((e,f) g) : h
+            Diagnostic(ErrorCode.ERR_SyntaxError, "g").WithArguments(":").WithLocation(1, 23));
 
         N(SyntaxKind.ConditionalExpression);
         {
@@ -13727,12 +13739,12 @@ class C
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.CloseParenToken);
             }
-            N(SyntaxKind.ColonToken);
+            M(SyntaxKind.ColonToken);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "h");
+                N(SyntaxKind.IdentifierToken, "g");
             }
         }
         EOF();
@@ -13847,12 +13859,18 @@ class C
     public void LambdaAttributeVersusCollectionLookahead7A()
     {
         UsingExpression("[A][B](C, D) ? ((e,f)[] g) : h",
+            // (1,1): error CS1073: Unexpected token ')'
+            // [A][B](C, D) ? ((e,f)[] g) : h
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A][B](C, D) ? ((e,f)[] g").WithArguments(")").WithLocation(1, 1),
             // (1,23): error CS0443: Syntax error; value expected
             // [A][B](C, D) ? ((e,f)[] g) : h
             Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 23),
-            // (1,25): error CS1073: Unexpected token 'g'
+            // (1,25): error CS1026: ) expected
             // [A][B](C, D) ? ((e,f)[] g) : h
-            Diagnostic(ErrorCode.ERR_UnexpectedToken, "g").WithArguments("g").WithLocation(1, 25));
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "g").WithLocation(1, 25),
+            // (1,25): error CS1003: Syntax error, ':' expected
+            // [A][B](C, D) ? ((e,f)[] g) : h
+            Diagnostic(ErrorCode.ERR_SyntaxError, "g").WithArguments(":").WithLocation(1, 25));
 
         N(SyntaxKind.ConditionalExpression);
         {
@@ -13945,12 +13963,12 @@ class C
                         N(SyntaxKind.CloseBracketToken);
                     }
                 }
-                N(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.CloseParenToken);
             }
-            N(SyntaxKind.ColonToken);
+            M(SyntaxKind.ColonToken);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "h");
+                N(SyntaxKind.IdentifierToken, "g");
             }
         }
         EOF();

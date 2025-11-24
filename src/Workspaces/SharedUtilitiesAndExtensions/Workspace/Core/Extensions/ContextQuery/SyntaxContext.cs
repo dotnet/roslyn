@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -96,12 +95,6 @@ internal abstract class SyntaxContext(
     public bool IsWithinAsyncMethod { get; } = isWithinAsyncMethod;
 
     public ImmutableArray<ITypeSymbol> InferredTypes { get; } = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
-
-    /// <summary>
-    /// Gets the valid attribute targets for the current attribute context. Returns <see langword="null"/> if not in an
-    /// attribute context or if language-specific filtering is not implemented.
-    /// </summary>
-    public virtual AttributeTargets? ValidAttributeTargets => null;
 
     public TService? GetLanguageService<TService>() where TService : class, ILanguageService
         => Document.GetLanguageService<TService>();

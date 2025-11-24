@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -29,13 +28,7 @@ internal sealed partial class CSharpIntroduceVariableService
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        // Get the ancestor TypeDeclarationSyntax that is NOT an ExtensionBlockDeclarationSyntax.
-        // Extension blocks can't contain fields, so we need to find the containing class/struct.
-        //
-        // Note, this can be revised in the future as we do expect to allow constants/static in
-        // extension blocks in a future version of the language.
-        var oldTypeDeclaration = expression.GetAncestorsOrThis<TypeDeclarationSyntax>()
-            .FirstOrDefault(t => t is not ExtensionBlockDeclarationSyntax);
+        var oldTypeDeclaration = expression.GetAncestorOrThis<TypeDeclarationSyntax>();
 
         var oldType = oldTypeDeclaration != null
             ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken)

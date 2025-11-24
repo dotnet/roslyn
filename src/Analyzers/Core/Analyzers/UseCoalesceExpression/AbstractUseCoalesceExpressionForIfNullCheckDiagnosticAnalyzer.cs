@@ -96,7 +96,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             if (!AnalyzeLocalDeclarationForm(previousStatement, out expressionToCoalesce))
                 return;
         }
-        else if (syntaxFacts.IsSimpleAssignmentStatement(previousStatement))
+        else if (syntaxFacts.IsAnyAssignmentStatement(previousStatement))
         {
             // v = Expr();
             // if (v == null)

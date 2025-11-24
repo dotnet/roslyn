@@ -15,6 +15,7 @@ internal abstract class AbstractUseInferredMemberNameDiagnosticAnalyzer : Abstra
         : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
                EnforceOnBuildValues.UseInferredMemberName,
                options: [CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, CodeStyleOptions2.PreferInferredTupleNames],
+               fadingOption: null,
                new LocalizableResourceString(nameof(AnalyzersResources.Use_inferred_member_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                new LocalizableResourceString(nameof(AnalyzersResources.Member_name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {

@@ -144,6 +144,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOption2`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CollectionExpressionPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\FadingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\EditorConfigSeverityStrings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ExpressionBodyPreference.cs" />

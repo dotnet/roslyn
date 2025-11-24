@@ -90,8 +90,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
         object onDemandLinkText = _onTheFlyDocsInfo.IsContentExcluded
-            ? ToUIElement(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, EditorFeaturesResources.Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization)])))
-            : ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe, EditorFeaturesResources.Generate_summary_with_Copilot, () => RequestResults());
+            ? ToUIElement(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, EditorFeaturesResources.Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization)])))
+            : ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () => RequestResults());
 
         OnDemandLinkContent = ToUIElement(
             new ContainerElement(

@@ -22,6 +22,11 @@ internal readonly struct RazorMappedSpanResult
 
     public RazorMappedSpanResult(string filePath, LinePositionSpan linePositionSpan, TextSpan span)
     {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            throw new ArgumentException(nameof(filePath));
+        }
+
         FilePath = filePath;
         LinePositionSpan = linePositionSpan;
         Span = span;

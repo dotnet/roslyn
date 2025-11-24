@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-[Obsolete("Not required when cohosting is the only game in town", error: false)]
 internal abstract class RazorLspDynamicFileInfoProvider : AbstractRazorLspService
 {
     public abstract Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(Workspace workspace, ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken);

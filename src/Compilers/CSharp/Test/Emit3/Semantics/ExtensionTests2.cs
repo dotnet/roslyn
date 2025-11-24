@@ -24749,7 +24749,7 @@ class BAttribute : System.Attribute { }
             var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
             Assert.Equal(["AAttribute", "BAttribute"], extension.TypeParameters[0].GetAttributes().Select(a => a.ToString()));
             Assert.Equal(["AAttribute", "BAttribute"], extension.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
-            Assert.Equal("", extension.ExtensionParameter.Name);
+            Assert.Equal(module is SourceModuleSymbol ? "" : "value", extension.ExtensionParameter.Name);
         }
     }
 
@@ -36013,29 +36013,6 @@ static class E
     }
 
     [Fact]
-    public void ReduceExtensionMember_14()
-    {
-        // extension without containing type
-        var src = """
-extension<T>(T)
-{
-    public static void M() { }
-}
-""";
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
-            // extension<T>(T)
-            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
-
-        var extension = comp.GlobalNamespace.GetTypeMembers("").Single().GetPublicSymbol();
-        Assert.True(extension.IsExtension);
-        var m = extension.GetMember<IMethodSymbol>("M");
-        var reduced = m.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol());
-        AssertEx.Equal("void <G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", reduced.ToTestDisplayString());
-    }
-
-    [Fact]
     public void ReportDiagnostics_01()
     {
         // two properties
@@ -36876,84 +36853,6 @@ static class E4
             // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E4.extension(object).Member(int)' and 'E1.extension(object).Member'
             // _ = object.Member(42);
             Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member(int)", "E1.extension(object).Member").WithLocation(1, 5));
-    }
-
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/81180")]
-    public void InternalsVisibleTo_01()
-    {
-        var sourceA =
-@"
-using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo(""B"")]
-
-internal static class Extensions
-{
-    extension(string text)
-    {
-        internal bool IsEmpty => string.IsNullOrEmpty(text);
-    }
-}
-";
-        var compA = CreateCompilation(sourceA, assemblyName: "A");
-        CompileAndVerify(compA).VerifyDiagnostics();
-
-        var sourceB =
-@"
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write((null as string).IsEmpty);
-        System.Console.Write("""".IsEmpty);
-        System.Console.Write(""\t"".IsEmpty);
-    }
-}
-";
-        var compB = CreateCompilation(sourceB, references: [compA.ToMetadataReference()], assemblyName: "B", options: TestOptions.DebugExe);
-        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
-
-        compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
-        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
-    }
-
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/81180")]
-    public void InternalsVisibleTo_02()
-    {
-        var sourceA =
-@"
-using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo(""B"")]
-
-internal static class Extensions
-{
-    extension(string text)
-    {
-        internal bool IsEmpty() => string.IsNullOrEmpty(text);
-    }
-}
-";
-        var compA = CreateCompilation(sourceA, assemblyName: "A");
-        CompileAndVerify(compA).VerifyDiagnostics();
-
-        var sourceB =
-@"
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write((null as string).IsEmpty());
-        System.Console.Write("""".IsEmpty());
-        System.Console.Write(""\t"".IsEmpty());
-    }
-}
-";
-        var compB = CreateCompilation(sourceB, references: [compA.ToMetadataReference()], assemblyName: "B", options: TestOptions.DebugExe);
-        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
-
-        compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
-        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
     }
 }
 

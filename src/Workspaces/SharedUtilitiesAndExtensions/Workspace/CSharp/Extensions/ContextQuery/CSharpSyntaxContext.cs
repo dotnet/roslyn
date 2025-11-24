@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -512,64 +511,5 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         }
 
         return false;
-    }
-
-    public override AttributeTargets? ValidAttributeTargets => field ??= ComputeValidAttributeTargets();
-
-    private AttributeTargets ComputeValidAttributeTargets()
-    {
-        return ComputeWorker() ?? AttributeTargets.All;
-
-        AttributeTargets? ComputeWorker()
-        {
-            if (IsAttributeNameContext)
-            {
-                var attributeList = this.TargetToken.Parent?.FirstAncestorOrSelf<AttributeListSyntax>();
-
-                // Check if there's an explicit target specifier (e.g., "assembly:", "return:", etc.)
-                if (attributeList is { Target.Identifier: var identifier })
-                {
-                    return identifier.Kind() switch
-                    {
-                        SyntaxKind.AssemblyKeyword or SyntaxKind.ModuleKeyword => AttributeTargets.Assembly | AttributeTargets.Module,
-                        SyntaxKind.TypeKeyword => AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Delegate,
-                        SyntaxKind.MethodKeyword => AttributeTargets.Method,
-                        SyntaxKind.FieldKeyword => AttributeTargets.Field,
-                        SyntaxKind.PropertyKeyword => AttributeTargets.Property,
-                        SyntaxKind.EventKeyword => AttributeTargets.Event,
-                        SyntaxKind.ParamKeyword => AttributeTargets.Parameter,
-                        SyntaxKind.ReturnKeyword => AttributeTargets.ReturnValue,
-                        SyntaxKind.TypeVarKeyword => AttributeTargets.GenericParameter,
-                        _ => null,
-                    };
-                }
-
-                // No explicit target. Walk up to find what the attribute is attached to.
-                return attributeList?.Parent switch
-                {
-                    ClassDeclarationSyntax => AttributeTargets.Class,
-                    StructDeclarationSyntax => AttributeTargets.Struct,
-                    InterfaceDeclarationSyntax => AttributeTargets.Interface,
-                    EnumDeclarationSyntax => AttributeTargets.Enum,
-                    DelegateDeclarationSyntax => AttributeTargets.Delegate,
-                    RecordDeclarationSyntax record => record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
-                        ? AttributeTargets.Struct
-                        : AttributeTargets.Class,
-
-                    MethodDeclarationSyntax => AttributeTargets.Method,
-                    ConstructorDeclarationSyntax => AttributeTargets.Constructor,
-                    PropertyDeclarationSyntax or IndexerDeclarationSyntax => AttributeTargets.Property,
-                    EventDeclarationSyntax or EventFieldDeclarationSyntax => AttributeTargets.Event,
-                    FieldDeclarationSyntax => AttributeTargets.Field,
-                    ParameterSyntax => AttributeTargets.Parameter,
-                    TypeParameterSyntax => AttributeTargets.GenericParameter,
-                    CompilationUnitSyntax => AttributeTargets.Assembly | AttributeTargets.Module,
-
-                    _ => null,
-                };
-            }
-
-            return null;
-        }
     }
 }

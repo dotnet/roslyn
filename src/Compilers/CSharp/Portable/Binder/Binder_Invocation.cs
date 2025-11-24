@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                             // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                             bool inStaticContext;
-                            bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                            bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             methodGroup.Syntax,
                             methodGroup.ResultKind,
                             [methodGroup.LookupSymbolOpt],
-                            receiverOpt == null ? [] : [AdjustBadExpressionChild(receiverOpt)],
+                            receiverOpt == null ? [] : [receiverOpt],
                             GetNonMethodMemberType(methodGroup.LookupSymbolOpt));
                     }
                 }
@@ -1239,14 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instance methods. Therefore we must detect this scenario here, rather than in
             // overload resolution.
 
-            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
-
-            if (invokedAsExtensionMethod && (object)receiver != methodGroup.Receiver)
-            {
-                // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
-                Debug.Assert(analyzedArguments.Arguments[0] == (object)methodGroup.Receiver);
-                analyzedArguments.Arguments[0] = receiver;
-            }
+            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
             ImmutableArray<int> argsToParams;
             this.CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod, out argsToParams);
@@ -1267,6 +1260,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression receiverArgument = analyzedArguments.Argument(0);
                 ParameterSymbol receiverParameter = method.Parameters.First();
+
+                // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
+                if ((object)receiver != methodGroup.Receiver)
+                {
+                    // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
+                    Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0),
+                        receiverParameter.Type, diagnostics);
+                }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
                 {
@@ -1960,28 +1962,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TypeOrValueExpression:
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                    var identifier = (IdentifierNameSyntax)typeOrValue.Syntax;
-                    Debug.Assert(typeOrValue.Binder == (object)this);
-
                     if (useType)
                     {
-                        if (typeOrValue.Binder.GetShadowedPrimaryConstructorParameter(identifier, typeOrValue.ValueSymbol, invoked: false, membersOpt: null) is { } shadowedParameter &&
-                            !shadowedParameter.Type.Equals(typeOrValue.Type, TypeCompareKind.AllIgnoreOptions)) // If the type and the name match, we would resolve to the same type rather than a value at the end.
+                        diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
+
+                        foreach (Diagnostic d in typeOrValue.Data.ValueDiagnostics.Diagnostics)
                         {
-                            diagnostics.Add(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, identifier.Location, shadowedParameter);
+                            // Avoid forcing resolution of lazy diagnostics to avoid cycles.
+                            var code = d is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : d.Code;
+                            if (code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
+                                !(d.Arguments is [ParameterSymbol shadowedParameter] && shadowedParameter.Type.Equals(typeOrValue.Data.ValueExpression.Type, TypeCompareKind.AllIgnoreOptions))) // If the type and the name match, we would resolve to the same type rather than a value at the end.
+                            {
+                                Debug.Assert(d is not DiagnosticWithInfo { HasLazyInfo: true }, "Adjust the Arguments access to handle lazy diagnostics to avoid cycles.");
+                                diagnostics.Add(d);
+                            }
                         }
 
-                        return typeOrValue.Binder.BindNamespaceOrType(identifier, diagnostics);
+                        return typeOrValue.Data.TypeExpression;
                     }
                     else
                     {
-                        var boundValue = typeOrValue.Binder.BindIdentifier(identifier, invoked: false, indexed: false, diagnostics: diagnostics);
-
-                        Debug.Assert(typeOrValue.Type.Equals(boundValue.Type, TypeCompareKind.ConsiderEverything));
-                        Debug.Assert(typeOrValue.ValueSymbol == (boundValue.ExpressionSymbol ?? ((BoundConversion)boundValue).Operand.ExpressionSymbol));
-
-                        boundValue = BindToNaturalType(boundValue, diagnostics);
-                        return CheckValue(boundValue, BindValueKind.RValue, diagnostics);
+                        diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
+                        return CheckValue(typeOrValue.Data.ValueExpression, BindValueKind.RValue, diagnostics);
                     }
 
                 case BoundKind.QueryClause:
@@ -1996,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static Symbol GetValueSymbolIfTypeOrValueReceiver(BoundExpression receiver)
+        private static BoundExpression GetValueExpressionIfTypeOrValueReceiver(BoundExpression receiver)
         {
             if ((object)receiver == null)
             {
@@ -2006,11 +2008,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (receiver)
             {
                 case BoundTypeOrValueExpression typeOrValueExpression:
-                    return typeOrValueExpression.ValueSymbol;
+                    return typeOrValueExpression.Data.ValueExpression;
 
                 case BoundQueryClause queryClause:
                     // a query clause may wrap a TypeOrValueExpression.
-                    return GetValueSymbolIfTypeOrValueReceiver(queryClause.Value);
+                    return GetValueExpressionIfTypeOrValueReceiver(queryClause.Value);
 
                 default:
                     return null;
@@ -2390,17 +2392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         EnsureNameofExpressionSymbols(methodGroup, diagnostics);
                     }
                 }
-
-                boundArgument = methodGroup.Update(
-                    methodGroup.TypeArgumentsOpt,
-                    methodGroup.Name,
-                    methodGroup.Methods,
-                    methodGroup.LookupSymbolOpt,
-                    methodGroup.LookupError,
-                    methodGroup.Flags,
-                    methodGroup.FunctionType,
-                    receiverOpt: ReplaceTypeOrValueReceiver(methodGroup.ReceiverOpt, useType: false, BindingDiagnosticBag.Discarded), //only change
-                    methodGroup.ResultKind);
             }
             else if (boundArgument is BoundPropertyAccess propertyAccess)
             {

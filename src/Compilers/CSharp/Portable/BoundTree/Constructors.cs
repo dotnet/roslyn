@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(
                 syntax: node,
-                receiverOpt: binder.AdjustBadExpressionChild(binder.BindToTypeForErrorRecovery(receiverOpt)),
+                receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: method,
                 arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),

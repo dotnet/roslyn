@@ -24,16 +24,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets;
 [Export(typeof(IWpfTextViewConnectionListener))]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpCreateServicesOnTextViewConnection(
-    VisualStudioWorkspace workspace,
-    IGlobalOptionService globalOptions,
-    IAsynchronousOperationListenerProvider listenerProvider,
-    IThreadingContext threadingContext)
-    : AbstractCreateServicesOnTextViewConnection(
-        workspace, globalOptions, listenerProvider, threadingContext, LanguageNames.CSharp)
+internal sealed class CSharpCreateServicesOnTextViewConnection : AbstractCreateServicesOnTextViewConnection
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCreateServicesOnTextViewConnection(
+        VisualStudioWorkspace workspace,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IThreadingContext threadingContext)
+        : base(workspace, globalOptions, listenerProvider, threadingContext, LanguageNames.CSharp)
+    {
+    }
+
     protected override async Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
     {
         // Only pre-populate cache if import completion is enabled
@@ -42,6 +45,6 @@ internal sealed class CSharpCreateServicesOnTextViewConnection(
 
         var service = project.GetRequiredLanguageService<ITypeImportCompletionService>();
         service.QueueCacheWarmUpTask(project);
-        await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(project, CancellationToken.None).ConfigureAwait(false);
+        await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(project, CancellationToken.None).ConfigureAwait(false);
     }
 }
