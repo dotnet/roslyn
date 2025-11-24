@@ -486,37 +486,40 @@ internal static partial class ProtocolConversions
     {
         Debug.Assert(document.FilePath != null);
 
-        var result = document is Document d
-            ? await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false)
-            : null;
-        if (result == null)
-            return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
-
-        var mappedSpan = result.Value.Single();
-        if (mappedSpan.IsDefault)
-            return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
-
-        DocumentUri? uri = null;
-        try
+        if (document is Document d &&
+            SpanMappingHelper.CanMapSpans(d))
         {
-            if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
-                uri = CreateAbsoluteDocumentUri(mappedSpan.FilePath);
+            var result = await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false);
+            if (result is not [{ IsDefault: false } mappedSpan])
+            {
+                // Couldn't map the span, but mapping is supported, so the mapper must not want to show include this result
+                return null;
+            }
+
+            DocumentUri? uri = null;
+            try
+            {
+                if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
+                    uri = CreateAbsoluteDocumentUri(mappedSpan.FilePath);
+            }
+            catch (UriFormatException)
+            {
+            }
+
+            if (uri == null)
+            {
+                context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
+                return null;
+            }
+
+            return new LSP.Location
+            {
+                DocumentUri = uri,
+                Range = MappedSpanResultToRange(mappedSpan)
+            };
         }
-        catch (UriFormatException)
-        {
-        }
 
-        if (uri == null)
-        {
-            context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
-            return null;
-        }
-
-        return new LSP.Location
-        {
-            DocumentUri = uri,
-            Range = MappedSpanResultToRange(mappedSpan)
-        };
+        return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
         static async Task<LSP.Location> ConvertTextSpanToLocationAsync(
             TextDocument document,

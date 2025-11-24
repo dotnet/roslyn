@@ -30,7 +30,6 @@
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
   <ValueType Name="RefKind"/>
-  <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
@@ -209,7 +208,7 @@
   -->
 
   <!-- This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything. -->
-  <Node Name="BoundBadExpression" Base="BoundExpression">
+  <Node Name="BoundBadExpression" Base="BoundExpression" HasValidate="true">
     <!-- Categorizes the way in which "Symbols" is bad. -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     
@@ -303,16 +302,18 @@
     NOTE:
     * The node can only be a qualifier of a method or a property group access 
       as only those may require overload resolution.
-    * It is possible for a node of this type to appear in a tree where there
-      are no errors.  Consider (Color.M is Object).  M may be overloaded to
-      contain both static and instance methods.  In this case the expression is
-      always *false*, but the left-hand-side of the is operator is a method
-      group whose receiver is a BoundTypeOrValueExpression.
+    
+    * The Binder should make sure that such a node doesn't escape the binding
+      process, especially for success scenarios. The binder should resolve
+      the node in a most appropriate way, usually to a member access. Asserts
+      were added in some components to help detect a "leak". 
+      
     -->
-  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
+  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" HasValidate="true">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Data" Type="BoundTypeOrValueData"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
+    <Field Name="ValueSymbol" Type="Symbol" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
@@ -890,7 +891,7 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
 
-  <Node Name="BoundConversion" Base="BoundExpression">
+  <Node Name="BoundConversion" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     
@@ -2364,7 +2365,7 @@
   <Node Name="BoundTypeOrInstanceInitializers" Base="BoundStatementList">
   </Node>
 
-  <Node Name="BoundNameOfOperator" Base="BoundExpression">
+  <Node Name="BoundNameOfOperator" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Argument" Type="BoundExpression" Null="disallow"/>

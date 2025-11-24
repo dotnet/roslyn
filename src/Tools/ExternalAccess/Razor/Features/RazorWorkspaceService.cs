@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
+[Obsolete("Not required when cohosting is the only game in town", error: false)]
 internal abstract class RazorWorkspaceService : AbstractRazorLspService
 {
     public abstract void Initialize(Workspace workspace, string pipeName);
