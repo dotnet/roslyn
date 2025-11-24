@@ -21,5 +21,5 @@ jobs:
     if: github.repository == 'dotnet/roslyn'
     uses: dotnet/arcade/.github/workflows/inter-branch-merge-base.yml@main
     with:
-      configuration_file_path: 'eng/config/community-to-main-branch-merge.jsonc'
+      configuration_file_path: 'eng/config/feature-branch-merge.jsonc'
       configuration_file_branch: ${{ inputs.configuration_file_branch || 'main' }}
