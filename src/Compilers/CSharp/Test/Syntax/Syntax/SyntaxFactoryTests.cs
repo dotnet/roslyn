@@ -478,6 +478,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token.GetDiagnostics().Verify();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ConstructedSyntaxTrivia_NoLocationAndDiagnostics()
+        {
+            var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
+            Assert.Equivalent(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
         [Fact]
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableIntType()

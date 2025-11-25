@@ -409,8 +409,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            // https://github.com/dotnet/roslyn/issues/40773
-            return this.SyntaxTree!.GetLocation(this.Span);
+            return this.SyntaxTree?.GetLocation(this.Span) ?? Location.None;
         }
 
         /// <summary>
@@ -420,8 +419,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            // https://github.com/dotnet/roslyn/issues/40773
-            return this.SyntaxTree!.GetDiagnostics(this);
+            return this.SyntaxTree?.GetDiagnostics(this) ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
         /// <summary>
