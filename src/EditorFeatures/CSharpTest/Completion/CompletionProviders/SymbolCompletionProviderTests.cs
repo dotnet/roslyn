@@ -362,15 +362,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
         ]);
 
     [Fact]
-    public async Task AssemblyAttribute2()
-    {
-        var code = @"[assembly: $$]";
-        var source = AddUsingDirectives("using System;", code);
-        await VerifyExpectedItemsAsync(source, [
+    public Task AssemblyAttribute2()
+        => VerifyExpectedItemsAsync(
+            AddUsingDirectives("using System;", @"[assembly: $$]"), [
+            ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Exists("System"),
-            ItemExpectation.Exists("AttributeUsage")
+            ItemExpectation.Absent("AttributeUsage")
         ]);
-    }
 
     [Fact]
     public Task SystemAttributeIsNotAnAttribute()
@@ -392,58 +390,727 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact]
-    public async Task TypeParamAttribute()
-    {
-        var code = AddUsingDirectives("using System;", @"class CL<[A$$]T> {}");
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+    public Task TypeParamAttribute()
+        => VerifyExpectedItemsAsync(
+            AddUsingDirectives("using System;", @"class CL<[A$$]T> {}"), [
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact]
-    public async Task MethodAttribute()
-    {
-        var content = """
+    public Task MethodAttribute()
+        => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL {
                 [$$]
                 void Method() {}
             }
-            """;
-        var code = AddUsingDirectives("using System;", content);
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+            """), [
+            ItemExpectation.Exists("STAThread"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact]
-    public async Task MethodTypeParamAttribute()
-    {
-        var content = """
+    public Task MethodTypeParamAttribute()
+        => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL{
                 void Method<[A$$]T> () {}
             }
-            """;
-        var code = AddUsingDirectives("using System;", content);
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+            """), [
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact]
-    public async Task MethodParamAttribute()
-    {
-        var content = """
+    public Task MethodParamAttribute()
+        => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL{
                 void Method ([$$]int i) {}
             }
+            """), [
+            ItemExpectation.Exists("ParamArray"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
+        ]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_AssemblyAttribute()
+    {
+        var code = """
+            [assembly: $$]
+
+            namespace TestNamespace
+            {
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Assembly)]
+            public class AssemblyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
             """;
-        var code = AddUsingDirectives("using System;", content);
+
         await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+            ItemExpectation.Exists("AssemblyOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_ClassAttribute()
+    {
+        var code = """
+            [$$]
+            class TestClass
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Assembly)]
+            public class AssemblyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Absent("AssemblyOnly"),
+            ItemExpectation.Exists("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_MethodAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                void TestMethod()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("MethodOnly"),
+            ItemExpectation.Absent("PropertyOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_ExplicitTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                [return: $$]
+                int TestMethod()
+                {
+                    return 0;
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.ReturnValue)]
+            public class ReturnValueOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ReturnValueOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_StructAttribute()
+    {
+        var code = """
+            [$$]
+            struct TestStruct
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Struct)]
+            public class StructOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("StructOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_InterfaceAttribute()
+    {
+        var code = """
+            [$$]
+            interface ITestInterface
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Interface)]
+            public class InterfaceOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("InterfaceOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_EnumAttribute()
+    {
+        var code = """
+            [$$]
+            enum TestEnum
+            {
+                Value1
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Enum)]
+            public class EnumOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("EnumOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_DelegateAttribute()
+    {
+        var code = """
+            [$$]
+            delegate void TestDelegate();
+
+            [System.AttributeUsage(System.AttributeTargets.Delegate)]
+            public class DelegateOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("DelegateOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_RecordClassAttribute()
+    {
+        var code = """
+            [$$]
+            record TestRecord
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Struct)]
+            public class StructOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ClassOnly"),
+            ItemExpectation.Absent("StructOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_RecordStructAttribute()
+    {
+        var code = """
+            [$$]
+            record struct TestRecordStruct
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Struct)]
+            public class StructOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("StructOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_ConstructorAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public TestClass()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Constructor)]
+            public class ConstructorOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ConstructorOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_PropertyAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public int TestProperty { get; set; }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("PropertyOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_FieldAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                private int _testField;
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Field)]
+            public class FieldOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("FieldOnly"),
+            ItemExpectation.Absent("PropertyOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_EventAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public event System.EventHandler TestEvent;
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Event)]
+            public class EventOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("EventOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_ParameterAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                void TestMethod([$$] int parameter)
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Parameter)]
+            public class ParameterOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ParameterOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_TypeParameterAttribute()
+    {
+        var code = """
+            class TestClass<[$$]T>
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.GenericParameter)]
+            public class GenericParameterOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("GenericParameterOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_IndexerAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public int this[int index] => 0;
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("PropertyOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_ModuleTargetSpecifier()
+    {
+        var code = """
+            [module: $$]
+
+            class TestClass
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Module)]
+            public class ModuleOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ModuleOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_TypeTargetSpecifier()
+    {
+        var code = """
+            [type: $$]
+            class TestClass
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ClassOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_MethodTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                [method: $$]
+                void TestMethod()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("MethodOnly"),
+            ItemExpectation.Absent("PropertyOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_FieldTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                [field: $$]
+                private int _field;
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Field)]
+            public class FieldOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("FieldOnly"),
+            ItemExpectation.Absent("PropertyOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_PropertyTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                [property: $$]
+                public int Property { get; set; }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("PropertyOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_EventTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                [event: $$]
+                public event System.EventHandler TestEvent;
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Event)]
+            public class EventOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("EventOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_ParamTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                void TestMethod([param: $$] int parameter)
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Parameter)]
+            public class ParameterOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ParameterOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
+    public async Task AttributeTargetFiltering_TypeVarTargetSpecifier()
+    {
+        var code = """
+            class TestClass<[typevar: $$]T>
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.GenericParameter)]
+            public class GenericParameterOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("GenericParameterOnly"),
+            ItemExpectation.Absent("ClassOnly")
         ]);
     }
 
