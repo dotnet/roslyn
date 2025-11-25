@@ -501,11 +501,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
+            var baseType = this.BaseTypeNoUseSiteDiagnostics;
+            if (baseType?.IsErrorType() == true)
             {
                 // Avoid cascading diagnostics
                 return;
             }
+
+            // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
+            // will have already been reported, and we don't need to report cascaded warnings and errors for the
+            // members in this type.
+            var hasInvalidRecordInheritance = this.IsRecord && !baseType.IsObjectType() && !baseType.IsRecord;
 
             switch (this.TypeKind)
             {
@@ -528,6 +534,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in this.GetMembersUnordered())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // If we have invalid record inheritance (a record deriving from a non-record), skip checking the
+                // synthesized members for proper new/override usage as we will end up just reporting cascaded
+                // errors that all stem from the same root cause.
+                if (hasInvalidRecordInheritance &&
+                    member is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers)
+                {
+                    continue;
+                }
 
                 bool suppressAccessors;
                 switch (member.Kind)
