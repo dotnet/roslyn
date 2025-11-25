@@ -418,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
         {
+            // PROTOTYPE: Will this always do the right thing for IUnion.Value?
             while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.ContainingType))
             {
                 input = source.Input;

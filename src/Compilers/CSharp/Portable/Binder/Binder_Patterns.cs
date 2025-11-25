@@ -836,14 +836,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             constantValue = convertedExpression.ConstantValueOpt;
 
-            if (unionType is not null && !convertedExpression.HasErrors && constantValue is { IsBad: false } && convertedExpression.Type is not null)
+            if (unionType is not null && !convertedExpression.HasErrors && constantValue is { IsBad: false, IsNull: false } && convertedExpression.Type is not null)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 ConstantValue match = ExpressionOfTypeMatchesUnionPatternType(Conversions, unionType, convertedExpression.Type, ref useSiteInfo, out _, operandConstantValue: null);
                 if (match == ConstantValue.False || match == ConstantValue.Bad)
                 {
                     diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, unionType, expression.Display);
-                    hasErrors = true;
                 }
 
                 diagnostics.Add(node, useSiteInfo);

@@ -1277,7 +1277,7 @@ class Program
 
             // PROTOTYPE: Note the difference in behavior between S1? and C1.
             // For S1?, 'is not null' is false only when S1? itself is null value. 
-            // For C1, 'is null' is false when the C1?.Value is null (i.e. either the instance or it's Value in null).
+            // For C1, 'is not null' is false when the C1?.Value is null (i.e. either the instance or it's Value in null).
             // This behavior could be very confusing.
         }
 
@@ -2267,6 +2267,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (100,25): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 and C2;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(100, 25),
                 // (101,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(101, 25),
@@ -2405,6 +2408,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (200,25): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 and C2 {};
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2 {}").WithLocation(200, 25),
                 // (201,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3 {};
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(201, 25),
@@ -2451,6 +2457,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (1000,28): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 {} and C2;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(1000, 28),
                 // (1001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 {} and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(1001, 28),
@@ -2541,6 +2550,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (900,27): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 a and C2;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(900, 27),
                 // (901,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 b and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 27),
@@ -3458,6 +3470,955 @@ class Program
                 // (202,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is S0 and (S1 and C3);
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(202, 33)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_01()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+#line 100
+        return u switch { int => 1, string => 2, null => 3 };
+    } 
+
+    static int Test2(S1 u)
+    {
+#line 200
+        return u switch { int => 1, null => 3, string => 2 };
+    } 
+
+    static int Test3(S1 u)
+    {
+#line 300
+        return u switch { null => 3, int => 1, string => 2 };
+    } 
+
+    static int Test4(S1 u)
+    {
+#line 400
+        return u switch { int => 1, string => 2 };
+    }   
+
+    static int Test5(S1 u)
+    {
+#nullable enable
+#line 500
+        return u switch { int => 1, string => 2 };
+#nullable disable
+    }   
+
+    static int Test6(S1 u)
+    {
+#line 600
+        return u switch { int => 1, null => 3 };
+    }   
+
+    static int Test7(S1 u)
+    {
+#line 700
+        return u switch { null => 3, int => 1 };
+    }   
+
+    static int Test8(S1 u)
+    {
+#line 800
+        return u switch { int => 1 };
+    }   
+
+    static int Test9(S1 u)
+    {
+#line 900
+        return u switch { not int => 1 };
+    }   
+
+    static int Test10(S1 u)
+    {
+#line 1000
+        return u switch {  null => 3, not int => 1 };
+    }   
+
+    static int Test11(S1 u)
+    {
+#line 1100
+        return u switch { not null => 1 };
+    } 
+
+    static int Test11_5(S1 u)
+    {
+#nullable enable
+#line 1150
+        return u switch { not null => 1 };
+#nullable disable
+    } 
+
+    static int Test12(S1 u)
+    {
+#line 1200
+        return u switch { null => 3, not null => 1 };
+    } 
+
+    static int Test13(S1 u)
+    {
+#line 1300
+        return u switch { not null => 3, null => 1 };
+    } 
+
+    static int Test14(S1 u)
+    {
+#line 1400
+        return u switch { { } => 1, null => 3 };
+    } 
+
+    static int Test15(S1 u)
+    {
+#line 1500
+        return u switch { null => 3, var x => 1 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (100,50): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, string => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 50),
+                // (200,48): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, null => 3, string => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 48),
+                // (300,48): hidden CS9335: The pattern is redundant.
+                //         return u switch { null => 3, int => 1, string => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 48),
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { int => 1, string => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { int => 1, null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { null => 3, int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                //         return u switch { not int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                //         return u switch {  null => 3, not int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(1000, 18),
+                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { not null => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18),
+                // (1200,42): hidden CS9335: The pattern is redundant.
+                //         return u switch { null => 3, not null => 1 };
+                // Note the location, the diagnostic is for 'null' in 'not null' of the second case rather than for 'null' in the first case.  
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 42),
+                // (1300,42): hidden CS9335: The pattern is redundant.
+                //         return u switch { not null => 3, null => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 42),
+                // (1400,37): hidden CS9335: The pattern is redundant.
+                //         return u switch { { } => 1, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 37)
+                );
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  1
+  .locals init (int V_0,
+                object V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  isinst     ""int""
+  IL_0014:  brtrue.s   IL_0023
+  IL_0016:  ldloc.1
+  IL_0017:  isinst     ""string""
+  IL_001c:  brtrue.s   IL_0027
+  IL_001e:  ldloc.1
+  IL_001f:  brfalse.s  IL_002b
+  IL_0021:  br.s       IL_002f
+  IL_0023:  ldc.i4.1
+  IL_0024:  stloc.0
+  IL_0025:  br.s       IL_0034
+  IL_0027:  ldc.i4.2
+  IL_0028:  stloc.0
+  IL_0029:  br.s       IL_0034
+  IL_002b:  ldc.i4.3
+  IL_002c:  stloc.0
+  IL_002d:  br.s       IL_0034
+  IL_002f:  call       ""void <PrivateImplementationDetails>.ThrowInvalidOperationException()""
+  IL_0034:  ldloc.0
+  IL_0035:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Exhaustiveness_02()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+#line 100
+        return u switch { int => 1, string => 2, null => 3 };
+    } 
+
+    static int Test2(S1 u)
+    {
+#line 200
+        return u switch { int => 1, null => 3, string => 2 };
+    } 
+
+    static int Test3(S1 u)
+    {
+#line 300
+        return u switch { null => 3, int => 1, string => 2 };
+    } 
+
+    static int Test4(S1 u)
+    {
+#line 400
+        return u switch { int => 1, string => 2 };
+    }   
+
+    static int Test5(S1 u)
+    {
+#nullable enable
+#line 500
+        return u switch { int => 1, string => 2 };
+#nullable disable
+    }   
+
+    static int Test6(S1 u)
+    {
+#line 600
+        return u switch { int => 1, null => 3 };
+    }   
+
+    static int Test7(S1 u)
+    {
+#line 700
+        return u switch { null => 3, int => 1 };
+    }   
+
+    static int Test8(S1 u)
+    {
+#line 800
+        return u switch { int => 1 };
+    }   
+
+    static int Test9(S1 u)
+    {
+#line 900
+        return u switch { not int => 1 };
+    }   
+
+    static int Test10(S1 u)
+    {
+#line 1000
+        return u switch {  null => 3, not int => 1 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,50): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, string => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 50),
+                // (200,48): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, null => 3, string => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 48),
+                // (300,48): hidden CS9335: The pattern is redundant.
+                //         return u switch { null => 3, int => 1, string => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 48),
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { int => 1, string => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { int => 1, null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { null => 3, int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                //         return u switch { not int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                //         return u switch {  null => 3, not int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(1000, 18)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_03()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+#line 100
+        return u switch { not null => 2, null => 3 };
+    }   
+
+    static int Test2(S1 u)
+    {
+#nullable enable
+#line 200
+        return u switch { not null => 2, null => 3 };
+#nullable disable
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,42): hidden CS9335: The pattern is redundant.
+                //         return u switch { not null => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 42),
+                // (200,42): hidden CS9335: The pattern is redundant.
+                //         return u switch { not null => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(200, 42)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_04()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(bool x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+#line 100
+        return u switch { true => 1, false => 4, string => 2, null => 3 };
+    } 
+
+    static int Test2(S1 u)
+    {
+#line 200
+        return u switch { true => 1, false => 4, string => 2 };
+    } 
+
+    static int Test3(S1 u)
+    {
+#nullable enable
+#line 300
+        return u switch { true => 1, false => 4, string => 2 };
+#nullable disable
+    } 
+
+    static int Test4(S1 u)
+    {
+#line 400
+        return u switch { true => 1, string => 2, null => 3 };
+    } 
+
+    static int Test5(S1 u)
+    {
+#line 500
+        return u switch { null => 3 , true => 1, string => 2 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,63): hidden CS9335: The pattern is redundant.
+                //         return u switch { true => 1, false => 4, string => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 63),
+                // (300,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { true => 1, false => 4, string => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 18),
+                // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'false' is not covered.
+                //         return u switch { true => 1, string => 2, null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("false").WithLocation(400, 18),
+                // (500,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'false' is not covered.
+                //         return u switch { null => 3 , true => 1, string => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("false").WithLocation(500, 18)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_05()
+        {
+            var src = @"
+#nullable enable
+
+class C1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object? _value;
+
+    public C1(){}
+    public C1(int x) { _value = x; }
+    public C1(string? x) { _value = x; }
+    object? System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1()));
+        System.Console.Write(Test1(new C1(""10"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new C1(10)));
+        System.Console.Write(Test2(new C1()));
+        System.Console.Write(Test2(new C1(""10"")));
+        System.Console.Write(Test2(null));
+    }
+
+    static int Test1(C1? u)
+    {
+#line 26
+        return u switch { int => 1, string => 2, null => 3 };
+    }
+
+    static int Test2(C1? u)
+    {
+        return u switch { int => -1, string => -2, null => -3, _ => -4 };
+    }
+
+    static int Test3(C2? u)
+    {
+        return u switch { { Value: int } => -1, { Value: string } => -2, { Value: null } => -3, _ => -4 };
+    }
+
+    static int Test4(C1? u)
+    {
+        return u switch { _ => 3 };
+    }
+
+    static int Test5(C2 u)
+    {
+        return u switch { null => -4, { Value: int } => -1, { Value: string } => -2, { Value: object } => -3 };
+    }
+}
+
+class C2
+{
+    public object? Value => null;
+}
+
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "132 -1-3-2-4").VerifyDiagnostics(
+
+                // PROTOTYPE: The WRN_SwitchExpressionNotExhaustiveForNull below is very confusing, especially that there is 
+                //            a case 'null => 3' in the switch expression. It looks like the only way to shut off the warning
+                //            is to use case '_'
+
+                // (26,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { int => 1, string => 2, null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(26, 18),
+
+                // PROTOTYPE: The following two warnings are misleading. The case covers a distinct value. 
+
+                // (26,50): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, string => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(26, 50),
+                // (31,52): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => -1, string => -2, null => -3, _ => -4 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(31, 52),
+
+                // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
+                //         return u switch { null => -4, { Value: int } => -1, { Value: string } => -2, { Value: object } => -3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(46, 18)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_06()
+        {
+            var src = @"
+#nullable enable
+
+class C1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object? _value;
+
+    public C1(){}
+    public C1(int x) { _value = x; }
+    public C1(string? x) { _value = x; }
+    object? System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test4(C1? u)
+    {
+#line 41
+        return u switch { int => 1, string => 2, not null => 3 };
+    }
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (41,50): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //         return u switch { int => 1, string => 2, not null => 3 };
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not null").WithLocation(41, 50),
+
+                // The following warning is for 'u.Value' missing null check. 
+
+                // (41,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { int => 1, string => 2, not null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(41, 18)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_07()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C1 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+        return u switch { int => 1, C2 => 2, null => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (17,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
+                //         return u switch { int => 1, C2 => 2, null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(17, 18)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_08()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C1;
+class C2 : C1;
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+        return u switch { int => 1, C1 => 2, null => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (17,46): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, C1 => 2, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(17, 46)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_09()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+interface I1;
+class C2;
+class C3;
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+        return u switch { int => 1, I1 => 2, null => 3 };
+    } 
+
+    static int Test2(S1 u)
+    {
+        return u switch { int => 1, I1 => 2, C2 => 4, null => 3 };
+    } 
+
+    static int Test3(S1 u)
+    {
+        return u switch { int => 1, I1 => 2, C3 => 5, C2 => 4, null => 3 };
+    } 
+
+    static int Test4(S1 u)
+    {
+        return u switch { int => 1, I1 => 2, null => 3, C2 => 4 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (18,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C2' is not covered.
+                //         return u switch { int => 1, I1 => 2, null => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C2").WithLocation(18, 18),
+                // (23,55): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, I1 => 2, C2 => 4, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(23, 55),
+                // (28,46): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         return u switch { int => 1, I1 => 2, C3 => 5, C2 => 4, null => 3 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(28, 46),
+                // (33,57): hidden CS9335: The pattern is redundant.
+                //         return u switch { int => 1, I1 => 2, null => 3, C2 => 4 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(33, 57)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_10()
+        {
+            var src =
+@"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(Q x) { _value = x; }
+    public S1(int x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C
+{
+    int M2(S1 o) => o switch { not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
+    int M3(S1 o) => o switch { null => 0, not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
+}
+class Q
+{
+    public void Deconstruct(out object o1, out object o2) => throw null!;
+    public void Deconstruct(out object o1, out object o2, out object o3) => throw null!;
+    public int P1 = 5;
+    public int P2 = 6;
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (12,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q(1, 2.5D) and (3, 4, 5) { P1: 1,  P2: 2 }' is not covered.
+                //     int M2(S1 o) => o switch { not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Q(1, 2.5D) and (3, 4, 5) { P1: 1,  P2: 2 }").WithLocation(12, 23),
+                // (13,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q(1, 2.5D) and (3, 4, 5) { P1: 1,  P2: 2 }' is not covered.
+                //     int M3(S1 o) => o switch { null => 0, not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Q(1, 2.5D) and (3, 4, 5) { P1: 1,  P2: 2 }").WithLocation(13, 23)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_11()
+        {
+            var src =
+@"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(Q x) { _value = x; }
+    public S1(int x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class C
+{
+    int M2(S1 o)
+#line 100
+        => o switch { int => 1, Q { P1: true } => 2 };
+
+    int M3(S1 o)
+#line 200
+        => o switch { Q { P1: true } => 2, int => 1 };
+
+    int M4(S1 o)
+#line 300
+        => o switch { null => 0, int => 1, Q { P1: true } => 2 };
+
+    int M5(S1 o)
+#line 400
+        => o switch { null => 0, Q { P1: true } => 2, int => 1 };
+}
+class Q
+{
+    public bool P1 = false;
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q{ P1: false }' is not covered.
+                //         => o switch { int => 1, Q { P1: true } => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Q{ P1: false }").WithLocation(100, 14),
+                // (200,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q{ P1: false }' is not covered.
+                //         => o switch { Q { P1: true } => 2, int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Q{ P1: false }").WithLocation(200, 14),
+                // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q{ P1: false }' is not covered.
+                //         => o switch { null => 0, int => 1, Q { P1: true } => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Q{ P1: false }").WithLocation(300, 14),
+                // (400,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q{ P1: false }' is not covered.
+                //         => o switch { null => 0, Q { P1: true } => 2, int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Q{ P1: false }").WithLocation(400, 14)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_12()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+#line 100
+        return u switch { object => 1, null => 3 };
+    } 
+
+    static int Test3(S1 u)
+    {
+#line 300
+        return u switch { null => 3, object => 2 };
+    } 
+
+    static int Test4(S1 u)
+    {
+#line 400
+        return u switch { object => 2 };
+    }   
+
+    static int Test5(S1 u)
+    {
+#nullable enable
+#line 500
+        return u switch { object => 2 };
+#nullable disable
+    }   
+
+    static int Test9(S1 u)
+    {
+#line 900
+        return u switch { not object => 1 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,40): hidden CS9335: The pattern is redundant.
+                //         return u switch { object => 1, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 40),
+                // (300,38): hidden CS9335: The pattern is redundant.
+                //         return u switch { null => 3, object => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "object").WithLocation(300, 38),
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { object => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
+                //         return u switch { not object => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(900, 18)
+                );
+        }
+
+        [Fact]
+        public void EmptyUnion_01()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    object System.Runtime.CompilerServices.IUnion.Value => null!;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+#line 100
+        return u switch { int => 1, null => 3 };
+    } 
+
+    static int Test2(S1 u)
+    {
+#line 200
+        return u switch { null => 1 };
+    } 
+
+    static int Test3(S1 u)
+    {
+#line 300
+        return u switch { null => 3, object => 1 };
+    } 
+
+    static int Test4(S1 u)
+    {
+#line 400
+        return u switch { int => 1 };
+    }   
+
+    static int Test5(S1 u)
+    {
+#line 500
+        return u switch { object => 1 };
+    }   
+
+    static int Test6(S1 u)
+    {
+#line 600
+        return u switch { not object => 1 };
+    }   
+
+    static int Test7(S1 u)
+    {
+#line 700
+        return u switch {  null => 3, not object => 1 };
+    }   
+
+    static int Test8(S1 u)
+    {
+#line 800
+        return u switch { object => 1, null => 3 };
+    } 
+
+    static int Test9(S1 u)
+    {
+#line 900
+        return u switch { not null => 1 };
+    } 
+
+    static int Test10(S1 u)
+    {
+#line 1000
+        return u switch { null => 3, not null => 1 };
+    } 
+
+    static int Test11(S1 u)
+    {
+#line 1100
+        return u switch { not null => 3, null => 1 };
+    } 
+
+    static int Test12(S1 u)
+    {
+#line 1200
+        return u switch { { } => 1, null => 3 };
+    } 
+
+    static int Test13(S1 u)
+    {
+#line 1300
+        return u switch { null => 3, var x => 1 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         return u switch { int => 1, null => 3 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 27),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
+                //         return u switch { null => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(200, 18),
+                // (300,38): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { null => 3, object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(300, 38),
+                // (400,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         return u switch { int => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(400, 27),
+                // (500,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(500, 27),
+                // (600,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { not object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(600, 31),
+                // (700,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch {  null => 3, not object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(700, 43),
+                // (800,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { object => 1, null => 3 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(800, 27),
+                // (900,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { not null => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(900, 18),
+                // (1000,42): hidden CS9335: The pattern is redundant.
+                //         return u switch { null => 3, not null => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1000, 42),
+                // (1100,42): hidden CS9335: The pattern is redundant.
+                //         return u switch { not null => 3, null => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1100, 42),
+                // (1200,37): hidden CS9335: The pattern is redundant.
+                //         return u switch { { } => 1, null => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 37)
                 );
         }
     }

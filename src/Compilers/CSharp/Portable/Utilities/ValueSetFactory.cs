@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -70,7 +71,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(BoundDagTemp input)
         {
+            if (IsUnionMatchingInput(input, out var unionType))
+            {
+                return new UnionTypeTypeUnionValueSetFactory(unionType);
+            }
+
             return null;
+        }
+
+        private static bool IsUnionMatchingInput(BoundDagTemp input, [NotNullWhen(true)] out NamedTypeSymbol? unionType)
+        {
+            if (input is
+                {
+                    Type.SpecialType: SpecialType.System_Object,
+                    Source: BoundDagPropertyEvaluation { Property: { Name: WellKnownMemberNames.ValuePropertyName } property, Input: { } propertyInput }
+                } &&
+                Binder.HasIUnionValueSignature(property) && propertyInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } match)
+            {
+                unionType = match;
+                return true;
+            }
+
+            unionType = null;
+            return false;
         }
     }
 }
