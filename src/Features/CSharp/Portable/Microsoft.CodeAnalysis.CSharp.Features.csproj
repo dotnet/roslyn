@@ -60,6 +60,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />
+    <EmbeddedResource
+      Update="SyncedSource\FileBasedPrograms\FileBasedProgramsResources.resx"
+      GenerateSource="true"
+      Namespace="Microsoft.DotNet.FileBasedPrograms" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -67,11 +71,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
-    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" GeneratePathProperty="true" PrivateAssets="All" />
-    <EmbeddedResource
-      Include="$(PkgMicrosoft_DotNet_FileBasedPrograms)\contentFiles\cs\any\FileBasedProgramsResources.resx"
-      GenerateSource="true"
-      Namespace="Microsoft.DotNet.FileBasedPrograms" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Used by `/eng/ensure-sources-synced.cs` to sync sources between the source package and this project's folder `SyncedSource/FileBasedPrograms`. -->
+    <PackageDownload
+      Include="Microsoft.DotNet.FileBasedPrograms"
+      Version="[$(MicrosoftDotNetFileBasedProgramsPackageVersion)]"
+      Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>

@@ -3836,9 +3836,7 @@ namespace Microsoft.Cci
             {
                 if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
-                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
-                    // Tracked by https://github.com/dotnet/runtime/issues/80812
-                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    encoder.TypedReference();
                     return;
                 }
 

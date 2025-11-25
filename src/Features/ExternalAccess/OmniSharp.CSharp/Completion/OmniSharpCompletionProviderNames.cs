@@ -13,5 +13,5 @@ internal static class OmniSharpCompletionProviderNames
     internal static string PartialMethodCompletionProvider = typeof(PartialMethodCompletionProvider).FullName;
     internal static string InternalsVisibleToCompletionProvider = typeof(InternalsVisibleToCompletionProvider).FullName;
     internal static string TypeImportCompletionProvider = typeof(TypeImportCompletionProvider).FullName;
-    internal static string ExtensionMethodImportCompletionProvider = typeof(ExtensionMethodImportCompletionProvider).FullName;
+    internal static string ExtensionMethodImportCompletionProvider = typeof(ExtensionMemberImportCompletionProvider).FullName;
 }
