@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder armBinder = this.GetRequiredBinder(node);
             bool hasErrors = switchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, switchGoverningType, permitDesignations: true, hasErrors, diagnostics, out bool hasUnionMatching);
+            NamedTypeSymbol? unionType = null;
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, ref unionType, switchGoverningType, permitDesignations: true, hasErrors, diagnostics, out bool hasUnionMatching);
             BoundExpression? whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
