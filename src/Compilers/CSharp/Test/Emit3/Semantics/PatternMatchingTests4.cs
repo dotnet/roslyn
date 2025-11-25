@@ -144,9 +144,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                // (8,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
                 // (8,22): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(8, 22),
@@ -242,9 +242,9 @@ public class C
                 // (7,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(7, 32),
-                // (7,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 3 out parameters and a void return type.
+                // (7,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(7, 32)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(7, 32)
                 );
         }
 
@@ -277,9 +277,9 @@ public class C : System.Runtime.CompilerServices.ITuple
                 // (15,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(15, 32),
-                // (15,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 3 out parameters and a void return type.
+                // (15,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(15, 32)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(15, 32)
                 );
         }
 
@@ -568,27 +568,27 @@ public class C : ITuple
                 // 0.cs(13,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4)); // false
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(13, 32),
-                // 0.cs(13,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                // 0.cs(13,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
                 // 0.cs(14,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3>(Tuple<T1, T2, T3>, out T1, out T2, out T3)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4, 5)); // TRUE
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4, 5)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3>(System.Tuple<T1, T2, T3>, out T1, out T2, out T3)").WithLocation(14, 32),
-                // 0.cs(14,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                // 0.cs(14,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
                 // 0.cs(15,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3>(Tuple<T1, T2, T3>, out T1, out T2, out T3)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 0, 5)); // false
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 0, 5)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3>(System.Tuple<T1, T2, T3>, out T1, out T2, out T3)").WithLocation(15, 32),
-                // 0.cs(15,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                // 0.cs(15,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
                 // 0.cs(16,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3, T4>(Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4, 5, 6)); // false
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4, 5, 6)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3, T4>(System.Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)").WithLocation(16, 32),
-                // 0.cs(16,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 4 out parameters and a void return type.
+                // 0.cs(16,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 4 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
                 );
         }
 
@@ -868,9 +868,9 @@ public class C : System.Runtime.CompilerServices.ITuple
                 // (17,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(17, 32),
-                // (17,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 3 out parameters and a void return type.
+                // (17,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(17, 32)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(17, 32)
                 );
         }
 
@@ -905,9 +905,9 @@ public class C : System.Runtime.CompilerServices.ITuple
                 // (17,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(17, 32),
-                // (17,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 3 out parameters and a void return type.
+                // (17,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(17, 32)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(17, 32)
                 );
         }
 
@@ -4076,9 +4076,9 @@ class C
                 // (26,18): error CS7036: There is no argument given that corresponds to the required parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
                 //             case (< 10, object): // 1, 2
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(< 10, object)").WithArguments("i3", "C.Deconstruct(out int, out string, out int?)").WithLocation(26, 18),
-                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                // (26,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //             case (< 10, object): // 1, 2
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(< 10, object)").WithArguments("C", "2").WithLocation(26, 18)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(< 10, object)").WithArguments("C", "2").WithLocation(26, 18)
             );
 
             var tree = comp.SyntaxTrees.Single();
@@ -7205,9 +7205,9 @@ _ = s is { Length: 3 } and (_, _); // 6
                 // (12,21): error CS1061: 'ITuple' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'ITuple' could be found (are you missing a using directive or an assembly reference?)
                 // _ = s is (_, _) and (_, _) s6; // 2, 3
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, _)").WithArguments("System.Runtime.CompilerServices.ITuple", "Deconstruct").WithLocation(12, 21),
-                // (12,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'ITuple', with 2 out parameters and a void return type.
+                // (12,21): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'ITuple', with 2 out parameters and a void return type.
                 // _ = s is (_, _) and (_, _) s6; // 2, 3
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, _)").WithArguments("System.Runtime.CompilerServices.ITuple", "2").WithLocation(12, 21),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(_, _)").WithArguments("System.Runtime.CompilerServices.ITuple", "2").WithLocation(12, 21),
                 // (24,5): error CS8518: An expression of type 'ITuple' can never match the provided pattern.
                 // _ = s is (_, _, _) and (_, _); // 4
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is (_, _, _) and (_, _)").WithArguments("System.Runtime.CompilerServices.ITuple").WithLocation(24, 5),

@@ -3758,9 +3758,9 @@ record struct C
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
-                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                // (8,19): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
                 //             case C():
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
             Assert.Null(comp.GetMember("C.Deconstruct"));
         }
@@ -3835,9 +3835,9 @@ record struct C()
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
-                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                // (8,19): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
                 //             case C():
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
             AssertEx.Equal(new[] {
                 "C..ctor()",

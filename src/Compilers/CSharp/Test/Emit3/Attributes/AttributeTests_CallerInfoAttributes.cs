@@ -1176,12 +1176,6 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (29,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'first'.
-                //         var (first, last) = p;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "first").WithArguments("first").WithLocation(29, 14),
-                // (29,21): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'last'.
-                //         var (first, last) = p;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "last").WithArguments("last").WithLocation(29, 21),
                 // (29,29): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Person', with 2 out parameters and a void return type.
                 //         var (first, last) = p;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(29, 29)

@@ -144,12 +144,12 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
     }
 
     protected override bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node)
-        => diagnosticId == CS8129;
+        => diagnosticId is CS8129 or CS9344;
 
     protected override bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node)
-        => (diagnosticId == CS1061 || // Regular cases
-            diagnosticId == CS4036 || // WinRT async interfaces
-            diagnosticId == CS1929) && // An extension `GetAwaiter()` is in scope, but for another type
+        => (diagnosticId is CS1061 // Regular cases
+                         or CS4036 // WinRT async interfaces
+                         or CS1929) && // An extension `GetAwaiter()` is in scope, but for another type
             AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
 
     protected override bool CanAddImportForGetEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node)
@@ -165,8 +165,8 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
     }
 
     protected override bool CanAddImportForQuery(string diagnosticId, SyntaxNode node)
-        => (diagnosticId == CS1935 || // Regular cases
-            diagnosticId == CS1929) && // An extension method is in scope, but for another type
+        => (diagnosticId is CS1935 // Regular cases
+                         or CS1929) && // An extension method is in scope, but for another type
             node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
 
     protected override bool CanAddImportForTypeOrNamespace(

@@ -2687,6 +2687,16 @@
         <target state="translated">Daha önce genel kullanım olarak görünen kullanım yönergesi</target>
         <note />
       </trans-unit>
+      <trans-unit id="HDN_MissingDeconstruct">
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="new">No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_MissingDeconstruct_Title">
+        <source>No suitable 'Deconstruct' instance or extension method was found.</source>
+        <target state="new">No suitable 'Deconstruct' instance or extension method was found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
         <target state="new">The pattern is redundant.</target>

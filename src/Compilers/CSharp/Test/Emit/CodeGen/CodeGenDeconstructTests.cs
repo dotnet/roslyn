@@ -2523,9 +2523,9 @@ static class Extension
                 // (8,18): error CS0411: The type arguments for method 'Extension.Deconstruct<T>(C, out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("Extension.Deconstruct<T>(C, out int, out T)").WithLocation(8, 18),
-                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (8,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
                 );
         }
 
@@ -2622,9 +2622,9 @@ class C1
                 // (9,18): error CS0411: The type arguments for method 'C1.Deconstruct<T>(out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         (x, y) = new C1();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C1()").WithArguments("C1.Deconstruct<T>(out int, out T)").WithLocation(9, 18),
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
+                // (9,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
                 //         (x, y) = new C1();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
                 );
         }
 

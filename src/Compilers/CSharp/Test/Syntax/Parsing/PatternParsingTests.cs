@@ -2635,9 +2635,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // (1,41): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a, b, c)").WithArguments("int", "Deconstruct").WithLocation(1, 41),
-                // (1,41): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 3 out parameters and a void return type.
+                // (1,41): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 3 out parameters and a void return type.
                 // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a, b, c)").WithArguments("int", "3").WithLocation(1, 41),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(a, b, c)").WithArguments("int", "3").WithLocation(1, 41),
                 // (1,42): error CS0103: The name 'a' does not exist in the current context
                 // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 42),

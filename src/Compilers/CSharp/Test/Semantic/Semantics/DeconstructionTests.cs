@@ -94,13 +94,41 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation)]
+        public void DeconstructMethodMissing_WithImplicitlyTypedVariables()
+        {
+            string source = """
+                class C
+                {
+                    public static void M(object o)
+                    {
+                        /*<bind>*/var (x, y) = o/*</bind>*/;
+                    }
+                }
+                """;
+            string expectedOperationTree = """
+                IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: 'var (x, y) = o')
+                  Left: 
+                    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x, var y)) (Syntax: 'var (x, y)')
+                      ITupleOperation (OperationKind.Tuple, Type: (var x, var y)) (Syntax: '(x, y)')
+                        NaturalType: (var x, var y)
+                        Elements(2):
+                            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x')
+                            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'y')
+                  Right: 
+                    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                """;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, [
+                // (5,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/var (x, y) = o/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "o").WithArguments("object", "Deconstruct").WithLocation(5, 32)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -137,12 +165,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1501: No overload for method 'Deconstruct' takes 2 arguments
+                // (8,28): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -181,12 +206,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
+                // (7,28): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -227,18 +249,15 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1061: 'long' does not contain a definition for 'f' and no extension method 'f' accepting a first argument of type 'long' could be found (are you missing a using directive or an assembly reference?)
+                // (8,22): error CS1061: 'long' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'long' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("long", "f").WithLocation(8, 22),
-                // CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (8,27): error CS1061: 'string' does not contain a definition for 'g' and no accessible extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 27),
-                // CS1501: No overload for method 'Deconstruct' takes 2 arguments
+                // (8,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 32),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 32)
+                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 32)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -275,12 +294,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1615: Argument 2 may not be passed with the 'out' keyword
+                // (8,19): error CS1615: Argument 2 may not be passed with the 'out' keyword
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "(x, y) = new C()").WithArguments("2", "out").WithLocation(8, 19),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "(x, y) = new C()").WithArguments("2", "out").WithLocation(8, 19)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -317,12 +333,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1620: Argument 1 must be passed with the 'ref' keyword
+                // (8,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgRef, "(x, y) = new C()").WithArguments("1", "ref").WithLocation(8, 19),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_BadArgRef, "(x, y) = new C()").WithArguments("1", "ref").WithLocation(8, 19)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -551,12 +564,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
+                // (9,28): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1152,10 +1162,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(x, x) = M()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'void', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, x) = M()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void", "2").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1450,12 +1457,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
+                // (7,28): error CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new C()").WithArguments("C.Deconstruct").WithLocation(7, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new C()").WithArguments("C.Deconstruct").WithLocation(7, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1488,9 +1492,9 @@ class C
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
                 Diagnostic(ErrorCode.ERR_BadArgCount, "CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)))").WithArguments("Deconstruct", "22").WithLocation(8, 113),
-                // (8,113): error CS8129: No Deconstruct instance or extension method was found for type 'Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int>>>>', with 22 out parameters.
+                // (8,113): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int>>>>', with 22 out parameters and a void return type.
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)))").WithArguments("System.Tuple<int, int, int, int, int, int, int, System.Tuple<int, int, int, int, int, int, int, System.Tuple<int, int, int, int, int, int, int, System.Tuple<int>>>>", "22").WithLocation(8, 113)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)))").WithArguments("System.Tuple<int, int, int, int, int, int, int, System.Tuple<int, int, int, int, int, int, int, System.Tuple<int, int, int, int, int, int, int, System.Tuple<int>>>>", "22").WithLocation(8, 113)
                 );
         }
 
@@ -1567,12 +1571,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
+                // (9,28): error CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
                 //         /*<bind>*/(x, y) = new C1()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadAccess, "new C1()").WithArguments("C1.Deconstruct(out int, out string)").WithLocation(9, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C1()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_BadAccess, "new C1()").WithArguments("C1.Deconstruct(out int, out string)").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1608,12 +1609,12 @@ class C1
 
             var comp = CreateCompilation(new string[] { source }, references: new[] { libRef });
             comp.VerifyDiagnostics(
-                // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // 0.cs(7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()").WithArguments("Missing", "libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
-                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // 0.cs(7,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
                 );
         }
 
@@ -1649,12 +1650,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
+                // (9,28): error CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2428,9 +2426,6 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 // CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M(x1)").WithArguments("void", "Deconstruct").WithLocation(6, 38),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'void', with 2 out parameters and a void return type.
-                //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M(x1)").WithArguments("void", "2").WithLocation(6, 38),
                 // CS0165: Use of unassigned local variable 'x1'
                 //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 40)
@@ -2973,13 +2968,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 19),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 25),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 19)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3108,15 +3097,6 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 // CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 32),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'int', with 2 out parameters and a void return type.
-                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 32),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(9, 24),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(9, 27),
                 // CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
@@ -3187,9 +3167,6 @@ class C
                 // (9,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 22),
-                // (9,22): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
-                //         @var(x, y) = 42; // parsed as invocation
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 22),
                 // (11,14): error CS0128: A local variable named 'x' is already defined in this scope
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(11, 14),
@@ -3199,9 +3176,6 @@ class C
                 // (11,23): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "43").WithArguments("int", "Deconstruct").WithLocation(11, 23),
-                // (11,23): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
-                //         (var(x, y)) = 43; // parsed as invocation
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "43").WithArguments("int", "1").WithLocation(11, 23),
                 // (13,14): error CS0128: A local variable named 'x' is already defined in this scope
                 //         (var(x, y) = 44); // parsed as invocation
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(13, 14),
@@ -3211,9 +3185,6 @@ class C
                 // (13,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (var(x, y) = 44); // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "44").WithArguments("int", "Deconstruct").WithLocation(13, 22),
-                // (13,22): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
-                //         (var(x, y) = 44); // parsed as invocation
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "44").WithArguments("int", "1").WithLocation(13, 22),
                 // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),

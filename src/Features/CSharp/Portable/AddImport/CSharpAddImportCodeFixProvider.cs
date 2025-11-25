@@ -121,9 +121,14 @@ internal static class AddImportDiagnosticIds
     public const string CS7036 = nameof(CS7036);
 
     /// <summary>
-    /// o Deconstruct instance or extension method was found for type 'X', with N out parameters
+    /// (Error) No Deconstruct instance or extension method was found for type 'X', with N out parameters
     /// </summary>
     public const string CS8129 = nameof(CS8129);
+
+    /// <summary>
+    /// (Hidden) No Deconstruct instance or extension method was found for type 'X', with N out parameters
+    /// </summary>
+    public const string CS9344 = nameof(CS9344);
 
     /// <summary>
     /// Internal symbol inaccessible because public key is wrong
@@ -169,6 +174,7 @@ internal static class AddImportDiagnosticIds
         CS1580,
         CS1581,
         CS8129,
+        CS9344,
         CS1061,
         CS1935,
         CS1501,

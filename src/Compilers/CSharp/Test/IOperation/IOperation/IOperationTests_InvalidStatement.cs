@@ -406,10 +406,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),
                 // (11,45): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(var x1, var x2)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 45),
-                // (11,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'string[]', with 2 out parameters and a void return type.
-                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("string[]", "2").WithLocation(11, 45)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(var x1, var x2)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 45)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

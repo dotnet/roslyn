@@ -8984,9 +8984,9 @@ public class Test
                 // (12,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
                 //             case /*<bind>*/()=>3/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(12, 28),
-                // (12,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                // (12,28): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'string', with 0 out parameters and a void return type.
                 //             case /*<bind>*/()=>3/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
                 );
         }
 
@@ -9025,9 +9025,9 @@ public class Test
                 // (13,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
                 //             case /*<bind>*/()=>/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(13, 28),
-                // (13,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                // (13,28): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'string', with 0 out parameters and a void return type.
                 //             case /*<bind>*/()=>/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
                 );
         }
 

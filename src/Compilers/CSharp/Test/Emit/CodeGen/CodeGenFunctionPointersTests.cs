@@ -7438,15 +7438,15 @@ unsafe class Test
                 // (6,25): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         param1(o is var (a, b));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a, b)").WithArguments("object", "Deconstruct").WithLocation(6, 25),
-                // (6,25): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                // (6,25): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         param1(o is var (a, b));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a, b)").WithArguments("object", "2").WithLocation(6, 25),
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(a, b)").WithArguments("object", "2").WithLocation(6, 25),
                 // (7,21): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         param1(o is (var c, var d));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var c, var d)").WithArguments("object", "Deconstruct").WithLocation(7, 21),
-                // (7,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                // (7,21): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         param1(o is (var c, var d));
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21)
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21)
             );
         }
 
