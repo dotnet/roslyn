@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  - 'null' if it might catch some of them.
         /// </summary>
         internal static ConstantValue ExpressionOfTypeMatchesPatternType(
-            Conversions conversions,
+            ConversionsBase conversions,
             TypeSymbol expressionType,
             TypeSymbol patternType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,

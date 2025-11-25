@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A value set factory that only supports equality and works by including or excluding specific values.
         /// </summary>
-        private sealed class EnumeratedValueSetFactory<T> : IValueSetFactory<T> where T : notnull
+        private sealed class EnumeratedValueSetFactory<T> : IConstantValueSetFactory<T> where T : notnull
         {
             private readonly IEquatableValueTC<T> _tc;
 
-            IValueSet IValueSetFactory.AllValues => EnumeratedValueSet<T>.AllValues(_tc);
+            IConstantValueSet IConstantValueSetFactory.AllValues => EnumeratedValueSet<T>.AllValues(_tc);
 
-            IValueSet IValueSetFactory.NoValues => EnumeratedValueSet<T>.NoValues(_tc);
+            IConstantValueSet IConstantValueSetFactory.NoValues => EnumeratedValueSet<T>.NoValues(_tc);
 
             public EnumeratedValueSetFactory(IEquatableValueTC<T> tc) { _tc = tc; }
 
-            public IValueSet<T> Related(BinaryOperatorKind relation, T value)
+            public IConstantValueSet<T> Related(BinaryOperatorKind relation, T value)
             {
                 switch (relation)
                 {
@@ -35,19 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
+            IConstantValueSet IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad || value.IsNull ? EnumeratedValueSet<T>.AllValues(_tc) : this.Related(relation, _tc.FromConstantValue(value));
 
-            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            bool IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
                 Debug.Assert(relation == BinaryOperatorKind.Equal);
                 return _tc.FromConstantValue(left).Equals(_tc.FromConstantValue(right));
             }
 
-            public IValueSet Random(int expectedSize, Random random)
+            public IConstantValueSet Random(int expectedSize, Random random)
             {
                 T[] values = _tc.RandomValues(expectedSize, random, expectedSize * 2);
-                IValueSet<T> result = EnumeratedValueSet<T>.NoValues(_tc);
+                IConstantValueSet<T> result = EnumeratedValueSet<T>.NoValues(_tc);
                 Debug.Assert(result.IsEmpty);
                 foreach (T value in values)
                     result = result.Union(Related(Equal, value));
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            ConstantValue IValueSetFactory.RandomValue(Random random)
+            ConstantValue IConstantValueSetFactory.RandomValue(Random random)
             {
                 return _tc.ToConstantValue(_tc.RandomValues(1, random, 100)[0]);
             }
