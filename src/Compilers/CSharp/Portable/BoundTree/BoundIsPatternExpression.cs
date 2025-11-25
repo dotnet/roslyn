@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
         {
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
-            if (decisionDag.ContainsAnySynthesizedNodes())
+            if (!decisionDag.SuitableForLowering)
             {
                 bool negated = this.Pattern.IsNegated(out var innerPattern);
                 Debug.Assert(negated == this.IsNegated);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.WhenFalseLabel,
                     BindingDiagnosticBag.Discarded,
                     forLowering: true);
-                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+                Debug.Assert(decisionDag.SuitableForLowering);
             }
 
             return decisionDag;

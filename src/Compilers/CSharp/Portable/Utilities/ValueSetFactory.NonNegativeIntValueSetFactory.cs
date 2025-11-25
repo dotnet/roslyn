@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private sealed class NonNegativeIntValueSetFactory : IValueSetFactory<int>
+        private sealed class NonNegativeIntValueSetFactory : IConstantValueSetFactory<int>
         {
             public static readonly NonNegativeIntValueSetFactory Instance = new NonNegativeIntValueSetFactory();
-            private static readonly IValueSetFactory<int> s_underlying = new NumericValueSetFactory<int>(IntTC.NonNegativeInstance);
+            private static readonly IConstantValueSetFactory<int> s_underlying = new NumericValueSetFactory<int>(IntTC.NonNegativeInstance);
 
             private NonNegativeIntValueSetFactory() { }
 
-            public IValueSet AllValues => NumericValueSet<int>.AllValues(IntTC.NonNegativeInstance);
+            public IConstantValueSet AllValues => NumericValueSet<int>.AllValues(IntTC.NonNegativeInstance);
 
-            public IValueSet NoValues => NumericValueSet<int>.NoValues(IntTC.NonNegativeInstance);
+            public IConstantValueSet NoValues => NumericValueSet<int>.NoValues(IntTC.NonNegativeInstance);
 
-            public IValueSet<int> Related(BinaryOperatorKind relation, int value)
+            public IConstantValueSet<int> Related(BinaryOperatorKind relation, int value)
             {
                 var tc = IntTC.NonNegativeInstance;
                 switch (relation)
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSetFactory.Random(int expectedSize, Random random) => s_underlying.Random(expectedSize, random);
+            IConstantValueSet IConstantValueSetFactory.Random(int expectedSize, Random random) => s_underlying.Random(expectedSize, random);
 
-            ConstantValue IValueSetFactory.RandomValue(Random random) => s_underlying.RandomValue(random);
+            ConstantValue IConstantValueSetFactory.RandomValue(Random random) => s_underlying.RandomValue(random);
 
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
+            IConstantValueSet IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? AllValues : Related(relation, IntTC.NonNegativeInstance.FromConstantValue(value));
 
-            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right) => s_underlying.Related(relation, left, right);
+            bool IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right) => s_underlying.Related(relation, left, right);
         }
     }
 }

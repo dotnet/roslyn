@@ -11,25 +11,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal static partial class ValueSetFactory
     {
-        internal static readonly IValueSetFactory<byte> ForByte = new NumericValueSetFactory<byte>(ByteTC.Instance);
-        internal static readonly IValueSetFactory<sbyte> ForSByte = new NumericValueSetFactory<sbyte>(SByteTC.Instance);
-        internal static readonly IValueSetFactory<char> ForChar = new NumericValueSetFactory<char>(CharTC.Instance);
-        internal static readonly IValueSetFactory<short> ForShort = new NumericValueSetFactory<short>(ShortTC.Instance);
-        internal static readonly IValueSetFactory<ushort> ForUShort = new NumericValueSetFactory<ushort>(UShortTC.Instance);
-        internal static readonly IValueSetFactory<int> ForInt = new NumericValueSetFactory<int>(IntTC.DefaultInstance);
-        internal static readonly IValueSetFactory<uint> ForUInt = new NumericValueSetFactory<uint>(UIntTC.Instance);
-        internal static readonly IValueSetFactory<long> ForLong = new NumericValueSetFactory<long>(LongTC.Instance);
-        internal static readonly IValueSetFactory<ulong> ForULong = new NumericValueSetFactory<ulong>(ULongTC.Instance);
-        internal static readonly IValueSetFactory<bool> ForBool = BoolValueSetFactory.Instance;
-        internal static readonly IValueSetFactory<float> ForFloat = new FloatingValueSetFactory<float>(SingleTC.Instance);
-        internal static readonly IValueSetFactory<double> ForDouble = new FloatingValueSetFactory<double>(DoubleTC.Instance);
-        internal static readonly IValueSetFactory<string> ForString = new EnumeratedValueSetFactory<string>(StringTC.Instance);
-        internal static readonly IValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
-        internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
-        internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
-        internal static readonly IValueSetFactory<int> ForLength = NonNegativeIntValueSetFactory.Instance;
+        internal static readonly IConstantValueSetFactory<byte> ForByte = new NumericValueSetFactory<byte>(ByteTC.Instance);
+        internal static readonly IConstantValueSetFactory<sbyte> ForSByte = new NumericValueSetFactory<sbyte>(SByteTC.Instance);
+        internal static readonly IConstantValueSetFactory<char> ForChar = new NumericValueSetFactory<char>(CharTC.Instance);
+        internal static readonly IConstantValueSetFactory<short> ForShort = new NumericValueSetFactory<short>(ShortTC.Instance);
+        internal static readonly IConstantValueSetFactory<ushort> ForUShort = new NumericValueSetFactory<ushort>(UShortTC.Instance);
+        internal static readonly IConstantValueSetFactory<int> ForInt = new NumericValueSetFactory<int>(IntTC.DefaultInstance);
+        internal static readonly IConstantValueSetFactory<uint> ForUInt = new NumericValueSetFactory<uint>(UIntTC.Instance);
+        internal static readonly IConstantValueSetFactory<long> ForLong = new NumericValueSetFactory<long>(LongTC.Instance);
+        internal static readonly IConstantValueSetFactory<ulong> ForULong = new NumericValueSetFactory<ulong>(ULongTC.Instance);
+        internal static readonly IConstantValueSetFactory<bool> ForBool = BoolValueSetFactory.Instance;
+        internal static readonly IConstantValueSetFactory<float> ForFloat = new FloatingValueSetFactory<float>(SingleTC.Instance);
+        internal static readonly IConstantValueSetFactory<double> ForDouble = new FloatingValueSetFactory<double>(DoubleTC.Instance);
+        internal static readonly IConstantValueSetFactory<string> ForString = new EnumeratedValueSetFactory<string>(StringTC.Instance);
+        internal static readonly IConstantValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
+        internal static readonly IConstantValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
+        internal static readonly IConstantValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
+        internal static readonly IConstantValueSetFactory<int> ForLength = NonNegativeIntValueSetFactory.Instance;
 
-        public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
+        public static IConstantValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
             return specialType switch
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        public static IValueSetFactory? ForType(TypeSymbol type)
+        public static IConstantValueSetFactory? ForType(TypeSymbol type)
         {
             if (type.IsSpanOrReadOnlySpanChar())
                 return ForString;
@@ -61,11 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
         }
 
-        public static IValueSetFactory? ForInput(BoundDagTemp input)
+        public static IConstantValueSetFactory? ForInput(BoundDagTemp input)
         {
             if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true })
                 return ForLength;
             return ForType(input.Type);
+        }
+
+        public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(BoundDagTemp input)
+        {
+            return null;
         }
     }
 }
