@@ -572,6 +572,7 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T_FromValueTaskT
                     )
                 {
                     Assert.Null(symbol); // Not available

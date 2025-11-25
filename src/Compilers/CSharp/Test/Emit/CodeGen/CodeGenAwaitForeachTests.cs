@@ -2591,6 +2591,9 @@ class C
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5b }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0xcb, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -3278,6 +3281,9 @@ public ref struct S
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8a }
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x12f, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -3599,6 +3605,9 @@ public ref struct S
                     [get_Current]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x19a, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -3977,6 +3986,9 @@ public struct S
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x76 }
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x4f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x118, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -11382,6 +11394,9 @@ public static class Extensions
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5e }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0xf0, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -11472,6 +11487,9 @@ public static class Extensions
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x55 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x139, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -11568,6 +11586,9 @@ public static class Extensions
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xd4 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x15e, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
                     """
             });
             verifier.VerifyIL("C.Main()", """

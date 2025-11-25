@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -19,6 +20,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.Instruction;
+
+// To run these tests with runtime-async execution enabled, set the DOTNET_RuntimeAsync environment variable to 1.
+//
+// set DOTNET_RuntimeAsync=1
+// dotnet test Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj -f net10.0
+//
+// Here are some example of convenient filters that can be applied:
+// --filter "FullyQualifiedName~CodeGenAsyncIteratorTests"
+// --filter "DisplayName~RuntimeAsync_"
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -150,11 +160,9 @@ class C
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
         public void LockInsideFinally()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var src = @"
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 public class C
@@ -179,9 +187,14 @@ public class C
     {
         await foreach (var i in new C().GetSplits()) { }
     }
-}", options: TestOptions.DebugExe);
+}";
+            var expectedOutput = "hello world";
 
-            var v = CompileAndVerify(comp, expectedOutput: "hello world");
+            var comp = CreateCompilationWithAsyncIterator(src, options: TestOptions.DebugExe);
+
+            var v = CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
             v.VerifyIL("C.<GetSplits>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      268 (0x10c)
@@ -319,17 +332,19 @@ public class C
   IL_010a:  ret
   IL_010b:  ret
 }");
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
         public void FinallyInsideFinally()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var src = @"
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 public class C
@@ -358,9 +373,14 @@ public class C
     {
         await foreach (var i in GetSplits()) { }
     }
-}", options: TestOptions.DebugExe);
+}";
+            var expectedOutput = "hello world!";
 
-            var v = CompileAndVerify(comp, expectedOutput: "hello world!");
+            var comp = CreateCompilationWithAsyncIterator(src, options: TestOptions.DebugExe);
+
+            var v = CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
             v.VerifyIL("C.<GetSplits>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      195 (0xc3)
@@ -473,6 +493,105 @@ public class C
   IL_00c1:  ret
   IL_00c2:  ret
 }");
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<GetSplits>d__0.System.Collections.Generic.IAsyncEnumerator<string>.MoveNextAsync()", """
+{
+  // Code size      145 (0x91)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetSplits>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -3
+    IL_000a:  beq.s      IL_000e
+    IL_000c:  br.s       IL_0010
+    IL_000e:  br.s       IL_0010
+    IL_0010:  ldarg.0
+    IL_0011:  ldfld      "bool C.<GetSplits>d__0.<>w__disposeMode"
+    IL_0016:  brfalse.s  IL_001a
+    IL_0018:  leave.s    IL_0080
+    IL_001a:  ldarg.0
+    IL_001b:  ldc.i4.m1
+    IL_001c:  dup
+    IL_001d:  stloc.0
+    IL_001e:  stfld      "int C.<GetSplits>d__0.<>1__state"
+    IL_0023:  nop
+    .try
+    {
+      IL_0024:  nop
+      IL_0025:  nop
+      IL_0026:  leave.s    IL_005b
+    }
+    finally
+    {
+      IL_0028:  ldloc.0
+      IL_0029:  ldc.i4.m1
+      IL_002a:  bne.un.s   IL_005a
+      IL_002c:  nop
+      .try
+      {
+        IL_002d:  nop
+        IL_002e:  ldstr      "hello "
+        IL_0033:  call       "void System.Console.Write(string)"
+        IL_0038:  nop
+        IL_0039:  nop
+        IL_003a:  leave.s    IL_004e
+      }
+      finally
+      {
+        IL_003c:  ldloc.0
+        IL_003d:  ldc.i4.m1
+        IL_003e:  bne.un.s   IL_004d
+        IL_0040:  nop
+        IL_0041:  ldstr      "world"
+        IL_0046:  call       "void System.Console.Write(string)"
+        IL_004b:  nop
+        IL_004c:  nop
+        IL_004d:  endfinally
+      }
+      IL_004e:  ldstr      "!"
+      IL_0053:  call       "void System.Console.Write(string)"
+      IL_0058:  nop
+      IL_0059:  nop
+      IL_005a:  endfinally
+    }
+    IL_005b:  ldarg.0
+    IL_005c:  ldfld      "bool C.<GetSplits>d__0.<>w__disposeMode"
+    IL_0061:  brfalse.s  IL_0065
+    IL_0063:  leave.s    IL_0080
+    IL_0065:  ldarg.0
+    IL_0066:  ldc.i4.1
+    IL_0067:  stfld      "bool C.<GetSplits>d__0.<>w__disposeMode"
+    IL_006c:  leave.s    IL_0080
+  }
+  catch System.Exception
+  {
+    IL_006e:  pop
+    IL_006f:  ldarg.0
+    IL_0070:  ldc.i4.s   -2
+    IL_0072:  stfld      "int C.<GetSplits>d__0.<>1__state"
+    IL_0077:  ldarg.0
+    IL_0078:  ldnull
+    IL_0079:  stfld      "string C.<GetSplits>d__0.<>2__current"
+    IL_007e:  rethrow
+  }
+  IL_0080:  ldarg.0
+  IL_0081:  ldc.i4.s   -2
+  IL_0083:  stfld      "int C.<GetSplits>d__0.<>1__state"
+  IL_0088:  ldarg.0
+  IL_0089:  ldnull
+  IL_008a:  stfld      "string C.<GetSplits>d__0.<>2__current"
+  IL_008f:  ldc.i4.0
+  IL_0090:  ret
+}
+""");
         }
 
         [Fact]
@@ -504,7 +623,7 @@ class C
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait1()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var src = @"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -523,17 +642,24 @@ class C
             Console.WriteLine(i);
         }
     }
-}", TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"
+}";
+            var expectedOutput = @"
 2
-8");
+8";
+            var comp = CreateCompilationWithAsyncIterator(src, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait2()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var src = @"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -557,10 +683,17 @@ class C
             Console.WriteLine(i);
         }
     }
-}", TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"
+}";
+            var expectedOutput = @"
 2
-8");
+8";
+            var comp = CreateCompilationWithAsyncIterator(src, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -585,8 +718,17 @@ class C
         }
     }
 }";
+            var expectedOutput = "42";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, references: new[] { CSharpRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"42");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            // PROTOTYPE Tracked by https://github.com/dotnet/roslyn/issues/79762
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (10,22): error CS9328: Method 'C.<M>d__0.IAsyncEnumerator<int>.MoveNextAsync()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         yield return await d;
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await d").WithArguments("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()").WithLocation(10, 22));
         }
 
         [Fact]
@@ -717,8 +859,9 @@ ref struct S
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
+            var expectedOutput = "123";
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Main>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
                 {
@@ -831,6 +974,10 @@ ref struct S
                   IL_00ed:  ret
                 }
                 """);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -876,9 +1023,14 @@ ref struct S
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
+            var expectedOutput = "123";
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
             verifier.VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -1140,7 +1292,7 @@ public class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics();
+
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
@@ -1151,7 +1303,15 @@ public class C
                 var argument = attribute.ConstructorArguments.Single();
                 Assert.Equal("System.Type", argument.Type.ToTestDisplayString());
                 Assert.Equal("C.<M>d__0", ((ITypeSymbol)argument.Value).ToTestDisplayString());
-            });
+            }).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                AssertEx.SetEqual(["AsyncIteratorStateMachineAttribute"], GetAttributeNames(method.GetAttributes())); // PROTOTYPE confirm what attribute to use, if any
+            }, verify: Verification.Skipped).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1848,40 +2008,147 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Value:0 1 2 Value:3 4 Value:5 Done", symbolValidator: verifyMembersAndInterfaces);
+            var expectedOutput = "Value:0 1 2 Value:3 4 Value:5 Done";
 
-            void verifyMembersAndInterfaces(ModuleSymbol module)
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: verifyAsync1MembersAndInterfaces)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                symbolValidator: verifyAsync2MembersAndInterfaces, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            // Note: for enumerator case, the initial state is different than for enumerable case,
+            //   and we preserve the parameters directly into the final fields (no extra backup).
+            verifier.VerifyIL("C.M(int)", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -3
+  IL_0002:  newobj     "C.<M>d__0..ctor(int)"
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  stfld      "int C.<M>d__0.value"
+  IL_000e:  ret
+}
+""");
+
+            // Enumerable case for contrast
+            source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        yield return value;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            comp = CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M(int)", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     "C.<M>d__0..ctor(int)"
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  stfld      "int C.<M>d__0.<>3__value"
+  IL_000e:  ret
+}
+""");
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", """
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      "int C.<M>d__0.<>l__initialThreadId"
+  IL_0010:  call       "int System.Environment.CurrentManagedThreadId.get"
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      "int C.<M>d__0.<>1__state"
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+  IL_0026:  ldarg.0
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     "C.<M>d__0..ctor(int)"
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      "int C.<M>d__0.<>3__value"
+  IL_0039:  stfld      "int C.<M>d__0.value"
+  IL_003e:  ldloc.0
+  IL_003f:  ret
+}
+""");
+
+            static void verifyAsync1MembersAndInterfaces(ModuleSymbol module)
             {
                 var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
-                AssertEx.SetEqual(new[] {
+                AssertEx.SetEqual([
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
                     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder",
                     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
+                    "System.Int32 C.<M>d__0.<>2__current",
+                    "System.Boolean C.<M>d__0.<>w__disposeMode",
                     "System.Int32 C.<M>d__0.value",
+                    "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1",
                     "C.<M>d__0..ctor(System.Int32 <>1__state)",
                     "void C.<M>d__0.MoveNext()",
                     "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
                     "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                     "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
                     "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
-                    "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(System.Int16 token)",
                     "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
-                    "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetStatus(System.Int16 token)",
                     "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
+                    "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(System.Int16 token)",
+                    "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetStatus(System.Int16 token)",
                     "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
                     "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
-                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
-                    "System.Int32 C.<M>d__0.<>1__state" },
-                    type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
+                    "System.Int32 C.<M>d__0.<>1__state"
+                    ], type.GetMembersUnordered().ToTestDisplayStrings());
 
-                AssertEx.SetEqual(new[] {
+                AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.IAsyncStateMachine",
                     "System.IAsyncDisposable",
                     "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
                     "System.Threading.Tasks.Sources.IValueTaskSource",
-                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
-                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.Select(m => m.ToTestDisplayString()));
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>"
+                    ], type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.ToTestDisplayStrings());
+            }
+
+            static void verifyAsync2MembersAndInterfaces(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
+                AssertEx.SetEqual([
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                    "System.Int32 C.<M>d__0.<>2__current",
+                    "System.Boolean C.<M>d__0.<>w__disposeMode",
+                    "System.Int32 C.<M>d__0.value",
+                    "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                    "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.MoveNextAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                    "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                    "System.Int32 C.<M>d__0.<>1__state"
+                    ], type.GetMembersUnordered().ToTestDisplayStrings());
+
+                AssertEx.SetEqual([
+                    "System.IAsyncDisposable",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>"
+                    ], type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.ToTestDisplayStrings());
             }
         }
 
@@ -2038,17 +2305,23 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
+            DiagnosticDescription[] expectedDiagnostics = [
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
-                );
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             var m = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             Assert.False(m.IsIterator);
             Assert.True(m.IsAsync);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2063,13 +2336,19 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
+            DiagnosticDescription[] expectedDiagnostics = [
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
-                );
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2085,13 +2364,48 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
+
+            DiagnosticDescription[] expectedDiagnostics = [
                 // (4,60): error CS8419: The body of an async-iterator method must contain a 'yield' statement.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, "M").WithLocation(4, 60)
-                );
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AsyncIteratorReturningEnumerable_WithAwaitAndThrow_LocalFunction()
+        {
+            string source = """
+await foreach (var i in local()) { }
+
+async System.Collections.Generic.IAsyncEnumerable<int> local()
+{
+    await System.Threading.Tasks.Task.CompletedTask;
+    throw new System.NotImplementedException();
+}
+""";
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // source(3,56): error CS8419: The body of an async-iterator method must contain a 'yield' statement.
+                // async System.Collections.Generic.IAsyncEnumerable<int> local()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, "local").WithLocation(3, 56)
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2107,13 +2421,48 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
-                // (4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
+            DiagnosticDescription[] expectedDiagnostics = [
+                // source(4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 60)
-                );
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AsyncIteratorReturningEnumerator_WithThrow_WithAwaitInLocalFunction()
+        {
+            string source = """
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        async System.Threading.Tasks.Task local() { await System.Threading.Tasks.Task.CompletedTask; };
+        throw new System.NotImplementedException();
+    }
+}
+""";
+            DiagnosticDescription[] expectedDiagnostics = [
+                // source(3,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(3, 60),
+                // source(5,43): warning CS8321: The local function 'local' is declared but never used
+                //         async System.Threading.Tasks.Task local() { await System.Threading.Tasks.Task.CompletedTask; };
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(5, 43)
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2147,9 +2496,15 @@ public class C
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations: 2), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
+            var expectedOutput = "1 END DISPOSAL DONE";
+
+            var comp = CreateCompilationWithAsyncIterator([Run(iterations: 2), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations: 2), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput))
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -2277,44 +2632,52 @@ class C
         [Fact]
         public void CallingMoveNextAsyncTwice()
         {
-            string source = @"
+            string source = """
 using static System.Console;
 class C
 {
     static async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
-        Write(""1 "");
+        Write("1 ");
         await System.Threading.Tasks.Task.CompletedTask;
-        Write(""2 "");
+        Write("2 ");
         yield return 3;
-        Write(""4 "");
+        Write("4 ");
     }
     static async System.Threading.Tasks.Task Main()
     {
-        Write(""0 "");
+        Write("0 ");
         await using (var enumerator = M().GetAsyncEnumerator())
         {
             var found = await enumerator.MoveNextAsync();
             if (!found) throw null;
             var value = enumerator.Current;
-            Write($""{value} "");
+            Write($"{value} ");
             found = await enumerator.MoveNextAsync();
             if (found) throw null;
             found = await enumerator.MoveNextAsync();
             if (found) throw null;
-            Write(""5"");
+            Write("5");
         }
     }
-}";
+}
+""";
+            var expectedOutput = "0 1 2 3 4 5";
+
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice()
         {
+            // Shows that disposeMode and parameter values are reset upon second enumeration
             string source = @"
 using static System.Console;
 class C
@@ -2347,18 +2710,34 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 1 2 Stream2:3 4 2 4 2 Done", symbolValidator: verifyMembersAndInterfaces);
+            var expectedOutput = "1 2 Stream1:3 1 2 Stream2:3 4 2 4 2 Done";
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes },
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: verifyAsync1MembersAndInterfaces)
+                .VerifyDiagnostics();
             // Illustrates that parameters are proxied (we save the original in the enumerable, then copy them into working fields when making an enumerator)
 
-            void verifyMembersAndInterfaces(ModuleSymbol module)
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Skipped, symbolValidator: verifyAsync2MembersAndInterfaces);
+            verifier.VerifyDiagnostics();
+
+            static void verifyAsync1MembersAndInterfaces(ModuleSymbol module)
             {
                 var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
-                AssertEx.SetEqual(new[] {
+                AssertEx.SetEqual([
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
                     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder",
                     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
+                    "System.Int32 C.<M>d__0.<>2__current",
+                    "System.Boolean C.<M>d__0.<>w__disposeMode",
+                    "System.Int32 C.<M>d__0.<>l__initialThreadId",
+                    "System.Int32 C.<M>d__0.value",
                     "System.Int32 C.<M>d__0.<>3__value",
+                    "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1",
                     "C.<M>d__0..ctor(System.Int32 <>1__state)",
                     "void C.<M>d__0.MoveNext()",
                     "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
@@ -2366,24 +2745,48 @@ class C
                     "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                     "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
                     "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
-                    "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(System.Int16 token)",
                     "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
-                    "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetStatus(System.Int16 token)",
                     "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
+                    "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(System.Int16 token)",
+                    "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.GetStatus(System.Int16 token)",
                     "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
                     "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
-                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
-                    "System.Int32 C.<M>d__0.<>1__state" },
-                    type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
+                    "System.Int32 C.<M>d__0.<>1__state"
+                    ], type.GetMembersUnordered().ToTestDisplayStrings());
 
-                AssertEx.SetEqual(new[] {
+                AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.IAsyncStateMachine",
                     "System.IAsyncDisposable",
                     "System.Threading.Tasks.Sources.IValueTaskSource",
                     "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
                     "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
-                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
-                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.Select(m => m.ToTestDisplayString()));
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>"
+                    ], type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.ToTestDisplayStrings());
+            }
+
+            static void verifyAsync2MembersAndInterfaces(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
+                AssertEx.SetEqual([
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                    "System.Int32 C.<M>d__0.<>2__current",
+                    "System.Boolean C.<M>d__0.<>w__disposeMode",
+                    "System.Int32 C.<M>d__0.<>l__initialThreadId",
+                    "System.Int32 C.<M>d__0.value",
+                    "System.Int32 C.<M>d__0.<>3__value",
+                    "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])",
+                    "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.MoveNextAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                    "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                    "System.Int32 C.<M>d__0.<>1__state"
+                    ], type.GetMembersUnordered().ToTestDisplayStrings());
+
+                AssertEx.SetEqual([
+                    "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>",
+                    "System.IAsyncDisposable"
+                    ], type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.ToTestDisplayStrings());
             }
         }
 
@@ -2425,9 +2828,14 @@ class C
         }
     }
 }";
+            var expectedOutput = "1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done";
+
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -2474,9 +2882,14 @@ class C
         Write(""Done"");
     }
 }";
+            var expectedOutput = "Stream1:0 Stream2:0 1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done";
+
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Stream1:0 Stream2:0 1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -2519,9 +2932,14 @@ class C
         Write(""Done"");
     }
 }";
+            var expectedOutput = "Stream1:0 1 2 Stream1:3 4 42 Await Stream2:0 1 2 Stream2:3 4 42 Done";
+
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Stream1:0 1 2 Stream1:3 4 42 Await Stream2:0 1 2 Stream2:3 4 42 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -2562,9 +2980,49 @@ class C
         Write(""Done"");
     }
 }";
+            var expectedOutput = "Stream1:1 Finally Stream2:1 Stream2:2 Finally Done";
+
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Stream1:1 Finally Stream2:1 Stream2:2 Finally Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                 .VerifyDiagnostics();
+
+            // Note: the dispose mode is set back to false during reset
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", """
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      "int C.<M>d__0.<>l__initialThreadId"
+  IL_0010:  call       "int System.Environment.CurrentManagedThreadId.get"
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      "int C.<M>d__0.<>1__state"
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+  IL_0026:  ldarg.0
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     "C.<M>d__0..ctor(int)"
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      "int C.<M>d__0.<>3__value"
+  IL_0039:  stfld      "int C.<M>d__0.value"
+  IL_003e:  ldloc.0
+  IL_003f:  ret
+}
+""");
         }
 
         [Fact]
@@ -2594,9 +3052,10 @@ public class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
+                var expectedOutput = "0 1 2 3 4 5";
+
                 var comp = CreateCompilationWithAsyncIterator(source, options: options);
-                comp.VerifyDiagnostics();
-                var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+                var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
                 var expectedFields = new[] {
                     "FieldDefinition:Int32 <>1__state",
@@ -3132,6 +3591,10 @@ public class C
   IL_0134:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
   IL_0139:  ret
 }", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+
+                    comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+                    CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                        .VerifyDiagnostics();
                 }
             }
         }
@@ -4192,9 +4655,14 @@ class C
         Write(""5"");
     }
 }";
+            var expectedOutput = "0 1 2 3 4 5";
+
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4225,9 +4693,14 @@ class D
         Write(""5"");
     }
 }";
+            var expectedOutput = "0 1 2 3 4 5";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4257,9 +4730,14 @@ class C
         Write(""End"");
     }
 }";
+            var expectedOutput = "Start p:10 p:11 Value p:12 End";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
+            CompileAndVerify(comp, expectedOutput: expectedOutput).
+                VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4290,9 +4768,14 @@ class C
         Write(""End"");
     }
 }";
+            var expectedOutput = "Start f:10 f:11 Value f:12 End";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Start f:10 f:11 Value f:12 End");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4341,9 +4824,14 @@ class C
         Write(""Done"");
     }
 }";
+            var expectedOutput = "0 1 2 3 4 Done";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4372,9 +4860,14 @@ class C
         Write(""Done"");
     }
 }";
+            var expectedOutput = "0 1 2 3 4 5 Done";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4401,9 +4894,14 @@ class C
         Write(""Done"");
     }
 }";
+            var expectedOutput = "0 1 2 3 Done";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -4425,8 +4923,12 @@ public class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4458,9 +4960,15 @@ label2:
         Write(""Done"");
     }
 }";
+            var expectedOutput = "0 1 2 3 Done";
+
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -4503,8 +5011,12 @@ class C
     }}
 }}";
                 var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-                comp.VerifyDiagnostics();
-                CompileAndVerify(comp, expectedOutput: expectation);
+                CompileAndVerify(comp, expectedOutput: expectation)
+                    .VerifyDiagnostics();
+
+                comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+                CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectation), verify: Verification.Skipped)
+                    .VerifyDiagnostics();
             }
 
             void verifyLocalFunction(Instruction[] spec)
@@ -4531,8 +5043,12 @@ class C
     }}
 }}";
                 var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-                comp.VerifyDiagnostics();
-                CompileAndVerify(comp, expectedOutput: expectation);
+                CompileAndVerify(comp, expectedOutput: expectation)
+                    .VerifyDiagnostics();
+
+                comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+                CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectation), verify: Verification.Skipped)
+                    .VerifyDiagnostics();
             }
 
             (string code, string expectation) generateCode(Instruction[] spec)
@@ -4603,9 +5119,16 @@ class C
         Write(""Done"");
     }
 }";
+
+            var expectedOutput = "0 1 2 3 4 Done";
+
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -4639,8 +5162,12 @@ public class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -4687,8 +5214,12 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79124")]
@@ -4933,6 +5464,156 @@ public class C
                   IL_019b:  ret
                 }
                 """);
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      250 (0xfa)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  beq.s      IL_0015
+    IL_000c:  br.s       IL_000e
+    IL_000e:  ldloc.0
+    IL_000f:  ldc.i4.s   -3
+    IL_0011:  beq.s      IL_0017
+    IL_0013:  br.s       IL_0019
+    IL_0015:  br.s       IL_0048
+    IL_0017:  br.s       IL_0019
+    IL_0019:  ldarg.0
+    IL_001a:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_001f:  brfalse.s  IL_0026
+    IL_0021:  leave      IL_00e7
+    IL_0026:  ldarg.0
+    IL_0027:  ldc.i4.m1
+    IL_0028:  dup
+    IL_0029:  stloc.0
+    IL_002a:  stfld      "int C.<M>d__0.<>1__state"
+    IL_002f:  nop
+    IL_0030:  ldarg.0
+    IL_0031:  ldc.i4.1
+    IL_0032:  stfld      "int C.<M>d__0.<>2__current"
+    IL_0037:  ldarg.0
+    IL_0038:  ldc.i4.s   -4
+    IL_003a:  dup
+    IL_003b:  stloc.0
+    IL_003c:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0041:  ldc.i4.1
+    IL_0042:  stloc.1
+    IL_0043:  leave      IL_00f8
+    IL_0048:  ldarg.0
+    IL_0049:  ldc.i4.m1
+    IL_004a:  dup
+    IL_004b:  stloc.0
+    IL_004c:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0057:  brfalse.s  IL_005e
+    IL_0059:  leave      IL_00e7
+    IL_005e:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0063:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+    IL_0068:  nop
+    .try
+    {
+      .try
+      {
+        IL_0069:  nop
+        .try
+        {
+          IL_006a:  nop
+          IL_006b:  ldstr      "Break "
+          IL_0070:  call       "void System.Console.Write(string)"
+          IL_0075:  nop
+          IL_0076:  ldarg.0
+          IL_0077:  ldc.i4.1
+          IL_0078:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+          IL_007d:  leave.s    IL_0092
+        }
+        finally
+        {
+          IL_007f:  ldloc.0
+          IL_0080:  ldc.i4.m1
+          IL_0081:  bne.un.s   IL_0091
+          IL_0083:  nop
+          IL_0084:  ldstr      "Throw "
+          IL_0089:  call       "void System.Console.Write(string)"
+          IL_008e:  nop
+          IL_008f:  ldnull
+          IL_0090:  throw
+          IL_0091:  endfinally
+        }
+        IL_0092:  ldarg.0
+        IL_0093:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+        IL_0098:  brfalse.s  IL_009c
+        IL_009a:  leave.s    IL_00c9
+        IL_009c:  nop
+        IL_009d:  leave.s    IL_00b5
+      }
+      catch object
+      {
+        IL_009f:  pop
+        IL_00a0:  nop
+        IL_00a1:  ldstr      "Caught "
+        IL_00a6:  call       "void System.Console.Write(string)"
+        IL_00ab:  nop
+        IL_00ac:  ldarg.0
+        IL_00ad:  ldc.i4.1
+        IL_00ae:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+        IL_00b3:  leave.s    IL_00c9
+      }
+      IL_00b5:  leave.s    IL_00c9
+    }
+    finally
+    {
+      IL_00b7:  ldloc.0
+      IL_00b8:  ldc.i4.m1
+      IL_00b9:  bne.un.s   IL_00c8
+      IL_00bb:  nop
+      IL_00bc:  ldstr      "Finally "
+      IL_00c1:  call       "void System.Console.Write(string)"
+      IL_00c6:  nop
+      IL_00c7:  nop
+      IL_00c8:  endfinally
+    }
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_00cf:  brfalse.s  IL_00d3
+    IL_00d1:  leave.s    IL_00e7
+    IL_00d3:  leave.s    IL_00e7
+  }
+  catch System.Exception
+  {
+    IL_00d5:  pop
+    IL_00d6:  ldarg.0
+    IL_00d7:  ldc.i4.s   -2
+    IL_00d9:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00de:  ldarg.0
+    IL_00df:  ldc.i4.0
+    IL_00e0:  stfld      "int C.<M>d__0.<>2__current"
+    IL_00e5:  rethrow
+  }
+  IL_00e7:  ldarg.0
+  IL_00e8:  ldc.i4.s   -2
+  IL_00ea:  stfld      "int C.<M>d__0.<>1__state"
+  IL_00ef:  ldarg.0
+  IL_00f0:  ldc.i4.0
+  IL_00f1:  stfld      "int C.<M>d__0.<>2__current"
+  IL_00f6:  ldc.i4.0
+  IL_00f7:  stloc.1
+  IL_00f8:  ldloc.1
+  IL_00f9:  ret
+}
+""");
         }
 
         [Theory]
@@ -4977,8 +5658,12 @@ public class C : System.IAsyncDisposable
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5026,8 +5711,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5070,8 +5759,12 @@ public class C : System.IAsyncDisposable
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5124,8 +5817,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5168,8 +5865,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5214,8 +5915,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5267,8 +5972,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5300,8 +6009,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5331,8 +6044,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5396,8 +6113,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5430,8 +6151,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5461,8 +6186,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5493,8 +6222,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5528,8 +6261,12 @@ public class C
 ";
 
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5562,8 +6299,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5601,8 +6342,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5641,8 +6386,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5719,8 +6468,12 @@ class C
 ";
             var source = template.Replace("POSITION", position.ToString());
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5812,8 +6565,12 @@ class C
 ";
             var source = template.Replace("POSITION", position.ToString());
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5847,8 +6604,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5877,8 +6638,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5908,8 +6673,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -5941,8 +6710,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -6333,8 +7106,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -6367,8 +7144,12 @@ public class C
 ";
 
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -6408,8 +7189,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -6447,8 +7232,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -6483,8 +7272,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Theory]
@@ -6517,8 +7310,12 @@ public class C
 }
 ";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation([Run(iterations), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -6552,8 +7349,9 @@ public class C
     }
 }
 """;
+            var expectedOutput = "1 Throw Caught Finally END DISPOSAL DONE";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(2), source }, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 Throw Caught Finally END DISPOSAL DONE").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
 {
@@ -6844,6 +7642,9 @@ public class C
   IL_0286:  ret
 }
 """);
+            comp = CreateRuntimeAsyncCompilation([Run(2), source], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -6883,9 +7684,14 @@ class C
         }
     }
 }";
+            var expectedOutput = "1";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -6907,9 +7713,14 @@ class C
         System.Console.Write(""none"");
     }
 }";
+            var expectedOutput = "none";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "none");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -7093,6 +7904,7 @@ class C
         try
         {
             await enumerator.DisposeAsync();
+            throw null;
         }
         catch (System.NotSupportedException)
         {
@@ -7110,9 +7922,14 @@ class C
         }
     }
 }";
+            var expectedOutput = "DisposeAsync threw. Already cancelled";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "DisposeAsync threw. Already cancelled");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -7133,8 +7950,14 @@ class C
         System.Console.Write(""done"");
     }
 }";
+            var expectedOutput = "done";
+
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -7163,8 +7986,13 @@ class C
         System.Console.Write(""done"");
     }
 }";
+            var expectedOutput = "done";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "done");
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -7209,9 +8037,14 @@ class Derived: Base
         yield return this.Func();
     }
 }";
+            var expectedOutput = "Base.Func;Derived.Func;";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Base.Func;Derived.Func;");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -7286,9 +8119,14 @@ static class M1
         await (new D<int>()).Test();
     }
 }";
+            var expectedOutput = "B1::F;D::F;B1::F;";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "B1::F;D::F;B1::F;");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -7302,11 +8140,11 @@ public class D
 {
     static async Task Main()
     {
-        var enumerable = new MyEnumerable(42);
+        var c = new C(42);
         using (CancellationTokenSource source = new CancellationTokenSource())
         {
             CancellationToken token = source.Token;
-            await using (var enumerator = enumerable.GetAsyncEnumerator(token))
+            await using (var enumerator = c.M(token))
             {
                 if (!await enumerator.MoveNextAsync()) throw null;
                 System.Console.Write($""{enumerator.Current} ""); // 42
@@ -7329,14 +8167,14 @@ public class D
         }
     }
 }
-public class MyEnumerable
+public class C
 {
     private int value;
-    public MyEnumerable(int value)
+    public C(int value)
     {
         this.value = value;
     }
-    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token)
+    public async System.Collections.Generic.IAsyncEnumerator<int> M(CancellationToken token)
     {
         yield return value++;
         yield return value;
@@ -7350,9 +8188,14 @@ public class MyEnumerable
         System.Console.Write($""SKIPPED"");
     }
 }";
+            var expectedOutput = "42 43 Long Cancelled";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 Long Cancelled");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -7399,11 +8242,15 @@ class C
         yield return value++;
     }
 }";
+            var expectedOutput = "42 43 Cancelled";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
 
             // IL for GetAsyncEnumerator is verified by AsyncIteratorWithAwaitCompletedAndYield already
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -7451,11 +8298,15 @@ class C
         }
     }
 }";
+            var expectedOutput = "42 43 Cancelled";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
 
             // IL for GetAsyncEnumerator is verified by AsyncIteratorWithAwaitCompletedAndYield_LocalFunction already
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -7502,9 +8353,14 @@ class C
         yield return value++;
     }
 }";
+            var expectedOutput = "42 43 Cancelled";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -7550,9 +8406,14 @@ class C
         yield return value++;
     }
 }";
+            var expectedOutput = "42 43 Cancelled";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -7601,9 +8462,9 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
+                var expectedOutput = "42 43 Cancelled";
                 var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options);
-                comp.VerifyDiagnostics();
-                var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+                var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
                 // GetAsyncEnumerator's token parameter is used directly, since the argument token is default
                 verifier.VerifyIL("C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
@@ -7685,6 +8546,9 @@ class C
   IL_00c7:  ret
 }
 ");
+                comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+                CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                    .VerifyDiagnostics();
             }
         }
 
@@ -7734,9 +8598,9 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
+                var expectedOutput = "42 43 Cancelled";
                 var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.Regular9);
-                comp.VerifyDiagnostics();
-                var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+                var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
                 // GetAsyncEnumerator's token parameter is used directly, since the argument token is default
                 verifier.VerifyIL("C.<<Main>g__Iter|0_0>d.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
@@ -7818,6 +8682,9 @@ class C
   IL_00c7:  ret
 }
 ");
+                comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+                CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                    .VerifyDiagnostics();
             }
         }
 
@@ -7867,9 +8734,14 @@ class C
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
                 // field for token1 gets overridden with value from GetAsyncEnumerator's token parameter
+                var expectedOutput = "42 43 Cancelled";
                 var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options);
-                comp.VerifyDiagnostics();
-                CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+                CompileAndVerify(comp, expectedOutput: expectedOutput)
+                    .VerifyDiagnostics();
+
+                comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+                CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                    .VerifyDiagnostics();
             }
         }
 
@@ -7909,13 +8781,20 @@ class C
         yield return value++;
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (24,67): error CS8425: Async-iterator 'C.Iter(int, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+            var expectedOutput = "42 43 REACHED 44";
+            DiagnosticDescription[] expectedDiagnostics = [
+                // 0.cs(24,67): warning CS8425: Async-iterator 'C.Iter(int, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, CancellationToken token1) // no attribute set
                 Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("C.Iter(int, System.Threading.CancellationToken)").WithLocation(24, 67)
-                );
-            CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -7955,18 +8834,28 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
+            var expectedOutput = "42 43 REACHED 44";
+            DiagnosticDescription[] expectedDiagnostics = [
                 // (24,71): warning CS8425: Async-iterator 'Iter(int, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
                 //         static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, CancellationToken token1) // no attribute set
                 Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("Iter(int, System.Threading.CancellationToken)").WithLocation(24, 71)
-                );
-            CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
-        public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator()
+        [Theory, CombinatorialData, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator(bool useDebug, bool cancelFirst)
         {
+            var options = useDebug ? TestOptions.DebugExe : TestOptions.ReleaseExe;
+            var sourceToCancel = cancelFirst ? "source1" : "source2";
+
             string source = @"
 using static System.Console;
 using System.Runtime.CompilerServices;
@@ -8011,22 +8900,136 @@ class C
         Write(""SKIPPED"");
         yield return value++;
     }
-}";
+}".Replace("SOURCETOCANCEL", sourceToCancel);
+
+            var expectedOutput = "42 43 Cancelled";
+
             // cancelling either the token given as argument or the one given to GetAsyncEnumerator results in cancelling the combined token3
-            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: options);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                symbolValidator: verifyAsync2MembersAndInterfaces, verify: Verification.Skipped);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", """
+{
+  // Code size      201 (0xc9)
+  .maxstack  3
+  .locals init (C.<Iter>d__1 V_0,
+                System.Threading.CancellationToken V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Iter>d__1.<>1__state"
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      "int C.<Iter>d__1.<>l__initialThreadId"
+  IL_0010:  call       "int System.Environment.CurrentManagedThreadId.get"
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      "int C.<Iter>d__1.<>1__state"
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  stfld      "bool C.<Iter>d__1.<>w__disposeMode"
+  IL_0026:  ldarg.0
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     "C.<Iter>d__1..ctor(int)"
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token1"
+  IL_0039:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token1"
+  IL_003e:  ldloc.0
+  IL_003f:  ldarg.0
+  IL_0040:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token2"
+  IL_0045:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token2"
+  IL_004a:  ldarg.0
+  IL_004b:  ldflda     "System.Threading.CancellationToken C.<Iter>d__1.<>3__token3"
+  IL_0050:  ldloca.s   V_1
+  IL_0052:  initobj    "System.Threading.CancellationToken"
+  IL_0058:  ldloc.1
+  IL_0059:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+  IL_005e:  brfalse.s  IL_0069
+  IL_0060:  ldloc.0
+  IL_0061:  ldarg.1
+  IL_0062:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token3"
+  IL_0067:  br.s       IL_00bb
+  IL_0069:  ldarga.s   V_1
+  IL_006b:  ldarg.0
+  IL_006c:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token3"
+  IL_0071:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+  IL_0076:  brtrue.s   IL_008a
+  IL_0078:  ldarga.s   V_1
+  IL_007a:  ldloca.s   V_1
+  IL_007c:  initobj    "System.Threading.CancellationToken"
+  IL_0082:  ldloc.1
+  IL_0083:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+  IL_0088:  brfalse.s  IL_0098
+  IL_008a:  ldloc.0
+  IL_008b:  ldarg.0
+  IL_008c:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token3"
+  IL_0091:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token3"
+  IL_0096:  br.s       IL_00bb
+  IL_0098:  ldarg.0
+  IL_0099:  ldarg.0
+  IL_009a:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token3"
+  IL_009f:  ldarg.1
+  IL_00a0:  call       "System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)"
+  IL_00a5:  stfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
+  IL_00aa:  ldloc.0
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
+  IL_00b1:  callvirt   "System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get"
+  IL_00b6:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token3"
+  IL_00bb:  ldloc.0
+  IL_00bc:  ldarg.0
+  IL_00bd:  ldfld      "int C.<Iter>d__1.<>3__value"
+  IL_00c2:  stfld      "int C.<Iter>d__1.value"
+  IL_00c7:  ldloc.0
+  IL_00c8:  ret
+}
+""");
+
+            static void verifyAsync2MembersAndInterfaces(ModuleSymbol module)
             {
-                foreach (var sourceToCancel in new[] { "source1", "source2" })
-                {
-                    var comp = CreateCompilationWithAsyncIterator(new[] { source.Replace("SOURCETOCANCEL", sourceToCancel), EnumeratorCancellationAttributeType }, options: options);
-                    comp.VerifyDiagnostics();
-                    CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
-                }
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<Iter>d__1");
+                AssertEx.SetEqual([
+                    "System.Int32 C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                    "System.Int32 C.<Iter>d__1.<>2__current",
+                    "System.Boolean C.<Iter>d__1.<>w__disposeMode",
+                    "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens",
+                    "System.Int32 C.<Iter>d__1.<>l__initialThreadId",
+                    "System.Threading.CancellationToken C.<Iter>d__1.token1",
+                    "System.Threading.CancellationToken C.<Iter>d__1.<>3__token1",
+                    "System.Threading.CancellationToken C.<Iter>d__1.token2",
+                    "System.Threading.CancellationToken C.<Iter>d__1.<>3__token2",
+                    "System.Threading.CancellationToken C.<Iter>d__1.token3",
+                    "System.Threading.CancellationToken C.<Iter>d__1.<>3__token3",
+                    "System.Int32 C.<Iter>d__1.value",
+                    "System.Int32 C.<Iter>d__1.<>3__value",
+                    "C.<Iter>d__1..ctor(System.Int32 <>1__state)",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])",
+                    "System.Threading.Tasks.ValueTask<System.Boolean> C.<Iter>d__1.MoveNextAsync()",
+                    "System.Int32 C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                    "System.Threading.Tasks.ValueTask C.<Iter>d__1.System.IAsyncDisposable.DisposeAsync()",
+                    "System.Int32 C.<Iter>d__1.<>1__state"
+                    ], type.GetMembersUnordered().ToTestDisplayStrings());
             }
         }
 
-        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
-        public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator_LocalFunction()
+        [Theory, CombinatorialData, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator_LocalFunction(bool useDebug, bool cancelFirst)
         {
+            var options = useDebug ? TestOptions.DebugExe : TestOptions.ReleaseExe;
+            var sourceToCancel = cancelFirst ? "source1" : "source2";
+
             string source = @"
 using static System.Console;
 using System.Runtime.CompilerServices;
@@ -8071,17 +9074,18 @@ class C
             yield return value++;
         }
     }
-}";
+}".Replace("SOURCETOCANCEL", sourceToCancel);
+
+            var expectedOutput = "42 43 Cancelled";
+
             // cancelling either the token given as argument or the one given to GetAsyncEnumerator results in cancelling the combined token3
-            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
-            {
-                foreach (var sourceToCancel in new[] { "source1", "source2" })
-                {
-                    var comp = CreateCompilationWithAsyncIterator(new[] { source.Replace("SOURCETOCANCEL", sourceToCancel), EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.Regular9);
-                    comp.VerifyDiagnostics();
-                    CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
-                }
-            }
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -8112,9 +9116,14 @@ class C
         await Task.Yield();
     }
 }";
+            var expectedOutput = "1";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -8139,13 +9148,20 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
+            var expectedOutput = "42";
+            DiagnosticDescription[] expectedDiagnostics = [
                 // (6,73): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value)
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(6, 73)
-                );
-            CompileAndVerify(comp, expectedOutput: "42");
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -8170,13 +9186,20 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe, TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedOutput = "42";
+            DiagnosticDescription[] expectedDiagnostics = [
                 // (12,77): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
                 //         static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value) // 1
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(12, 77)
-                );
-            CompileAndVerify(comp, expectedOutput: "42");
+                ];
+
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe, TestOptions.Regular9);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -8394,11 +9417,16 @@ class C
         yield return value++;
     }
 }";
-
             // The parameter proxy is left untouched by our copying the token parameter of GetAsyncEnumerator
+            var expectedOutput = "42 43 Cancelled 42 43 Reached 44";
+
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 Cancelled 42 43 Reached 44");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -8439,14 +9467,21 @@ public class C : Base
         yield return value;
     }
 }";
-            // The overridden method lacks the EnumeratorCancellation attribute
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (28,76): error CS8425: Async-iterator 'C.Iter(CancellationToken, int)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+            var expectedOutput = "Reached 42";
+            DiagnosticDescription[] expectedDiagnostics = [
+                // 0.cs(28,76): warning CS8425: Async-iterator 'C.Iter(CancellationToken, int)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
                 //     public override async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value) // 1
                 Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("C.Iter(System.Threading.CancellationToken, int)").WithLocation(28, 76)
-                );
-            CompileAndVerify(comp, expectedOutput: "Reached 42");
+                ];
+
+            // The overridden method lacks the EnumeratorCancellation attribute
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
@@ -8497,14 +9532,22 @@ public class C : Base
         yield return value;
     }
 }";
-            // The overridden method has the EnumeratorCancellation attribute
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (8,75): error CS8425: Async-iterator 'Base.Iter(CancellationToken, int)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+            var expectedOutput = "42 Cancelled";
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // 0.cs(8,75): warning CS8425: Async-iterator 'Base.Iter(CancellationToken, int)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
                 //     public virtual async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value) // 1
                 Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("Base.Iter(System.Threading.CancellationToken, int)").WithLocation(8, 75)
-                );
-            CompileAndVerify(comp, expectedOutput: "42 Cancelled");
+                ];
+
+            // The overridden method has the EnumeratorCancellation attribute
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(35165, "https://github.com/dotnet/roslyn/issues/35165")]
@@ -8534,19 +9577,19 @@ public partial class C2
                 // (6,76): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     public abstract async System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 1
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M").WithLocation(6, 76),
-                // (7,74): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable     
+                // (7,74): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
                 //     public abstract System.Collections.Generic.IAsyncEnumerable<int> M2([EnumeratorCancellation] CancellationToken token); // 2
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(7, 74),
-                // (11,57): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable    
+                // (11,57): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
                 //     System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 3
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(11, 57),
-                // (15,80): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable    
+                // (15,80): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
                 //     public delegate System.Collections.Generic.IAsyncEnumerable<int> Delegate([EnumeratorCancellation] CancellationToken token); // 4
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(15, 80),
                 // (16,62): error CS8794: Partial method 'C2.M(CancellationToken)' must have accessibility modifiers because it has a non-void return type.
                 //     partial System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 5
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C2.M(System.Threading.CancellationToken)").WithLocation(16, 62),
-                // (16,65): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable    
+                // (16,65): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
                 //     partial System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 5
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(16, 65),
                 // (17,68): error CS8794: Partial method 'C2.M2(CancellationToken)' must have accessibility modifiers because it has a non-void return type.
@@ -8652,7 +9695,7 @@ public partial class C3
         [WorkItem(43936, "https://github.com/dotnet/roslyn/issues/43936")]
         public void TryFinallyNestedInsideFinally()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var source = @"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8691,17 +9734,24 @@ public class C
             break;
         }
     }
-}", options: TestOptions.DebugExe);
+}";
 
-            var v = CompileAndVerify(comp, expectedOutput: "BEFORE INSIDE INSIDE2 AFTER");
-            v.VerifyDiagnostics();
+            var expectedOutput = "BEFORE INSIDE INSIDE2 AFTER";
+
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(43936, "https://github.com/dotnet/roslyn/issues/43936")]
         public void TryFinallyNestedInsideFinally_WithAwaitInFinally()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var source = @"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8740,17 +9790,23 @@ public class C
             break;
         }
     }
-}", options: TestOptions.DebugExe);
+}";
+            var expectedOutput = "BEFORE INSIDE INSIDE2 AFTER";
 
-            var v = CompileAndVerify(comp, expectedOutput: "BEFORE INSIDE INSIDE2 AFTER");
-            v.VerifyDiagnostics();
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(43936, "https://github.com/dotnet/roslyn/issues/43936")]
         public void TryFinallyNestedInsideFinally_WithAwaitInNestedFinally()
         {
-            var comp = CreateCompilationWithAsyncIterator(@"
+            var source = @"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8789,18 +9845,22 @@ public class C
             break;
         }
     }
-}", options: TestOptions.DebugExe);
+}";
+            var expectedOutput = "BEFORE INSIDE INSIDE2 AFTER";
 
-            var v = CompileAndVerify(comp, expectedOutput: "BEFORE INSIDE INSIDE2 AFTER");
-            v.VerifyDiagnostics();
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
         public void ClearCurrentOnRegularExit()
         {
             var source = @"
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8837,8 +9897,15 @@ class AsyncReader : IAsyncEnumerable<object>
     }
 }
 ";
+            var expectedOutput = "RAN RAN RAN CLEARED";
+
             var comp = CreateCompilationWithAsyncIterator(source);
-            CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
@@ -8846,7 +9913,6 @@ class AsyncReader : IAsyncEnumerable<object>
         {
             var source = @"
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8890,16 +9956,21 @@ class AsyncReader : IAsyncEnumerable<object>
     }
 }
 ";
+            var expectedOutput = "RAN RAN EXCEPTION CLEARED";
+
             var comp = CreateCompilationWithAsyncIterator(source);
-            CompileAndVerify(comp, expectedOutput: "RAN RAN EXCEPTION CLEARED");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
         public void ClearCurrentOnRegularExit_Generic()
         {
             var source = @"
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8936,8 +10007,15 @@ class AsyncReader<T> : IAsyncEnumerable<T>
     }
 }
 ";
+            var expectedOutput = "RAN RAN RAN CLEARED";
+
             var comp = CreateCompilationWithAsyncIterator(source);
-            CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
@@ -8981,9 +10059,15 @@ public class X
     }
 }
 """;
+            var expectedOutput = "42";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
@@ -9016,9 +10100,15 @@ public class X
     }
 }
 """;
+            var expectedOutput = "42";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
@@ -9057,9 +10147,15 @@ public class C
     }
 }
 """;
+            var expectedOutput = "42";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
@@ -9312,9 +10408,10 @@ public class C
     }
 }
 """;
+            var expectedOutput = "first True second";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """"
@@ -9467,6 +10564,10 @@ public class C
   IL_015c:  ret
 }
 """");
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
@@ -9510,10 +10611,16 @@ public class C
     }
 }
 """;
+            var expectedOutput = "first True second";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
@@ -9551,10 +10658,16 @@ public class C
     }
 }
 """;
+            var expectedOutput = "424243";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "424243" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
@@ -9596,10 +10709,15 @@ public class C
     }
 }
 """;
+            var expectedOutput = "424243";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "424243" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
@@ -9637,9 +10755,11 @@ public class C
     }
 }
 """;
+            var expectedOutput = "first True second";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("C.<M>d__0<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """"
@@ -9791,6 +10911,57 @@ public class C
   IL_0169:  ret
 }
 """");
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0<T>.System.Collections.Generic.IAsyncEnumerator<T>.MoveNextAsync()", """
+{
+  // Code size       99 (0x63)
+  .maxstack  2
+  .locals init (C.<M>d__0<T> V_0,
+                short V_1,
+                System.Threading.Tasks.ValueTask<bool> V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0<T>.<>1__state"
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0014
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  initobj    "System.Threading.Tasks.ValueTask<bool>"
+  IL_0012:  ldloc.2
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+  IL_001a:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.Reset()"
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0<T>.<>t__builder"
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.MoveNext<C.<M>d__0<T>>(ref C.<M>d__0<T>)"
+  IL_002e:  ldarg.0
+  IL_002f:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+  IL_0034:  call       "short System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.Version.get"
+  IL_0039:  stloc.1
+  IL_003a:  ldarg.0
+  IL_003b:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+  IL_0040:  ldloc.1
+  IL_0041:  call       "System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.GetStatus(short)"
+  IL_0046:  ldc.i4.1
+  IL_0047:  bne.un.s   IL_005b
+  IL_0049:  ldarg.0
+  IL_004a:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+  IL_004f:  ldloc.1
+  IL_0050:  call       "bool System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.GetResult(short)"
+  IL_0055:  newobj     "System.Threading.Tasks.ValueTask<bool>..ctor(bool)"
+  IL_005a:  ret
+  IL_005b:  ldarg.0
+  IL_005c:  ldloc.1
+  IL_005d:  newobj     "System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)"
+  IL_0062:  ret
+}
+""");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
@@ -9833,10 +11004,16 @@ public class C
     }
 }
 """;
+            var expectedOutput = "first True second";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
@@ -9879,10 +11056,16 @@ public class C
     }
 }
 """;
+            var expectedOutput = "42False43";
+
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            var verifier = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42False43" : null,
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                 .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9905,7 +11088,95 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "42";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Produce>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      145 (0x91)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  beq.s      IL_0050
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.s   -3
+    IL_000f:  pop
+    IL_0010:  pop
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0017:  brfalse.s  IL_001b
+    IL_0019:  leave.s    IL_007e
+    IL_001b:  ldarg.0
+    IL_001c:  ldc.i4.m1
+    IL_001d:  dup
+    IL_001e:  stloc.0
+    IL_001f:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.s   42
+    IL_0027:  stfld      "int C.<Produce>d__0.<values2>5__2"
+    IL_002c:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0031:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+    IL_0036:  ldarg.0
+    IL_0037:  ldarg.0
+    IL_0038:  ldfld      "int C.<Produce>d__0.<values2>5__2"
+    IL_003d:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.s   -4
+    IL_0045:  dup
+    IL_0046:  stloc.0
+    IL_0047:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_004c:  ldc.i4.1
+    IL_004d:  stloc.1
+    IL_004e:  leave.s    IL_008f
+    IL_0050:  ldarg.0
+    IL_0051:  ldc.i4.m1
+    IL_0052:  dup
+    IL_0053:  stloc.0
+    IL_0054:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0059:  ldarg.0
+    IL_005a:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_005f:  brfalse.s  IL_0063
+    IL_0061:  leave.s    IL_007e
+    IL_0063:  ldarg.0
+    IL_0064:  ldc.i4.1
+    IL_0065:  stfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_006a:  leave.s    IL_007e
+  }
+  catch System.Exception
+  {
+    IL_006c:  pop
+    IL_006d:  ldarg.0
+    IL_006e:  ldc.i4.s   -2
+    IL_0070:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0075:  ldarg.0
+    IL_0076:  ldc.i4.0
+    IL_0077:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_007c:  rethrow
+  }
+  IL_007e:  ldarg.0
+  IL_007f:  ldc.i4.s   -2
+  IL_0081:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0086:  ldarg.0
+  IL_0087:  ldc.i4.0
+  IL_0088:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_008d:  ldc.i4.0
+  IL_008e:  stloc.1
+  IL_008f:  ldloc.1
+  IL_0090:  ret
+}
+""");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9932,9 +11203,12 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value value True";
+
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
-{
+ {
   // Code size      320 (0x140)
   .maxstack  3
   .locals init (int V_0,
@@ -10070,6 +11344,99 @@ class C
   IL_013f:  ret
 }
 """);
+            var comp = CreateRuntimeAsyncCompilation(src);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Produce>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      168 (0xa8)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  beq.s      IL_004e
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.s   -3
+    IL_000f:  pop
+    IL_0010:  pop
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0017:  brfalse.s  IL_001b
+    IL_0019:  leave.s    IL_008e
+    IL_001b:  ldarg.0
+    IL_001c:  ldc.i4.m1
+    IL_001d:  dup
+    IL_001e:  stloc.0
+    IL_001f:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0024:  ldarg.0
+    IL_0025:  ldstr      "value "
+    IL_002a:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_002f:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0034:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+    IL_0039:  ldarg.0
+    IL_003a:  ldc.i4.1
+    IL_003b:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0040:  ldarg.0
+    IL_0041:  ldc.i4.s   -4
+    IL_0043:  dup
+    IL_0044:  stloc.0
+    IL_0045:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_004a:  ldc.i4.1
+    IL_004b:  stloc.1
+    IL_004c:  leave.s    IL_00a6
+    IL_004e:  ldarg.0
+    IL_004f:  ldc.i4.m1
+    IL_0050:  dup
+    IL_0051:  stloc.0
+    IL_0052:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0057:  ldarg.0
+    IL_0058:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_005d:  brfalse.s  IL_0061
+    IL_005f:  leave.s    IL_008e
+    IL_0061:  ldarg.0
+    IL_0062:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0067:  call       "void System.Console.Write(string)"
+    IL_006c:  ldarg.0
+    IL_006d:  ldc.i4.1
+    IL_006e:  stfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0073:  leave.s    IL_008e
+  }
+  catch System.Exception
+  {
+    IL_0075:  pop
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.s   -2
+    IL_0079:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_007e:  ldarg.0
+    IL_007f:  ldnull
+    IL_0080:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0085:  ldarg.0
+    IL_0086:  ldc.i4.0
+    IL_0087:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_008c:  rethrow
+  }
+  IL_008e:  ldarg.0
+  IL_008f:  ldc.i4.s   -2
+  IL_0091:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0096:  ldarg.0
+  IL_0097:  ldnull
+  IL_0098:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_009d:  ldarg.0
+  IL_009e:  ldc.i4.0
+  IL_009f:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_00a4:  ldc.i4.0
+  IL_00a5:  stloc.1
+  IL_00a6:  ldloc.1
+  IL_00a7:  ret
+}
+""");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10098,7 +11465,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value value True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10131,7 +11505,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value exception True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value exception True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10159,7 +11540,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10203,7 +11591,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value value True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10242,7 +11637,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value value True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10288,7 +11690,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value exception True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value exception True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10321,7 +11730,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10371,7 +11787,9 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("4242"), references: [libComp.EmitToImageReference()],
+            var expectedOutput = "4242";
+
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), references: [libComp.EmitToImageReference()],
                 verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
 
             verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
@@ -10557,6 +11975,10 @@ class C
   IL_01b4:  ret
 }
 """);
+            libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+            var comp = CreateRuntimeAsyncCompilation(src, references: [libComp.EmitToImageReference()]);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10596,7 +12018,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("exception True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "exception True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10627,7 +12056,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value value True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10668,7 +12104,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value outer True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "value value outer True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10710,7 +12153,14 @@ public struct Buffer2<T>
     private T _element0;
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("False 0 False 1 True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "False 0 False 1 True";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10752,7 +12202,9 @@ public struct Buffer2<T>
     private T _element0;
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("False 0 False 1 True"),
+            var expectedOutput = "False 0 False 1 True";
+
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput),
                 verify: Verification.Skipped, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.<Produce>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
@@ -10947,6 +12399,9 @@ public struct Buffer2<T>
   IL_01c0:  ret
 }
 """);
+            var comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -11016,7 +12471,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("True one False null"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var expectedOutput = "True one False null";
+
+            CompileAndVerify(src, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped, targetFramework: TargetFramework.Net80)
+                .VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -11914,6 +13376,2471 @@ static class Test1
                   IL_0207:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void RuntimeAsync_01()
+        {
+            // simplest scenario
+            string source = """
+using static System.Console;
+
+await using var enumerator = C.M().GetAsyncEnumerator();
+var found = await enumerator.MoveNextAsync();
+if (!found) throw new System.Exception("A");
+var value = enumerator.Current;
+Write($"{value} ");
+found = await enumerator.MoveNextAsync();
+if (found) throw new System.Exception("B");
+found = await enumerator.MoveNextAsync();
+if (found) throw new System.Exception("C");
+Write("5");
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write("1 ");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write("2 ");
+        yield return 3;
+        Write("4 ");
+    }
+}
+""";
+            var comp = CreateRuntimeAsyncCompilation(source);
+
+            Verification expectedVerification = Verification.FailsILVerify with
+            {
+                ILVerifyMessage = """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0xce }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0xa1, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x19 }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2d }
+                    """
+            };
+
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1 2 3 4 5"),
+                symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedVerification : Verification.Skipped);
+            // Note: for runtime-async codegen, it is expected that we place bool instead of ValueTask<bool> on the stack, so IL verification is expected to fail.
+
+            // PROTOTYPE confirm what attribute the kickoff method should have (if any)
+            verifier.VerifyTypeIL("C", """
+.class private auto ansi beforefieldinit C
+    extends [System.Runtime]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed beforefieldinit '<M>d__0'
+        extends [System.Runtime]System.Object
+        implements class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<int32>,
+                   class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>,
+                   [System.Runtime]System.IAsyncDisposable
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public int32 '<>1__state'
+        .field private int32 '<>2__current'
+        .field private bool '<>w__disposeMode'
+        .field private int32 '<>l__initialThreadId'
+        // Methods
+        .method public hidebysig specialname rtspecialname
+            instance void .ctor (
+                int32 '<>1__state'
+            ) cil managed
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Code size 25 (0x19)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [System.Runtime]System.Object::.ctor()
+            IL_0006: ldarg.0
+            IL_0007: ldarg.1
+            IL_0008: stfld int32 C/'<M>d__0'::'<>1__state'
+            IL_000d: ldarg.0
+            IL_000e: call int32 [System.Runtime]System.Environment::get_CurrentManagedThreadId()
+            IL_0013: stfld int32 C/'<M>d__0'::'<>l__initialThreadId'
+            IL_0018: ret
+        } // end of method '<M>d__0'::.ctor
+        .method private final hidebysig newslot virtual
+            instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32> 'System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator' (
+                [opt] valuetype [System.Runtime]System.Threading.CancellationToken cancellationToken
+            ) cil managed
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .override method instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!0> class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<int32>::GetAsyncEnumerator(valuetype [System.Runtime]System.Threading.CancellationToken)
+            .param [0]
+                .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+            .param [1] = nullref
+            // Code size 52 (0x34)
+            .maxstack 2
+            .locals init (
+                [0] class C/'<M>d__0'
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0006: ldc.i4.s -2
+            IL_0008: bne.un.s IL_002a
+            IL_000a: ldarg.0
+            IL_000b: ldfld int32 C/'<M>d__0'::'<>l__initialThreadId'
+            IL_0010: call int32 [System.Runtime]System.Environment::get_CurrentManagedThreadId()
+            IL_0015: bne.un.s IL_002a
+            IL_0017: ldarg.0
+            IL_0018: ldc.i4.s -3
+            IL_001a: stfld int32 C/'<M>d__0'::'<>1__state'
+            IL_001f: ldarg.0
+            IL_0020: ldc.i4.0
+            IL_0021: stfld bool C/'<M>d__0'::'<>w__disposeMode'
+            IL_0026: ldarg.0
+            IL_0027: stloc.0
+            IL_0028: br.s IL_0032
+            IL_002a: ldc.i4.s -3
+            IL_002c: newobj instance void C/'<M>d__0'::.ctor(int32)
+            IL_0031: stloc.0
+            IL_0032: ldloc.0
+            IL_0033: ret
+        } // end of method '<M>d__0'::'System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator'
+        .method private final hidebysig newslot virtual
+            instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> MoveNextAsync () cil managed flag(2000)
+        {
+            .override method instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>::MoveNextAsync()
+            // Code size 162 (0xa2)
+            .maxstack 3
+            .locals init (
+                [0] int32,
+                [1] bool
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0006: stloc.0
+            .try
+            {
+                IL_0007: ldloc.0
+                IL_0008: ldc.i4.s -4
+                IL_000a: beq.s IL_0057
+                IL_000c: ldloc.0
+                IL_000d: ldc.i4.s -3
+                IL_000f: pop
+                IL_0010: pop
+                IL_0011: ldarg.0
+                IL_0012: ldfld bool C/'<M>d__0'::'<>w__disposeMode'
+                IL_0017: brfalse.s IL_001b
+                IL_0019: leave.s IL_008f
+                IL_001b: ldarg.0
+                IL_001c: ldc.i4.m1
+                IL_001d: dup
+                IL_001e: stloc.0
+                IL_001f: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0024: ldstr "1 "
+                IL_0029: call void [System.Console]System.Console::Write(string)
+                IL_002e: call class [System.Runtime]System.Threading.Tasks.Task [System.Runtime]System.Threading.Tasks.Task::get_CompletedTask()
+                IL_0033: call void [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::Await(class [System.Runtime]System.Threading.Tasks.Task)
+                IL_0038: ldstr "2 "
+                IL_003d: call void [System.Console]System.Console::Write(string)
+                IL_0042: ldarg.0
+                IL_0043: ldc.i4.3
+                IL_0044: stfld int32 C/'<M>d__0'::'<>2__current'
+                IL_0049: ldarg.0
+                IL_004a: ldc.i4.s -4
+                IL_004c: dup
+                IL_004d: stloc.0
+                IL_004e: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0053: ldc.i4.1
+                IL_0054: stloc.1
+                IL_0055: leave.s IL_00a0
+                IL_0057: ldarg.0
+                IL_0058: ldc.i4.m1
+                IL_0059: dup
+                IL_005a: stloc.0
+                IL_005b: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0060: ldarg.0
+                IL_0061: ldfld bool C/'<M>d__0'::'<>w__disposeMode'
+                IL_0066: brfalse.s IL_006a
+                IL_0068: leave.s IL_008f
+                IL_006a: ldstr "4 "
+                IL_006f: call void [System.Console]System.Console::Write(string)
+                IL_0074: ldarg.0
+                IL_0075: ldc.i4.1
+                IL_0076: stfld bool C/'<M>d__0'::'<>w__disposeMode'
+                IL_007b: leave.s IL_008f
+            } // end .try
+            catch [System.Runtime]System.Exception
+            {
+                IL_007d: pop
+                IL_007e: ldarg.0
+                IL_007f: ldc.i4.s -2
+                IL_0081: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0086: ldarg.0
+                IL_0087: ldc.i4.0
+                IL_0088: stfld int32 C/'<M>d__0'::'<>2__current'
+                IL_008d: rethrow
+            } // end handler
+            IL_008f: ldarg.0
+            IL_0090: ldc.i4.s -2
+            IL_0092: stfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0097: ldarg.0
+            IL_0098: ldc.i4.0
+            IL_0099: stfld int32 C/'<M>d__0'::'<>2__current'
+            IL_009e: ldc.i4.0
+            IL_009f: stloc.1
+            IL_00a0: ldloc.1
+            IL_00a1: ret
+        } // end of method '<M>d__0'::MoveNextAsync
+        .method private final hidebysig specialname newslot virtual
+            instance int32 'System.Collections.Generic.IAsyncEnumerator<System.Int32>.get_Current' () cil managed
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .override method instance !0 class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>::get_Current()
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>2__current'
+            IL_0006: ret
+        } // end of method '<M>d__0'::'System.Collections.Generic.IAsyncEnumerator<System.Int32>.get_Current'
+        .method private final hidebysig newslot virtual
+            instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync () cil managed flag(2000)
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .override method instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask [System.Runtime]System.IAsyncDisposable::DisposeAsync()
+            // Code size 46 (0x2e)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0006: ldc.i4.m1
+            IL_0007: blt.s IL_000f
+            IL_0009: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_000e: throw
+            IL_000f: ldarg.0
+            IL_0010: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0015: ldc.i4.s -2
+            IL_0017: bne.un.s IL_001a
+            IL_0019: ret
+            IL_001a: ldarg.0
+            IL_001b: ldc.i4.1
+            IL_001c: stfld bool C/'<M>d__0'::'<>w__disposeMode'
+            IL_0021: ldarg.0
+            IL_0022: callvirt instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>::MoveNextAsync()
+            IL_0027: call !!0 [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::Await<bool>(valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<!!0>)
+            IL_002c: pop
+            IL_002d: ret
+        } // end of method '<M>d__0'::System.IAsyncDisposable.DisposeAsync
+        // Properties
+        .property instance int32 'System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current'()
+        {
+            .get instance int32 C/'<M>d__0'::'System.Collections.Generic.IAsyncEnumerator<System.Int32>.get_Current'()
+        }
+    } // end of class <M>d__0
+    // Methods
+    .method public hidebysig static
+        class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<int32> M () cil managed
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute::.ctor(class [System.Runtime]System.Type) = (
+            01 00 09 43 2b 3c 4d 3e 64 5f 5f 30 00 00
+        )
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldc.i4.s -2
+        IL_0002: newobj instance void C/'<M>d__0'::.ctor(int32)
+        IL_0007: ret
+    } // end of method C::M
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [System.Runtime]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+} // end of class C
+""");
+            // PROTOTYPE should this be debugger hidden?
+            verifier.VerifyIL("C.M()", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     "C.<M>d__0..ctor(int)"
+  IL_0007:  ret
+}
+""", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      162 (0xa2)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  beq.s      IL_0057
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.s   -3
+    IL_000f:  pop
+    IL_0010:  pop
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0017:  brfalse.s  IL_001b
+    IL_0019:  leave.s    IL_008f
+    IL_001b:  ldarg.0
+    IL_001c:  ldc.i4.m1
+    IL_001d:  dup
+    IL_001e:  stloc.0
+    IL_001f:  stfld      "int C.<M>d__0.<>1__state"
+    // sequence point: Write("1 ");
+    IL_0024:  ldstr      "1 "
+    IL_0029:  call       "void System.Console.Write(string)"
+    // sequence point: await System.Threading.Tasks.Task.CompletedTask;
+    IL_002e:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0033:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+    // sequence point: Write("2 ");
+    IL_0038:  ldstr      "2 "
+    IL_003d:  call       "void System.Console.Write(string)"
+    // sequence point: yield return 3;
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.3
+    IL_0044:  stfld      "int C.<M>d__0.<>2__current"
+    IL_0049:  ldarg.0
+    IL_004a:  ldc.i4.s   -4
+    IL_004c:  dup
+    IL_004d:  stloc.0
+    IL_004e:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0053:  ldc.i4.1
+    IL_0054:  stloc.1
+    IL_0055:  leave.s    IL_00a0
+    // sequence point: <hidden>
+    IL_0057:  ldarg.0
+    IL_0058:  ldc.i4.m1
+    IL_0059:  dup
+    IL_005a:  stloc.0
+    IL_005b:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0060:  ldarg.0
+    IL_0061:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0066:  brfalse.s  IL_006a
+    IL_0068:  leave.s    IL_008f
+    // sequence point: Write("4 ");
+    IL_006a:  ldstr      "4 "
+    IL_006f:  call       "void System.Console.Write(string)"
+    IL_0074:  ldarg.0
+    IL_0075:  ldc.i4.1
+    IL_0076:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_007b:  leave.s    IL_008f
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_007d:  pop
+    IL_007e:  ldarg.0
+    IL_007f:  ldc.i4.s   -2
+    IL_0081:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.0
+    IL_0088:  stfld      "int C.<M>d__0.<>2__current"
+    IL_008d:  rethrow
+  }
+  // sequence point: }
+  IL_008f:  ldarg.0
+  IL_0090:  ldc.i4.s   -2
+  IL_0092:  stfld      "int C.<M>d__0.<>1__state"
+  // sequence point: <hidden>
+  IL_0097:  ldarg.0
+  IL_0098:  ldc.i4.0
+  IL_0099:  stfld      "int C.<M>d__0.<>2__current"
+  IL_009e:  ldc.i4.0
+  IL_009f:  stloc.1
+  IL_00a0:  ldloc.1
+  IL_00a1:  ret
+}
+""", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("C").GetTypeMember("<M>d__0");
+                var f = test.GetMethod("MoveNextAsync");
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
+            }
+        }
+
+        [Fact]
+        public void RuntimeAsync_02()
+        {
+            // scenario with parameter
+            string source = """
+using static System.Console;
+
+await using var enumerator = C.M(42).GetAsyncEnumerator();
+var found = await enumerator.MoveNextAsync();
+if (!found) throw null;
+var value = enumerator.Current;
+Write($"{value} ");
+found = await enumerator.MoveNextAsync();
+if (found) throw null;
+found = await enumerator.MoveNextAsync();
+if (found) throw null;
+Write("5");
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        Write("1 ");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write("2 ");
+        yield return value;
+        Write("4 ");
+    }
+}
+""";
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1 2 42 4 5"),
+                symbolValidator: verifyAsyncMembersAndInterfaces, verify: Verification.Skipped);
+
+            verifier.VerifyTypeIL("C", """
+.class private auto ansi beforefieldinit C
+    extends [System.Runtime]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed beforefieldinit '<M>d__0'
+        extends [System.Runtime]System.Object
+        implements class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<int32>,
+                   class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>,
+                   [System.Runtime]System.IAsyncDisposable
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public int32 '<>1__state'
+        .field private int32 '<>2__current'
+        .field private bool '<>w__disposeMode'
+        .field private int32 '<>l__initialThreadId'
+        .field private int32 'value'
+        .field public int32 '<>3__value'
+        // Methods
+        .method public hidebysig specialname rtspecialname
+            instance void .ctor (
+                int32 '<>1__state'
+            ) cil managed
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Code size 26 (0x1a)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [System.Runtime]System.Object::.ctor()
+            IL_0006: nop
+            IL_0007: ldarg.0
+            IL_0008: ldarg.1
+            IL_0009: stfld int32 C/'<M>d__0'::'<>1__state'
+            IL_000e: ldarg.0
+            IL_000f: call int32 [System.Runtime]System.Environment::get_CurrentManagedThreadId()
+            IL_0014: stfld int32 C/'<M>d__0'::'<>l__initialThreadId'
+            IL_0019: ret
+        } // end of method '<M>d__0'::.ctor
+        .method private final hidebysig newslot virtual
+            instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32> 'System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator' (
+                [opt] valuetype [System.Runtime]System.Threading.CancellationToken cancellationToken
+            ) cil managed
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .override method instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!0> class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<int32>::GetAsyncEnumerator(valuetype [System.Runtime]System.Threading.CancellationToken)
+            .param [0]
+                .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+            .param [1] = nullref
+            // Code size 64 (0x40)
+            .maxstack 2
+            .locals init (
+                [0] class C/'<M>d__0'
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0006: ldc.i4.s -2
+            IL_0008: bne.un.s IL_002a
+            IL_000a: ldarg.0
+            IL_000b: ldfld int32 C/'<M>d__0'::'<>l__initialThreadId'
+            IL_0010: call int32 [System.Runtime]System.Environment::get_CurrentManagedThreadId()
+            IL_0015: bne.un.s IL_002a
+            IL_0017: ldarg.0
+            IL_0018: ldc.i4.s -3
+            IL_001a: stfld int32 C/'<M>d__0'::'<>1__state'
+            IL_001f: ldarg.0
+            IL_0020: ldc.i4.0
+            IL_0021: stfld bool C/'<M>d__0'::'<>w__disposeMode'
+            IL_0026: ldarg.0
+            IL_0027: stloc.0
+            IL_0028: br.s IL_0032
+            IL_002a: ldc.i4.s -3
+            IL_002c: newobj instance void C/'<M>d__0'::.ctor(int32)
+            IL_0031: stloc.0
+            IL_0032: ldloc.0
+            IL_0033: ldarg.0
+            IL_0034: ldfld int32 C/'<M>d__0'::'<>3__value'
+            IL_0039: stfld int32 C/'<M>d__0'::'value'
+            IL_003e: ldloc.0
+            IL_003f: ret
+        } // end of method '<M>d__0'::'System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator'
+        .method private final hidebysig newslot virtual
+            instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> MoveNextAsync () cil managed flag(2000)
+        {
+            .override method instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>::MoveNextAsync()
+            // Code size 180 (0xb4)
+            .maxstack 3
+            .locals init (
+                [0] int32,
+                [1] bool
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0006: stloc.0
+            .try
+            {
+                IL_0007: ldloc.0
+                IL_0008: ldc.i4.s -4
+                IL_000a: beq.s IL_0015
+                IL_000c: br.s IL_000e
+                IL_000e: ldloc.0
+                IL_000f: ldc.i4.s -3
+                IL_0011: beq.s IL_0017
+                IL_0013: br.s IL_0019
+                IL_0015: br.s IL_0068
+                IL_0017: br.s IL_0019
+                IL_0019: ldarg.0
+                IL_001a: ldfld bool C/'<M>d__0'::'<>w__disposeMode'
+                IL_001f: brfalse.s IL_0023
+                IL_0021: leave.s IL_00a1
+                IL_0023: ldarg.0
+                IL_0024: ldc.i4.m1
+                IL_0025: dup
+                IL_0026: stloc.0
+                IL_0027: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_002c: nop
+                IL_002d: ldstr "1 "
+                IL_0032: call void [System.Console]System.Console::Write(string)
+                IL_0037: nop
+                IL_0038: call class [System.Runtime]System.Threading.Tasks.Task [System.Runtime]System.Threading.Tasks.Task::get_CompletedTask()
+                IL_003d: call void [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::Await(class [System.Runtime]System.Threading.Tasks.Task)
+                IL_0042: nop
+                IL_0043: ldstr "2 "
+                IL_0048: call void [System.Console]System.Console::Write(string)
+                IL_004d: nop
+                IL_004e: ldarg.0
+                IL_004f: ldarg.0
+                IL_0050: ldfld int32 C/'<M>d__0'::'value'
+                IL_0055: stfld int32 C/'<M>d__0'::'<>2__current'
+                IL_005a: ldarg.0
+                IL_005b: ldc.i4.s -4
+                IL_005d: dup
+                IL_005e: stloc.0
+                IL_005f: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0064: ldc.i4.1
+                IL_0065: stloc.1
+                IL_0066: leave.s IL_00b2
+                IL_0068: ldarg.0
+                IL_0069: ldc.i4.m1
+                IL_006a: dup
+                IL_006b: stloc.0
+                IL_006c: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0071: ldarg.0
+                IL_0072: ldfld bool C/'<M>d__0'::'<>w__disposeMode'
+                IL_0077: brfalse.s IL_007b
+                IL_0079: leave.s IL_00a1
+                IL_007b: ldstr "4 "
+                IL_0080: call void [System.Console]System.Console::Write(string)
+                IL_0085: nop
+                IL_0086: ldarg.0
+                IL_0087: ldc.i4.1
+                IL_0088: stfld bool C/'<M>d__0'::'<>w__disposeMode'
+                IL_008d: leave.s IL_00a1
+            } // end .try
+            catch [System.Runtime]System.Exception
+            {
+                IL_008f: pop
+                IL_0090: ldarg.0
+                IL_0091: ldc.i4.s -2
+                IL_0093: stfld int32 C/'<M>d__0'::'<>1__state'
+                IL_0098: ldarg.0
+                IL_0099: ldc.i4.0
+                IL_009a: stfld int32 C/'<M>d__0'::'<>2__current'
+                IL_009f: rethrow
+            } // end handler
+            IL_00a1: ldarg.0
+            IL_00a2: ldc.i4.s -2
+            IL_00a4: stfld int32 C/'<M>d__0'::'<>1__state'
+            IL_00a9: ldarg.0
+            IL_00aa: ldc.i4.0
+            IL_00ab: stfld int32 C/'<M>d__0'::'<>2__current'
+            IL_00b0: ldc.i4.0
+            IL_00b1: stloc.1
+            IL_00b2: ldloc.1
+            IL_00b3: ret
+        } // end of method '<M>d__0'::MoveNextAsync
+        .method private final hidebysig specialname newslot virtual
+            instance int32 'System.Collections.Generic.IAsyncEnumerator<System.Int32>.get_Current' () cil managed
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .override method instance !0 class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>::get_Current()
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>2__current'
+            IL_0006: ret
+        } // end of method '<M>d__0'::'System.Collections.Generic.IAsyncEnumerator<System.Int32>.get_Current'
+        .method private final hidebysig newslot virtual
+            instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync () cil managed flag(2000)
+        {
+            .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .override method instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask [System.Runtime]System.IAsyncDisposable::DisposeAsync()
+            // Code size 46 (0x2e)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0006: ldc.i4.m1
+            IL_0007: blt.s IL_000f
+            IL_0009: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_000e: throw
+            IL_000f: ldarg.0
+            IL_0010: ldfld int32 C/'<M>d__0'::'<>1__state'
+            IL_0015: ldc.i4.s -2
+            IL_0017: bne.un.s IL_001a
+            IL_0019: ret
+            IL_001a: ldarg.0
+            IL_001b: ldc.i4.1
+            IL_001c: stfld bool C/'<M>d__0'::'<>w__disposeMode'
+            IL_0021: ldarg.0
+            IL_0022: callvirt instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<int32>::MoveNextAsync()
+            IL_0027: call !!0 [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::Await<bool>(valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<!!0>)
+            IL_002c: pop
+            IL_002d: ret
+        } // end of method '<M>d__0'::System.IAsyncDisposable.DisposeAsync
+        // Properties
+        .property instance int32 'System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current'()
+        {
+            .get instance int32 C/'<M>d__0'::'System.Collections.Generic.IAsyncEnumerator<System.Int32>.get_Current'()
+        }
+    } // end of class <M>d__0
+    // Methods
+    .method public hidebysig static
+        class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<int32> M (
+            int32 'value'
+        ) cil managed
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute::.ctor(class [System.Runtime]System.Type) = (
+            01 00 09 43 2b 3c 4d 3e 64 5f 5f 30 00 00
+        )
+        // Code size 15 (0xf)
+        .maxstack 8
+        IL_0000: ldc.i4.s -2
+        IL_0002: newobj instance void C/'<M>d__0'::.ctor(int32)
+        IL_0007: dup
+        IL_0008: ldarg.0
+        IL_0009: stfld int32 C/'<M>d__0'::'<>3__value'
+        IL_000e: ret
+    } // end of method C::M
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [System.Runtime]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    } // end of method C::.ctor
+} // end of class C
+""");
+
+            static void verifyAsyncMembersAndInterfaces(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
+                AssertEx.SetEqual([
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                    "System.Int32 C.<M>d__0.<>2__current",
+                    "System.Boolean C.<M>d__0.<>w__disposeMode",
+                    "System.Int32 C.<M>d__0.<>l__initialThreadId",
+                    "System.Int32 C.<M>d__0.value",
+                    "System.Int32 C.<M>d__0.<>3__value",
+                    "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])",
+                    "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.MoveNextAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                    "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                    "System.Int32 C.<M>d__0.<>1__state"
+                    ], type.GetMembersUnordered().ToTestDisplayStrings());
+
+                AssertEx.SetEqual([
+                    "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>",
+                    "System.IAsyncDisposable"
+                    ], type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.ToTestDisplayStrings());
+            }
+        }
+
+        [Fact]
+        public void RuntimeAsync_03()
+        {
+            // scenario with yield break
+            string source = """
+using static System.Console;
+
+await using var enumerator = C.M().GetAsyncEnumerator();
+var found = await enumerator.MoveNextAsync();
+if (found) throw null;
+Write("5");
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write("1 ");
+        await System.Threading.Tasks.Task.CompletedTask;
+
+        bool b = true;
+        if (b)
+            yield break;
+
+        throw null;
+    }
+}
+""";
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1 5"));
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      100 (0x64)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -3
+    IL_000a:  pop
+    IL_000b:  pop
+    IL_000c:  ldarg.0
+    IL_000d:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0012:  brfalse.s  IL_0016
+    IL_0014:  leave.s    IL_0053
+    IL_0016:  ldarg.0
+    IL_0017:  ldc.i4.m1
+    IL_0018:  dup
+    IL_0019:  stloc.0
+    IL_001a:  stfld      "int C.<M>d__0.<>1__state"
+    IL_001f:  ldstr      "1 "
+    IL_0024:  call       "void System.Console.Write(string)"
+    IL_0029:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_002e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+    IL_0033:  ldc.i4.1
+    IL_0034:  brfalse.s  IL_003f
+    IL_0036:  ldarg.0
+    IL_0037:  ldc.i4.1
+    IL_0038:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_003d:  leave.s    IL_0053
+    IL_003f:  ldnull
+    IL_0040:  throw
+  }
+  catch System.Exception
+  {
+    IL_0041:  pop
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.s   -2
+    IL_0045:  stfld      "int C.<M>d__0.<>1__state"
+    IL_004a:  ldarg.0
+    IL_004b:  ldc.i4.0
+    IL_004c:  stfld      "int C.<M>d__0.<>2__current"
+    IL_0051:  rethrow
+  }
+  IL_0053:  ldarg.0
+  IL_0054:  ldc.i4.s   -2
+  IL_0056:  stfld      "int C.<M>d__0.<>1__state"
+  IL_005b:  ldarg.0
+  IL_005c:  ldc.i4.0
+  IL_005d:  stfld      "int C.<M>d__0.<>2__current"
+  IL_0062:  ldc.i4.0
+  IL_0063:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RuntimeAsync_04()
+        {
+            var src = """
+var enumerator = local();
+var found = await enumerator.MoveNextAsync();
+if (!found) throw null;
+System.Console.Write(enumerator.Current);
+
+found = await enumerator.MoveNextAsync();
+if (found) throw null;
+
+async System.Collections.Generic.IAsyncEnumerator<int> local()
+{
+    yield return 42;
+    await System.Threading.Tasks.Task.Yield();
+}
+""";
+            var expectedOutput = "42";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DisposeCombinedTokens_01()
+        {
+            // CombinedTokens field is disposed/cleared when exiting normally
+            string source = """
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CancellationTokenSource source1 = new CancellationTokenSource();
+CancellationToken token1 = source1.Token;
+using CancellationTokenSource source2 = new CancellationTokenSource();
+CancellationToken token2 = source2.Token;
+
+var enumerable = C.M(token1, token2, token1);
+
+var enumerator = enumerable.GetAsyncEnumerator(token2); // some other token passed
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkCombinedTokens(enumerator);
+
+if (await enumerator.MoveNextAsync()) throw null;
+System.Console.Write("end ");
+checkCombinedTokens(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkCombinedTokens(enumerator);
+
+void checkCombinedTokens<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>x__combinedTokens", BindingFlags.Instance | BindingFlags.NonPublic);
+    if (field is null) throw null;
+
+    var combinedToken = (CancellationTokenSource)field.GetValue(enumerator);
+    System.Console.Write(combinedToken is null ? "null " : "set ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token1, CancellationToken token2, [EnumeratorCancellation] CancellationToken token3)
+    {
+        if (token3.Equals(token1) || token3.Equals(token2)) throw null;
+        yield return 1;
+        await Task.Yield();
+    }
+}
+""";
+            var expectedOutput = "1 set end null disposed null";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      275 (0x113)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1,
+                bool V_2,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_3,
+                System.Runtime.CompilerServices.YieldAwaitable V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  beq.s      IL_0015
+    IL_000c:  br.s       IL_000e
+    IL_000e:  ldloc.0
+    IL_000f:  ldc.i4.s   -3
+    IL_0011:  beq.s      IL_0017
+    IL_0013:  br.s       IL_0019
+    IL_0015:  br.s       IL_0075
+    IL_0017:  br.s       IL_0019
+    IL_0019:  ldarg.0
+    IL_001a:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_001f:  brfalse.s  IL_0026
+    IL_0021:  leave      IL_00e5
+    IL_0026:  ldarg.0
+    IL_0027:  ldc.i4.m1
+    IL_0028:  dup
+    IL_0029:  stloc.0
+    IL_002a:  stfld      "int C.<M>d__0.<>1__state"
+    IL_002f:  nop
+    IL_0030:  ldarg.0
+    IL_0031:  ldflda     "System.Threading.CancellationToken C.<M>d__0.token3"
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      "System.Threading.CancellationToken C.<M>d__0.token1"
+    IL_003c:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+    IL_0041:  brtrue.s   IL_0056
+    IL_0043:  ldarg.0
+    IL_0044:  ldflda     "System.Threading.CancellationToken C.<M>d__0.token3"
+    IL_0049:  ldarg.0
+    IL_004a:  ldfld      "System.Threading.CancellationToken C.<M>d__0.token2"
+    IL_004f:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+    IL_0054:  br.s       IL_0057
+    IL_0056:  ldc.i4.1
+    IL_0057:  stloc.1
+    IL_0058:  ldloc.1
+    IL_0059:  brfalse.s  IL_005d
+    IL_005b:  ldnull
+    IL_005c:  throw
+    IL_005d:  ldarg.0
+    IL_005e:  ldc.i4.1
+    IL_005f:  stfld      "int C.<M>d__0.<>2__current"
+    IL_0064:  ldarg.0
+    IL_0065:  ldc.i4.s   -4
+    IL_0067:  dup
+    IL_0068:  stloc.0
+    IL_0069:  stfld      "int C.<M>d__0.<>1__state"
+    IL_006e:  ldc.i4.1
+    IL_006f:  stloc.2
+    IL_0070:  leave      IL_0111
+    IL_0075:  ldarg.0
+    IL_0076:  ldc.i4.m1
+    IL_0077:  dup
+    IL_0078:  stloc.0
+    IL_0079:  stfld      "int C.<M>d__0.<>1__state"
+    IL_007e:  ldarg.0
+    IL_007f:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0084:  brfalse.s  IL_0088
+    IL_0086:  leave.s    IL_00e5
+    IL_0088:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+    IL_008d:  stloc.s    V_4
+    IL_008f:  ldloca.s   V_4
+    IL_0091:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+    IL_0096:  stloc.3
+    IL_0097:  ldloca.s   V_3
+    IL_0099:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+    IL_009e:  brtrue.s   IL_00a7
+    IL_00a0:  ldloc.3
+    IL_00a1:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+    IL_00a6:  nop
+    IL_00a7:  ldloca.s   V_3
+    IL_00a9:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_00ae:  nop
+    IL_00af:  ldarg.0
+    IL_00b0:  ldc.i4.1
+    IL_00b1:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_00b6:  leave.s    IL_00e5
+  }
+  catch System.Exception
+  {
+    IL_00b8:  pop
+    IL_00b9:  ldarg.0
+    IL_00ba:  ldc.i4.s   -2
+    IL_00bc:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00c1:  ldarg.0
+    IL_00c2:  ldfld      "System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens"
+    IL_00c7:  brfalse.s  IL_00dc
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldfld      "System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens"
+    IL_00cf:  callvirt   "void System.Threading.CancellationTokenSource.Dispose()"
+    IL_00d4:  nop
+    IL_00d5:  ldarg.0
+    IL_00d6:  ldnull
+    IL_00d7:  stfld      "System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens"
+    IL_00dc:  ldarg.0
+    IL_00dd:  ldc.i4.0
+    IL_00de:  stfld      "int C.<M>d__0.<>2__current"
+    IL_00e3:  rethrow
+  }
+  IL_00e5:  ldarg.0
+  IL_00e6:  ldc.i4.s   -2
+  IL_00e8:  stfld      "int C.<M>d__0.<>1__state"
+  IL_00ed:  ldarg.0
+  IL_00ee:  ldfld      "System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens"
+  IL_00f3:  brfalse.s  IL_0108
+  IL_00f5:  ldarg.0
+  IL_00f6:  ldfld      "System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens"
+  IL_00fb:  callvirt   "void System.Threading.CancellationTokenSource.Dispose()"
+  IL_0100:  nop
+  IL_0101:  ldarg.0
+  IL_0102:  ldnull
+  IL_0103:  stfld      "System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens"
+  IL_0108:  ldarg.0
+  IL_0109:  ldc.i4.0
+  IL_010a:  stfld      "int C.<M>d__0.<>2__current"
+  IL_010f:  ldc.i4.0
+  IL_0110:  stloc.2
+  IL_0111:  ldloc.2
+  IL_0112:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void DisposeCombinedTokens_02()
+        {
+            // CombinedTokens field is disposed/cleared when exiting with exception
+            string source = """
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CancellationTokenSource source1 = new CancellationTokenSource();
+CancellationToken token1 = source1.Token;
+using CancellationTokenSource source2 = new CancellationTokenSource();
+CancellationToken token2 = source2.Token;
+
+var enumerable = C.M(token1, token2, token1);
+
+var enumerator = enumerable.GetAsyncEnumerator(token2); // some other token passed
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkCombinedTokens(enumerator);
+
+try
+{
+    await enumerator.MoveNextAsync();
+    throw null;
+}
+catch (System.Exception)
+{
+    System.Console.Write("caught ");
+    checkCombinedTokens(enumerator);
+}
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkCombinedTokens(enumerator);
+
+void checkCombinedTokens<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>x__combinedTokens", BindingFlags.Instance | BindingFlags.NonPublic);
+    if (field is null) throw null;
+
+    var combinedToken = (CancellationTokenSource)field.GetValue(enumerator);
+    System.Console.Write(combinedToken is null ? "null " : "set ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token1, CancellationToken token2, [EnumeratorCancellation] CancellationToken token3)
+    {
+        if (token3.Equals(token1) || token3.Equals(token2)) throw null;
+        yield return 1;
+        await Task.Yield();
+        throw new System.Exception("exception ");
+    }
+}
+""";
+            var expectedOutput = "1 set caught null disposed null";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DisposeCombinedTokens_03()
+        {
+            // CombinedTokens field is disposed/cleared when exiting with yield break
+            string source = """
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CancellationTokenSource source1 = new CancellationTokenSource();
+CancellationToken token1 = source1.Token;
+using CancellationTokenSource source2 = new CancellationTokenSource();
+CancellationToken token2 = source2.Token;
+
+var enumerable = C.M(token1, token2, token1);
+
+var enumerator = enumerable.GetAsyncEnumerator(token2); // some other token passed
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkCombinedTokens(enumerator);
+
+if (await enumerator.MoveNextAsync()) throw null;
+System.Console.Write("end ");
+checkCombinedTokens(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkCombinedTokens(enumerator);
+
+void checkCombinedTokens<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>x__combinedTokens", BindingFlags.Instance | BindingFlags.NonPublic);
+    if (field is null) throw null;
+
+    var combinedToken = (CancellationTokenSource)field.GetValue(enumerator);
+    System.Console.Write(combinedToken is null ? "null " : "set ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token1, CancellationToken token2, [EnumeratorCancellation] CancellationToken token3)
+    {
+        if (token3.Equals(token1) || token3.Equals(token2)) throw null;
+        yield return 1;
+        await Task.Yield();
+        bool b = true;
+        if (b) yield break;
+
+        throw null;
+    }
+}
+""";
+            var expectedOutput = "1 set end null disposed null";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_01()
+        {
+            // Observe state when enumeration terminates normally
+            string source = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var enumerable = C.M();
+
+var enumerator = enumerable.GetAsyncEnumerator();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+if (await enumerator.MoveNextAsync()) throw null;
+System.Console.Write("end ");
+checkState(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+        await Task.Yield();
+    }
+}
+""";
+            var expectedOutput = "-3 1 -4 end -2 disposed -2";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_02()
+        {
+            // Observe state when enumeration terminates with exception
+            string source = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var enumerable = C.M();
+var enumerator = enumerable.GetAsyncEnumerator();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+try
+{
+    await enumerator.MoveNextAsync();
+    throw null;
+}
+catch (System.Exception)
+{
+    System.Console.Write("caught ");
+    checkState(enumerator);
+}
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+        await Task.Yield();
+        throw new System.Exception("exception ");
+    }
+}
+""";
+            var expectedOutput = "-3 1 -4 caught -2 disposed -2";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_03()
+        {
+            // Observe state when enumeration terminates with yield break
+            string source = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var enumerable = C.M();
+var enumerator = enumerable.GetAsyncEnumerator();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+if (await enumerator.MoveNextAsync()) throw null;
+System.Console.Write("end ");
+checkState(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+        await Task.Yield();
+        bool b = true;
+        if (b) yield break;
+
+        throw null;
+    }
+}
+""";
+            var expectedOutput = "-3 1 -4 end -2 disposed -2";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_04()
+        {
+            // Observe state when enumeration terminates with early disposal
+            string source = """
+using System.Reflection;
+
+var enumerable = C.M();
+var enumerator = enumerable.GetAsyncEnumerator();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+        throw null;
+    }
+}
+""";
+            var expectedOutput = "-3 1 -4 disposed -2";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_05()
+        {
+            // Observe state when running
+            string source = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var tcs = new System.Threading.Tasks.TaskCompletionSource();
+var enumerable = C.M(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write("waiting ");
+checkState(enumerator);
+
+tcs.SetResult();
+if (await promise) throw null;
+System.Console.Write("done ");
+checkState(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(Task task)
+    {
+        yield return 1;
+        await task;
+    }
+}
+""";
+
+            // Note: states for await suspensions are increasing from 0
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("-3 1 -4 waiting 0 done -2 disposed -2"), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            // Note: the state machine is in running state when in an await
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("-3 1 -4 waiting -1 done -2 disposed -2"), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_06()
+        {
+            // Observe state when running during early disposal
+            string source = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+var promise = enumerator.DisposeAsync();
+System.Console.Write("waiting ");
+checkState(enumerator);
+
+tcs.SetResult();
+await promise;
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(Task task)
+    {
+        try
+        {
+            yield return 1;
+            throw null;
+        }
+        finally
+        {
+            await task;
+        }
+
+        throw null;
+    }
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("-3 1 -4 waiting 0 disposed -2"), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("-3 1 -4 waiting -1 disposed -2"), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObserveState_07()
+        {
+            // Observe state when enumeration terminates normally, enumerator
+            string source = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var enumerator = C.M();
+checkState(enumerator);
+
+if (!await enumerator.MoveNextAsync()) throw null;
+System.Console.Write($"{enumerator.Current} "); // 1
+checkState(enumerator);
+
+if (await enumerator.MoveNextAsync()) throw null;
+System.Console.Write("end ");
+checkState(enumerator);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+checkState(enumerator);
+
+void checkState<T>(System.Collections.Generic.IAsyncEnumerator<T> enumerator)
+{
+    var type = enumerator.GetType();
+    var field = type.GetField("<>1__state", BindingFlags.Instance | BindingFlags.Public);
+    if (field is null) throw null;
+
+    System.Console.Write($"{field.GetValue(enumerator)} ");
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        yield return 1;
+        await Task.Yield();
+    }
+}
+""";
+            var expectedOutput = "-3 1 -4 end -2 disposed -2";
+
+            var comp = CreateCompilationWithAsyncIterator([source, EnumeratorCancellationAttributeType], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefHoisting_01()
+        {
+            // an await in the middle of a compound assignment involving a ref temp
+            string source = """
+using System.Threading.Tasks;
+
+await foreach (var i in C.M()) 
+{
+    System.Console.Write(i);
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        var array = new int[] { 42 };
+        GetArray(array)[await GetIndexAsync()] += await GetIncrementAsync();
+        yield return array[0];
+    }
+
+    static int[] GetArray(int[] array)
+    {
+        System.Console.Write("GetArray() "); 
+        return array;
+    }
+
+    static async Task<int> GetIndexAsync()
+    {
+        System.Console.Write("GetIndexAsync() "); 
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> GetIncrementAsync()
+    {
+        System.Console.Write("GetIncrementAsync() "); 
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+            var expectedOutput = "GetArray() GetIndexAsync() GetIncrementAsync() 43";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("DebuggerHiddenAttribute")]
+        [InlineData("DebuggerNonUserCodeAttribute")]
+        [InlineData("DebuggerStepperBoundaryAttribute")]
+        [InlineData("DebuggerStepThroughAttribute")]
+        public void KickoffMethodAttributes_01(string attribute)
+        {
+            string source = $$"""
+class C
+{
+    [System.Diagnostics.{{attribute}}]
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+""";
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetTypeMember("C").GetTypeMember("<M>d__0").GetMethod("MoveNextAsync");
+                AssertEx.SetEqual([attribute], GetAttributeNames(method.GetAttributes()));
+            });
+        }
+
+        [Fact]
+        public void KickoffMethodAttributes_02()
+        {
+            string source = """
+class C
+{
+    [My]
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+class MyAttribute : System.Attribute { }
+""";
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: module =>
+            {
+                var moveNextMethod = module.GlobalNamespace.GetTypeMember("C").GetTypeMember("<M>d__0").GetMethod("MoveNextAsync");
+                Assert.Empty(moveNextMethod.GetAttributes());
+
+                var mMethod = module.GlobalNamespace.GetTypeMember("C").GetMethod("M");
+                AssertEx.SetEqual(["System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute(typeof(C.<M>d__0))", "MyAttribute"], mMethod.GetAttributes().ToStrings());
+            });
+        }
+
+        [Fact]
+        public void Lock_01()
+        {
+            // yield return in lock body, with Lock type
+            string source = """
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(System.Threading.Lock l)
+    {
+        lock (l)
+        {
+            System.Console.Write(1);
+            yield return 2;
+            System.Console.Write(3);
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            comp.VerifyEmitDiagnostics(
+                // (5,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
+                //         lock (l)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "l").WithArguments("System.Threading.Lock.Scope").WithLocation(5, 15));
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
+                //         lock (l)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "l").WithArguments("System.Threading.Lock.Scope").WithLocation(5, 15));
+        }
+
+        [Fact]
+        public void Lock_02()
+        {
+            // yield return in lock body, with object type, async-enumerable
+            string source = """
+object o = new object();
+await foreach (var i in C.M(o)) 
+{
+    System.Console.Write(i);
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(object o)
+    {
+        lock (o)
+        {
+            System.Console.Write(1);
+            yield return 2;
+            System.Console.Write(3);
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+
+namespace System.Threading
+{
+    public class Monitor
+    {
+        public static void Enter(object obj, ref bool lockTaken)
+        {
+            System.Console.Write("Enter ");
+            lockTaken = true;
+        }
+
+        public static void Exit(object obj)
+        {
+            System.Console.Write(" Exit");
+        }
+    }
+}
+""";
+
+            var expectedOutput = "Enter 123 Exit";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      406 (0x196)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                C.<M>d__0 V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_004d,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_0104)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_015b
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      "int C.<M>d__0.<>1__state"
+    IL_003a:  ldarg.0
+    IL_003b:  ldarg.0
+    IL_003c:  ldfld      "object C.<M>d__0.o"
+    IL_0041:  stfld      "object C.<M>d__0.<>7__wrap1"
+    IL_0046:  ldarg.0
+    IL_0047:  ldc.i4.0
+    IL_0048:  stfld      "bool C.<M>d__0.<>7__wrap2"
+    IL_004d:  nop
+    .try
+    {
+      IL_004e:  ldloc.0
+      IL_004f:  ldc.i4.s   -4
+      IL_0051:  beq.s      IL_0080
+      IL_0053:  ldarg.0
+      IL_0054:  ldfld      "object C.<M>d__0.<>7__wrap1"
+      IL_0059:  ldarg.0
+      IL_005a:  ldflda     "bool C.<M>d__0.<>7__wrap2"
+      IL_005f:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+      IL_0064:  ldc.i4.1
+      IL_0065:  call       "void System.Console.Write(int)"
+      IL_006a:  ldarg.0
+      IL_006b:  ldc.i4.2
+      IL_006c:  stfld      "int C.<M>d__0.<>2__current"
+      IL_0071:  ldarg.0
+      IL_0072:  ldc.i4.s   -4
+      IL_0074:  dup
+      IL_0075:  stloc.0
+      IL_0076:  stfld      "int C.<M>d__0.<>1__state"
+      IL_007b:  leave      IL_0189
+      IL_0080:  ldarg.0
+      IL_0081:  ldc.i4.m1
+      IL_0082:  dup
+      IL_0083:  stloc.0
+      IL_0084:  stfld      "int C.<M>d__0.<>1__state"
+      IL_0089:  ldarg.0
+      IL_008a:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+      IL_008f:  brfalse.s  IL_0093
+      IL_0091:  leave.s    IL_00b3
+      IL_0093:  ldc.i4.3
+      IL_0094:  call       "void System.Console.Write(int)"
+      IL_0099:  leave.s    IL_00b3
+    }
+    finally
+    {
+      IL_009b:  ldloc.0
+      IL_009c:  ldc.i4.m1
+      IL_009d:  bne.un.s   IL_00b2
+      IL_009f:  ldarg.0
+      IL_00a0:  ldfld      "bool C.<M>d__0.<>7__wrap2"
+      IL_00a5:  brfalse.s  IL_00b2
+      IL_00a7:  ldarg.0
+      IL_00a8:  ldfld      "object C.<M>d__0.<>7__wrap1"
+      IL_00ad:  call       "void System.Threading.Monitor.Exit(object)"
+      IL_00b2:  endfinally
+    }
+    IL_00b3:  ldarg.0
+    IL_00b4:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_00b9:  brfalse.s  IL_00c0
+    IL_00bb:  leave      IL_015b
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldnull
+    IL_00c2:  stfld      "object C.<M>d__0.<>7__wrap1"
+    IL_00c7:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+    IL_00cc:  stloc.2
+    IL_00cd:  ldloca.s   V_2
+    IL_00cf:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+    IL_00d4:  stloc.1
+    IL_00d5:  ldloca.s   V_1
+    IL_00d7:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+    IL_00dc:  brtrue.s   IL_0120
+    IL_00de:  ldarg.0
+    IL_00df:  ldc.i4.0
+    IL_00e0:  dup
+    IL_00e1:  stloc.0
+    IL_00e2:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00e7:  ldarg.0
+    IL_00e8:  ldloc.1
+    IL_00e9:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M>d__0.<>u__1"
+    IL_00ee:  ldarg.0
+    IL_00ef:  stloc.3
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+    IL_00f6:  ldloca.s   V_1
+    IL_00f8:  ldloca.s   V_3
+    IL_00fa:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<M>d__0)"
+    IL_00ff:  leave      IL_0195
+    IL_0104:  ldarg.0
+    IL_0105:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M>d__0.<>u__1"
+    IL_010a:  stloc.1
+    IL_010b:  ldarg.0
+    IL_010c:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M>d__0.<>u__1"
+    IL_0111:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0117:  ldarg.0
+    IL_0118:  ldc.i4.m1
+    IL_0119:  dup
+    IL_011a:  stloc.0
+    IL_011b:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0120:  ldloca.s   V_1
+    IL_0122:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_0127:  leave.s    IL_015b
+  }
+  catch System.Exception
+  {
+    IL_0129:  stloc.s    V_4
+    IL_012b:  ldarg.0
+    IL_012c:  ldc.i4.s   -2
+    IL_012e:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0133:  ldarg.0
+    IL_0134:  ldnull
+    IL_0135:  stfld      "object C.<M>d__0.<>7__wrap1"
+    IL_013a:  ldarg.0
+    IL_013b:  ldc.i4.0
+    IL_013c:  stfld      "int C.<M>d__0.<>2__current"
+    IL_0141:  ldarg.0
+    IL_0142:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+    IL_0147:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_014c:  ldarg.0
+    IL_014d:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+    IL_0152:  ldloc.s    V_4
+    IL_0154:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_0159:  leave.s    IL_0195
+  }
+  IL_015b:  ldarg.0
+  IL_015c:  ldc.i4.s   -2
+  IL_015e:  stfld      "int C.<M>d__0.<>1__state"
+  IL_0163:  ldarg.0
+  IL_0164:  ldnull
+  IL_0165:  stfld      "object C.<M>d__0.<>7__wrap1"
+  IL_016a:  ldarg.0
+  IL_016b:  ldc.i4.0
+  IL_016c:  stfld      "int C.<M>d__0.<>2__current"
+  IL_0171:  ldarg.0
+  IL_0172:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+  IL_0177:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_017c:  ldarg.0
+  IL_017d:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+  IL_0182:  ldc.i4.0
+  IL_0183:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0188:  ret
+  IL_0189:  ldarg.0
+  IL_018a:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+  IL_018f:  ldc.i4.1
+  IL_0190:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0195:  ret
+}
+""");
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", """
+{
+  // Code size      275 (0x113)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                System.Runtime.CompilerServices.YieldAwaitable V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  beq.s      IL_003a
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.s   -3
+    IL_000f:  pop
+    IL_0010:  pop
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0017:  brfalse.s  IL_001e
+    IL_0019:  leave      IL_00f9
+    IL_001e:  ldarg.0
+    IL_001f:  ldc.i4.m1
+    IL_0020:  dup
+    IL_0021:  stloc.0
+    IL_0022:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0027:  ldarg.0
+    IL_0028:  ldarg.0
+    IL_0029:  ldfld      "object C.<M>d__0.o"
+    IL_002e:  stfld      "object C.<M>d__0.<>7__wrap1"
+    IL_0033:  ldarg.0
+    IL_0034:  ldc.i4.0
+    IL_0035:  stfld      "bool C.<M>d__0.<>7__wrap2"
+    IL_003a:  nop
+    .try
+    {
+      IL_003b:  ldloc.0
+      IL_003c:  ldc.i4.s   -4
+      IL_003e:  beq.s      IL_006f
+      IL_0040:  ldarg.0
+      IL_0041:  ldfld      "object C.<M>d__0.<>7__wrap1"
+      IL_0046:  ldarg.0
+      IL_0047:  ldflda     "bool C.<M>d__0.<>7__wrap2"
+      IL_004c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+      IL_0051:  ldc.i4.1
+      IL_0052:  call       "void System.Console.Write(int)"
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.i4.2
+      IL_0059:  stfld      "int C.<M>d__0.<>2__current"
+      IL_005e:  ldarg.0
+      IL_005f:  ldc.i4.s   -4
+      IL_0061:  dup
+      IL_0062:  stloc.0
+      IL_0063:  stfld      "int C.<M>d__0.<>1__state"
+      IL_0068:  ldc.i4.1
+      IL_0069:  stloc.1
+      IL_006a:  leave      IL_0111
+      IL_006f:  ldarg.0
+      IL_0070:  ldc.i4.m1
+      IL_0071:  dup
+      IL_0072:  stloc.0
+      IL_0073:  stfld      "int C.<M>d__0.<>1__state"
+      IL_0078:  ldarg.0
+      IL_0079:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+      IL_007e:  brfalse.s  IL_0082
+      IL_0080:  leave.s    IL_00a2
+      IL_0082:  ldc.i4.3
+      IL_0083:  call       "void System.Console.Write(int)"
+      IL_0088:  leave.s    IL_00a2
+    }
+    finally
+    {
+      IL_008a:  ldloc.0
+      IL_008b:  ldc.i4.m1
+      IL_008c:  bne.un.s   IL_00a1
+      IL_008e:  ldarg.0
+      IL_008f:  ldfld      "bool C.<M>d__0.<>7__wrap2"
+      IL_0094:  brfalse.s  IL_00a1
+      IL_0096:  ldarg.0
+      IL_0097:  ldfld      "object C.<M>d__0.<>7__wrap1"
+      IL_009c:  call       "void System.Threading.Monitor.Exit(object)"
+      IL_00a1:  endfinally
+    }
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_00a8:  brfalse.s  IL_00ac
+    IL_00aa:  leave.s    IL_00f9
+    IL_00ac:  ldarg.0
+    IL_00ad:  ldnull
+    IL_00ae:  stfld      "object C.<M>d__0.<>7__wrap1"
+    IL_00b3:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+    IL_00b8:  stloc.3
+    IL_00b9:  ldloca.s   V_3
+    IL_00bb:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+    IL_00c0:  stloc.2
+    IL_00c1:  ldloca.s   V_2
+    IL_00c3:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+    IL_00c8:  brtrue.s   IL_00d0
+    IL_00ca:  ldloc.2
+    IL_00cb:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+    IL_00d0:  ldloca.s   V_2
+    IL_00d2:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldc.i4.1
+    IL_00d9:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_00de:  leave.s    IL_00f9
+  }
+  catch System.Exception
+  {
+    IL_00e0:  pop
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldc.i4.s   -2
+    IL_00e4:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00e9:  ldarg.0
+    IL_00ea:  ldnull
+    IL_00eb:  stfld      "object C.<M>d__0.<>7__wrap1"
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldc.i4.0
+    IL_00f2:  stfld      "int C.<M>d__0.<>2__current"
+    IL_00f7:  rethrow
+  }
+  IL_00f9:  ldarg.0
+  IL_00fa:  ldc.i4.s   -2
+  IL_00fc:  stfld      "int C.<M>d__0.<>1__state"
+  IL_0101:  ldarg.0
+  IL_0102:  ldnull
+  IL_0103:  stfld      "object C.<M>d__0.<>7__wrap1"
+  IL_0108:  ldarg.0
+  IL_0109:  ldc.i4.0
+  IL_010a:  stfld      "int C.<M>d__0.<>2__current"
+  IL_010f:  ldc.i4.0
+  IL_0110:  stloc.1
+  IL_0111:  ldloc.1
+  IL_0112:  ret
+}
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Iterator)]
+        public void Lock_03()
+        {
+            // yield return in lock body, with object type, enumerable
+            string source = """
+object o = new object();
+foreach (var i in C.M(o)) 
+{
+    System.Console.Write(i);
+}
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> M(object o)
+    {
+        lock (o)
+        {
+            System.Console.Write(1);
+            yield return 2;
+            System.Console.Write(3);
+        }
+    }
+}
+
+namespace System.Threading
+{
+    public class Monitor
+    {
+        public static void Enter(object obj, ref bool lockTaken)
+        {
+            System.Console.Write("Enter ");
+            lockTaken = true;
+        }
+
+        public static void Exit(object obj)
+        {
+            System.Console.Write(" Exit");
+        }
+    }
+}
+""";
+
+            var expectedOutput = "Enter 123 Exit";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Lock_04()
+        {
+            // yield break in lock body
+            string source = """
+object o = new object();
+await foreach (var i in C.M(o)) 
+{
+    throw null;
+}
+
+System.Console.Write(2);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(object o)
+    {
+        await System.Threading.Tasks.Task.Yield();
+
+        lock (o)
+        {
+            bool b = true;
+            if (b)
+            {
+                System.Console.Write(1);
+                yield break;
+            }
+
+            throw null;
+        }
+    }
+}
+""";
+
+            var expected = "12";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Lock_05()
+        {
+            // await in lock body
+            string source = """
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(object o)
+    {
+        lock (o)
+        {
+            await System.Threading.Tasks.Task.Yield();
+        }
+
+        yield return 0;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS1996: Cannot await in the body of a lock statement
+                //             await System.Threading.Tasks.Task.Yield();
+                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await System.Threading.Tasks.Task.Yield()").WithLocation(7, 13));
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS1996: Cannot await in the body of a lock statement
+                //             await System.Threading.Tasks.Task.Yield();
+                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await System.Threading.Tasks.Task.Yield()").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void Using_01()
+        {
+            // yield return in using, normal exit
+            string source = """
+D d = new D();
+await foreach (var i in C.M(d))
+{
+    System.Console.Write(i);
+}
+
+System.Console.Write(5);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(System.IDisposable d)
+    {
+        using (d)
+        {
+            System.Console.Write(1);
+            yield return 2;
+            System.Console.Write(3);
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+
+class D : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(4);
+    }
+}
+""";
+
+            var expected = "12345";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_02()
+        {
+            // yield return in using, break
+            string source = """
+D d = new D();
+await foreach (var i in C.M(d))
+{
+    System.Console.Write(i);
+    break;
+}
+
+System.Console.Write(4);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(System.IDisposable d)
+    {
+        await System.Threading.Tasks.Task.Yield();
+
+        using (d)
+        {
+            System.Console.Write(1);
+            yield return 2;
+            throw null;
+        }
+    }
+}
+
+class D : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(3);
+    }
+}
+""";
+
+            var expected = "1234";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_03()
+        {
+            // yield return in using, throw
+            string source = """
+D d = new D();
+try
+{
+    await foreach (var i in C.M(d))
+    {
+        break;
+    }
+}
+catch (System.Exception)
+{
+    System.Console.Write(3);
+    return;
+}
+
+throw null;
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(System.IDisposable d)
+    {
+        using (d)
+        {
+            bool b = true;
+            if (b)
+            {
+                System.Console.Write(1);
+                throw new System.Exception();
+            }
+
+            yield return 2;
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+
+class D : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(2);
+    }
+}
+""";
+
+            var expected = "123";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_04()
+        {
+            // yield break in using
+            string source = """
+System.IDisposable d = new D();
+await foreach (var i in C.M(d)) 
+{
+    throw null;
+}
+
+System.Console.Write(3);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(System.IDisposable d)
+    {
+        await System.Threading.Tasks.Task.Yield();
+
+        using (d)
+        {
+            bool b = true;
+            if (b)
+            {
+                System.Console.Write(1);
+                yield break;
+            }
+
+            throw null;
+        }
+
+        throw null;
+    }
+}
+
+class D : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(2);
+    }
+}
+""";
+
+            var expected = "123";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_05()
+        {
+            // await in using
+            string source = """
+System.IDisposable d = new D();
+await foreach (var i in C.M(d)) 
+{
+    System.Console.Write(i);
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M(System.IDisposable d)
+    {
+        using (d)
+        {
+            System.Console.Write(1);
+            await System.Threading.Tasks.Task.Yield();
+            System.Console.Write(2);
+        }
+
+        yield return 4;
+    }
+}
+
+class D : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(3);
+    }
+}
+""";
+
+            var expected = "1234";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
     }
 }

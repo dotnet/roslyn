@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(containingType,
                    originalMethod,
                    blockSyntax,
-                   originalMethod.DeclaringSyntaxReferences[0].GetLocation(),
+                   originalMethod.GetFirstLocationOrNone(),
                    originalMethod is { MethodKind: MethodKind.LocalFunction }
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),

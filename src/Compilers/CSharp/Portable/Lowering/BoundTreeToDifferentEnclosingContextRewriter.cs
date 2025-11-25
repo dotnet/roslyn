@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract MethodSymbol CurrentMethod { get; }
 
+        /// <summary>
+        /// Tells the rewriter whether it must create new `LocalSymbol` instances whose `ContainingSymbol` matches the new method context
+        /// even when a local’s type did not change.
+        /// That's the correct thing to do, but in some scenarios we can skip it to avoid extra allocations.
+        /// </summary>
         protected abstract bool EnforceAccurateContainerForLocals { get; }
 
         public override BoundNode DefaultVisit(BoundNode node)

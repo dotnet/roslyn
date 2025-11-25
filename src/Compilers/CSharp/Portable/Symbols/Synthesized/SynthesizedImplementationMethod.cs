@@ -168,11 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public sealed override bool IsAsync
-        {
-            get { return false; }
-        }
-
         public sealed override bool IsVirtual
         {
             get { return false; }
@@ -211,11 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasSpecialName
         {
             get { return _interfaceMethod.HasSpecialName; }
-        }
-
-        internal sealed override System.Reflection.MethodImplAttributes ImplementationAttributes
-        {
-            get { return default(System.Reflection.MethodImplAttributes); }
         }
 
         internal sealed override bool RequiresSecurityObject

@@ -56,25 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithAwaitLifted;
             }
 
-            CSharpCompilation compilation = method.DeclaringCompilation;
-            bool isAsyncEnumerableOrEnumerator = method.IsAsyncReturningIAsyncEnumerable(compilation) ||
-                method.IsAsyncReturningIAsyncEnumerator(compilation);
-            if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
-            {
-                bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
-                diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
-                    method.GetFirstLocation());
-
-                stateMachineType = null;
-                return bodyWithAwaitLifted;
-            }
-
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             // For async-iterators, we also need to generate a class.
             var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
 
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
+
+            CSharpCompilation compilation = method.DeclaringCompilation;
+            bool isAsyncEnumerableOrEnumerator = method.IsAsyncReturningIAsyncEnumerable(compilation) ||
+                method.IsAsyncReturningIAsyncEnumerator(compilation);
 
             AsyncRewriter rewriter = isAsyncEnumerableOrEnumerator
                 ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
@@ -125,11 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
-        }
-
-        private Symbol EnsureWellKnownMember(WellKnownMember member, BindingDiagnosticBag bag)
-        {
-            return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
         protected override bool PreserveInitialParameterValuesAndThreadId
@@ -299,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Note: do not use a static/singleton instance of this type, as it holds state.
         /// </summary>
-        private class AwaitDetector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        internal class AwaitDetector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private bool _sawAwait;
 

@@ -769,26 +769,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     try
                     {
-                        // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
-                        IteratorStateMachine iteratorStateMachine;
-                        BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
-                        StateMachineTypeSymbol stateMachine = iteratorStateMachine;
-
-                        if (!loweredBody.HasErrors)
-                        {
-                            AsyncStateMachine asyncStateMachine = null;
-                            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
-                            {
-                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
-                            }
-                            else
-                            {
-                                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
-                            }
-
-                            Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
-                            stateMachine = stateMachine ?? asyncStateMachine;
-                        }
+                        BoundStatement loweredBody;
+                        StateMachineTypeSymbol stateMachine;
+                        loweredBody = LowerToStateMachineIfNeeded(methodWithBody.Method, methodWithBody.Body,
+                            compilationState, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, diagnosticsThisMethod,
+                            out stateMachine);
 
                         SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
 
@@ -845,6 +830,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateMachineStateDebugInfoBuilder.Free();
             }
         }
+
+#nullable enable
+        private static BoundStatement LowerToStateMachineIfNeeded(
+            MethodSymbol method,
+            BoundStatement body,
+            TypeCompilationState compilationState,
+            int methodOrdinal,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
+            VariableSlotAllocator variableSlotAllocatorOpt,
+            BindingDiagnosticBag diagnosticsThisMethod,
+            out StateMachineTypeSymbol? stateMachine)
+        {
+            if (method is SynthesizedStateMachineMoveNextMethod { IsAsync: true })
+            {
+                // "MoveNextAsync" is a runtime-async method, but it has already been lowered
+                Debug.Assert(method.Name is WellKnownMemberNames.MoveNextAsyncMethodName);
+                stateMachine = null;
+                return body;
+            }
+
+            // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
+            IteratorStateMachine? iteratorStateMachine;
+            BoundStatement loweredBody = IteratorRewriter.Rewrite(body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+            stateMachine = iteratorStateMachine;
+
+            if (loweredBody.HasErrors
+                || reportMissingYieldInAsyncIterator(loweredBody, method, diagnosticsThisMethod))
+            {
+                return loweredBody;
+            }
+
+            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+            {
+                if (method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation)
+                    || method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation))
+                {
+                    RuntimeAsyncIteratorStateMachine? runtimeAsyncIteratorStateMachine;
+                    loweredBody = RuntimeAsyncIteratorRewriter.Rewrite(loweredBody, method,
+                        methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod,
+                        out runtimeAsyncIteratorStateMachine);
+
+                    Debug.Assert(runtimeAsyncIteratorStateMachine is not null);
+                    stateMachine = runtimeAsyncIteratorStateMachine;
+                }
+                else
+                {
+                    loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                }
+            }
+            else
+            {
+                AsyncStateMachine? asyncStateMachine;
+                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                Debug.Assert((object?)iteratorStateMachine == null || (object?)asyncStateMachine == null);
+                stateMachine = stateMachine ?? asyncStateMachine;
+            }
+
+            return loweredBody;
+
+            static bool reportMissingYieldInAsyncIterator(BoundStatement body, MethodSymbol method, BindingDiagnosticBag diagnostics)
+            {
+                CSharpCompilation compilation = method.DeclaringCompilation;
+                bool isAsyncEnumerableOrEnumerator = method.IsAsyncReturningIAsyncEnumerable(compilation) ||
+                    method.IsAsyncReturningIAsyncEnumerator(compilation);
+
+                if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
+                {
+                    bool containsAwait = AsyncRewriter.AwaitDetector.ContainsAwait(body);
+                    diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
+                        method.GetFirstLocation());
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
@@ -1585,28 +1648,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
-                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
-                    out IteratorStateMachine iteratorStateMachine);
-
-                if (bodyWithoutIterators.HasErrors)
-                {
-                    return bodyWithoutIterators;
-                }
-
-                BoundStatement bodyWithoutAsync;
-                AsyncStateMachine asyncStateMachine = null;
-                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
-                {
-                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
-                }
-                else
-                {
-                    bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
-                       out asyncStateMachine);
-                }
-
-                Debug.Assert(iteratorStateMachine is null || asyncStateMachine is null);
-                stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
+                BoundStatement bodyWithoutAsync = LowerToStateMachineIfNeeded(method, bodyWithoutLambdas,
+                    compilationState, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, diagnostics,
+                    out stateMachineTypeOpt);
 
                 return bodyWithoutAsync;
             }
@@ -1666,8 +1710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isAsyncStateMachine;
                 MethodSymbol kickoffMethod;
 
-                if (method is SynthesizedStateMachineMethod stateMachineMethod &&
-                    method.Name == WellKnownMemberNames.MoveNextMethodName)
+                if (method is SynthesizedStateMachineMoveNextMethod stateMachineMethod)
                 {
                     kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod;
                     Debug.Assert(kickoffMethod != null);

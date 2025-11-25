@@ -737,9 +737,16 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                     Console.Write(y);
                 }
             }
-            """ + AsyncStreamsTypes;
-        var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "-1 456").VerifyDiagnostics();
+            """;
+
+        var expectedOutput = "-1 456";
+
+        var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -791,9 +798,15 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                     yield return -1; await Task.Yield();
                 }
             }
-            """ + AsyncStreamsTypes;
-        var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "123-1").VerifyDiagnostics();
+            """;
+
+        var expectedOutput = "123-1";
+        var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -1003,7 +1016,13 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, expectedOutput: IfSpans("-1 456"), verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+
+        var expectedOutput = IfSpans("-1 456");
+        CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+
+        var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -1128,9 +1147,14 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                     Console.Write(y.GetHashCode());
                 }
             }
-            """ + AsyncStreamsTypes;
-        var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "-1 0").VerifyDiagnostics();
+            """;
+        var expectedOutput = "-1 0";
+        var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -1202,9 +1226,14 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                     System.Console.Write(y);
                 }
             }
-            """ + AsyncStreamsTypes;
-        var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+            """;
+        var expectedOutput = "123";
+        var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -1253,7 +1282,12 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, expectedOutput: IfSpans("123"), verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        var expectedOutput = IfSpans("123");
+        CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+
+        var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -1301,8 +1335,13 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
                     Console.Write(x + t.GetHashCode());
                 }
             }
-            """ + AsyncStreamsTypes;
-        var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+            """;
+        var expectedOutput = "123";
+        var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 }
