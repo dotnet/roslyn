@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
 
-        protected class RewrittenMethodParameterSymbol : RewrittenMethodParameterSymbolBase
+        protected sealed class RewrittenMethodParameterSymbol : RewrittenMethodParameterSymbolBase
         {
             internal RewrittenMethodParameterSymbol(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter)
                 : base(containingMethod, originalParameter)
@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-            {
-            }
+                => throw ExceptionUtilities.Unreachable();
         }
 
         protected abstract class RewrittenMethodParameterSymbolBase : RewrittenParameterSymbol

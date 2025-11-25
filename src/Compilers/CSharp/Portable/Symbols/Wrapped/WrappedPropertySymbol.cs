@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int TryGetOverloadResolutionPriority() => _underlyingProperty.OverloadResolutionPriority;
 
+        // If we need to un-seal this method, we should make it abstract.
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             => throw ExceptionUtilities.Unreachable();
     }

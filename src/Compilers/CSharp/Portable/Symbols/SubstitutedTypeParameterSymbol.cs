@@ -20,11 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
             : base(newContainer, map, substitutedFrom, ordinal)
         {
+            Debug.Assert(ContainingSymbol.OriginalDefinition == _underlyingTypeParameter.ContainingSymbol.OriginalDefinition);
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
         }
+
+        public override TypeParameterSymbol OriginalDefinition
+            => _underlyingTypeParameter.OriginalDefinition;
     }
 
     internal abstract class SubstitutedTypeParameterSymbolBase : WrappedTypeParameterSymbol
@@ -59,17 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                // A substituted type parameter symbol is used as a type parameter of a frame type for lambda-captured
-                // variables within a generic method.  In that case the frame's own type parameter is an original.
-                return
-                    ContainingSymbol.OriginalDefinition != _underlyingTypeParameter.ContainingSymbol.OriginalDefinition ? this :
-                    _underlyingTypeParameter.OriginalDefinition;
-            }
-        }
+        public abstract override TypeParameterSymbol OriginalDefinition { get; }
 
         public override TypeParameterSymbol ReducedFrom
         {
