@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // If we have invalid record inheritance (a record deriving from a non-record), skip checking the
-                // synthesized members for proper new/override usage as we're very likely to just report cascaded
+                // synthesized members for proper new/override usage as we will end up just reporting cascaded
                 // errors that all stem from the same root cause.
                 if (hasInvalidRecordInheritance &&
                     member is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers)
