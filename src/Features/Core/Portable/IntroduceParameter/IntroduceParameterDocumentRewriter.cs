@@ -84,11 +84,11 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         /// </summary>
         private async Task<string> GetNewParameterNameAsync(CancellationToken cancellationToken)
         {
-            var semanticModel = await _originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (ShouldRemoveVariableDeclaratorContainingExpression(out var varDeclName, out _))
+                return varDeclName;
 
-            var baseName = ShouldRemoveVariableDeclaratorContainingExpression(out var varDeclName, out _)
-                ? varDeclName
-                : _semanticFacts.GenerateNameForExpression(semanticModel, _expression, capitalize: false, cancellationToken);
+            var semanticModel = await _originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var baseName = _semanticFacts.GenerateNameForExpression(semanticModel, _expression, capitalize: false, cancellationToken);
 
             // Ensure the parameter name doesn't conflict with existing parameters
             var uniqueName = _semanticFacts.GenerateUniqueLocalName(

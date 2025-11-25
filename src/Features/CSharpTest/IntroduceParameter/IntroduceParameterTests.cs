@@ -1774,9 +1774,9 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                     localFunction(s);
 
-                    void localFunction(string s)
+                    void localFunction(string s1)
                     {
-                        _ = {|Rename:s|}.ToString();
+                        _ = {|Rename:s1|}.ToString();
                     }
                 }
             }
@@ -1892,6 +1892,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             {
                 int M(int v, int v1)
                 {
+                    return {|Rename:v1|};
                 }
             }
             """, index: 0);
@@ -1916,13 +1917,14 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             using System;
             class C
             {
-                int GetV1(int v)
+                private int GetV1(int v)
                 {
                     return v + 1;
                 }
 
                 int M(int v, int v1)
                 {
+                    return {|Rename:v1|};
                 }
 
                 void Caller()
@@ -1952,13 +1954,14 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             using System;
             class C
             {
-                int M(int v)
+                private int M(int v)
                 {
                     return M(v, v + 1);
                 }
 
                 int M(int v, int v1)
                 {
+                    return {|Rename:v1|};
                 }
 
                 void Caller()
@@ -1985,6 +1988,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             {
                 int M(int v, int v1, int v2)
                 {
+                    return {|Rename:v2|};
                 }
             }
             """, index: 0);
@@ -2005,9 +2009,8 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             using System;
             class C
             {
-                int M(int v, int v1)
+                int M(int v, int result)
                 {
-                    int result = v1;
                     return result;
                 }
             }
