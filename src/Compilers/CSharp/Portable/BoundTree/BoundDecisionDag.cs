@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
+        private partial void Validate()
+        {
+            Debug.Assert(!SuitableForLowering ||
+                         !this.TopologicallySortedNodes.Any(static node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation));
+        }
+
         internal static void AddSuccessors(ref TemporaryArray<BoundDecisionDagNode> builder, BoundDecisionDagNode node)
         {
             switch (node)
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Return the computed replacement root node
             var newRoot = replacement[this.RootNode];
             replacement.Free();
-            return this.Update(newRoot);
+            return this.Update(newRoot, this.SuitableForLowering);
         }
 
         /// <summary>
@@ -198,11 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
-
-        public bool ContainsAnySynthesizedNodes()
-        {
-            return this.TopologicallySortedNodes.Any(static node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation);
         }
 
 #if DEBUG
