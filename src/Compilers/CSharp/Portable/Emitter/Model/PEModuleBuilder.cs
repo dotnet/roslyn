@@ -1872,6 +1872,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
         }
 
+        internal virtual SynthesizedAttributeData SynthesizeMemorySafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
+        }
+
         internal bool ShouldEmitNullablePublicOnlyAttribute()
         {
             // No need to look at this.GetNeedsGeneratedAttributes() since those bits are

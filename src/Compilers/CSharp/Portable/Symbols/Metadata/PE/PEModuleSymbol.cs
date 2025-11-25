@@ -116,6 +116,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
+        internal enum MemorySafetyRulesAttributeVersion
+        {
+            Uninitialized = 0,
+            NoAttribute,
+            Updated,
+            UnrecognizedAttribute,
+        }
+
+        private MemorySafetyRulesAttributeVersion _lazyMemorySafetyRulesAttributeVersion;
+
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 
@@ -870,6 +880,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return foundAttributeType
                         ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
                         : RefSafetyRulesAttributeVersion.NoAttribute;
+                }
+            }
+        }
+
+        internal override bool UseUpdatedMemorySafetyRules
+            => MemorySafetyRulesVersion == MemorySafetyRulesAttributeVersion.Updated;
+
+        internal MemorySafetyRulesAttributeVersion MemorySafetyRulesVersion
+        {
+            get
+            {
+                if (_lazyMemorySafetyRulesAttributeVersion == MemorySafetyRulesAttributeVersion.Uninitialized)
+                {
+                    _lazyMemorySafetyRulesAttributeVersion = getAttributeVersion();
+                }
+                return _lazyMemorySafetyRulesAttributeVersion;
+
+                MemorySafetyRulesAttributeVersion getAttributeVersion()
+                {
+                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    {
+                        return version == CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion
+                            ? MemorySafetyRulesAttributeVersion.Updated
+                            : MemorySafetyRulesAttributeVersion.UnrecognizedAttribute;
+                    }
+
+                    return foundAttributeType
+                        ? MemorySafetyRulesAttributeVersion.UnrecognizedAttribute
+                        : MemorySafetyRulesAttributeVersion.NoAttribute;
                 }
             }
         }

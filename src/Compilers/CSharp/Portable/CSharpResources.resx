@@ -7417,8 +7417,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</value>
   </data>
-  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
-    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
+  <data name="ERR_UnrecognizedAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>

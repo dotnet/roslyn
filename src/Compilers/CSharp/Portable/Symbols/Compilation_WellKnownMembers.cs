@@ -654,6 +654,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
 
+                case EmbeddableAttributes.MemorySafetyRulesAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor);
+
                 case EmbeddableAttributes.RequiresLocationAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,

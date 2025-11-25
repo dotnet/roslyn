@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyUseUpdatedEscapeRules;
         private ThreeState _lazyRequiresRefSafetyRulesAttribute;
+        private ThreeState _lazyRequiresMemorySafetyRulesAttribute;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
@@ -581,6 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NullablePublicOnlyAttribute
                 | ReservedAttributes.RefSafetyRulesAttribute
+                | ReservedAttributes.MemorySafetyRulesAttribute
                 | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
@@ -596,13 +598,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal bool RequiresMemorySafetyRulesAttribute()
+        {
+            if (_lazyRequiresMemorySafetyRulesAttribute == ThreeState.Unknown)
+            {
+                bool value = UseUpdatedMemorySafetyRules &&
+                    NamespaceIncludesTypeDeclarations(GlobalNamespace);
+                _lazyRequiresMemorySafetyRulesAttribute = value.ToThreeState();
+            }
+            return _lazyRequiresMemorySafetyRulesAttribute.Value();
+        }
+
         internal bool RequiresRefSafetyRulesAttribute()
         {
             if (_lazyRequiresRefSafetyRulesAttribute == ThreeState.Unknown)
             {
                 bool value = UseUpdatedEscapeRules &&
                     !isFeatureDisabled(_assemblySymbol.DeclaringCompilation) &&
-                    namespaceIncludesTypeDeclarations(GlobalNamespace);
+                    NamespaceIncludesTypeDeclarations(GlobalNamespace);
                 _lazyRequiresRefSafetyRulesAttribute = value.ToThreeState();
             }
             return _lazyRequiresRefSafetyRulesAttribute.Value();
@@ -612,25 +625,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var options = (CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options;
                 return options?.Features?.ContainsKey("noRefSafetyRulesAttribute") == true;
             }
+        }
 
-            static bool namespaceIncludesTypeDeclarations(NamespaceSymbol ns)
+        private static bool NamespaceIncludesTypeDeclarations(NamespaceSymbol ns)
+        {
+            foreach (var member in ns.GetMembersUnordered())
             {
-                foreach (var member in ns.GetMembersUnordered())
+                switch (member.Kind)
                 {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Namespace:
-                            if (namespaceIncludesTypeDeclarations((NamespaceSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                        case SymbolKind.NamedType:
+                    case SymbolKind.Namespace:
+                        if (NamespaceIncludesTypeDeclarations((NamespaceSymbol)member))
+                        {
                             return true;
-                    }
+                        }
+                        break;
+                    case SymbolKind.NamedType:
+                        return true;
                 }
-                return false;
             }
+            return false;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
@@ -652,6 +665,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, 11));
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRefSafetyRulesAttribute(version));
+            }
+
+            if (RequiresMemorySafetyRulesAttribute())
+            {
+                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeMemorySafetyRulesAttribute(version));
             }
 
             if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
@@ -711,6 +730,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyUseUpdatedEscapeRules = value.ToThreeState();
                 }
                 return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        internal override bool UseUpdatedMemorySafetyRules
+        {
+            get
+            {
+                return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules;
             }
         }
 

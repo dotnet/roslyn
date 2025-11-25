@@ -2577,9 +2577,9 @@
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성이 지정되어 있으며 이 항목은 대리자 형식으로 변환할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}'은(는) 인식할 수 없는 RefSafetyRulesAttribute 버전이 있는 모듈에 정의되어 있으며 '11'이 필요합니다.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">

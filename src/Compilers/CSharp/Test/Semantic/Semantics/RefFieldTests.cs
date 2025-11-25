@@ -27022,20 +27022,23 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             var comp = CreateCompilation(sourceB, references: new[] { refA });
             if (version == 11)
             {
-                comp.VerifyDiagnostics();
+                comp.VerifyEmitDiagnostics();
             }
             else
             {
                 comp.VerifyDiagnostics(
                     // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
                     //     static ref int F2(out int i) => ref A.F1(out i);
-                    Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+                    Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.F1").WithArguments("A.F1(out int)", "System.Runtime.CompilerServices.RefSafetyRulesAttribute", "11").WithLocation(3, 41));
             }
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, version == 11 ? ScopedKind.ScopedRef : ScopedKind.None);
 
             Assert.Equal(version == 11, method.ContainingModule.UseUpdatedEscapeRules);
+
+            // 'A.F1' not used => no error
+            CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
@@ -27069,12 +27072,15 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             comp.VerifyDiagnostics(
                 // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
                 //     static ref int F2(out int i) => ref A.F1(out i);
-                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.F1").WithArguments("A.F1(out int)", "System.Runtime.CompilerServices.RefSafetyRulesAttribute", "11").WithLocation(3, 41));
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
 
             Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
+
+            // 'A.F1' not used => no error
+            CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
@@ -27108,12 +27114,15 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             comp.VerifyDiagnostics(
                 // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
                 //     static ref int F2(out int i) => ref A.F1(out i);
-                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.F1").WithArguments("A.F1(out int)", "System.Runtime.CompilerServices.RefSafetyRulesAttribute", "11").WithLocation(3, 41));
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
 
             Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
+
+            // 'A.F1' not used => no error
+            CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
         }
 
         /// <summary>

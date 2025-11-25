@@ -1497,7 +1497,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (diagnosticInfo == null &&
                     _containingType.ContainingPEModule.RefSafetyRulesVersion == PEModuleSymbol.RefSafetyRulesAttributeVersion.UnrecognizedAttribute)
                 {
-                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, this);
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedAttributeVersion,
+                        this,
+                        WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute),
+                        "11");
+                }
+
+                if (diagnosticInfo == null &&
+                    _containingType.ContainingPEModule.MemorySafetyRulesVersion == PEModuleSymbol.MemorySafetyRulesAttributeVersion.UnrecognizedAttribute)
+                {
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedAttributeVersion,
+                        this,
+                        WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute),
+                        CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion.ToString(CultureInfo.InvariantCulture));
                 }
 
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)

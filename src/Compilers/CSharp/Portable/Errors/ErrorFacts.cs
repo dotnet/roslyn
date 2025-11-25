@@ -2346,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_ParamsArrayInLambdaOnly
                 or ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget
                 or ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation
-                or ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion
+                or ErrorCode.ERR_UnrecognizedAttributeVersion
                 or ErrorCode.ERR_InvalidPrimaryConstructorParameterReference
                 or ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
                 or ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase
