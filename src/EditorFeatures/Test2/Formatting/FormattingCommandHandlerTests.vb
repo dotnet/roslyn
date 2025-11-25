@@ -147,6 +147,70 @@ class TestClass
             End Using
         End Sub
 
+        <WpfFact>
+        Public Sub TypingElseKeywordDoesIndentIfStatementOnSameLine1()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine("v is not null");
+    els$$ if (true)
+    {
+        Console.WriteLine("v is null");
+    }
+    }
+}</Document>, includeFormatCommandHandler:=True)
+                state.SendTypeChars("e")
+
+                AssertEx.Equal("using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine(""v is not null"");
+        else if (true)
+        {
+            Console.WriteLine(""v is null"");
+        }
+    }
+}", state.GetDocumentText())
+            End Using
+        End Sub
+
+        <WpfFact>
+        Public Sub TypingElseKeywordDoesIndentIfStatementOnSameLine2()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine("v is not null");
+    els$$ if (true)
+        Console.WriteLine("v is null");
+    }
+}</Document>, includeFormatCommandHandler:=True)
+                state.SendTypeChars("e")
+
+                AssertEx.Equal("using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        if (v != null)
+            Console.WriteLine(""v is not null"");
+        else if (true)
+            Console.WriteLine(""v is null"");
+    }
+}", state.GetDocumentText())
+            End Using
+        End Sub
+
         Private Shared Sub AssertVirtualCaretColumn(state As TestState, expectedCol As Integer)
             Dim caretLine = state.GetLineFromCurrentCaretPosition()
             Dim caret = state.GetCaretPoint()

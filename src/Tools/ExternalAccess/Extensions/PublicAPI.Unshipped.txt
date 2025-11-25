@@ -1,6 +1,0 @@
-Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext
-Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext.Solution.get -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TResponse>
-Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext context, Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
-Microsoft.CodeAnalysis.Extensions.IExtensionWorkspaceMessageHandler<TMessage, TResponse>
-Microsoft.CodeAnalysis.Extensions.IExtensionWorkspaceMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
