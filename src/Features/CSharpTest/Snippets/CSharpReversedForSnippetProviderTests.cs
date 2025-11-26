@@ -142,7 +142,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     void LocalFunction()
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:length|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -171,7 +171,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     var action = delegate()
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:length|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -200,7 +200,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     var action = () =>
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:length|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -957,6 +957,35 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             class MyType
             {
                 public int Length => 0;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71542")]
+    public Task InsertReversedNestedForSnippetInMethodTest()
+        => VerifySnippetAsync("""
+            class Program
+            {
+                public void Method()
+                {
+                    for (int i = length - 1; i >= 0; i--)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                public void Method()
+                {
+                    for (int i = length - 1; i >= 0; i--)
+                    {
+                        for (int {|0:j|} = {|1:length|} - 1; {|0:j|} >= 0; {|0:j|}--)
+                        {
+                            $$
+                        }
+                    }
+                }
             }
             """);
 }

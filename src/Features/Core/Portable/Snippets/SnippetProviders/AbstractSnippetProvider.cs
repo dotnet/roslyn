@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -205,16 +206,22 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// <summary>
     /// Method to added formatting annotations to the created snippet.
     /// </summary>
-    protected virtual async Task<SyntaxNode> AnnotateNodesToReformatAsync(
+    private async Task<SyntaxNode> AnnotateNodesToReformatAsync(
         Document document, int position, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
         Contract.ThrowIfNull(snippetExpressionNode);
 
-        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, Formatter.Annotation);
-        return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
+        var reformatSnippetNode = await AdjustSnippetExpressionAsync(document, snippetExpressionNode, cancellationToken).ConfigureAwait(false);
+
+        return root.ReplaceNode(
+            snippetExpressionNode,
+            reformatSnippetNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, Formatter.Annotation));
     }
+
+    protected virtual ValueTask<TSnippetSyntax> AdjustSnippetExpressionAsync(Document document, TSnippetSyntax snippetExpressionNode, CancellationToken cancellationToken)
+        => new(snippetExpressionNode);
 
     protected virtual TSnippetSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
         => root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true) as TSnippetSyntax;
