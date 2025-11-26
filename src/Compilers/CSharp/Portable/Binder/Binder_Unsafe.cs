@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
                 {
-                    return new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation);
+                    return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation)
+                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation);
                 }
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.

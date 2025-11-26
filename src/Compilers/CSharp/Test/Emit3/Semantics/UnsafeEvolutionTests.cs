@@ -261,9 +261,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = *x;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 10),
-            // (2,9): error CS9500: This operation may only be used in an unsafe context
+            // (2,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = *x;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 9));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("updated memory safety rules").WithLocation(2, 9));
     }
 
     [Fact]
@@ -359,9 +359,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string s = x->ToString();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 12),
-            // (2,13): error CS9500: This operation may only be used in an unsafe context
+            // (2,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string s = x->ToString();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "->").WithArguments("updated memory safety rules").WithLocation(2, 13));
     }
 
     [Fact]
@@ -458,9 +458,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,14): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string s = (*x).ToString();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 14),
-            // (2,13): error CS9500: This operation may only be used in an unsafe context
+            // (2,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string s = (*x).ToString();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("updated memory safety rules").WithLocation(2, 13));
     }
 
     [Fact]
@@ -534,15 +534,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = 1;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(2, 1),
-            // (2,2): error CS9500: This operation may only be used in an unsafe context
+            // (2,2): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x[0] = 1;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(2, 2),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("updated memory safety rules").WithLocation(2, 2),
             // (3,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = x[1];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("updated memory safety rules").WithLocation(3, 9),
-            // (3,10): error CS9500: This operation may only be used in an unsafe context
+            // (3,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = x[1];
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 10));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("updated memory safety rules").WithLocation(3, 10));
     }
 
     [Fact]
@@ -1503,9 +1503,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (3,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int z = s.x[100];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.x").WithArguments("updated memory safety rules").WithLocation(3, 9),
-            // (3,12): error CS9500: This operation may only be used in an unsafe context
+            // (3,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int z = s.x[100];
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 12),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("updated memory safety rules").WithLocation(3, 12),
             // (7,22): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public fixed int x[5], y[10];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x[5]").WithArguments("updated memory safety rules").WithLocation(7, 22));
@@ -1605,9 +1605,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = stackalloc int[3];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[3]").WithArguments("updated memory safety rules").WithLocation(1, 10),
-            // (8,26): error CS9501: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            // (8,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     System.Span<int> a = stackalloc int[5];
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 26),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[5]").WithArguments("updated memory safety rules").WithLocation(8, 26),
             // (11,26): error CS0847: An array initializer of length '3' is expected
             //     System.Span<int> e = stackalloc int[3] { 1, 2 };
             Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
