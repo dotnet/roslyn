@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -42,6 +43,16 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
 
     protected override bool CanInsertStatementAfterToken(SyntaxToken token)
         => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
+
+    protected override ValueTask<ForStatementSyntax> AdjustSnippetExpressionAsync(
+        Document document, ForStatementSyntax snippetExpressionNode, CancellationToken cancellationToken)
+    {
+        var editor = new SyntaxEditor(snippetExpressionNode, document.Project.Solution.Services);
+        foreach (var node in snippetExpressionNode.Declaration!.DescendantNodesAndSelf().Reverse())
+            editor.ReplaceNode(node, (node, _) => node.WithAdditionalAnnotations(Simplifier.Annotation));
+
+        return new((ForStatementSyntax)editor.GetChangedRoot());
+    }
 
     protected override ForStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
