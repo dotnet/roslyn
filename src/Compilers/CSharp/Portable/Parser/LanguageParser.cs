@@ -5527,14 +5527,21 @@ parse_member_name:;
                 SyntaxKind.LessThanToken => parseVariableDeclaratorWithLessThanToken(name, out localFunction),
                 SyntaxKind.OpenParenToken => parseVariableDeclaratorWithOpenParenToken(name, out localFunction),
                 SyntaxKind.OpenBracketToken => parseVariableDeclaratorWithOpenBracketToken(name, out localFunction),
-                _ => parseVariableDeclaratorDefault(name, argumentList: null, out localFunction),
+                _ => parseVariableDeclaratorDefault(name, out localFunction),
             };
 
             VariableDeclaratorSyntax parseVariableDeclaratorWithEqualsToken(
                 SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
             {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsToken);
                 if (isFixed)
-                    return parseVariableDeclaratorDefault(name, argumentList, out localFunction);
+                {
+                    // We can only get here from a top level call to parseVariableDeclaratorWithEqualsToken (which
+                    // passes null for argumentList), or a recursive call from parseVariableDeclaratorWithOpenBracketToken,
+                    // which only recurse if isFixed is false.  So we know argumentList must be null here.
+                    Debug.Assert(argumentList is null);
+                    return parseVariableDeclaratorDefault(name, out localFunction);
+                }
 
                 var equals = this.EatToken();
 
@@ -5561,7 +5568,7 @@ parse_member_name:;
                         return null;
                 }
 
-                return parseVariableDeclaratorDefault(name, argumentList: null, out localFunction);
+                return parseVariableDeclaratorDefault(name, out localFunction);
             }
 
             VariableDeclaratorSyntax parseVariableDeclaratorWithOpenParenToken(
@@ -5630,13 +5637,14 @@ parse_member_name:;
                         return parseVariableDeclaratorWithEqualsToken(name, argumentList, out localFunction);
                 }
 
-                return parseVariableDeclaratorDefault(name, argumentList, out localFunction);
+                localFunction = null;
+                return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
             }
 
             VariableDeclaratorSyntax parseVariableDeclaratorDefault(
-                SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
+                SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
             {
-                if (argumentList is null && looksLikeVariableInitializer())
+                if (looksLikeVariableInitializer())
                 {
                     localFunction = null;
                     return _syntaxFactory.VariableDeclarator(
@@ -5658,14 +5666,14 @@ parse_member_name:;
                         // They accidentally put the array before the identifier
                         name = this.AddError(name, ErrorCode.ERR_FixedDimsRequired);
                     }
-                    else if (argumentList is null)
+                    else
                     {
                         return parseVariableDeclaratorWithOpenBracketToken(name, out localFunction);
                     }
                 }
 
                 localFunction = null;
-                return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
+                return _syntaxFactory.VariableDeclarator(name, argumentList: null, initializer: null);
             }
 
             bool looksLikeVariableInitializer()
