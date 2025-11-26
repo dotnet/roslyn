@@ -5523,25 +5523,18 @@ parse_member_name:;
 
             return this.CurrentToken.Kind switch
             {
-                SyntaxKind.EqualsToken => parseVariableDeclaratorWithEqualsToken(name, argumentList: null, out localFunction),
+                SyntaxKind.EqualsToken when !isFixed => parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList: null, out localFunction),
                 SyntaxKind.LessThanToken => parseVariableDeclaratorWithLessThanToken(name, out localFunction),
                 SyntaxKind.OpenParenToken => parseVariableDeclaratorWithOpenParenToken(name, out localFunction),
                 SyntaxKind.OpenBracketToken => parseVariableDeclaratorWithOpenBracketToken(name, out localFunction),
                 _ => parseVariableDeclaratorDefault(name, out localFunction),
             };
 
-            VariableDeclaratorSyntax parseVariableDeclaratorWithEqualsToken(
+            VariableDeclaratorSyntax parseNonFixedVariableDeclaratorWithEqualsToken(
                 SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsToken);
-                if (isFixed)
-                {
-                    // We can only get here from a top level call to parseVariableDeclaratorWithEqualsToken (which
-                    // passes null for argumentList), or a recursive call from parseVariableDeclaratorWithOpenBracketToken,
-                    // which only recurse if isFixed is false.  So we know argumentList must be null here.
-                    Debug.Assert(argumentList is null);
-                    return parseVariableDeclaratorDefault(name, out localFunction);
-                }
+                Debug.Assert(!isFixed, "Should only be called in the non fixed-statement/fixed-size-buffer case");
 
                 var equals = this.EatToken();
 
@@ -5563,6 +5556,7 @@ parse_member_name:;
             {
                 if (allowLocalFunctions && isFirst)
                 {
+                    Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
                     localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
                     if (localFunction != null)
                         return null;
@@ -5576,6 +5570,7 @@ parse_member_name:;
             {
                 if (allowLocalFunctions && isFirst)
                 {
+                    Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
                     localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
                     if (localFunction != null)
                         return null;
@@ -5634,7 +5629,7 @@ parse_member_name:;
                     argumentList = this.AddError(argumentList, ErrorCode.ERR_CStyleArray);
                     // If we have "int x[] = new int[10];" then parse the initializer.
                     if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
-                        return parseVariableDeclaratorWithEqualsToken(name, argumentList, out localFunction);
+                        return parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList, out localFunction);
                 }
 
                 localFunction = null;
