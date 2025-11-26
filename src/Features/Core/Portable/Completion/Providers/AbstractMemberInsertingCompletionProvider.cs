@@ -109,9 +109,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
             return (document, null);
         }
 
-        var memberContainingDocumentCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        var result = await RemoveDestinationNodeAsync(memberContainingDocument, memberContainingDocumentCleanupOptions, cancellationToken).ConfigureAwait(false);
+        var result = await RemoveDestinationNodeAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
         return result;
     }
 
