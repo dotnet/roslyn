@@ -2548,6 +2548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
                 or ErrorCode.ERR_AmbigOperator
                 or ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
+                or ErrorCode.ERR_EqualityOperatorInPatternNotSupported
+                or ErrorCode.ERR_InequalityOperatorInPatternNotSupported
                 or ErrorCode.ERR_DesignatorBeforePropertyPattern
                     => false,
             };
