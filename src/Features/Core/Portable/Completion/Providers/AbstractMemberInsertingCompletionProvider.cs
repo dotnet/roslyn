@@ -169,7 +169,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
     }
 
     private async Task<(Document Document, TextSpan? Selection)> RemoveDestinationNodeAsync(
-        Document memberContainingDocument, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
+        Document memberContainingDocument, CancellationToken cancellationToken)
     {
         // We now have a replacement node inserted into the document, but we still have the source code that triggered completion (with associated trivia).
         // We need to move the trivia to the new replacement and remove the original code.
@@ -220,8 +220,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
         // We've finished the major modifications, we can now format and simplify.
         var document = memberContainingDocument.WithSyntaxRoot(root);
-        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
-        document = await Formatter.FormatAsync(document, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken).ConfigureAwait(false);
+        document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken).ConfigureAwait(false);
 
         // Formatting/simplification changed the tree, so recompute the destination span.
         root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

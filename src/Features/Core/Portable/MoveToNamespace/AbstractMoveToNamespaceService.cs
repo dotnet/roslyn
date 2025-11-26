@@ -255,8 +255,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
 
         // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
         // otherwise, we will end up with multiple linked documents with different content.
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, cancellationToken).ConfigureAwait(false);
         var mergedDocument = mergedSolution.GetRequiredDocument(document.Id);
 
         var syntaxRoot = await mergedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -272,10 +271,10 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Solution> PropagateChangeToLinkedDocumentsAsync(Document document, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private static async Task<Solution> PropagateChangeToLinkedDocumentsAsync(Document document, CancellationToken cancellationToken)
     {
         // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
-        var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken).ConfigureAwait(false);
         var formattedText = await formattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var solution = formattedDocument.Project.Solution;
 

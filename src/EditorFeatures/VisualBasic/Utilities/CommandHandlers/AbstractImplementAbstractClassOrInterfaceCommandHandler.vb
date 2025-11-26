@@ -183,10 +183,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim cleanupOptions = Await newDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(True)
-
-            newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(True)
-            newDocument = Await Formatter.FormatAsync(newDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(True)
+            newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cancellationToken).ConfigureAwait(True)
+            newDocument = Await Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken).ConfigureAwait(True)
 
             Dim changes = Await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(True)
             args.SubjectBuffer.ApplyChanges(changes)

@@ -1087,8 +1087,7 @@ internal abstract partial class AbstractCodeModelService : ICodeModelService
         {
             document = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-                return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
+                return await Simplifier.ReduceAsync(document, annotation, cancellationToken).ConfigureAwait(false);
             });
         }
 

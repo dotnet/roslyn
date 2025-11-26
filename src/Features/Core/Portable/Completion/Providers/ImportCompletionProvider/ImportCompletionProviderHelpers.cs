@@ -31,7 +31,6 @@ internal static class ImportCompletionProviderHelpers
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
         var importNode = syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
@@ -44,7 +43,7 @@ internal static class ImportCompletionProviderHelpers
         var documentWithImport = document.WithSyntaxRoot(rootWithImport);
 
         // This only formats the annotated import we just added, not the entire document.
-        var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken).ConfigureAwait(false);
         var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         return [.. importChanges];
     }

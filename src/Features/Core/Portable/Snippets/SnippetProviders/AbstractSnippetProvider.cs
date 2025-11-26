@@ -142,19 +142,17 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         if (document.SupportsSyntaxTree)
         {
             var addImportPlacementOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                 document, FindSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            document = await Simplifier.ReduceAsync(document, FindSnippetAnnotation, simplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            document = await Simplifier.ReduceAsync(document, FindSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // format any node with explicit formatter annotation
-            document = await Formatter.FormatAsync(document, FindSnippetAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            document = await Formatter.FormatAsync(document, FindSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // format any elastic whitespace
-            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         return document;

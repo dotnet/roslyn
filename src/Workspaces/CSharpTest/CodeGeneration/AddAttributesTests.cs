@@ -57,7 +57,7 @@ public sealed class AddAttributesTests
 
         if (attributeAddedText != null)
         {
-            var formatted = await Formatter.FormatAsync(changedDoc, SyntaxAnnotation.ElasticAnnotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            var formatted = await Formatter.FormatAsync(changedDoc, SyntaxAnnotation.ElasticAnnotation, CancellationToken.None);
             var actualText = (await formatted.GetTextAsync()).ToString();
 
             Assert.Equal(attributeAddedText, actualText);
