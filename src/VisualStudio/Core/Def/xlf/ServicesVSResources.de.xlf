@@ -1217,6 +1217,11 @@
         <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removed_0">
+        <source>Removed {0}</source>
+        <target state="new">Removed {0}</target>
+        <note>{0} is a modifier, type, and parameter name</note>
+      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Ungültige JSON-Zeichenfolgen melden</target>
@@ -1696,6 +1701,11 @@
         <source>Visual Studio Settings</source>
         <target state="translated">Visual Studio-Einstellungen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_0_does_not_bind_to_type">
+        <source>Warning {0} does not bind to type</source>
+        <target state="new">Warning {0} does not bind to type</target>
+        <note>{0} is a type name</note>
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>

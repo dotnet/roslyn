@@ -218,6 +218,9 @@ internal static class GlyphExtensions
 
             case WellKnownTags.StatusInformation:
                 return Glyph.StatusInformation;
+
+            case WellKnownTags.Copilot:
+                return Glyph.Copilot;
         }
 
         return Glyph.None;

@@ -285,6 +285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                if (source is BoundMethodGroup methodGroup)
+                {
+                    source = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
+                    Debug.Assert(source == (object)methodGroup || !conversion.IsValid);
+                }
+
                 return new BoundConversion(
                     syntax,
                     BindToNaturalType(source, diagnostics),
@@ -2529,7 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
+        internal static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
         {
             if (node.Kind != BoundKind.MethodGroup)
             {
