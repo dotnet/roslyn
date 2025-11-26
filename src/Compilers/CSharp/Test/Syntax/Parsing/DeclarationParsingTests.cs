@@ -16474,7 +16474,6 @@ I1(x);";
                 // for (bool value true;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(1, 17));
 
-
             N(SyntaxKind.ForStatement);
             {
                 N(SyntaxKind.ForKeyword);
@@ -17246,6 +17245,307 @@ I1(x);";
                 {
                     N(SyntaxKind.SemicolonToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestConstFieldDeclarationWithMissingEquals()
+        {
+            var tree = UsingTree("""
+                class C {
+                    const int value 5;
+                }
+                """,
+                // (2,21): error CS1003: Syntax error, '=' expected
+                //     const int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(2, 21));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.ConstKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedFieldDeclarationWithMissingEquals1()
+        {
+            var tree = UsingTree("""
+                class C {
+                    fixed int value 5;
+                }
+                """,
+                // (2,21): error CS1003: Syntax error, '=' expected
+                //     fixed int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(2, 21));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedFieldDeclarationWithMissingEquals2()
+        {
+            var tree = UsingTree("""
+                class C {
+                    fixed int[] value 5;
+                }
+                """,
+                // (2,23): error CS1003: Syntax error, '=' expected
+                //     fixed int[] value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(2, 23));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedFieldDeclarationWithEquals1()
+        {
+            var tree = UsingTree("""
+                class C {
+                    fixed int value = 5;
+                }
+                """,
+                // (2,21): error CS1003: Syntax error, '[' expected
+                //     fixed int value = 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[").WithLocation(2, 21),
+                // (2,21): error CS1525: Invalid expression term '='
+                //     fixed int value = 5;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 21),
+                // (2,24): error CS1003: Syntax error, ',' expected
+                //     fixed int value = 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(2, 24),
+                // (2,24): error CS0443: Syntax error; value expected
+                //     fixed int value = 5;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(2, 24),
+                // (2,24): error CS1003: Syntax error, ']' expected
+                //     fixed int value = 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(2, 24));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    M(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.SimpleAssignmentExpression);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "5");
+                                            }
+                                        }
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.Argument);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedFieldDeclarationWithEquals2()
+        {
+            var tree = UsingTree("""
+                class C {
+                    fixed int[] value = 5;
+                }
+                """,
+                // (2,17): error CS1641: A fixed size buffer field must have the array size specifier after the field name
+                //     fixed int[] value = 5;
+                Diagnostic(ErrorCode.ERR_FixedDimsRequired, "value").WithLocation(2, 17),
+                // (2,23): error CS1003: Syntax error, ',' expected
+                //     fixed int[] value = 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(2, 23));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
