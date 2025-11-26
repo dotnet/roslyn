@@ -5599,6 +5599,13 @@ parse_member_name:;
                 _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
                 var specifier = this.ParseArrayRankSpecifier(sawNonOmittedSize: out var sawNonOmittedSize);
                 _termState = saveTerm;
+                var open = specifier.OpenBracketToken;
+                var sizes = specifier.Sizes;
+                var close = specifier.CloseBracketToken;
+                if (isFixed && !sawNonOmittedSize)
+                {
+                    close = this.AddError(close, ErrorCode.ERR_ValueExpected);
+                }
 
                 var args = _pool.AllocateSeparated<ArgumentSyntax>();
                 var withSeps = specifier.Sizes.GetWithSeparators();
@@ -5620,12 +5627,7 @@ parse_member_name:;
                     }
                 }
 
-                var argumentList = _syntaxFactory.BracketedArgumentList(
-                    specifier.OpenBracketToken,
-                    _pool.ToListAndFree(args),
-                    isFixed && !sawNonOmittedSize
-                        ? this.AddError(specifier.CloseBracketToken, ErrorCode.ERR_ValueExpected)
-                        : specifier.CloseBracketToken);
+                var argumentList = _syntaxFactory.BracketedArgumentList(open, _pool.ToListAndFree(args), close);
                 if (!isFixed)
                 {
                     argumentList = this.AddError(argumentList, ErrorCode.ERR_CStyleArray);
