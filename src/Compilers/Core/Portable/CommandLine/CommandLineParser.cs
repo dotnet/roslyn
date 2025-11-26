@@ -1228,8 +1228,30 @@ try_again:
                 }
                 catch (NotSupportedException) when (!s_registeredEncodingProvider)
                 {
+                    // From documentation:
+                    //   - 'GetEncoding' throws NotSupportedException when codepage is not supported by the underlying platform.
+                    //   - 'EncodingProvider.Instance' gets an encoding provider for code pages supported
+                    //     in the desktop .NET Framework but not by the current underlying platform.
+                    //   - 'Encoding.RegisterProvider' makes character encodings available on a platform that does not otherwise support them.
+                    //      * Once the encoding provider is registered, the encodings that it supports can be retrieved by calling any
+                    //        Encoding.GetEncoding overload.
+                    //      * Registering an encoding provider by using the 'RegisterProvider' method also affects the behavior of
+                    //        GetEncoding(Int32) when passed an argument of 0.
+                    //      * If multiple providers are registered, GetEncoding(Int32) attempts to retrieve the encoding from the most recently
+                    //        registered provider first.
+                    //      * If the 'RegisterProvider' method is called to register multiple providers that handle the same encoding,
+                    //        the last registered provider is the used for all encoding and decoding operations. Any previously registered providers are ignored.
+                    //      * If the same encoding provider is used in multiple calls to the 'RegisterProvider' method,
+                    //        only the first method call registers the provider. Subsequent calls are ignored.
+                    //      
+                    //  Given all that:
+                    //   - We don't call 'Encoding.RegisterProvider' unconditionally to avoid changing environment
+                    //     that is already configured to support the requested codepage. We call it only when we encounter
+                    //     a 'NotSupportedException'.
+                    //   - We also do not attempt to call 'Encoding.RegisterProvider' more than once.
                     try
                     {
+                        // Ignore any exceptions from an attempt to register the provider.
                         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                     }
                     catch
@@ -1237,6 +1259,9 @@ try_again:
                     }
 
                     s_registeredEncodingProvider = true;
+
+                    // Try to get the encoding again after attempting to register the provider.
+                    // Since we set `s_registeredEncodingProvider` to true, we won't get here again.
                     goto try_again;
                 }
                 catch (Exception)
