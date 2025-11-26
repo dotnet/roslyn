@@ -4847,6 +4847,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operand = BindRValueWithoutTargetType(node.Left, diagnostics);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
 
+            TypeSymbol inputType = operand.Type;
+            NamedTypeSymbol unionType;
+
             // try binding as a type, but back off to binding as an expression if that does not work.
             bool wasUnderscore = IsUnderscore(node.Right);
             if (!tryBindAsType(node.Right, diagnostics, out BindingDiagnosticBag isTypeDiagnostics, out BoundTypeExpression typeExpression) &&
@@ -4855,7 +4858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // it did not bind as a type; try binding as a constant expression pattern
                 var isPatternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                if ((object)operand.Type == null)
+                if ((object)inputType == null)
                 {
                     if (!operandHasErrors)
                     {
@@ -4863,10 +4866,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     operand = ToBadExpression(operand);
+                    inputType = operand.Type;
                 }
 
-                TypeSymbol inputType = operand.Type;
-                NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
+                unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
 
                 bool hasErrors = node.Right.HasErrors;
                 var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
@@ -4888,8 +4891,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
-            var targetTypeWithAnnotations = typeExpression.TypeWithAnnotations;
             var targetType = typeExpression.Type;
+
+            unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
+            if (unionType is not null)
+            {
+                bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
+                // PROTOTYPE: Add test coverage for isExplicitNotNullTest
+                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: false, isUnionMatching: true, inputType: unionType, targetType, hasErrors);
+                return MakeIsPatternExpression(node, operand, pattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
+            }
+
+            var targetTypeWithAnnotations = typeExpression.TypeWithAnnotations;
             if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation.IsAnnotated())
             {
                 Error(diagnostics, ErrorCode.ERR_IsNullableType, node.Right, targetType);
@@ -4897,7 +4910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var targetTypeKind = targetType.TypeKind;
-            if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
+            if (operandHasErrors || IsOperatorErrors(node, inputType, typeExpression, diagnostics))
             {
                 return new BoundIsOperator(node, operand, typeExpression, ConversionKind.NoConversion, resultType, hasErrors: true);
             }
@@ -4918,7 +4931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operand.ConstantValueOpt == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
-                operand.Type.IsVoidType())
+                inputType.IsVoidType())
             {
                 // warning for cases where the result is always false:
                 // (a) "null is TYPE" OR operand evaluates to null
@@ -4948,17 +4961,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     );
             }
 
-            var operandType = operand.Type;
-            Debug.Assert((object)operandType != null);
-            if (operandType.TypeKind == TypeKind.Dynamic)
+            Debug.Assert((object)inputType != null);
+            if (inputType.TypeKind == TypeKind.Dynamic)
             {
                 // if operand has a dynamic type, we do the same thing as though it were an object
-                operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
+                inputType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             }
 
-            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(inputType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
-            ReportIsOperatorDiagnostics(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValueOpt);
+            ReportIsOperatorDiagnostics(node, diagnostics, inputType, targetType, conversion.Kind, operand.ConstantValueOpt);
             return new BoundIsOperator(node, operand, typeExpression, conversion.Kind, resultType);
 
             bool tryBindAsType(
