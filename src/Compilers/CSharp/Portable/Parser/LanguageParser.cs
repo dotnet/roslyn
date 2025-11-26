@@ -5644,6 +5644,10 @@ parse_member_name:;
             VariableDeclaratorSyntax parseVariableDeclaratorDefault(
                 SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
             {
+                // Note: it is ok that we do this work prior to the isConst/isFixed checks below.  If it looks like
+                // a variable initializer, that means we're missing at least an equals and we'll report that error
+                // here.  So it's fine to not report the other errors related to const/fixed as they can be fixed up
+                // once the user adds the '='.
                 if (looksLikeVariableInitializer())
                 {
                     localFunction = null;
@@ -5678,6 +5682,13 @@ parse_member_name:;
 
             bool looksLikeVariableInitializer()
             {
+                // Note: this check is redundant, as CanStartExpression will return false for an equals-token. However,
+                // we want to guarantee that this always holds true, and thus the caller will *always* report an error
+                // when trying to consume the equals token.  That ensures that we it's then ok to skip other syntax
+                // errors that are reported with variable declarators.
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                    return false;
+
                 // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
                 // treat it as a missing '=' and parse the initializer.
                 //
