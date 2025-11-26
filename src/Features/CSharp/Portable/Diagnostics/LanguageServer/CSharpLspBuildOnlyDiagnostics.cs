@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS8420", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
     "CS9217", // ErrorCode.ERR_RefLocalAcrossAwait
     "CS9274", // ErrorCode.ERR_DataSectionStringLiteralHashCollision
-    "CS9328"  // ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
+    "CS9328", // ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
+    "CS8911"  // ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
     )]
 [Shared]
 internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
