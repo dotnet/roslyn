@@ -16395,8 +16395,6 @@ partial class Program
   IL_000f:  ret
 }
 """);
-            // We should extend IOperation conversions to represent IsCollectionExpression
-            // Tracked by https://github.com/dotnet/roslyn/issues/68826
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyCollection<System.Int32> MyCollectionBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>) (Syntax: '[1, 2, 3]')
                   ConstructArguments(1):
@@ -16474,8 +16472,6 @@ partial class Program
   IL_0020:  ret
 }
 """);
-            // We should extend IOperation conversions to represent IsCollectionExpression
-            // Tracked by https://github.com/dotnet/roslyn/issues/68826
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Int32[][]) (Syntax: '[[1], [2]]')
