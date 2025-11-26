@@ -5660,7 +5660,9 @@ parse_member_name:;
 
                 if (isConst)
                 {
-                    name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);  // Error here for missing constant initializers
+                    // Error here for missing constant initializers.  Note: this error would be better suited in the
+                    // binder as we do not need to make an syntax tree with diagnostics here.
+                    name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);
                 }
                 else if (isFixed)
                 {
