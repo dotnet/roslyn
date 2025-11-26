@@ -14808,5 +14808,551 @@ I1(x);";
             }
             EOF();
         }
+
+
+
+
+
+
+
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals()
+        {
+            UsingStatement("""
+                int value 5;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_StringLiteral()
+        {
+            UsingStatement("""
+                string value "hello";
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_BoolLiteral()
+        {
+            UsingStatement("""
+                bool value true;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_NullLiteral()
+        {
+            UsingStatement("""
+                object value null;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_UnaryExpression()
+        {
+            UsingStatement("""
+                int x -y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_BinaryExpression()
+        {
+            UsingStatement("""
+                int x + y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_ObjectCreationExpression()
+        {
+            UsingStatement("""
+                C x new C();
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_ImplicitObjectCreation()
+        {
+            UsingStatement("""
+                C x new();
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_CollectionExpression()
+        {
+            // Error recovery isn't great here as we have existing logic that looks for `C x[` and reports a misplaced
+            // array declarator For C/C++ style users.
+            UsingStatement("""
+                C x [1, 2, 3];
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_MemberAccess()
+        {
+            UsingStatement("""
+                C x X.Y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_CastExpression()
+        {
+            // Error recovery isn't great here as `C x(` looks like the start of a method.
+            UsingStatement("""
+                C x (int)0;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_SimpleLambda()
+        {
+            UsingStatement("""
+                C x a => b;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_ParenthesizedLambda()
+        {
+            UsingStatement("""
+                C x (a) => b;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_DefaultLiteral()
+        {
+            UsingStatement("""
+                C x default;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_QueryExpression()
+        {
+            UsingStatement("""
+                C x from int x in y select x;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_PrimitiveVariableFollows1()
+        {
+            // In this case, even though 'int' can start an expression, we want to prefer to treat this as two field
+            // declarations missing an semicolon.
+            UsingStatement("""
+                C x int y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalDeclarationWithMissingEquals_PrimitiveVariableFollows2()
+        {
+            UsingStatement("""
+                C x int.MaxValue;
+                """);
+
+            EOF();
+        }
+
+
+
+
+
+
+
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals()
+        {
+            UsingTree("""
+                int value 5;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_StringLiteral()
+        {
+            UsingTree("""
+                string value "hello";
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_BoolLiteral()
+        {
+            UsingTree("""
+                bool value true;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_NullLiteral()
+        {
+            UsingTree("""
+                object value null;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_UnaryExpression()
+        {
+            UsingTree("""
+                int x -y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_BinaryExpression()
+        {
+            UsingTree("""
+                int x + y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_ObjectCreationExpression()
+        {
+            UsingTree("""
+                C x new C();
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_ImplicitObjectCreation()
+        {
+            UsingTree("""
+                C x new();
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_CollectionExpression()
+        {
+            // Error recovery isn't great here as we have existing logic that looks for `C x[` and reports a misplaced
+            // array declarator For C/C++ style users.
+            UsingTree("""
+                C x [1, 2, 3];
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_MemberAccess()
+        {
+            UsingTree("""
+                C x X.Y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_CastExpression()
+        {
+            // Error recovery isn't great here as `C x(` looks like the start of a method.
+            UsingTree("""
+                C x (int)0;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_SimpleLambda()
+        {
+            UsingTree("""
+                C x a => b;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_ParenthesizedLambda()
+        {
+            UsingTree("""
+                C x (a) => b;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_DefaultLiteral()
+        {
+            UsingTree("""
+                C x default;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_QueryExpression()
+        {
+            UsingTree("""
+                C x from int x in y select x;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_PrimitiveVariableFollows1()
+        {
+            // In this case, even though 'int' can start an expression, we want to prefer to treat this as two field
+            // declarations missing an semicolon.
+            UsingTree("""
+                C x int y;
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestTopLevelLocalDeclarationWithMissingEquals_PrimitiveVariableFollows2()
+        {
+            UsingTree("""
+                C x int.MaxValue;
+                """);
+
+            EOF();
+        }
+
+
+
+
+
+
+
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals()
+        {
+            UsingStatement("""
+                for (int value 5;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_StringLiteral()
+        {
+            UsingStatement("""
+                for (string value "hello";;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_BoolLiteral()
+        {
+            UsingStatement("""
+                for (bool value true;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_NullLiteral()
+        {
+            UsingStatement("""
+                for (object value null;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_UnaryExpression()
+        {
+            UsingStatement("""
+                for (int x -y;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_BinaryExpression()
+        {
+            UsingStatement("""
+                for (int x + y;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_ObjectCreationExpression()
+        {
+            UsingStatement("""
+                for (C x new C();;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_ImplicitObjectCreation()
+        {
+            UsingStatement("""
+                for (C x new();;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_CollectionExpression()
+        {
+            // Error recovery isn't great here as we have existing logic that looks for `C x[` and reports a misplaced
+            // array declarator For C/C++ style users.
+            UsingStatement("""
+                for (C x [1, 2, 3];;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_MemberAccess()
+        {
+            UsingStatement("""
+                for (C x X.Y;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_CastExpression()
+        {
+            // Error recovery isn't great here as `C x(` looks like the start of a method.
+            UsingStatement("""
+                for (C x (int)0;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_SimpleLambda()
+        {
+            UsingStatement("""
+                for (C x a => b;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_ParenthesizedLambda()
+        {
+            UsingStatement("""
+                for (C x (a) => b;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_DefaultLiteral()
+        {
+            UsingStatement("""
+                for (C x default;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_QueryExpression()
+        {
+            UsingStatement("""
+                for (C x from int x in y select x;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_PrimitiveVariableFollows1()
+        {
+            // In this case, even though 'int' can start an expression, we want to prefer to treat this as two field
+            // declarations missing an semicolon.
+            UsingStatement("""
+                for (C x int y;;);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestForStatementDeclarationWithMissingEquals_PrimitiveVariableFollows2()
+        {
+            UsingStatement("""
+                for (C x int.MaxValue;;);
+                """);
+
+            EOF();
+        }
     }
 }
