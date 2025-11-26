@@ -106,6 +106,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         int* p = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(6, 9));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         int* p = null;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 9),
+        };
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular12,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular12,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -264,6 +281,80 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int y = *x;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("updated memory safety rules").WithLocation(2, 9));
+    }
+
+    [Fact]
+    public void Pointer_Dereference_SafeContext_InIterator()
+    {
+        var source = """
+            unsafe
+            {
+                M();
+                System.Collections.Generic.IEnumerable<int> M()
+                {
+                    int* p = null;
+                    int y = *p;
+                    yield return 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         int* p = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 9),
+            // (7,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         int y = *p;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(7, 18));
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,17): error CS9500: This operation may only be used in an unsafe context
+            //         int y = *p;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 17),
+        };
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         int* p = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(6, 9),
+            // (7,18): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         int y = *p;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("updated memory safety rules").WithLocation(7, 18),
+            // (7,17): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         int y = *p;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("updated memory safety rules").WithLocation(7, 17));
+
+        expectedDiagnostics =
+        [
+            // (6,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         int* p = null;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 9),
+            // (7,18): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         int y = *p;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "p").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 18),
+        ];
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular12,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular12,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -1617,16 +1708,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void StackAlloc_UnsafeContext()
     {
         var source = $$"""
-            int* x = stackalloc int[3];
-            System.Span<int> y = stackalloc int[5];
+            unsafe { System.Span<int> y = stackalloc int[5]; }
             M();
 
             [System.Runtime.CompilerServices.SkipLocalsInit]
             void M()
             {
                 unsafe { System.Span<int> a = stackalloc int[5]; }
-                System.Span<int> b = stackalloc int[] { 1 };
-                System.Span<int> d = stackalloc int[2] { 1, 2 };
                 unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
             }
 
@@ -1636,23 +1724,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            // int* x = stackalloc int[3];
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
-            // (1,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            // int* x = stackalloc int[3];
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[3]").WithLocation(1, 10),
-            // (11,35): error CS0847: An array initializer of length '3' is expected
-            //     unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
-            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 35));
-
         var expectedDiagnostics = new[]
         {
-            // (11,35): error CS0847: An array initializer of length '3' is expected
+            // (8,35): error CS0847: An array initializer of length '3' is expected
             //     unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
-            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 35),
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(8, 35),
         };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
@@ -1665,16 +1745,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilationWithSpan(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // int* x = stackalloc int[3];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
-            // (1,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // int* x = stackalloc int[3];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[3]").WithArguments("updated memory safety rules").WithLocation(1, 10),
-            // (11,35): error CS0847: An array initializer of length '3' is expected
-            //     unsafe { System.Span<int> e = stackalloc int[3] { 1, 2 }; }
-            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 35));
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]

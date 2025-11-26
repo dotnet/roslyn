@@ -11408,6 +11408,9 @@ class C<T> : A
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
 
+            CreateCompilation(text, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expected);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expected);
+
             expected = new[]
             {
                 // (8,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
