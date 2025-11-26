@@ -5671,7 +5671,7 @@ parse_member_name:;
                 // Note: this check is redundant, as CanStartExpression will return false for an equals-token. However,
                 // we want to guarantee that this always holds true, and thus the caller will *always* report an error
                 // when trying to consume the equals token.  That ensures that we it's then ok to skip other syntax
-                // errors that are reported with variable declatators.
+                // errors that are reported with variable declarators.
                 if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
                     return false;
 
