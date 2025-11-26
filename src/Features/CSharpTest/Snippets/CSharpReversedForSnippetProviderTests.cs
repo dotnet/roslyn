@@ -960,7 +960,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71542")]
     public Task InsertReversedNestedForSnippetInMethodTest()
         => VerifySnippetAsync("""
             class Program
