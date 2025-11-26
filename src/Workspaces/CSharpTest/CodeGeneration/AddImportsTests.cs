@@ -82,25 +82,21 @@ public sealed class AddImportsTests
             UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
         };
 
-        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
-
-        var simplifierOptions = CSharpSimplifierOptions.Default;
-
         var imported = useSymbolAnnotations
             ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
             : await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None);
 
         if (importsAddedText != null)
         {
-            var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
+            var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, CancellationToken.None);
             var actualText = (await formatted.GetTextAsync()).ToString();
             Assert.Equal(importsAddedText, actualText);
         }
 
         if (simplifiedText != null)
         {
-            var reduced = await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None);
-            var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
+            var reduced = await Simplifier.ReduceAsync(imported, CancellationToken.None);
+            var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, CancellationToken.None);
 
             var actualText = (await formatted.GetTextAsync()).ToString();
             AssertEx.EqualOrDiff(simplifiedText, actualText);
@@ -882,14 +878,13 @@ public sealed class AddImportsTests
         var documentWithAttribute = editor.GetChangedDocument();
 
         var addImportOptions = new AddImportPlacementOptions();
-        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 
         // Add namespace import.
         var imported = useSymbolAnnotations
             ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
             : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
 
-        var formatted = await Formatter.FormatAsync(imported, formattingOptions, CancellationToken.None);
+        var formatted = await Formatter.FormatAsync(imported, CancellationToken.None);
         var actualText = (await formatted.GetTextAsync()).ToString();
 
         Assert.Equal("""

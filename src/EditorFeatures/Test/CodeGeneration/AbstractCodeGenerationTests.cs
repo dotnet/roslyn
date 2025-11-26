@@ -39,8 +39,7 @@ public abstract class AbstractCodeGenerationTests
         var annotatedDocument = document.WithSyntaxRoot(
                 root.WithAdditionalAnnotations(Simplifier.Annotation));
 
-        var options = document.Project.Services.GetRequiredService<ISimplificationService>().DefaultOptions;
-        var simplifiedDocument = Simplifier.ReduceAsync(annotatedDocument, options, CancellationToken.None).Result;
+        var simplifiedDocument = Simplifier.ReduceAsync(annotatedDocument, CancellationToken.None).Result;
 
         var rootNode = simplifiedDocument.GetRequiredSyntaxRootAsync(default).AsTask().Result;
 

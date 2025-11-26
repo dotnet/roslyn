@@ -27,8 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = Await document.GetCodeCleanupOptionsAsync(CancellationToken.None)
-
                 Dim spans As ImmutableArray(Of TextSpan) = Nothing
                 If hostDocument.AnnotatedSpans.TryGetValue("Expand", spans) Then
                     For Each span In spans
@@ -40,13 +38,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                         document = document.WithSyntaxRoot(root)
-                        document = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, CancellationToken.None)
+                        document = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, CancellationToken.None)
                         root = Await document.GetSyntaxRootAsync()
                     Next
                 End If
 
                 document = document.WithSyntaxRoot(root)
-                document = Await Formatter.FormatAsync(document, cleanupOptions.FormattingOptions, CancellationToken.None)
+                document = Await Formatter.FormatAsync(document, CancellationToken.None)
 
                 Dim actualText = (Await document.GetTextAsync()).ToString()
 

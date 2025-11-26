@@ -197,9 +197,7 @@ internal abstract partial class AbstractEncapsulateFieldService<
         var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
         var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+        document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, cancellationToken).ConfigureAwait(false);
 
         semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -216,13 +214,11 @@ internal abstract partial class AbstractEncapsulateFieldService<
             new SyntaxAnnotation(),
             document);
 
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-
         var documentWithProperty = await AddPropertyAsync(
             document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
-        documentWithProperty = await Formatter.FormatAsync(documentWithProperty, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
-        documentWithProperty = await Simplifier.ReduceAsync(documentWithProperty, simplifierOptions, cancellationToken).ConfigureAwait(false);
+        documentWithProperty = await Formatter.FormatAsync(documentWithProperty, Formatter.Annotation, cancellationToken).ConfigureAwait(false);
+        documentWithProperty = await Simplifier.ReduceAsync(documentWithProperty, cancellationToken).ConfigureAwait(false);
 
         return documentWithProperty.Project.Solution;
     }

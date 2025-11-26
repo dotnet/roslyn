@@ -3190,7 +3190,7 @@ public sealed class SolutionTests : TestBase
             .AddDocument(documentId, "DocumentName", SourceText.From("class Class{}"));
 
         var document = solution1.GetDocument(documentId);
-        var newRoot = await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).Result.GetSyntaxRootAsync();
+        var newRoot = await (await Formatter.FormatAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
         var solution2 = solution1.WithDocumentSyntaxRoot(documentId, newRoot);
 
         Assert.NotEqual(solution1, solution2);
