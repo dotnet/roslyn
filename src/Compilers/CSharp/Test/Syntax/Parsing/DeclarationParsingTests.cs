@@ -14809,19 +14809,15 @@ I1(x);";
             EOF();
         }
 
-
-
-
-
-
-
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestLocalDeclarationWithMissingEquals()
         {
             UsingStatement("""
                 int value 5;
-                """);
+                """,
+                // (1,11): error CS1003: Syntax error, '=' expected
+                // int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(1, 11));
 
             EOF();
         }
@@ -14831,7 +14827,10 @@ I1(x);";
         {
             UsingStatement("""
                 string value "hello";
-                """);
+                """,
+                // (1,14): error CS1003: Syntax error, '=' expected
+                // string value "hello";
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(1, 14));
 
             EOF();
         }
@@ -14841,7 +14840,10 @@ I1(x);";
         {
             UsingStatement("""
                 bool value true;
-                """);
+                """,
+                // (1,12): error CS1003: Syntax error, '=' expected
+                // bool value true;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(1, 12));
 
             EOF();
         }
@@ -14851,7 +14853,10 @@ I1(x);";
         {
             UsingStatement("""
                 object value null;
-                """);
+                """,
+                // (1,14): error CS1003: Syntax error, '=' expected
+                // object value null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(1, 14));
 
             EOF();
         }
@@ -14861,7 +14866,10 @@ I1(x);";
         {
             UsingStatement("""
                 int x -y;
-                """);
+                """,
+                // (1,7): error CS1003: Syntax error, '=' expected
+                // int x -y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "-").WithArguments("=").WithLocation(1, 7));
 
             EOF();
         }
@@ -14871,7 +14879,10 @@ I1(x);";
         {
             UsingStatement("""
                 int x + y;
-                """);
+                """,
+                // (1,7): error CS1003: Syntax error, '=' expected
+                // int x + y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "+").WithArguments("=").WithLocation(1, 7));
 
             EOF();
         }
@@ -14881,7 +14892,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x new C();
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -14891,7 +14905,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x new();
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x new();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -14903,7 +14920,19 @@ I1(x);";
             // array declarator For C/C++ style users.
             UsingStatement("""
                 C x [1, 2, 3];
-                """);
+                """,
+                // (1,5): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[1, 2, 3]").WithLocation(1, 5),
+                // (1,6): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(1, 6),
+                // (1,9): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2").WithLocation(1, 9),
+                // (1,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "3").WithLocation(1, 12));
 
             EOF();
         }
@@ -14913,7 +14942,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x X.Y;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x X.Y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -14924,7 +14956,16 @@ I1(x);";
             // Error recovery isn't great here as `C x(` looks like the start of a method.
             UsingStatement("""
                 C x (int)0;
-                """);
+                """,
+                // (1,1): error CS1073: Unexpected token '0'
+                // C x (int)0;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "C x (int)").WithArguments("0").WithLocation(1, 1),
+                // (1,9): error CS1001: Identifier expected
+                // C x (int)0;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 9),
+                // (1,10): error CS1002: ; expected
+                // C x (int)0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "0").WithLocation(1, 10));
 
             EOF();
         }
@@ -14934,7 +14975,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x a => b;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x a => b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -14944,7 +14988,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x (a) => b;
-                """);
+                """,
+                // (1,7): error CS1001: Identifier expected
+                // C x (a) => b;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 7));
 
             EOF();
         }
@@ -14954,7 +15001,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x default;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x default;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "default").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -14964,7 +15014,10 @@ I1(x);";
         {
             UsingStatement("""
                 C x from int x in y select x;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x from int x in y select x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -14976,7 +15029,10 @@ I1(x);";
             // declarations missing an semicolon.
             UsingStatement("""
                 C x int y;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, ',' expected
+                // C x int y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 5));
 
             EOF();
         }
@@ -14986,24 +15042,23 @@ I1(x);";
         {
             UsingStatement("""
                 C x int.MaxValue;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x int.MaxValue;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
-
-
-
-
-
-
-
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestTopLevelLocalDeclarationWithMissingEquals()
         {
             UsingTree("""
                 int value 5;
-                """);
+                """,
+                // (1,11): error CS1003: Syntax error, '=' expected
+                // int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(1, 11));
 
             EOF();
         }
@@ -15013,7 +15068,10 @@ I1(x);";
         {
             UsingTree("""
                 string value "hello";
-                """);
+                """,
+                // (1,14): error CS1003: Syntax error, '=' expected
+                // string value "hello";
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(1, 14));
 
             EOF();
         }
@@ -15023,7 +15081,10 @@ I1(x);";
         {
             UsingTree("""
                 bool value true;
-                """);
+                """,
+                // (1,12): error CS1003: Syntax error, '=' expected
+                // bool value true;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(1, 12));
 
             EOF();
         }
@@ -15033,7 +15094,10 @@ I1(x);";
         {
             UsingTree("""
                 object value null;
-                """);
+                """,
+                // (1,14): error CS1003: Syntax error, '=' expected
+                // object value null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(1, 14));
 
             EOF();
         }
@@ -15043,7 +15107,10 @@ I1(x);";
         {
             UsingTree("""
                 int x -y;
-                """);
+                """,
+                // (1,14): error CS1003: Syntax error, '=' expected
+                // string value "hello";
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(1, 14));
 
             EOF();
         }
@@ -15053,7 +15120,10 @@ I1(x);";
         {
             UsingTree("""
                 int x + y;
-                """);
+                """,
+                // (1,7): error CS1003: Syntax error, '=' expected
+                // int x + y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "+").WithArguments("=").WithLocation(1, 7));
 
             EOF();
         }
@@ -15063,7 +15133,10 @@ I1(x);";
         {
             UsingTree("""
                 C x new C();
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -15073,7 +15146,10 @@ I1(x);";
         {
             UsingTree("""
                 C x new();
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x new();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -15085,7 +15161,19 @@ I1(x);";
             // array declarator For C/C++ style users.
             UsingTree("""
                 C x [1, 2, 3];
-                """);
+                """,
+                // (1,5): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[1, 2, 3]").WithLocation(1, 5),
+                // (1,6): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(1, 6),
+                // (1,9): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2").WithLocation(1, 9),
+                // (1,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // C x [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "3").WithLocation(1, 12));
 
             EOF();
         }
@@ -15095,7 +15183,10 @@ I1(x);";
         {
             UsingTree("""
                 C x X.Y;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x X.Y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -15106,7 +15197,13 @@ I1(x);";
             // Error recovery isn't great here as `C x(` looks like the start of a method.
             UsingTree("""
                 C x (int)0;
-                """);
+                """,
+                // (1,9): error CS1001: Identifier expected
+                // C x (int)0;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 9),
+                // (1,10): error CS1002: ; expected
+                // C x (int)0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "0").WithLocation(1, 10));
 
             EOF();
         }
@@ -15116,7 +15213,10 @@ I1(x);";
         {
             UsingTree("""
                 C x a => b;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x a => b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -15126,7 +15226,10 @@ I1(x);";
         {
             UsingTree("""
                 C x (a) => b;
-                """);
+                """,
+                // (1,7): error CS1001: Identifier expected
+                // C x (a) => b;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 7));
 
             EOF();
         }
@@ -15136,7 +15239,10 @@ I1(x);";
         {
             UsingTree("""
                 C x default;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x default;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "default").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -15146,7 +15252,10 @@ I1(x);";
         {
             UsingTree("""
                 C x from int x in y select x;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x from int x in y select x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
@@ -15158,7 +15267,10 @@ I1(x);";
             // declarations missing an semicolon.
             UsingTree("""
                 C x int y;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, ',' expected
+                // C x int y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 5));
 
             EOF();
         }
@@ -15168,25 +15280,55 @@ I1(x);";
         {
             UsingTree("""
                 C x int.MaxValue;
-                """);
+                """,
+                // (1,5): error CS1003: Syntax error, '=' expected
+                // C x int.MaxValue;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("=").WithLocation(1, 5));
 
             EOF();
         }
-
-
-
-
-
-
-
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestForStatementDeclarationWithMissingEquals()
         {
             UsingStatement("""
                 for (int value 5;;);
-                """);
+                """,
+                // (1,16): error CS1003: Syntax error, '=' expected
+                // for (int value 5;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(1, 16));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "value");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15195,7 +15337,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (string value "hello";;);
-                """);
+                """,
+                // (1,19): error CS1003: Syntax error, '=' expected
+                // for (string value "hello";;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(1, 19));
 
             EOF();
         }
@@ -15205,7 +15350,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (bool value true;;);
-                """);
+                """,
+                // (1,17): error CS1003: Syntax error, '=' expected
+                // for (bool value true;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(1, 17));
 
             EOF();
         }
@@ -15215,7 +15363,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (object value null;;);
-                """);
+                """,
+                // (1,19): error CS1003: Syntax error, '=' expected
+                // for (object value null;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(1, 19));
 
             EOF();
         }
@@ -15225,7 +15376,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (int x -y;;);
-                """);
+                """,
+                // (1,12): error CS1003: Syntax error, '=' expected
+                // for (int x -y;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "-").WithArguments("=").WithLocation(1, 12));
 
             EOF();
         }
@@ -15235,8 +15389,46 @@ I1(x);";
         {
             UsingStatement("""
                 for (int x + y;;);
-                """);
+                """,
+                // (1,12): error CS1003: Syntax error, '=' expected
+                // for (int x + y;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "+").WithArguments("=").WithLocation(1, 12));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.UnaryPlusExpression);
+                            {
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15245,7 +15437,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x new C();;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x new C();;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
@@ -15255,7 +15450,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x new();;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x new();;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
@@ -15267,7 +15465,19 @@ I1(x);";
             // array declarator For C/C++ style users.
             UsingStatement("""
                 for (C x [1, 2, 3];;);
-                """);
+                """,
+                // (1,10): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                // for (C x [1, 2, 3];;);
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[1, 2, 3]").WithLocation(1, 10),
+                // (1,11): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // for (C x [1, 2, 3];;);
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(1, 11),
+                // (1,14): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // for (C x [1, 2, 3];;);
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2").WithLocation(1, 14),
+                // (1,17): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // for (C x [1, 2, 3];;);
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "3").WithLocation(1, 17));
 
             EOF();
         }
@@ -15277,7 +15487,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x X.Y;;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x X.Y;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
@@ -15288,7 +15501,22 @@ I1(x);";
             // Error recovery isn't great here as `C x(` looks like the start of a method.
             UsingStatement("""
                 for (C x (int)0;;);
-                """);
+                """,
+                // (1,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // for (C x (int)0;;);
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(int").WithLocation(1, 10),
+                // (1,10): error CS1003: Syntax error, '[' expected
+                // for (C x (int)0;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(1, 10),
+                // (1,11): error CS1525: Invalid expression term 'int'
+                // for (C x (int)0;;);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 11),
+                // (1,14): error CS1003: Syntax error, ']' expected
+                // for (C x (int)0;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(1, 14),
+                // (1,15): error CS1003: Syntax error, ',' expected
+                // for (C x (int)0;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 15));
 
             EOF();
         }
@@ -15298,7 +15526,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x a => b;;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x a => b;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
@@ -15308,7 +15539,19 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x (a) => b;;);
-                """);
+                """,
+                // (1,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // for (C x (a) => b;;);
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(a").WithLocation(1, 10),
+                // (1,10): error CS1003: Syntax error, '[' expected
+                // for (C x (a) => b;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(1, 10),
+                // (1,12): error CS1003: Syntax error, ']' expected
+                // for (C x (a) => b;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(1, 12),
+                // (1,14): error CS1003: Syntax error, ',' expected
+                // for (C x (a) => b;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 14));
 
             EOF();
         }
@@ -15318,7 +15561,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x default;;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x default;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "default").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
@@ -15328,7 +15574,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x from int x in y select x;;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x from int x in y select x;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
@@ -15340,7 +15589,10 @@ I1(x);";
             // declarations missing an semicolon.
             UsingStatement("""
                 for (C x int y;;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, ',' expected
+                // for (C x int y;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 10));
 
             EOF();
         }
@@ -15350,7 +15602,10 @@ I1(x);";
         {
             UsingStatement("""
                 for (C x int.MaxValue;;);
-                """);
+                """,
+                // (1,10): error CS1003: Syntax error, '=' expected
+                // for (C x int.MaxValue;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("=").WithLocation(1, 10));
 
             EOF();
         }
