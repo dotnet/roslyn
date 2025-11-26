@@ -885,6 +885,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">找到单个程序集: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">生成比较运算符</target>
@@ -3928,11 +3933,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">生成 Equals 和 GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">生成 Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">

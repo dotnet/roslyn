@@ -4251,7 +4251,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The CallerFilePathAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
   </data>
   <data name="ERR_InvalidDynamicCondition" xml:space="preserve">
-    <value>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</value>
+    <value>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</value>
   </data>
   <data name="ERR_MixingWinRTEventWithRegular" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</value>
@@ -6566,6 +6566,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
+  </data>
+  <data name="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList" xml:space="preserve">
+    <value>Cannot pass arguments to the base type without a parameter list on the type declaration.</value>
+  </data>
+  <data name="ERR_EqualityOperatorInPatternNotSupported" xml:space="preserve">
+    <value>The '==' operator is not supported in a pattern.</value>
+  </data>
+  <data name="ERR_InequalityOperatorInPatternNotSupported" xml:space="preserve">
+    <value>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
     <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>

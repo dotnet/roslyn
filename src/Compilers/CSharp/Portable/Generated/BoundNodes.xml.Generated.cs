@@ -478,27 +478,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCapturedReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, SafeContext localScopeDepth, TypeSymbol? type, bool hasErrors = false)
+        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.CapturedReceiverPlaceholder, syntax, type, hasErrors || receiver.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Receiver = receiver;
-            this.LocalScopeDepth = localScopeDepth;
         }
 
         public BoundExpression Receiver { get; }
-        public SafeContext LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCapturedReceiverPlaceholder(this);
 
-        public BoundCapturedReceiverPlaceholder Update(BoundExpression receiver, SafeContext localScopeDepth, TypeSymbol? type)
+        public BoundCapturedReceiverPlaceholder Update(BoundExpression receiver, TypeSymbol? type)
         {
-            if (receiver != this.Receiver || localScopeDepth != this.LocalScopeDepth || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCapturedReceiverPlaceholder(this.Syntax, receiver, localScopeDepth, type, this.HasErrors);
+                var result = new BoundCapturedReceiverPlaceholder(this.Syntax, receiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -968,7 +966,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ResultKind = resultKind;
             this.Symbols = symbols;
             this.ChildBoundNodes = childBoundNodes;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public override LookupResultKind ResultKind { get; }
         public ImmutableArray<Symbol?> Symbols { get; }
@@ -1082,35 +1084,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeOrValueExpression : BoundExpression
     {
-        public BoundTypeOrValueExpression(SyntaxNode syntax, BoundTypeOrValueData data, TypeSymbol type, bool hasErrors)
+        public BoundTypeOrValueExpression(SyntaxNode syntax, Binder binder, Symbol valueSymbol, TypeSymbol type, bool hasErrors)
             : base(BoundKind.TypeOrValueExpression, syntax, type, hasErrors)
         {
 
+            RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(valueSymbol is object, "Field 'valueSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Data = data;
+            this.Binder = binder;
+            this.ValueSymbol = valueSymbol;
+            Validate();
         }
 
-        public BoundTypeOrValueExpression(SyntaxNode syntax, BoundTypeOrValueData data, TypeSymbol type)
+        [Conditional("DEBUG")]
+        private partial void Validate();
+
+        public BoundTypeOrValueExpression(SyntaxNode syntax, Binder binder, Symbol valueSymbol, TypeSymbol type)
             : base(BoundKind.TypeOrValueExpression, syntax, type)
         {
 
+            RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(valueSymbol is object, "Field 'valueSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Data = data;
+            this.Binder = binder;
+            this.ValueSymbol = valueSymbol;
         }
 
         public new TypeSymbol Type => base.Type!;
-        public BoundTypeOrValueData Data { get; }
+        public Binder Binder { get; }
+        public Symbol ValueSymbol { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTypeOrValueExpression(this);
 
-        public BoundTypeOrValueExpression Update(BoundTypeOrValueData data, TypeSymbol type)
+        public BoundTypeOrValueExpression Update(Binder binder, Symbol valueSymbol, TypeSymbol type)
         {
-            if (data != this.Data || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (binder != this.Binder || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(valueSymbol, this.ValueSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypeOrValueExpression(this.Syntax, data, type, this.HasErrors);
+                var result = new BoundTypeOrValueExpression(this.Syntax, binder, valueSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2968,7 +2981,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ExplicitCastInCode = explicitCastInCode;
             this.ConstantValueOpt = constantValueOpt;
             this.ConversionGroupOpt = conversionGroupOpt;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Operand { get; }
@@ -7760,7 +7777,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Argument = argument;
             this.ConstantValueOpt = constantValueOpt;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Argument { get; }
@@ -10878,7 +10899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.LocalScopeDepth, type);
+            return node.Update(receiver, type);
         }
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
@@ -10974,8 +10995,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
+            Symbol valueSymbol = this.VisitSymbol(node.ValueSymbol);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Data, type);
+            return node.Update(node.Binder, valueSymbol, type);
         }
         public override BoundNode? VisitNamespaceExpression(BoundNamespaceExpression node)
         {
@@ -12465,12 +12487,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(receiver, node.LocalScopeDepth, infoAndType.Type);
+                updatedNode = node.Update(receiver, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiver, node.LocalScopeDepth, node.Type);
+                updatedNode = node.Update(receiver, node.Type);
             }
             return updatedNode;
         }
@@ -12679,13 +12701,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                return node;
-            }
+            Symbol valueSymbol = GetUpdatedSymbol(node, node.ValueSymbol);
+            BoundTypeOrValueExpression updatedNode;
 
-            BoundTypeOrValueExpression updatedNode = node.Update(node.Data, infoAndType.Type!);
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(node.Binder, valueSymbol, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Binder, valueSymbol, node.Type);
+            }
             return updatedNode;
         }
 
@@ -15174,7 +15201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitCapturedReceiverPlaceholder(BoundCapturedReceiverPlaceholder node, object? arg) => new TreeDumperNode("capturedReceiverPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -15312,7 +15338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node, object? arg) => new TreeDumperNode("typeOrValueExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("data", node.Data, null),
+            new TreeDumperNode("binder", node.Binder, null),
+            new TreeDumperNode("valueSymbol", node.ValueSymbol, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

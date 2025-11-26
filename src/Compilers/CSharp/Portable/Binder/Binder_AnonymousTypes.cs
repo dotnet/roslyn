@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Create anonymous type 
             AnonymousTypeManager manager = this.Compilation.AnonymousTypeManager;
             AnonymousTypeDescriptor descriptor = new AnonymousTypeDescriptor(fields.AsImmutableOrNull(), node.NewKeyword.GetLocation());
-            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(descriptor);
+            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(descriptor, diagnostics);
 
             // declarators - bound nodes created for providing semantic info 
             // on anonymous type fields having explicitly specified name

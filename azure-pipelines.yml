@@ -422,6 +422,7 @@ stages:
       jobName: Determine_Changes
       poolParameters: ${{ parameters.ubuntuPool }}
       paths:
+        # this subset includes infra changes (we want to run all legs when there are infra changes)
         - subset: compilers
           include:
           - src/Compilers/*
@@ -429,6 +430,13 @@ stages:
           - src/NuGet/Microsoft.Net.Compilers.Toolset/*
           - eng/*
           - src/Tools/Source/CompilerGeneratorTools/*
+          - '*.sln*'
+          - '*.yml'
+          - '*.props'
+          - '*.targets'
+          - '*.rsp'
+          - '*.*config'
+          - 'global.json'
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
@@ -470,7 +478,7 @@ stages:
             /p:Configuration=Release
             /p:PublishToMSDL=false
 
-      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
+      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx
         displayName: Validate Build Artifacts
 
       - powershell: eng/validate-rules-missing-documentation.ps1 -ci
@@ -486,6 +494,13 @@ stages:
       - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
+
+      - task: DotNetCoreCLI@2
+        displayName: Verify Synchronized Sources
+        inputs:
+          command: 'custom'
+          custom: 'run'
+          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs'
 
       - template: eng/pipelines/publish-logs.yml
         parameters:
@@ -594,7 +609,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml

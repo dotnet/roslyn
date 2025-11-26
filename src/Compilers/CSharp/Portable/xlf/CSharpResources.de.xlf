@@ -712,6 +712,11 @@
         <target state="translated">Die EqualityContract-Eigenschaft "{0}" für Datensätze muss eine get-Zugriffsmethode aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
+        <source>The '==' operator is not supported in a pattern.</source>
+        <target state="new">The '==' operator is not supported in a pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
         <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Die Variable '{0}' kann in diesem Kontext nicht verwendet werden, da sie möglicherweise referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar macht</target>
@@ -1110,6 +1115,11 @@
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
         <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
+        <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
+        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -2560,6 +2570,11 @@
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
+        <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
+        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -11818,8 +11833,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">Der Ausdruck muss implizit in einen booleschen Ausdruck konvertiert werden können, oder der Typ "{0}" muss den Operator "{1}" definieren.</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">Der Ausdruck muss implizit in einen booleschen Ausdruck konvertiert werden können, oder der Typ "{0}" muss den Operator "{1}" definieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
