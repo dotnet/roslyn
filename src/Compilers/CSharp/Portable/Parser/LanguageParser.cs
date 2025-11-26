@@ -5559,7 +5559,9 @@ parse_member_name:;
                     Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
                     localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
                     if (localFunction != null)
+                    {
                         return null;
+                    }
                 }
 
                 return parseVariableDeclaratorDefault(name, out localFunction);
@@ -5573,7 +5575,9 @@ parse_member_name:;
                     Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
                     localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
                     if (localFunction != null)
+                    {
                         return null;
+                    }
                 }
 
                 // Special case for accidental use of C-style constructors
