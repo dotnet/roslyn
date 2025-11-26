@@ -403,15 +403,23 @@ internal static partial class ProtocolConversions
     /// Compute all the <see cref="LSP.TextDocumentEdit"/> for the input list of changed documents.
     /// Additionally maps the locations of the changed documents if necessary.
     /// </summary>
-    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync(IEnumerable<DocumentId> changedDocuments, Solution newSolution,
-            Solution oldSolution, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken)
+    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync(Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
     {
+        var solutionChanges = newSolution.GetChanges(oldSolution);
+
+        var changedDocuments = solutionChanges
+            .GetProjectChanges()
+            .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+            .GroupBy(docId => newSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
+
+        var textDiffService = newSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+
         using var _ = ArrayBuilder<(DocumentUri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
 
         foreach (var docId in changedDocuments)
         {
-            var newDocument = await newSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            var oldDocument = await oldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            var newDocument = newSolution.GetRequiredDocument(docId);
+            var oldDocument = oldSolution.GetRequiredDocument(docId);
 
             var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -455,6 +463,41 @@ internal static partial class ProtocolConversions
                             NewText = textChange.NewText ?? string.Empty
                         }));
                     }
+                }
+            }
+        }
+
+        // Now process source generated documents that might have changed, via the source generated document mapping service
+        var sourceGeneratedDocumentMappingService = newSolution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>();
+        if (sourceGeneratedDocumentMappingService is not null)
+        {
+            // Since we're mapping changes to source generated documents, we have to ensure the old solution has run the generators
+            // so the mapper has something to compare to.
+            foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+            {
+                var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
+            }
+
+            foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
+            {
+                var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+                var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+                var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                foreach (var (filePath, textChange) in mappedTextChanges)
+                {
+                    var mappedDocId = oldSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == oldDocument.Id.ProjectId);
+                    // Can't map to an edit in an unknown document
+                    if (mappedDocId is null)
+                        continue;
+
+                    var mappedDoc = oldSolution.GetRequiredTextDocument(mappedDocId);
+                    var mappedText = await mappedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    uriToTextEdits.Add((CreateAbsoluteDocumentUri(filePath), new LSP.TextEdit
+                    {
+                        Range = TextSpanToRange(textChange.Span, mappedText),
+                        NewText = textChange.NewText ?? string.Empty
+                    }));
                 }
             }
         }
