@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class UnsafeTests : EmitMetadataTestBase
     {
         #region AddressOf tests

@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// PROTOTYPE: Consider removing the default parameter value.
         /// </param>
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol? sizeOfTypeOpt = null, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
+        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol? sizeOfTypeOpt = null, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy, ErrorCode? customErrorCode = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object?)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt, disallowedUnder);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt, disallowedUnder, customErrorCode);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules)"/>
+        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?)"/>
         internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null, disallowedUnder);
@@ -52,8 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(TypeSymbol? sizeOfTypeOpt, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
+        private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(TypeSymbol? sizeOfTypeOpt, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy, ErrorCode? customErrorCode = null)
         {
+            Debug.Assert(sizeOfTypeOpt is null || disallowedUnder is MemorySafetyRules.Legacy);
+
             if (this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
             {
                 return null;
@@ -62,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (disallowedUnder is MemorySafetyRules.Legacy)
                 {
+                    Debug.Assert(customErrorCode is null);
+
                     if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
                     {
                         return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
@@ -77,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
                 {
-                    // PROTOTYPE: What about sizeOfTypeOpt/ERR_SizeofUnsafe?
-                    return new CSDiagnosticInfo(ErrorCode.ERR_UnsafeOperation);
+                    return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation)
+                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation);
                 }
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.
