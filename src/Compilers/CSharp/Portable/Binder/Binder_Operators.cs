@@ -4866,6 +4866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     operand = ToBadExpression(operand);
+                    inputType = operand.Type;
                 }
 
                 unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
