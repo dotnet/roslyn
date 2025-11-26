@@ -712,6 +712,11 @@
         <target state="translated">記錄相等 contract 屬性 '{0}' 必須要有 get 存取子。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
+        <source>The '==' operator is not supported in a pattern.</source>
+        <target state="new">The '==' operator is not supported in a pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
         <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
         <target state="translated">無法在此內容中使用變數 '{0}'，因為它會將參考的變數公開在其宣告範圍外</target>
@@ -1110,6 +1115,11 @@
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
         <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
+        <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
+        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
