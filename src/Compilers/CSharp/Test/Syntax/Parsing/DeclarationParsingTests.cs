@@ -15342,6 +15342,37 @@ I1(x);";
                 // for (string value "hello";;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(1, 19));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "value");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken, "\"hello\"");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15355,6 +15386,38 @@ I1(x);";
                 // for (bool value true;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(1, 17));
 
+
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.BoolKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "value");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15368,6 +15431,37 @@ I1(x);";
                 // for (object value null;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(1, 19));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "value");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15381,6 +15475,41 @@ I1(x);";
                 // for (int x -y;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "-").WithArguments("=").WithLocation(1, 12));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.UnaryMinusExpression);
+                            {
+                                N(SyntaxKind.MinusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15442,6 +15571,46 @@ I1(x);";
                 // for (C x new C();;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ObjectCreationExpression);
+                            {
+                                N(SyntaxKind.NewKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15455,6 +15624,42 @@ I1(x);";
                 // for (C x new();;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ImplicitObjectCreationExpression);
+                            {
+                                N(SyntaxKind.NewKeyword);
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15479,6 +15684,57 @@ I1(x);";
                 // for (C x [1, 2, 3];;);
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "3").WithLocation(1, 17));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15492,6 +15748,45 @@ I1(x);";
                 // for (C x X.Y;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "X");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Y");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15518,6 +15813,41 @@ I1(x);";
                 // for (C x (int)0;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 15));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            M(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15531,6 +15861,45 @@ I1(x);";
                 // for (C x a => b;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleLambdaExpression);
+                            {
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15553,6 +15922,41 @@ I1(x);";
                 // for (C x (a) => b;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 14));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            M(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15566,6 +15970,37 @@ I1(x);";
                 // for (C x default;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "default").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.DefaultLiteralExpression);
+                            {
+                                N(SyntaxKind.DefaultKeyword);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15579,6 +16014,61 @@ I1(x);";
                 // for (C x from int x in y select x;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.QueryExpression);
+                            {
+                                N(SyntaxKind.FromClause);
+                                {
+                                    N(SyntaxKind.FromKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                    N(SyntaxKind.InKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                N(SyntaxKind.QueryBody);
+                                {
+                                    N(SyntaxKind.SelectClause);
+                                    {
+                                        N(SyntaxKind.SelectKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15594,6 +16084,29 @@ I1(x);";
                 // for (C x int y;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
 
@@ -15607,6 +16120,45 @@ I1(x);";
                 // for (C x int.MaxValue;;);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("=").WithLocation(1, 10));
 
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "MaxValue");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
             EOF();
         }
     }
