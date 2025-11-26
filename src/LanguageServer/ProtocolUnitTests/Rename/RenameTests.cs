@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -265,7 +266,15 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
         var workspace = testLspServer.TestWorkspace;
         var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
-        workspace.TryApplyChanges(project.Solution);
+        // Add a pretend razor document, but using the generated code so that we don't need to actually map positions
+        var razorFilePath = Path.Combine(Path.GetDirectoryName(project.FilePath), "file.razor");
+        var razorDocument = project.AddAdditionalDocument("file.razor", SourceText.From(generatedCode), filePath: razorFilePath);
+        workspace.TryApplyChanges(razorDocument.Project.Solution);
+
+        var generatedDocument = (await workspace.CurrentSolution.Projects.First().GetSourceGeneratedDocumentsAsync()).First();
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        service.AddMappedFileName(generatedDocument.FilePath, razorFilePath);
 
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";
@@ -275,8 +284,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
         AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
 
-        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
-        Assert.True(service.DidMapSpans);
+        Assert.True(service.DidMapEdits);
     }
 
     [Theory, CombinatorialData]
@@ -314,8 +322,15 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
         var workspace = testLspServer.TestWorkspace;
         var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
-        workspace.TryApplyChanges(project.Solution);
-        var generatedDocument = (await project.GetSourceGeneratedDocumentsAsync()).First();
+        // Add a pretend razor document, but using the generated code so that we don't need to actually map positions
+        var razorFilePath = Path.Combine(Path.GetDirectoryName(project.FilePath), "file.razor");
+        var razorDocument = project.AddAdditionalDocument("file.razor", SourceText.From(generatedCode), filePath: razorFilePath);
+        workspace.TryApplyChanges(razorDocument.Project.Solution);
+
+        var generatedDocument = (await workspace.CurrentSolution.Projects.First().GetSourceGeneratedDocumentsAsync()).First();
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        service.AddMappedFileName(generatedDocument.FilePath, razorFilePath);
 
         var renameLocation = new LSP.Location()
         {
@@ -329,8 +344,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
         AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
 
-        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
-        Assert.True(service.DidMapSpans);
+        Assert.True(service.DidMapEdits);
     }
 
     [Theory, CombinatorialData]
@@ -361,8 +375,15 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
         var workspace = testLspServer.TestWorkspace;
         var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
-        workspace.TryApplyChanges(project.Solution);
-        var generatedDocument = (await project.GetSourceGeneratedDocumentsAsync()).First();
+        // Add a pretend razor document, but using the generated code so that we don't need to actually map positions
+        var razorFilePath = Path.Combine(Path.GetDirectoryName(project.FilePath), "file.razor");
+        var razorDocument = project.AddAdditionalDocument("file.razor", SourceText.From(generatedCode), filePath: razorFilePath);
+        workspace.TryApplyChanges(razorDocument.Project.Solution);
+
+        var generatedDocument = (await workspace.CurrentSolution.Projects.First().GetSourceGeneratedDocumentsAsync()).First();
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        service.AddMappedFileName(generatedDocument.FilePath, razorFilePath);
 
         var renameLocation = new LSP.Location()
         {
@@ -375,8 +396,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
         AssertJsonEquals(expectedGeneratedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
 
-        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
-        Assert.True(service.DidMapSpans);
+        Assert.True(service.DidMapEdits);
     }
 
     private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)

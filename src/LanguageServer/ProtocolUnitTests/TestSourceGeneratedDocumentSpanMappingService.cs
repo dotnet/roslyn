@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -24,15 +25,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGeneratedDocumentSpanMappingService
 {
     public bool DidMapSpans { get; private set; }
+    public bool DidMapEdits { get; private set; }
+
+    private readonly Dictionary<string, string> _mappedFileNames = [];
+
+    internal void AddMappedFileName(string filePath, string mappedFilePath)
+    {
+        _mappedFileNames[filePath] = mappedFilePath;
+    }
 
     public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
     {
         return sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
     }
 
-    public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (oldDocument.IsRazorSourceGeneratedDocument())
+        {
+            DidMapEdits = true;
+
+            var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken);
+            return changes.SelectAsArray(c => new MappedTextChange(_mappedFileNames[newDocument.FilePath], c));
+        }
+
+        return [];
     }
 
     public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
