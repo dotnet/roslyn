@@ -17549,5 +17549,368 @@ I1(x);";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedLocalFunction1()
+        {
+            var tree = UsingTree("""
+                class C {
+                    void M() {
+                        fixed int value<T>() { }
+                    }
+                }
+                """,
+                // (3,15): error CS1003: Syntax error, '(' expected
+                //         fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(3, 15),
+                // (3,24): error CS1026: ) expected
+                //         fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "<").WithLocation(3, 24),
+                // (3,24): error CS1525: Invalid expression term '<'
+                //         fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(3, 24),
+                // (3,28): error CS1525: Invalid expression term ')'
+                //         fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 28),
+                // (3,30): error CS1002: ; expected
+                //         fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(3, 30));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.FixedStatement);
+                            {
+                                N(SyntaxKind.FixedKeyword);
+                                M(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.ExpressionStatement);
+                                {
+                                    N(SyntaxKind.GreaterThanExpression);
+                                    {
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                        N(SyntaxKind.ParenthesizedExpression);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedLocalFunction2()
+        {
+            var tree = UsingTree("""
+                class C {
+                    void M() {
+                        fixed int value() { }
+                    }
+                }
+                """,
+                // (3,15): error CS1003: Syntax error, '(' expected
+                //         fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(3, 15),
+                // (3,24): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         fixed int value() { }
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(3, 24),
+                // (3,24): error CS1003: Syntax error, '[' expected
+                //         fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 24),
+                // (3,25): error CS1003: Syntax error, ']' expected
+                //         fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 25),
+                // (3,27): error CS1026: ) expected
+                //         fixed int value() { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(3, 27));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.FixedStatement);
+                            {
+                                N(SyntaxKind.FixedKeyword);
+                                M(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                        M(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            M(SyntaxKind.OpenBracketToken);
+                                            M(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedFieldFunction1()
+        {
+            var tree = UsingTree("""
+                struct C {
+                    fixed int value<T>() { }
+                }
+                """,
+                // (2,20): error CS1003: Syntax error, '[' expected
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("[").WithLocation(2, 20),
+                // (2,20): error CS1525: Invalid expression term '<'
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(2, 20),
+                // (2,24): error CS1525: Invalid expression term ')'
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 24),
+                // (2,26): error CS1003: Syntax error, ',' expected
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 26),
+                // (2,26): error CS1003: Syntax error, ',' expected
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 26),
+                // (2,28): error CS0443: Syntax error; value expected
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(2, 28),
+                // (2,28): error CS1003: Syntax error, ']' expected
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(2, 28),
+                // (2,28): error CS1002: ; expected
+                //     fixed int value<T>() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 28),
+                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    M(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.GreaterThanExpression);
+                                        {
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "T");
+                                                }
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.Argument);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFixedFieldFunction2()
+        {
+            var tree = UsingTree("""
+                struct C {
+                    fixed int value() { }
+                }
+                """,
+                // (2,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //     fixed int value() { }
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(2, 20),
+                // (2,20): error CS1003: Syntax error, '[' expected
+                //     fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(2, 20),
+                // (2,21): error CS1003: Syntax error, ']' expected
+                //     fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(2, 21),
+                // (2,23): error CS1003: Syntax error, ',' expected
+                //     fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 23),
+                // (2,25): error CS1002: ; expected
+                //     fixed int value() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 25),
+                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                M(SyntaxKind.BracketedArgumentList);
+                                {
+                                    M(SyntaxKind.OpenBracketToken);
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
