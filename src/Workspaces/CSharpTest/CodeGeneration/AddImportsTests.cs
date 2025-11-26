@@ -877,12 +877,10 @@ public sealed class AddImportsTests
         editor.AddAttribute(p1SyntaxNode, attributeSyntax);
         var documentWithAttribute = editor.GetChangedDocument();
 
-        var addImportOptions = new AddImportPlacementOptions();
-
         // Add namespace import.
         var imported = useSymbolAnnotations
-            ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
-            : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
+            ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, CancellationToken.None).ConfigureAwait(false)
+            : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, CancellationToken.None).ConfigureAwait(false);
 
         var formatted = await Formatter.FormatAsync(imported, CancellationToken.None);
         var actualText = (await formatted.GetTextAsync()).ToString();

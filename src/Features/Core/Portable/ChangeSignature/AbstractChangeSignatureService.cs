@@ -421,9 +421,8 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             {
                 var (currentSolution, updatedRoots, context) = args;
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
+                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cancellationToken).ConfigureAwait(false);
                 var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken).ConfigureAwait(false);
 
