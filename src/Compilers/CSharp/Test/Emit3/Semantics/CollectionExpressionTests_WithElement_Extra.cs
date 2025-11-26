@@ -244,10 +244,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (6,14): error CS9336: Collection arguments are not supported for type 'T[]'.
+            // (6,14): error CS9401: 'with(...)' elements are not supported for type 'T[]'
             //         a = [with(default), t];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(6, 14),
-            // (7,17): error CS9335: Collection argument element must be the first element.
+            // (6,19): error CS8716: There is no target type for the default literal.
+            //         a = [with(default), t];
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 19),
+            // (7,17): error CS9400: 'with(...)' element must be the first element
             //         a = [t, with(default)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(7, 17));
 
@@ -305,31 +308,33 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Theory]
-    [InlineData("ReadOnlySpan")]
-    [InlineData("Span")]
+    [InlineData("System.ReadOnlySpan<T>")]
+    [InlineData("System.Span<T>")]
     public void Arguments_Span(string spanType)
     {
         string source = $$"""
-                using System;
                 class Program
                 {
                     static void F<T>(T t)
                     {
-                        {{spanType}}<T> x =
+                        {{spanType}} x =
                             [with(default), t];
-                        {{spanType}}<T> y =
+                        {{spanType}} y =
                             [t, with(default)];
                     }
                 }
                 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (7,14): error CS9336: Collection arguments are not supported for type 'Span<T>'.
+            // (7,14): error CS9401: 'with(...)' elements are not supported for type 'Span<T>'
             //             [with(default), t];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.{spanType}<T>").WithLocation(7, 14),
-            // (9,17): error CS9335: Collection argument element must be the first element.
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(spanType),
+            // (7,19): error CS8716: There is no target type for the default literal.
+            //             [with(default), t];
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 19),
+            // (9,17): error CS9400: 'with(...)' element must be the first element
             //             [t, with(default)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(9, 17));
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
     }
 
     [Fact]
@@ -915,19 +920,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.ReadOnlySpan<T>":
             case "System.Span<T>":
                 comp.VerifyEmitDiagnostics(
-                // (8,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (8,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with()];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(8, 14),
-                // (9,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (9,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
-                // (10,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (9,19): error CS8716: There is no target type for the default literal.
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 19),
+                // (10,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(capacity)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
-                // (11,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (11,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(comparer)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
-                // (12,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (12,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(capacity, comparer)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
                 break;
@@ -935,18 +943,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.Collections.Generic.IReadOnlyCollection<T>":
             case "System.Collections.Generic.IReadOnlyList<T>":
                 comp.VerifyEmitDiagnostics(
-                    // (9,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(default)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
-                    // (10,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(capacity)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 14),
-                    // (11,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(comparer)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 14),
-                    // (12,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(capacity, comparer)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
+                // (9,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
+                // (9,19): error CS8716: There is no target type for the default literal.
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 19),
+                // (10,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(capacity)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 14),
+                // (11,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(comparer)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 14),
+                // (12,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(capacity, comparer)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
                 break;
             case "System.Collections.Generic.ICollection<T>":
             case "System.Collections.Generic.IList<T>":
@@ -994,10 +1005,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
+                // (7,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
                 //         i = [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(7, 14),
-                // (8,17): error CS9335: Collection argument element must be the first element
+                // (7,19): error CS8716: There is no target type for the default literal.
+                //         i = [with(default), t];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 19),
+                // (8,17): error CS9400: 'with(...)' element must be the first element
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
         }
@@ -1530,28 +1544,41 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
         VerifyOperationTree(compilation, operation1, """
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(), t]')
-                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
-                  ReturnedValue:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand:
-                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
-                          Elements(1):
-                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
+                ReturnedValue:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
+                        ConstructArguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with()')
+                              ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with()')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Elements(1):
+                            IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
             """);
         var operation2 = semanticModel.GetOperation(arrowExpressions[1]);
         VerifyOperationTree(compilation, operation2, """
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(t), t]')
-                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(t), t]')
-                  ReturnedValue:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(t), t]')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand:
-                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(t), t]')
-                          Elements(1):
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(t), t]')
+                ReturnedValue:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(t), t]')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(t), t]')
+                        ConstructArguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null) (Syntax: 't')
                               IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'with(t)')
+                              ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: 'with(t)')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Elements(1):
+                            IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
             """);
-
     }
 
     [Fact]
@@ -1586,7 +1613,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Single());
         VerifyOperationTree(compilation, operation, """
-              IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
             Locals: Local_1: System.Collections.Generic.IList<System.Int32> x
               Local_2: System.Collections.Generic.IList<System.Int32> y
             IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
@@ -1615,6 +1642,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand:
                               ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                ConstructArguments(1):
+                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 6')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Elements(3):
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1657,6 +1689,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                                 (CollectionExpression)
                               Operand:
                                 ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  ConstructArguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 6')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(3):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -3952,10 +3989,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (12,69): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //     static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(arg)").WithArguments("Create", "1").WithLocation(12, 69),
-            // (12,74): warning CS8620: Argument of type 'T' cannot be used for parameter 'items' of type 'ReadOnlySpan<T?>' in 'MyCollection<T?> MyCollectionBuilder.Create<T?>(ReadOnlySpan<T?> items)' due to differences in the nullability of reference types.
-            //     static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "arg").WithArguments("T", "System.ReadOnlySpan<T?>", "items", "MyCollection<T?> MyCollectionBuilder.Create<T?>(ReadOnlySpan<T?> items)").WithLocation(12, 74));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(arg)").WithArguments("Create", "1").WithLocation(12, 69));
     }
 
     [Fact]

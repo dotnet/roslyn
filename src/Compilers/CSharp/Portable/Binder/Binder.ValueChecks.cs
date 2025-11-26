@@ -1190,6 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     // Strict RValue
                     break;
 
@@ -4361,6 +4362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -5002,6 +5004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
