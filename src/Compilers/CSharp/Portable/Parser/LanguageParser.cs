@@ -5548,6 +5548,7 @@ parse_member_name:;
                 case SyntaxKind.LessThanToken:
                     if (allowLocalFunctions && isFirst)
                     {
+                        Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
                         localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
                         if (localFunction != null)
                         {
@@ -5559,6 +5560,7 @@ parse_member_name:;
                 case SyntaxKind.OpenParenToken:
                     if (allowLocalFunctions && isFirst)
                     {
+                        Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
                         localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
                         if (localFunction != null)
                         {
