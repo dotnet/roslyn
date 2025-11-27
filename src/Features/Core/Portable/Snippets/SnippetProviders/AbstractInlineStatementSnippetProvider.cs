@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -33,7 +34,8 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// Generate statement node
     /// </summary>
     /// <param name="inlineExpressionInfo">Information about inline expression or <see langword="null"/> if snippet is executed in normal statement context</param>
-    protected abstract TStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo);
+    protected abstract TStatementSyntax GenerateStatement(
+        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo);
 
     /// <summary>
     /// Tells whether the original snippet was constructed from member access expression.
@@ -59,13 +61,14 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
         var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
         var targetToken = syntaxContext.TargetToken;
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         _ = TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var inlineExpressionInfo, cancellationToken);
 
-        var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpressionInfo);
+        var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, simplifierOptions, inlineExpressionInfo);
         ConstructedFromInlineExpression = inlineExpressionInfo is not null;
 
         return new TextChange(TextSpan.FromBounds(inlineExpressionInfo?.Node.SpanStart ?? position, position), statement.ToFullString());
