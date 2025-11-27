@@ -947,7 +947,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
 
         // No particular ordering preference for properties/fields.
         var orderedPropertiesAndFields = sourceSymbols
-            .Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
+            .Where(s => s is IPropertySymbol or IFieldSymbol);
 
         var fullyOrderedSymbols = orderedLocalAndParameterSymbols.Concat(orderedPropertiesAndFields);
 
