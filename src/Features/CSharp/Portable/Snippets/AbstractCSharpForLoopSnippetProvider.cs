@@ -56,7 +56,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
     }
 
     protected override ForStatementSyntax GenerateStatement(
-    SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
+        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var compilation = semanticModel.Compilation;
