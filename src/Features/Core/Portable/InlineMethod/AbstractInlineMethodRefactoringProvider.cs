@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -251,120 +252,96 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         TExpressionSyntax inlineExpression,
         IInvocationOperation invocationOperation)
     {
+        using var result = TemporaryArray<CodeAction>.Empty;
+
         var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
-        var codeActionKeepsCallee = CodeAction.Create(
-            string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
-            cancellationToken =>
-                InlineMethodAsync(
-                    document,
-                    calleeMethodInvocationNode,
-                    calleeMethodSymbol,
-                    calleeMethodNode,
-                    callerSymbol,
-                    callerMethodNode,
-                    inlineExpression,
-                    invocationOperation,
-                    removeCalleeDeclarationNode: false, cancellationToken: cancellationToken),
-            nameof(FeaturesResources.Inline_and_keep_0) + "_" + calleeMethodName);
 
         // For recursive calls (caller and callee are the same method), we can't offer the
-        // "remove callee" option because we can't remove a method while also modifying it.
-        if (SymbolEqualityComparer.Default.Equals(callerSymbol, calleeMethodSymbol))
+        // "Inline_" option because we can't remove a method while also modifying it.
+        if (!SymbolEqualityComparer.Default.Equals(callerSymbol, calleeMethodSymbol))
         {
-            return [codeActionKeepsCallee];
+            result.Add(CodeAction.Create(
+                string.Format(FeaturesResources.Inline_0, calleeMethodName),
+                cancellationToken => InlineMethodAsync(
+                    removeCalleeDeclarationNode: true,
+                    cancellationToken)));
         }
 
-        var codeActionRemovesCallee = CodeAction.Create(
-            string.Format(FeaturesResources.Inline_0, calleeMethodName),
-            cancellationToken =>
-                InlineMethodAsync(
-                    document,
-                    calleeMethodInvocationNode,
-                    calleeMethodSymbol,
-                    calleeMethodNode,
-                    callerSymbol,
-                    callerMethodNode,
-                    inlineExpression,
-                    invocationOperation,
-                    removeCalleeDeclarationNode: true, cancellationToken: cancellationToken),
-            nameof(FeaturesResources.Inline_0) + "_" + calleeMethodName);
+        result.Add(CodeAction.Create(
+            string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
+            cancellationToken => InlineMethodAsync(
+                removeCalleeDeclarationNode: false,
+                cancellationToken)));
 
-        return [codeActionRemovesCallee, codeActionKeepsCallee];
-    }
+        return result.ToImmutableAndClear();
 
-    private async Task<Solution> InlineMethodAsync(Document document,
-        TInvocationSyntax calleeInvocationNode,
-        IMethodSymbol calleeMethodSymbol,
-        TMethodDeclarationSyntax calleeMethodNode,
-        ISymbol callerSymbol,
-        SyntaxNode callerNode,
-        TExpressionSyntax rawInlineExpression,
-        IInvocationOperation invocationOperation,
-        bool removeCalleeDeclarationNode,
-        CancellationToken cancellationToken)
-    {
-        // Find the statement contains the invocation. This should happen when Callee is invoked in a block
-        // example:
-        // void Caller()
-        // {
-        //     Action a = () =>
-        //     {
-        //         var x = Callee();
-        //     }
-        // } (Local declaration x is the containing node)
-        // Note: Stop the searching when it hits lambda or local function, because for this case below don't
-        // treat the declaration of a is the containing node
-        // void Caller()
-        // {
-        //     Action a = () => Callee();
-        // }
-        // it could be null if the caller is invoked as arrow function
-        var statementContainsInvocation = calleeInvocationNode.GetAncestors()
-            .TakeWhile(node => !_syntaxFacts.IsAnonymousFunctionExpression(node) && !_syntaxFacts.IsLocalFunctionStatement(node))
-            .FirstOrDefault(node => node is TStatementSyntax) as TStatementSyntax;
-
-        var methodParametersInfo = await GetMethodParametersInfoAsync(
-            document,
-            calleeInvocationNode,
-            calleeMethodNode,
-            statementContainsInvocation,
-            rawInlineExpression,
-            invocationOperation, cancellationToken).ConfigureAwait(false);
-
-        var inlineContext = await GetInlineMethodContextAsync(
-            document,
-            calleeMethodNode,
-            calleeInvocationNode,
-            calleeMethodSymbol,
-            rawInlineExpression,
-            methodParametersInfo,
-            cancellationToken).ConfigureAwait(false);
-
-        var solution = document.Project.Solution;
-        var solutionEditor = new SolutionEditor(solution);
-        if (removeCalleeDeclarationNode)
+        async Task<Solution> InlineMethodAsync(
+            bool removeCalleeDeclarationNode,
+            CancellationToken cancellationToken)
         {
-            var calleeDocumentId = solution.GetDocumentId(calleeMethodNode.SyntaxTree);
-            if (calleeDocumentId != null)
+            // Find the statement contains the invocation. This should happen when Callee is invoked in a block
+            // example:
+            // void Caller()
+            // {
+            //     Action a = () =>
+            //     {
+            //         var x = Callee();
+            //     }
+            // } (Local declaration x is the containing node)
+            // Note: Stop the searching when it hits lambda or local function, because for this case below don't
+            // treat the declaration of a is the containing node
+            // void Caller()
+            // {
+            //     Action a = () => Callee();
+            // }
+            // it could be null if the caller is invoked as arrow function
+            var statementContainsInvocation = calleeMethodInvocationNode.GetAncestors()
+                .TakeWhile(node => !_syntaxFacts.IsAnonymousFunctionExpression(node) && !_syntaxFacts.IsLocalFunctionStatement(node))
+                .FirstOrDefault(node => node is TStatementSyntax) as TStatementSyntax;
+
+            var methodParametersInfo = await GetMethodParametersInfoAsync(
+                document,
+                calleeMethodInvocationNode,
+                calleeMethodNode,
+                statementContainsInvocation,
+                inlineExpression,
+                invocationOperation, cancellationToken).ConfigureAwait(false);
+
+            var inlineContext = await GetInlineMethodContextAsync(
+                document,
+                calleeMethodNode,
+                calleeMethodInvocationNode,
+                calleeMethodSymbol,
+                inlineExpression,
+                methodParametersInfo,
+                cancellationToken).ConfigureAwait(false);
+
+            var solution = document.Project.Solution;
+            var solutionEditor = new SolutionEditor(solution);
+            if (removeCalleeDeclarationNode)
             {
-                var calleeDocumentEditor = await solutionEditor.GetDocumentEditorAsync(calleeDocumentId, cancellationToken).ConfigureAwait(false);
-                calleeDocumentEditor.RemoveNode(calleeMethodNode);
+                var calleeDocumentId = solution.GetDocumentId(calleeMethodNode.SyntaxTree);
+                if (calleeDocumentId != null)
+                {
+                    var calleeDocumentEditor = await solutionEditor.GetDocumentEditorAsync(calleeDocumentId, cancellationToken).ConfigureAwait(false);
+                    calleeDocumentEditor.RemoveNode(calleeMethodNode);
+                }
             }
+
+            var newCallerMethodNode = await GetChangedCallerAsync(
+                document,
+                calleeMethodInvocationNode,
+                calleeMethodSymbol,
+                callerSymbol,
+                callerMethodNode,
+                statementContainsInvocation,
+                inlineExpression,
+                methodParametersInfo, inlineContext, cancellationToken).ConfigureAwait(false);
+
+            var callerDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            callerDocumentEditor.ReplaceNode(callerMethodNode, newCallerMethodNode);
+            return solutionEditor.GetChangedSolution();
         }
-
-        var newCallerMethodNode = await GetChangedCallerAsync(
-            document,
-            calleeInvocationNode,
-            calleeMethodSymbol,
-            callerSymbol,
-            callerNode,
-            statementContainsInvocation,
-            rawInlineExpression,
-            methodParametersInfo, inlineContext, cancellationToken).ConfigureAwait(false);
-
-        var callerDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-        callerDocumentEditor.ReplaceNode(callerNode, newCallerMethodNode);
-        return solutionEditor.GetChangedSolution();
     }
 
     private async Task<SyntaxNode> GetChangedCallerAsync(Document document,
