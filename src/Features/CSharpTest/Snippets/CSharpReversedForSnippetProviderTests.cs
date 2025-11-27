@@ -209,7 +209,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71570")]
     public Task TryToProduceVarWithSpecificCodeStyleTest()
         => VerifySnippetAsync("""
             class Program
@@ -224,7 +224,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             {
                 public void Method()
                 {
-                    for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
+                    for (var {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                     {
                         $$
                     }
