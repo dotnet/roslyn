@@ -3949,5 +3949,6 @@ public sealed class CSharpInlineMethodTests
                     M();
                 }
             }
-            """);
+            """,
+            keepInlinedMethod: false);
 }
