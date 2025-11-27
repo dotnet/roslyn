@@ -766,8 +766,8 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
 
                     var matchingLocal = relevantLocals.Single();
                     var invocationTargetsLocalOfDelegateType =
-                        (matchingLocal.IsKind(SymbolKind.Local) && ((ILocalSymbol)matchingLocal).Type.IsDelegateType()) ||
-                        (matchingLocal.IsKind(SymbolKind.Parameter) && ((IParameterSymbol)matchingLocal).Type.IsDelegateType());
+                        matchingLocal is ILocalSymbol { Type.TypeKind: TypeKind.Delegate } ||
+                        matchingLocal is IParameterSymbol { Type.TypeKind: TypeKind.Delegate };
 
                     return !invocationTargetsLocalOfDelegateType;
                 }
