@@ -79,12 +79,12 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, _, cancellationToken) = context;
-        var calleeMethodInvocationNode = await context.TryGetRelevantNodeAsync<TInvocationSyntax>().ConfigureAwait(false);
-        if (calleeMethodInvocationNode == null)
+        var calleeInvocationNode = await context.TryGetRelevantNodeAsync<TInvocationSyntax>().ConfigureAwait(false);
+        if (calleeInvocationNode == null)
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (semanticModel.GetSymbolInfo(calleeMethodInvocationNode, cancellationToken).GetAnySymbol() is not IMethodSymbol calleeMethodSymbol)
+        if (semanticModel.GetSymbolInfo(calleeInvocationNode, cancellationToken).GetAnySymbol() is not IMethodSymbol calleeMethodSymbol)
             return;
 
         calleeMethodSymbol = calleeMethodSymbol.PartialImplementationPart ?? calleeMethodSymbol;
@@ -174,14 +174,14 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             // After:
             // void Caller() { var x = flag ? throw new Exception() : 1; }
             // int Callee() => throw new Exception();
-            if (!CanBeReplacedByThrowExpression(calleeMethodInvocationNode)
-                && !_syntaxFacts.IsExpressionStatement(calleeMethodInvocationNode.Parent))
+            if (!CanBeReplacedByThrowExpression(calleeInvocationNode)
+                && !_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
             {
                 return;
             }
         }
 
-        var callerSymbol = GetCallerSymbol(calleeMethodInvocationNode, semanticModel, cancellationToken);
+        var callerSymbol = GetCallerSymbol(calleeInvocationNode, semanticModel, cancellationToken);
         if (callerSymbol == null)
             return;
 
@@ -189,7 +189,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             return;
 
         var callerDeclarationNode = await callerReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-        if (semanticModel.GetOperation(calleeMethodInvocationNode, cancellationToken) is not IInvocationOperation invocationOperation)
+        if (semanticModel.GetOperation(calleeInvocationNode, cancellationToken) is not IInvocationOperation invocationOperation)
             return;
 
         var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
@@ -198,7 +198,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 GenerateCodeActions(),
                 isInlinable: true),
-            calleeMethodInvocationNode.Span);
+            calleeInvocationNode.Span);
 
         ImmutableArray<CodeAction> GenerateCodeActions()
         {
@@ -246,13 +246,13 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             //     Action a = () => Callee();
             // }
             // it could be null if the caller is invoked as arrow function
-            var statementContainsInvocation = calleeMethodInvocationNode.GetAncestors()
+            var statementContainsInvocation = calleeInvocationNode.GetAncestors()
                 .TakeWhile(node => !_syntaxFacts.IsAnonymousFunctionExpression(node) && !_syntaxFacts.IsLocalFunctionStatement(node))
                 .FirstOrDefault(node => node is TStatementSyntax) as TStatementSyntax;
 
             var methodParametersInfo = await GetMethodParametersInfoAsync(
                 document,
-                calleeMethodInvocationNode,
+                calleeInvocationNode,
                 calleeMethodNode,
                 statementContainsInvocation,
                 inlineExpression,
@@ -261,7 +261,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             var inlineContext = await GetInlineMethodContextAsync(
                 document,
                 calleeMethodNode,
-                calleeMethodInvocationNode,
+                calleeInvocationNode,
                 calleeMethodSymbol,
                 inlineExpression,
                 methodParametersInfo,
@@ -349,7 +349,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 }
 
                 if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent)
-                    && _syntaxFacts.IsExpressionStatement(calleeMethodInvocationNode.Parent))
+                    && _syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
                 {
                     var throwStatement = (TStatementSyntax)syntaxGenerator
                         .ThrowStatement(inlineMethodContext.InlineExpression);
@@ -357,7 +357,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 }
 
                 if (_syntaxFacts.IsThrowExpression(inlineExpression)
-                    && _syntaxFacts.IsExpressionStatement(calleeMethodInvocationNode.Parent))
+                    && _syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
                 {
                     // Example:
                     // Before:
@@ -372,7 +372,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                     return (statementContainsInvocation, throwStatement.WithTriviaFrom(statementContainsInvocation));
                 }
 
-                if (_syntaxFacts.IsExpressionStatement(calleeMethodInvocationNode.Parent)
+                if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                     && !calleeMethodSymbol.ReturnsVoid
                     && !IsValidExpressionUnderExpressionStatement(inlineMethodContext.InlineExpression))
                 {
@@ -400,7 +400,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                     var unusedLocalName =
                         _semanticFactsService.GenerateUniqueLocalName(
                             semanticModel,
-                            calleeMethodInvocationNode,
+                            calleeInvocationNode,
                             container: null,
                             TemporaryName,
                             cancellationToken);
@@ -422,17 +422,17 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 // void Caller() => throw new Exception();
                 // void Callee() { throw new Exception(); }
                 // Note: Throw statement is converted to throw expression
-                if (CanBeReplacedByThrowExpression(calleeMethodInvocationNode))
+                if (CanBeReplacedByThrowExpression(calleeInvocationNode))
                 {
                     var throwExpression = (TExpressionSyntax)syntaxGenerator
                         .ThrowExpression(inlineMethodContext.InlineExpression)
-                        .WithTriviaFrom(calleeMethodInvocationNode);
-                    return (calleeMethodInvocationNode, throwExpression.WithTriviaFrom(calleeMethodInvocationNode));
+                        .WithTriviaFrom(calleeInvocationNode);
+                    return (calleeInvocationNode, throwExpression.WithTriviaFrom(calleeInvocationNode));
                 }
             }
 
             var finalInlineExpression = inlineMethodContext.InlineExpression;
-            if (!_syntaxFacts.IsExpressionStatement(calleeMethodInvocationNode.Parent)
+            if (!_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                 && !calleeMethodSymbol.ReturnsVoid
                 && !_syntaxFacts.IsThrowExpression(inlineMethodContext.InlineExpression))
             {
@@ -474,7 +474,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
 
             }
 
-            return (calleeMethodInvocationNode, finalInlineExpression.WithTriviaFrom(calleeMethodInvocationNode));
+            return (calleeInvocationNode, finalInlineExpression.WithTriviaFrom(calleeInvocationNode));
         }
     }
 
