@@ -21,7 +21,9 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         TMethodDeclarationSyntax,
         TStatementSyntax,
         TExpressionSyntax,
-        TInvocationSyntax>
+        TInvocationSyntax>(
+    ISyntaxFacts syntaxFacts,
+    ISemanticFactsService semanticFactsService)
     : CodeRefactoringProvider
     where TMethodDeclarationSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -53,8 +55,8 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
     /// </summary>
     private const string TemporaryName = "temp";
 
-    private readonly ISyntaxFacts _syntaxFacts;
-    private readonly ISemanticFactsService _semanticFactsService;
+    private readonly ISyntaxFacts _syntaxFacts = syntaxFacts;
+    private readonly ISemanticFactsService _semanticFactsService = semanticFactsService;
 
     protected abstract TExpressionSyntax? GetRawInlineExpression(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
     protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
@@ -71,14 +73,6 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
     /// For VB it always return false because ThrowExpression doesn't exist.
     /// </summary>
     protected abstract bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode);
-
-    protected AbstractInlineMethodRefactoringProvider(
-        ISyntaxFacts syntaxFacts,
-        ISemanticFactsService semanticFactsService)
-    {
-        _syntaxFacts = syntaxFacts;
-        _semanticFactsService = semanticFactsService;
-    }
 
     internal override CodeRefactoringKind Kind => CodeRefactoringKind.Inline;
 
@@ -329,73 +323,61 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             }
 
             var newCallerMethodNode = await GetChangedCallerAsync(
-                document,
-                calleeMethodInvocationNode,
-                calleeMethodSymbol,
-                callerSymbol,
-                callerMethodNode,
-                statementContainsInvocation,
-                inlineExpression,
-                methodParametersInfo, inlineContext, cancellationToken).ConfigureAwait(false);
+                statementContainsInvocation, methodParametersInfo, inlineContext, cancellationToken).ConfigureAwait(false);
 
             var callerDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             callerDocumentEditor.ReplaceNode(callerMethodNode, newCallerMethodNode);
             return solutionEditor.GetChangedSolution();
         }
-    }
 
-    private async Task<SyntaxNode> GetChangedCallerAsync(Document document,
-        TInvocationSyntax calleeInvocationNode,
-        IMethodSymbol calleeMethodSymbol,
-        ISymbol callerSymbol,
-        SyntaxNode callerDeclarationNode,
-        TStatementSyntax? statementContainsInvocation,
-        TExpressionSyntax rawInlineExpression,
-        MethodParametersInfo methodParametersInfo,
-        InlineMethodContext inlineMethodContext,
-        CancellationToken cancellationToken)
-    {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-        var callerNodeEditor = new SyntaxEditor(callerDeclarationNode, syntaxGenerator);
-
-        if (inlineMethodContext.ContainsAwaitExpression)
+        async Task<SyntaxNode> GetChangedCallerAsync(
+            TStatementSyntax? statementContainsInvocation,
+            MethodParametersInfo methodParametersInfo,
+            InlineMethodContext inlineMethodContext,
+            CancellationToken cancellationToken)
         {
-            // If the inline content has 'await' expression, then make sure the caller is changed to 'async' method
-            // if its return type is awaitable. In all other cases, do nothing.
-            if (callerSymbol is IMethodSymbol callerMethodSymbol
-                && callerMethodSymbol.IsOrdinaryMethod()
-                && !callerMethodSymbol.IsAsync
-                && (callerMethodSymbol.ReturnsVoid
-                    || callerMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerDeclarationNode.SpanStart)))
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            var callerNodeEditor = new SyntaxEditor(callerMethodNode, syntaxGenerator);
+
+            if (inlineMethodContext.ContainsAwaitExpression)
             {
-                var declarationModifiers = DeclarationModifiers.From(callerSymbol).WithAsync(true);
-                callerNodeEditor.SetModifiers(callerDeclarationNode, declarationModifiers);
+                // If the inline content has 'await' expression, then make sure the caller is changed to 'async' method
+                // if its return type is awaitable. In all other cases, do nothing.
+                if (callerSymbol is IMethodSymbol callerMethodSymbol
+                    && callerMethodSymbol.IsOrdinaryMethod()
+                    && !callerMethodSymbol.IsAsync
+                    && (callerMethodSymbol.ReturnsVoid
+                        || callerMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerMethodNode.SpanStart)))
+                {
+                    var declarationModifiers = DeclarationModifiers.From(callerSymbol).WithAsync(true);
+                    callerNodeEditor.SetModifiers(callerMethodNode, declarationModifiers);
+                }
             }
-        }
 
-        if (statementContainsInvocation != null)
-        {
-            foreach (var statement in inlineMethodContext.StatementsToInsertBeforeInvocationOfCallee)
+            if (statementContainsInvocation != null)
             {
-                // Add a CarriageReturn to make sure for VB the statement would be in different line.
-                callerNodeEditor.InsertBefore(statementContainsInvocation,
-                    statement.WithAppendedTrailingTrivia(_syntaxFacts.ElasticCarriageReturnLineFeed));
+                foreach (var statement in inlineMethodContext.StatementsToInsertBeforeInvocationOfCallee)
+                {
+                    // Add a CarriageReturn to make sure for VB the statement would be in different line.
+                    callerNodeEditor.InsertBefore(statementContainsInvocation,
+                        statement.WithAppendedTrailingTrivia(_syntaxFacts.ElasticCarriageReturnLineFeed));
+                }
             }
+
+            var (nodeToReplace, inlineNode) = GetInlineNode(
+                calleeMethodInvocationNode,
+                calleeMethodSymbol,
+                statementContainsInvocation,
+                inlineExpression,
+                methodParametersInfo,
+                inlineMethodContext,
+                semanticModel,
+                syntaxGenerator, cancellationToken);
+            callerNodeEditor.ReplaceNode(nodeToReplace, (node, generator) => inlineNode);
+
+            return callerNodeEditor.GetChangedRoot();
         }
-
-        var (nodeToReplace, inlineNode) = GetInlineNode(
-            calleeInvocationNode,
-            calleeMethodSymbol,
-            statementContainsInvocation,
-            rawInlineExpression,
-            methodParametersInfo,
-            inlineMethodContext,
-            semanticModel,
-            syntaxGenerator, cancellationToken);
-        callerNodeEditor.ReplaceNode(nodeToReplace, (node, generator) => inlineNode);
-
-        return callerNodeEditor.GetChangedRoot();
     }
 
     private (SyntaxNode nodeToReplace, SyntaxNode inlineNode) GetInlineNode(
