@@ -757,7 +757,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
                     // a delegate type.
 
                     var relevantLocals = newReferencedSymbols
-                        .Where(s => s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter) && s.Name == token.ValueText);
+                        .Where(s => s is ILocalSymbol or IParameterSymbol && s.Name == token.ValueText);
 
                     if (relevantLocals.Count() != 1)
                     {

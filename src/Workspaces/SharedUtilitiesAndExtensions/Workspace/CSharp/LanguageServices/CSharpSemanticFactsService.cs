@@ -46,7 +46,7 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
             SyntaxFacts.IsParameterList(container))
         {
             if (container.Parent is LocalFunctionStatementSyntax or TypeDeclarationSyntax)
-                visibleSymbols = visibleSymbols.WhereAsArray(s => !s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter));
+                visibleSymbols = visibleSymbols.WhereAsArray(s => s is not ILocalSymbol and not IParameterSymbol);
         }
 
         // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
