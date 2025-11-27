@@ -244,8 +244,8 @@ internal static partial class ConflictResolver
                 if (semanticFactsService.SupportsParameterizedProperties)
                 {
                     otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
-                        .Where(s => !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
-                            !renamedSymbol.MatchesKind(SymbolKind.Method, SymbolKind.Property));
+                        .Where(s => s is not IMethodSymbol and not IPropertySymbol ||
+                                    renamedSymbol is not IMethodSymbol and not IPropertySymbol);
                 }
                 else
                 {

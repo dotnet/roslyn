@@ -183,12 +183,12 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             return SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable;
         }
 
-        if (symbol.MatchesKind(SymbolKind.Field, SymbolKind.Property))
+        if (symbol is IFieldSymbol or IPropertySymbol)
         {
             return SymbolMatchPriority.PreferFieldOrProperty;
         }
 
-        if (symbol.MatchesKind(SymbolKind.Event, SymbolKind.Method))
+        if (symbol is IEventSymbol or IMethodSymbol)
         {
             return SymbolMatchPriority.PreferEventOrMethod;
         }

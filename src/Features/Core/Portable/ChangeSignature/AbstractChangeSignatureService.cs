@@ -141,7 +141,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             }
         }
 
-        if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
+        if (symbol is not IMethodSymbol and not IPropertySymbol)
         {
             return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
         }
