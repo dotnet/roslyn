@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
@@ -3927,4 +3928,26 @@ public sealed class CSharpInlineMethodTests
             private static object M() => null!;
         }
         """, keepInlinedMethod: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78128")]
+    public Task TestInlineRecursiveCall()
+        => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
+            """
+            class C
+            {
+                private void M()
+                {
+                    [||]M();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private void M()
+                {
+                    M();
+                }
+            }
+            """);
 }

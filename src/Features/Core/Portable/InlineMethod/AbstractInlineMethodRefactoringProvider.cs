@@ -252,21 +252,6 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         IInvocationOperation invocationOperation)
     {
         var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
-        var codeActionRemovesCallee = CodeAction.Create(
-            string.Format(FeaturesResources.Inline_0, calleeMethodName),
-            cancellationToken =>
-                InlineMethodAsync(
-                    document,
-                    calleeMethodInvocationNode,
-                    calleeMethodSymbol,
-                    calleeMethodNode,
-                    callerSymbol,
-                    callerMethodNode,
-                    inlineExpression,
-                    invocationOperation,
-                    removeCalleeDeclarationNode: true, cancellationToken: cancellationToken),
-            nameof(FeaturesResources.Inline_0) + "_" + calleeMethodName);
-
         var codeActionKeepsCallee = CodeAction.Create(
             string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
             cancellationToken =>
@@ -281,6 +266,28 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                     invocationOperation,
                     removeCalleeDeclarationNode: false, cancellationToken: cancellationToken),
             nameof(FeaturesResources.Inline_and_keep_0) + "_" + calleeMethodName);
+
+        // For recursive calls (caller and callee are the same method), we can't offer the
+        // "remove callee" option because we can't remove a method while also modifying it.
+        if (callerSymbol.Equals(calleeMethodSymbol))
+        {
+            return [codeActionKeepsCallee];
+        }
+
+        var codeActionRemovesCallee = CodeAction.Create(
+            string.Format(FeaturesResources.Inline_0, calleeMethodName),
+            cancellationToken =>
+                InlineMethodAsync(
+                    document,
+                    calleeMethodInvocationNode,
+                    calleeMethodSymbol,
+                    calleeMethodNode,
+                    callerSymbol,
+                    callerMethodNode,
+                    inlineExpression,
+                    invocationOperation,
+                    removeCalleeDeclarationNode: true, cancellationToken: cancellationToken),
+            nameof(FeaturesResources.Inline_0) + "_" + calleeMethodName);
 
         return [codeActionRemovesCallee, codeActionKeepsCallee];
     }
