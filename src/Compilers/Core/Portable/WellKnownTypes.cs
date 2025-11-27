@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis
     /// Ids of well known runtime types.
     /// Values should not intersect with SpecialType enum!
     /// </summary>
-    /// <remarks></remarks>
     internal enum WellKnownType
     {
         // Value 0 represents an unknown type
@@ -318,6 +317,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
         System_Runtime_CompilerServices_ScopedRefAttribute,
         System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+
+        System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
 
         System_ArgumentNullException,
 
@@ -684,6 +685,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.Runtime.CompilerServices.ScopedRefAttribute",
             "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
+
+            "System.Runtime.CompilerServices.MemorySafetyRulesAttribute",
+
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",

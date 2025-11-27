@@ -679,6 +679,17 @@ namespace System.Runtime.CompilerServices
         protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
+        protected static readonly string MemorySafetyRulesAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version;
+                }
+            }
+            """;
+
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {

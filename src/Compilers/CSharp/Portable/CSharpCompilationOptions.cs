@@ -443,9 +443,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE: determine what the "updated" number should be
-        private const int UpdatedMemorySafetyRulesVersion = 2;
+        internal const int UpdatedMemorySafetyRulesVersion = 2;
 
-        internal CSharpCompilationOptions WithUpdatedMemorySafetyRules() => WithMemorySafetyRules(UpdatedMemorySafetyRulesVersion);
+        internal CSharpCompilationOptions WithUpdatedMemorySafetyRules(bool enabled = true)
+            => WithMemorySafetyRules(enabled ? UpdatedMemorySafetyRulesVersion : 0);
 
         internal bool UseUpdatedMemorySafetyRules => MemorySafetyRules >= UpdatedMemorySafetyRulesVersion;
 

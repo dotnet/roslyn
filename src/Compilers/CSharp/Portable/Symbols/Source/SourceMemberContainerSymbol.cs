@@ -1979,6 +1979,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
+            var compilation = DeclaringCompilation;
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                compilation.EnsureMemorySafetyRulesAttributeExists(
+                    compilation.Options.OutputKind == OutputKind.NetModule ? diagnostics : null,
+                    GetFirstLocation(),
+                    modifyCompilation: true);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)

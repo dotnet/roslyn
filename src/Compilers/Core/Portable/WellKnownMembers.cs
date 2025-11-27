@@ -3962,6 +3962,14 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    
+                // System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_MemoryExtensions__SequenceEqual_Span_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                               // Flags
@@ -5704,6 +5712,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ScopedRefAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 "AsSpan",                                   // System_MemoryExtensions__AsSpan_String
