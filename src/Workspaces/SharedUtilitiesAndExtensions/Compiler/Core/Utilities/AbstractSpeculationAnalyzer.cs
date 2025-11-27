@@ -1032,10 +1032,8 @@ internal abstract class AbstractSpeculationAnalyzer<
         if (receiver != null)
         {
             var receiverType = semanticModel.GetTypeInfo(receiver).Type;
-            if (receiverType.IsKind(SymbolKind.TypeParameter) && !receiverType.IsReferenceType)
-            {
+            if (receiverType is ITypeParameterSymbol { IsReferenceType: false })
                 return !IsReceiverUniqueInstance(receiver, semanticModel);
-            }
         }
 
         return false;
