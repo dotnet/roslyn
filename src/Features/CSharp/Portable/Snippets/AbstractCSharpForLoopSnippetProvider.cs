@@ -97,7 +97,8 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         }
     }
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var result);
         var placeholderBuilder = new MultiDictionary<string, int>();
@@ -121,7 +122,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         foreach (var (key, value) in placeholderBuilder)
             result.Add(new(key, [.. value]));
 
-        return result.ToImmutableAndClear();
+        return new(result.ToImmutableAndClear());
     }
 
     protected override int GetTargetCaretPosition(ForStatementSyntax forStatement, SourceText sourceText)

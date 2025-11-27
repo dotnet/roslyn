@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -49,7 +48,9 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// <summary>
     /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
     /// </summary>
-    protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
+    protected virtual ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        => new([]);
 
     public bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
@@ -102,7 +103,8 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
         // Gets a listing of the identifiers that need to be found in the snippet TextChange
         // and their associated TextSpan so they can later be converted into an LSP snippet format.
-        var placeholders = GetPlaceHolderLocationsList(mainChangeNode, syntaxFacts, cancellationToken);
+        var placeholders = await GetPlaceHolderLocationsListAsync(
+            document, mainChangeNode, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
         // All the changes from the original document to the most updated. Will later be
         // collapsed into one collapsed TextChange.

@@ -71,16 +71,13 @@ internal abstract class AbstractConsoleSnippetProvider<
     }
 
     protected override async ValueTask<TExpressionSyntax> AdjustSnippetExpressionAsync(
-    Document document, TExpressionSyntax snippetExpressionNode, CancellationToken cancellationToken)
+        Document document, TExpressionSyntax snippetExpressionNode, CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var consoleSymbol = GetConsoleSymbolFromMetaDataName(compilation);
         var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(SymbolAnnotation.Create(consoleSymbol!));
         return reformatSnippetNode;
     }
-
-    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TExpressionSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        => [];
 
     protected static INamedTypeSymbol? GetConsoleSymbolFromMetaDataName(Compilation compilation)
         => compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
