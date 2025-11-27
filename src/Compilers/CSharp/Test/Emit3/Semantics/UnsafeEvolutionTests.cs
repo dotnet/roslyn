@@ -78,6 +78,36 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
             symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false))
             .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseModule,
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute' is not defined or imported
+            // class C;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(1, 7));
+
+        source = "System.Console.WriteLine();";
+
+        CompileAndVerify(source,
+            parseOptions: TestOptions.Script,
+            options: TestOptions.ReleaseModule,
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Script,
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute' is not defined or imported
+            // System.Console.WriteLine();
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Console.WriteLine();").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(1, 1));
     }
 
     [Fact]
@@ -93,6 +123,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules(),
+            verify: Verification.Skipped,
             symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false))
             .VerifyDiagnostics();
     }
@@ -346,9 +382,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([source1, source2],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
             .VerifyEmitDiagnostics(
             // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute..ctor'
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute", ".ctor").WithLocation(1, 1));
+
+        CreateCompilation([source1, source2],
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute..ctor'
+            // class C;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute", ".ctor").WithLocation(1, 7),
+            // (3,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute..ctor'
+            //     public sealed class MemorySafetyRulesAttribute : Attribute { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "MemorySafetyRulesAttribute").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute", ".ctor").WithLocation(3, 25));
     }
 
     [Theory, CombinatorialData]

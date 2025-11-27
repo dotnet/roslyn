@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeRefSafetyRulesAttribute(arguments);
         }
 
-        internal override SynthesizedAttributeData SynthesizeMemorySafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        internal override SynthesizedAttributeData TrySynthesizeMemorySafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
         {
             if ((object)_lazyMemorySafetyRulesAttribute != null)
             {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     namedArguments: []);
             }
 
-            return base.SynthesizeMemorySafetyRulesAttribute(arguments);
+            return base.TrySynthesizeMemorySafetyRulesAttribute(arguments);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()

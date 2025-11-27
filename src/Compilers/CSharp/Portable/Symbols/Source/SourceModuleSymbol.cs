@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (RequiresMemorySafetyRulesAttribute())
             {
                 var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion));
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeMemorySafetyRulesAttribute(version));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeMemorySafetyRulesAttribute(version));
             }
 
             if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
