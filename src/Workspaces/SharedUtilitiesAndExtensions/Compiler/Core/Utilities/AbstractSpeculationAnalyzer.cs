@@ -754,9 +754,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// </summary>
     private static bool IsSymbolSystemObjectInstanceMethod([NotNullWhen(true)] ISymbol? symbol)
     {
-        return symbol != null
-            && symbol.IsKind(SymbolKind.Method)
-            && symbol.ContainingType.SpecialType == SpecialType.System_Object
+        return symbol is IMethodSymbol { ContainingType.SpecialType: SpecialType.System_Object }
             && !symbol.IsOverridable()
             && !symbol.IsStaticType();
     }
