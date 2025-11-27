@@ -267,11 +267,12 @@ internal static partial class ConflictResolver
                 AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
             }
 
-            if (renamedSymbol.IsKind(SymbolKind.NamedType) && renamedSymbol.ContainingSymbol is INamespaceOrTypeSymbol)
+            if (renamedSymbol is INamedTypeSymbol { ContainingSymbol: INamespaceOrTypeSymbol containingTypeOrNamespace })
             {
-                var otherThingsNamedTheSame = ((INamespaceOrTypeSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
-                                                        .Where(s => !s.Equals(renamedSymbol) &&
-                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+                var otherThingsNamedTheSame = containingTypeOrNamespace
+                    .GetMembers(renamedSymbol.Name)
+                    .Where(s => !s.Equals(renamedSymbol) &&
+                                string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                 var conflictingSymbolLocations = otherThingsNamedTheSame.Where(s => !s.IsKind(SymbolKind.Namespace));
                 if (otherThingsNamedTheSame.Any(s => s.IsKind(SymbolKind.Namespace)))
