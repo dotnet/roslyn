@@ -256,12 +256,13 @@ internal static partial class ConflictResolver
                 AddConflictingSymbolLocations(otherThingsNamedTheSameExcludeMethodAndParameterizedProperty, conflictResolution, reverseMappedLocations);
             }
 
-            if (renamedSymbol.IsKind(SymbolKind.Namespace) && renamedSymbol.ContainingSymbol.IsKind(SymbolKind.Namespace))
+            if (renamedSymbol is INamespaceSymbol { ContainingSymbol: INamespaceSymbol containingNamespace })
             {
-                var otherThingsNamedTheSame = ((INamespaceSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
-                                                        .Where(s => !s.Equals(renamedSymbol) &&
-                                                                    !s.IsKind(SymbolKind.Namespace) &&
-                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+                var otherThingsNamedTheSame = containingNamespace
+                    .GetMembers(renamedSymbol.Name)
+                    .Where(s => !s.Equals(renamedSymbol) &&
+                                !s.IsKind(SymbolKind.Namespace) &&
+                                string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                 AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
             }
