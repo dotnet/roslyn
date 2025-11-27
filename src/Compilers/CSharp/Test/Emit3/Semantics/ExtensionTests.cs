@@ -42465,14 +42465,14 @@ static class C
   IL_008b:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token2"
   IL_0090:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token2"
   IL_0095:  br.s       IL_00ba
-  IL_0097:  ldarg.0
+  IL_0097:  ldloc.0
   IL_0098:  ldarg.0
   IL_0099:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token2"
   IL_009e:  ldarg.1
   IL_009f:  call       "System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)"
   IL_00a4:  stfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
   IL_00a9:  ldloc.0
-  IL_00aa:  ldarg.0
+  IL_00aa:  ldloc.0
   IL_00ab:  ldfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
   IL_00b0:  callvirt   "System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get"
   IL_00b5:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token2"
@@ -42563,14 +42563,14 @@ static class C
   IL_007f:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token"
   IL_0084:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token"
   IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
+  IL_008b:  ldloc.0
   IL_008c:  ldarg.0
   IL_008d:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token"
   IL_0092:  ldarg.1
   IL_0093:  call       "System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)"
   IL_0098:  stfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
   IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
+  IL_009e:  ldloc.0
   IL_009f:  ldfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
   IL_00a4:  callvirt   "System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get"
   IL_00a9:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token"
@@ -42743,14 +42743,14 @@ static class C
   IL_0097:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token2"
   IL_009c:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token2"
   IL_00a1:  br.s       IL_00c6
-  IL_00a3:  ldarg.0
+  IL_00a3:  ldloc.0
   IL_00a4:  ldarg.0
   IL_00a5:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token2"
   IL_00aa:  ldarg.1
   IL_00ab:  call       "System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)"
   IL_00b0:  stfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
   IL_00b5:  ldloc.0
-  IL_00b6:  ldarg.0
+  IL_00b6:  ldloc.0
   IL_00b7:  ldfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
   IL_00bc:  callvirt   "System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get"
   IL_00c1:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token2"

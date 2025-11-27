@@ -3241,14 +3241,14 @@ class C
   IL_007f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
   IL_0084:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
   IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
+  IL_008b:  ldloc.0
   IL_008c:  ldarg.0
   IL_008d:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
   IL_0092:  ldarg.1
   IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
   IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
+  IL_009e:  ldloc.0
   IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
   IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00a9:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
@@ -3455,73 +3455,73 @@ partial class C
             // we generate initialization logic for the token parameter
             verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
 {
-  // Code size      176 (0xb0)
-  .maxstack  3
-  .locals init (C.<M>d__0 V_0,
+    // Code size      176 (0xb0)
+    .maxstack  3
+    .locals init (C.<M>d__0 V_0,
                 System.Threading.CancellationToken V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
-  IL_0006:  ldc.i4.s   -2
-  IL_0008:  bne.un.s   IL_0035
-  IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
-  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0015:  bne.un.s   IL_0035
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.s   -3
-  IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_001f:  ldarg.0
-  IL_0020:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
-  IL_0025:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.0
-  IL_002c:  stfld      ""bool C.<M>d__0.<>w__disposeMode""
-  IL_0031:  ldarg.0
-  IL_0032:  stloc.0
-  IL_0033:  br.s       IL_003d
-  IL_0035:  ldc.i4.s   -3
-  IL_0037:  newobj     ""C.<M>d__0..ctor(int)""
-  IL_003c:  stloc.0
-  IL_003d:  ldarg.0
-  IL_003e:  ldflda     ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
-  IL_0043:  ldloca.s   V_1
-  IL_0045:  initobj    ""System.Threading.CancellationToken""
-  IL_004b:  ldloc.1
-  IL_004c:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
-  IL_0051:  brfalse.s  IL_005c
-  IL_0053:  ldloc.0
-  IL_0054:  ldarg.1
-  IL_0055:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
-  IL_005a:  br.s       IL_00ae
-  IL_005c:  ldarga.s   V_1
-  IL_005e:  ldarg.0
-  IL_005f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
-  IL_0064:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
-  IL_0069:  brtrue.s   IL_007d
-  IL_006b:  ldarga.s   V_1
-  IL_006d:  ldloca.s   V_1
-  IL_006f:  initobj    ""System.Threading.CancellationToken""
-  IL_0075:  ldloc.1
-  IL_0076:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
-  IL_007b:  brfalse.s  IL_008b
-  IL_007d:  ldloc.0
-  IL_007e:  ldarg.0
-  IL_007f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
-  IL_0084:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
-  IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
-  IL_008c:  ldarg.0
-  IL_008d:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
-  IL_0092:  ldarg.1
-  IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
-  IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
-  IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
-  IL_00a9:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
-  IL_00ae:  ldloc.0
-  IL_00af:  ret
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+    IL_0006:  ldc.i4.s   -2
+    IL_0008:  bne.un.s   IL_0035
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
+    IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+    IL_0015:  bne.un.s   IL_0035
+    IL_0017:  ldarg.0
+    IL_0018:  ldc.i4.s   -3
+    IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_001f:  ldarg.0
+    IL_0020:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
+    IL_0025:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  stfld      ""bool C.<M>d__0.<>w__disposeMode""
+    IL_0031:  ldarg.0
+    IL_0032:  stloc.0
+    IL_0033:  br.s       IL_003d
+    IL_0035:  ldc.i4.s   -3
+    IL_0037:  newobj     ""C.<M>d__0..ctor(int)""
+    IL_003c:  stloc.0
+    IL_003d:  ldarg.0
+    IL_003e:  ldflda     ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+    IL_0043:  ldloca.s   V_1
+    IL_0045:  initobj    ""System.Threading.CancellationToken""
+    IL_004b:  ldloc.1
+    IL_004c:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+    IL_0051:  brfalse.s  IL_005c
+    IL_0053:  ldloc.0
+    IL_0054:  ldarg.1
+    IL_0055:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+    IL_005a:  br.s       IL_00ae
+    IL_005c:  ldarga.s   V_1
+    IL_005e:  ldarg.0
+    IL_005f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+    IL_0064:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+    IL_0069:  brtrue.s   IL_007d
+    IL_006b:  ldarga.s   V_1
+    IL_006d:  ldloca.s   V_1
+    IL_006f:  initobj    ""System.Threading.CancellationToken""
+    IL_0075:  ldloc.1
+    IL_0076:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+    IL_007b:  brfalse.s  IL_008b
+    IL_007d:  ldloc.0
+    IL_007e:  ldarg.0
+    IL_007f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+    IL_0084:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+    IL_0089:  br.s       IL_00ae
+    IL_008b:  ldloc.0
+    IL_008c:  ldarg.0
+    IL_008d:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+    IL_0092:  ldarg.1
+    IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
+    IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+    IL_009d:  ldloc.0
+    IL_009e:  ldloc.0
+    IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+    IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
+    IL_00a9:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+    IL_00ae:  ldloc.0
+    IL_00af:  ret
 }");
 
             // we generate disposal logic for the combinedTokens field
@@ -3778,14 +3778,14 @@ class C
   IL_007f:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
   IL_0084:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
   IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
+  IL_008b:  ldloc.0
   IL_008c:  ldarg.0
   IL_008d:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
   IL_0092:  ldarg.1
   IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
   IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
+  IL_009e:  ldloc.0
   IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
   IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00a9:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
@@ -7681,14 +7681,14 @@ class C
   IL_008b:  ldfld      ""System.Threading.CancellationToken C.<Iter>d__1.<>3__token1""
   IL_0090:  stfld      ""System.Threading.CancellationToken C.<Iter>d__1.token1""
   IL_0095:  br.s       IL_00ba
-  IL_0097:  ldarg.0
+  IL_0097:  ldloc.0
   IL_0098:  ldarg.0
   IL_0099:  ldfld      ""System.Threading.CancellationToken C.<Iter>d__1.<>3__token1""
   IL_009e:  ldarg.1
   IL_009f:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_00a4:  stfld      ""System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens""
   IL_00a9:  ldloc.0
-  IL_00aa:  ldarg.0
+  IL_00aa:  ldloc.0
   IL_00ab:  ldfld      ""System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens""
   IL_00b0:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00b5:  stfld      ""System.Threading.CancellationToken C.<Iter>d__1.token1""
@@ -7756,81 +7756,81 @@ class C
                 // GetAsyncEnumerator's token parameter is used directly, since the argument token is default
                 verifier.VerifyIL("C.<<Main>g__Iter|0_0>d.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
 {
-  // Code size      200 (0xc8)
-  .maxstack  3
-  .locals init (C.<<Main>g__Iter|0_0>d V_0,
+    // Code size      200 (0xc8)
+    .maxstack  3
+    .locals init (C.<<Main>g__Iter|0_0>d V_0,
                 System.Threading.CancellationToken V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>1__state""
-  IL_0006:  ldc.i4.s   -2
-  IL_0008:  bne.un.s   IL_0035
-  IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>l__initialThreadId""
-  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0015:  bne.un.s   IL_0035
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.s   -3
-  IL_001a:  stfld      ""int C.<<Main>g__Iter|0_0>d.<>1__state""
-  IL_001f:  ldarg.0
-  IL_0020:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
-  IL_0025:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<Main>g__Iter|0_0>d.<>t__builder""
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.0
-  IL_002c:  stfld      ""bool C.<<Main>g__Iter|0_0>d.<>w__disposeMode""
-  IL_0031:  ldarg.0
-  IL_0032:  stloc.0
-  IL_0033:  br.s       IL_003d
-  IL_0035:  ldc.i4.s   -3
-  IL_0037:  newobj     ""C.<<Main>g__Iter|0_0>d..ctor(int)""
-  IL_003c:  stloc.0
-  IL_003d:  ldloc.0
-  IL_003e:  ldarg.0
-  IL_003f:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>3__value""
-  IL_0044:  stfld      ""int C.<<Main>g__Iter|0_0>d.value""
-  IL_0049:  ldarg.0
-  IL_004a:  ldflda     ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
-  IL_004f:  ldloca.s   V_1
-  IL_0051:  initobj    ""System.Threading.CancellationToken""
-  IL_0057:  ldloc.1
-  IL_0058:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
-  IL_005d:  brfalse.s  IL_0068
-  IL_005f:  ldloc.0
-  IL_0060:  ldarg.1
-  IL_0061:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
-  IL_0066:  br.s       IL_00ba
-  IL_0068:  ldarga.s   V_1
-  IL_006a:  ldarg.0
-  IL_006b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
-  IL_0070:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
-  IL_0075:  brtrue.s   IL_0089
-  IL_0077:  ldarga.s   V_1
-  IL_0079:  ldloca.s   V_1
-  IL_007b:  initobj    ""System.Threading.CancellationToken""
-  IL_0081:  ldloc.1
-  IL_0082:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
-  IL_0087:  brfalse.s  IL_0097
-  IL_0089:  ldloc.0
-  IL_008a:  ldarg.0
-  IL_008b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
-  IL_0090:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
-  IL_0095:  br.s       IL_00ba
-  IL_0097:  ldarg.0
-  IL_0098:  ldarg.0
-  IL_0099:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
-  IL_009e:  ldarg.1
-  IL_009f:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
-  IL_00a4:  stfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
-  IL_00a9:  ldloc.0
-  IL_00aa:  ldarg.0
-  IL_00ab:  ldfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
-  IL_00b0:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
-  IL_00b5:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
-  IL_00ba:  ldloc.0
-  IL_00bb:  ldarg.0
-  IL_00bc:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__origToken""
-  IL_00c1:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.origToken""
-  IL_00c6:  ldloc.0
-  IL_00c7:  ret
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>1__state""
+    IL_0006:  ldc.i4.s   -2
+    IL_0008:  bne.un.s   IL_0035
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>l__initialThreadId""
+    IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+    IL_0015:  bne.un.s   IL_0035
+    IL_0017:  ldarg.0
+    IL_0018:  ldc.i4.s   -3
+    IL_001a:  stfld      ""int C.<<Main>g__Iter|0_0>d.<>1__state""
+    IL_001f:  ldarg.0
+    IL_0020:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
+    IL_0025:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<Main>g__Iter|0_0>d.<>t__builder""
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  stfld      ""bool C.<<Main>g__Iter|0_0>d.<>w__disposeMode""
+    IL_0031:  ldarg.0
+    IL_0032:  stloc.0
+    IL_0033:  br.s       IL_003d
+    IL_0035:  ldc.i4.s   -3
+    IL_0037:  newobj     ""C.<<Main>g__Iter|0_0>d..ctor(int)""
+    IL_003c:  stloc.0
+    IL_003d:  ldloc.0
+    IL_003e:  ldarg.0
+    IL_003f:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>3__value""
+    IL_0044:  stfld      ""int C.<<Main>g__Iter|0_0>d.value""
+    IL_0049:  ldarg.0
+    IL_004a:  ldflda     ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+    IL_004f:  ldloca.s   V_1
+    IL_0051:  initobj    ""System.Threading.CancellationToken""
+    IL_0057:  ldloc.1
+    IL_0058:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+    IL_005d:  brfalse.s  IL_0068
+    IL_005f:  ldloc.0
+    IL_0060:  ldarg.1
+    IL_0061:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
+    IL_0066:  br.s       IL_00ba
+    IL_0068:  ldarga.s   V_1
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+    IL_0070:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+    IL_0075:  brtrue.s   IL_0089
+    IL_0077:  ldarga.s   V_1
+    IL_0079:  ldloca.s   V_1
+    IL_007b:  initobj    ""System.Threading.CancellationToken""
+    IL_0081:  ldloc.1
+    IL_0082:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+    IL_0087:  brfalse.s  IL_0097
+    IL_0089:  ldloc.0
+    IL_008a:  ldarg.0
+    IL_008b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+    IL_0090:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
+    IL_0095:  br.s       IL_00ba
+    IL_0097:  ldloc.0
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+    IL_009e:  ldarg.1
+    IL_009f:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
+    IL_00a4:  stfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
+    IL_00a9:  ldloc.0
+    IL_00aa:  ldloc.0
+    IL_00ab:  ldfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
+    IL_00b0:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
+    IL_00b5:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
+    IL_00ba:  ldloc.0
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__origToken""
+    IL_00c1:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.origToken""
+    IL_00c6:  ldloc.0
+    IL_00c7:  ret
 }
 ");
             }

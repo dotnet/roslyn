@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var thisInitialized = F.GenerateLabel("thisInitialized");
 
-            if ((object)initialThreadIdField != null)
+            if (initialThreadIdField is not null)
             {
                 managedThreadId = MakeCurrentThreadId();
 
@@ -487,6 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (copyDest.TryGetValue(parameter, out proxy))
                 {
+                    // result
+                    BoundExpression result = F.Local(resultVariable);
+
                     // result.parameter
                     BoundExpression resultParameter = proxy.Replacement(
                         F.Syntax,
@@ -494,8 +497,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (F, resultVariable));
 
                     // this.parameterProxy
-                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
-                    BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy);
+                    BoundExpression parameterProxy = copySrc[parameter].Replacement(
+                        F.Syntax,
+                        static (stateMachineType, F) => F.This(),
+                        F
+                    );
+                    BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, result, resultParameter, parameterProxy);
 
                     bodyBuilder.Add(copy);
                 }
@@ -516,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
         }
 
-        protected virtual BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
+        protected virtual BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression result, BoundExpression resultParameter, BoundExpression parameterProxy)
         {
             Debug.Assert(!method.IsIterator || !method.IsAsync); // an override handles async-iterators
 
