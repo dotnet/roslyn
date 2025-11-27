@@ -269,7 +269,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
 
         // For recursive calls (caller and callee are the same method), we can't offer the
         // "remove callee" option because we can't remove a method while also modifying it.
-        if (callerSymbol.Equals(calleeMethodSymbol))
+        if (SymbolEqualityComparer.Default.Equals(callerSymbol, calleeMethodSymbol))
         {
             return [codeActionKeepsCallee];
         }
