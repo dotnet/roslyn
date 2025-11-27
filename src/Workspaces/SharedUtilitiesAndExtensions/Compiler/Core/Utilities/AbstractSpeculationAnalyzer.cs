@@ -1045,13 +1045,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, SemanticModel semanticModel)
     {
         var receiverSymbol = semanticModel.GetSymbolInfo(receiver).GetAnySymbol();
-
-        if (receiverSymbol == null)
-            return false;
-
-        return receiverSymbol.IsKind(SymbolKind.Method) ||
-               receiverSymbol.IsIndexer() ||
-               receiverSymbol.IsKind(SymbolKind.Property);
+        return receiverSymbol is IMethodSymbol or IPropertySymbol;
     }
 
     private bool SymbolsHaveCompatibleParameterLists(ISymbol originalSymbol, ISymbol newSymbol, TExpressionSyntax originalInvocation)
