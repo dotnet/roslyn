@@ -3929,7 +3929,7 @@ public sealed class CSharpInlineMethodTests
         }
         """, keepInlinedMethod: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78128")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81406")]
     public Task TestInlineRecursiveCall()
         => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
             """
