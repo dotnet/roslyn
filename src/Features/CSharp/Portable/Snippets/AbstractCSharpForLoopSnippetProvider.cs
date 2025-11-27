@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -54,18 +55,20 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         return new((ForStatementSyntax)editor.GetChangedRoot());
     }
 
-    protected override ForStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    protected override ForStatementSyntax GenerateStatement(
+    SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var compilation = semanticModel.Compilation;
+        var csharpSimplifierOptions = (CSharpSimplifierOptions)simplifierOptions;
 
         var iteratorName = NameGenerator.GenerateUniqueName(s_iteratorBaseNames, n => semanticModel.LookupSymbols(syntaxContext.Position, name: n).IsEmpty);
         var iteratorVariable = generator.Identifier(iteratorName);
         var indexVariable = (ExpressionSyntax)generator.IdentifierName(iteratorName);
-        var (iteratorTypeSyntax, inlineExpression) = GetLoopHeaderParts(generator, inlineExpressionInfo, compilation);
+        var (iteratorType, inlineExpression) = GetLoopHeaderParts();
 
         var variableDeclaration = VariableDeclaration(
-            iteratorTypeSyntax,
+            iteratorType,
             variables: [VariableDeclarator(iteratorVariable,
                 argumentList: null,
                 EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))])
@@ -78,12 +81,20 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
             [PostfixUnaryExpression(IncrementorKind, indexVariable)],
             Block());
 
-        static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
+        (TypeSyntax iteratorType, SyntaxNode? inlineExpression) GetLoopHeaderParts()
         {
             var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
 
             if (inlineExpressionInfo is null)
-                return (compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(), inlineExpression);
+            {
+                // Explicit emit 'var' if the user has asked for "var for built-in types" option.  We do that as the
+                // implicit 'allowVar' value passed to GenerateTypeSyntax doesn't work here as the inlineExpression will
+                // be in error, and thus the simplifier will not approve converting 'int' to 'var' in that scenario.
+                var iteratorType = csharpSimplifierOptions.VarForBuiltInTypes.Value
+                    ? IdentifierName("var")
+                    : compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax();
+                return (iteratorType, inlineExpression);
+            }
 
             var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
             Debug.Assert(inlineExpressionType is not null);
