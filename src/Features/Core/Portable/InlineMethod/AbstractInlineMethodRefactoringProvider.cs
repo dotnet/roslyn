@@ -104,10 +104,10 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         if (await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TMethodDeclarationSyntax calleeMethodNode)
             return;
 
-        var inlineExpression = GetRawInlineExpression(calleeMethodNode);
+        var rawInlineExpression = GetRawInlineExpression(calleeMethodNode);
 
         // Special case 1: AwaitExpression
-        if (_syntaxFacts.IsAwaitExpression(inlineExpression))
+        if (_syntaxFacts.IsAwaitExpression(rawInlineExpression))
         {
             // 1. If Caller & callee both have 'await' make sure there is no duplicate 'await'
             // Example:
@@ -129,14 +129,14 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             // void Caller() { DoAsync().Wait(); }
             // async Task Callee() => await DoAsync();
             // What caller is expecting is an expression returns 'Task', which doesn't include the 'await'
-            inlineExpression = _syntaxFacts.GetExpressionOfAwaitExpression(inlineExpression) as TExpressionSyntax;
+            rawInlineExpression = _syntaxFacts.GetExpressionOfAwaitExpression(rawInlineExpression) as TExpressionSyntax;
         }
 
-        if (inlineExpression == null)
+        if (rawInlineExpression == null)
             return;
 
         // Special case 2: ThrowStatement & ThrowExpresion
-        if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent) || _syntaxFacts.IsThrowExpression(inlineExpression))
+        if (_syntaxFacts.IsThrowStatement(rawInlineExpression.Parent) || _syntaxFacts.IsThrowExpression(rawInlineExpression))
         {
             // If this is a throw statement, then it should be valid for
             // 1. If it is invoked as ExpressionStatement
@@ -255,7 +255,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 calleeInvocationNode,
                 calleeMethodNode,
                 statementContainsInvocation,
-                inlineExpression,
+                rawInlineExpression,
                 invocationOperation, cancellationToken).ConfigureAwait(false);
 
             var inlineContext = await GetInlineMethodContextAsync(
@@ -263,7 +263,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 calleeMethodNode,
                 calleeInvocationNode,
                 calleeMethodSymbol,
-                inlineExpression,
+                rawInlineExpression,
                 methodParametersInfo,
                 cancellationToken).ConfigureAwait(false);
 
@@ -348,7 +348,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                     return (statementContainsInvocation, declarationNode.WithTriviaFrom(statementContainsInvocation));
                 }
 
-                if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent)
+                if (_syntaxFacts.IsThrowStatement(rawInlineExpression.Parent)
                     && _syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
                 {
                     var throwStatement = (TStatementSyntax)syntaxGenerator
@@ -356,7 +356,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                     return (statementContainsInvocation, throwStatement.WithTriviaFrom(statementContainsInvocation));
                 }
 
-                if (_syntaxFacts.IsThrowExpression(inlineExpression)
+                if (_syntaxFacts.IsThrowExpression(rawInlineExpression)
                     && _syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
                 {
                     // Example:
@@ -412,7 +412,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 }
             }
 
-            if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent))
+            if (_syntaxFacts.IsThrowStatement(rawInlineExpression.Parent))
             {
                 // Example:
                 // Before:
@@ -431,7 +431,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 }
             }
 
-            var finalInlineExpression = inlineMethodContext.InlineExpression;
+            var inlineExpression = inlineMethodContext.InlineExpression;
             if (!_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                 && !calleeMethodSymbol.ReturnsVoid
                 && !_syntaxFacts.IsThrowExpression(inlineMethodContext.InlineExpression))
@@ -467,14 +467,14 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 // Also, ensure that the node is formatted properly at the destination location. This is needed as the
                 // location of the destination node might be very different (indentation/nesting wise) from the original
                 // method where the inlined code is coming from.
-                finalInlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
+                inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
                     syntaxGenerator.CastExpression(
                         GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
-                        syntaxGenerator.AddParentheses(finalInlineExpression.WithAdditionalAnnotations(Formatter.Annotation))));
+                        syntaxGenerator.AddParentheses(inlineExpression.WithAdditionalAnnotations(Formatter.Annotation))));
 
             }
 
-            return (calleeInvocationNode, finalInlineExpression.WithTriviaFrom(calleeInvocationNode));
+            return (calleeInvocationNode, inlineExpression.WithTriviaFrom(calleeInvocationNode));
         }
     }
 

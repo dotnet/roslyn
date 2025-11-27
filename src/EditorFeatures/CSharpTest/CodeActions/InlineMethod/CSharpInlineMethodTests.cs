@@ -3931,24 +3931,26 @@ public sealed class CSharpInlineMethodTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81406")]
     public Task TestInlineRecursiveCall()
-        => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
-            """
-            class C
-            {
-                private void M()
+        => new TestVerifier
+        {
+            TestCode =
+                """
+                class C
                 {
-                    [||]M();
+                    private void M()
+                    {
+                        [||]M();
+                    }
                 }
-            }
-            """,
-            """
-            class C
-            {
-                private void M()
+                """,
+            FixedCode = """
+                class C
                 {
-                    M();
+                    private void M()
+                    {
+                        M();
+                    }
                 }
-            }
-            """,
-            keepInlinedMethod: false);
+                """,
+        }.RunAsync();
 }
