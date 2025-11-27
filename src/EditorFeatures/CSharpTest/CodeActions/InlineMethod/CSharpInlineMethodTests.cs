@@ -3939,7 +3939,13 @@ public sealed class CSharpInlineMethodTests
                 {
                     private void M()
                     {
+                        System.Console.WriteLine();
                         [||]M();
+                    }
+
+                    private void N()
+                    {
+                        M();
                     }
                 }
                 """,
@@ -3947,6 +3953,12 @@ public sealed class CSharpInlineMethodTests
                 class C
                 {
                     private void M()
+                    {
+                        System.Console.WriteLine();
+                        M();
+                    }
+
+                    private void N()
                     {
                         M();
                     }

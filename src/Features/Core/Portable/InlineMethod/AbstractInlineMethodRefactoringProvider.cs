@@ -470,7 +470,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
                     syntaxGenerator.CastExpression(
                         GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
-                        syntaxGenerator.AddParentheses(inlineExpression.WithAdditionalAnnotations(Formatter.Annotation))));
+                        syntaxGenerator.AddParentheses(inlineMethodContext.InlineExpression.WithAdditionalAnnotations(Formatter.Annotation))));
 
             }
 
