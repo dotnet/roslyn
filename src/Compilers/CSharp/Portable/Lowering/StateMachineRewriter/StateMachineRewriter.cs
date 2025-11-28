@@ -493,8 +493,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // result.parameter
                     BoundExpression resultParameter = proxy.Replacement(
                         F.Syntax,
-                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
-                        (F, resultVariable));
+                        static (stateMachineType, result) => result,
+                        result);
 
                     // this.parameterProxy
                     BoundExpression parameterProxy = copySrc[parameter].Replacement(
