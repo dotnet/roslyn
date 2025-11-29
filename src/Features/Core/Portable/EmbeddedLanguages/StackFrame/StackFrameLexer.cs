@@ -323,9 +323,10 @@ internal struct StackFrameLexer
 
     /// <summary>
     /// Scans a form similar to g__, where g is a GeneratedNameKind (a single character)
-    /// and identifier is valid identifier characters as with <see cref="TryScanIdentifier()"/>
+    /// and identifier is valid identifier characters as with <see cref="TryScanIdentifier()"/>.
+    /// If <paramref name="scanNumericsAfter"/> is true, it will also scan for a numeric suffix after "__"
     /// </summary>
-    public Result<StackFrameToken> TryScanRequiredGeneratedNameSeparator()
+    public Result<StackFrameToken> TryScanRequiredGeneratedNameSeparator(bool scanNumericsAfter = false)
     {
         var start = Position;
         if (IsAsciiAlphaCharacter(CurrentChar))
@@ -344,6 +345,14 @@ internal struct StackFrameLexer
         else
         {
             return Result<StackFrameToken>.Abort;
+        }
+
+        if (scanNumericsAfter)
+        {
+            while (IsNumber(CurrentChar))
+            {
+                Position++;
+            }
         }
 
         return CreateToken(StackFrameKind.GeneratedNameSeparatorToken, GetSubSequenceToCurrentPos(start));
