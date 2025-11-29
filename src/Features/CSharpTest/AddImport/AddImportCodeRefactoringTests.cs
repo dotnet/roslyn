@@ -770,6 +770,8 @@ public sealed class AddImportCodeRefactoringTests
             }
             """,
             """
+            using NS1.NS2;
+
             namespace NS1.NS2
             {
                 class T1
@@ -802,7 +804,6 @@ public sealed class AddImportCodeRefactoringTests
             }
             """,
             """
-            
             namespace NS1.NS2
             {
                 class T1
@@ -835,7 +836,6 @@ public sealed class AddImportCodeRefactoringTests
             }
             """,
             """
-            
             namespace NS1.NS2
             {
                 class T1
@@ -868,6 +868,9 @@ public sealed class AddImportCodeRefactoringTests
             }
             """,
             """
+            using NS1.NS2;
+
+            namespace NS1.NS2
             {
                 class T1
                 {

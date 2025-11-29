@@ -160,7 +160,7 @@ End Class")
 "Class C
     Implements [||]System.IDisposable
 
-    Public Sub Dispose() Implements IDisposable.Dispose
+    Public Sub Dispose() Implements System.IDisposable.Dispose
     End Sub
 End Class",
 "Imports System
@@ -168,7 +168,7 @@ End Class",
 Class C
     Implements IDisposable
 
-    Public Sub Dispose() Implements IDisposable.Dispose
+    Public Sub Dispose() Implements System.IDisposable.Dispose
     End Sub
 End Class")
         End Function
