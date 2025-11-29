@@ -130,12 +130,16 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
 
                         return (current, (INamedTypeSymbol)parentSymbol);
                     }
-                    else if (parentSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor &&
+
+                    // `[System.Obsolete]` will bind to the attributes constructor.
+                    if (parentSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor &&
                         constructor.ContainingType.IsAttribute())
                     {
                         current = current.Parent;
                         return (current, constructor.ContainingType);
                     }
+
+                    break;
                 }
             }
 
