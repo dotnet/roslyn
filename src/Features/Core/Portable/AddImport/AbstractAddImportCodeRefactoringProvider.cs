@@ -226,19 +226,28 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
                     continue;
                 }
 
-                // If we're simplifying everything, and we run into `System.X`, attempt to simplify that as well.
+                // If we're adding `using System.Collections.Generic;` and we're simplifying everything, and we run
+                // into `System.Collection.Generic.IList<C>`, attempt to simplify that as well.
                 if (simplifyAllOccurrences &&
                     child is TMemberAccessExpressionSyntax or TQualifiedNameSyntax)
                 {
-                    var rightSideName = child is TSimpleNameSyntax ? child : syntaxFacts.GetRightSideOfDot(child);
-                    Debug.Assert(rightSideName != null);
-                    if (syntaxFacts.StringComparer.Equals(
-                            namespaceSymbol.Name,
-                            syntaxFacts.GetIdentifierOfSimpleName(rightSideName).ValueText))
+                    // Left side could be something like `System` or `System.Collections.Generic`
+                    var leftSide = syntaxFacts.GetLeftSideOfDot(child);
+                    if (leftSide is TMemberAccessExpressionSyntax or TQualifiedNameSyntax or TSimpleNameSyntax)
                     {
-                        editor.ReplaceNode(
-                            child,
-                            (child, _) => child.WithAdditionalAnnotations(Simplifier.Annotation));
+                        // Right side is now `System` or `Generic`.  Check if that's the name of the namespace we're
+                        // adding. if so, mark it to be simplified if possible.
+                        var rightSideName = leftSide is TSimpleNameSyntax ? leftSide : syntaxFacts.GetRightSideOfDot(leftSide);
+                        Debug.Assert(rightSideName != null);
+                        if (syntaxFacts.StringComparer.Equals(
+                                namespaceSymbol.Name,
+                                syntaxFacts.GetIdentifierOfSimpleName(rightSideName).ValueText) &&
+                            namespaceSymbol.Equals(semanticModel.GetSymbolInfo(leftSide, cancellationToken).Symbol))
+                        {
+                            editor.ReplaceNode(
+                                child,
+                                (child, _) => child.WithAdditionalAnnotations(Simplifier.Annotation));
+                        }
                     }
                 }
             }

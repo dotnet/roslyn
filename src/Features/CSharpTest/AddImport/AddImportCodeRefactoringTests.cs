@@ -357,7 +357,7 @@ public sealed class AddImportCodeRefactoringTests
             {
                 void M()
                 {
-                    var x = [||]System.Threading;
+                    var x = nameof([||]System.Threading);
                 }
             }
             """);
@@ -444,7 +444,7 @@ public sealed class AddImportCodeRefactoringTests
             """);
 
     [Fact]
-    public Task TestAmbiguity_LocalTypeWithSameName()
+    public Task TestAmbiguity_TypeWithSameNameInScope()
         => VerifyCS.VerifyRefactoringAsync(
             """
             class Task { }
@@ -461,7 +461,7 @@ public sealed class AddImportCodeRefactoringTests
 
             class C
             {
-                Task M() => null;
+                System.Threading.Tasks.Task M() => null;
             }
             """);
 
