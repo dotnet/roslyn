@@ -459,5 +459,32 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         {
             AssertEx.Equal(input, PathUtilities.NormalizeDriveLetter(input));
         }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"c:\a\b\..\c", @"C:/a/c")]
+        [InlineData(@"C:\a\.\b\c", @"C:/a/b/c")]
+        [InlineData(@"c:\\a\\b\\c", @"C:/a/b/c")]
+        [InlineData(@"c:/a/b/../c", @"C:/a/c")]
+        [InlineData(@"C:/a/./b/c", @"C:/a/b/c")]
+        [InlineData(@"c:\a\b\c\", @"C:/a/b/c/")]
+        [InlineData(@"c:\", @"C:/")]
+        [InlineData(@"c:/", @"C:/")]
+        public void NormalizePathForEditorConfig_Windows(string input, string expected)
+        {
+            AssertEx.Equal(expected, PathUtilities.NormalizePathForEditorConfig(input));
+        }
+
+        [Theory]
+        [InlineData(@"/a/b/../c", @"/a/c")]
+        [InlineData(@"/a/./b/c", @"/a/b/c")]
+        [InlineData(@"/a//b//c", @"/a/b/c")]
+        [InlineData(@"/a\b/c", @"/a/b/c")]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a/b/c/", @"/a/b/c/")]
+        [InlineData(@"/", @"/")]
+        public void NormalizePathForEditorConfig_Unix(string input, string expected)
+        {
+            AssertEx.Equal(expected, PathUtilities.NormalizePathForEditorConfig(input));
+        }
     }
 }
