@@ -406,12 +406,12 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,
     /// which would otherwise be lost to the fire-and-forget task in the queue.
     /// </summary>
-    /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
+    /// <param name="requestTask">The task to be inspected.</param>
     /// <param name="rethrowExceptions">If exceptions should be re-thrown.</param>
-    /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
-    public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
+    /// <returns>The task from <paramref name="requestTask"/>, to allow chained calls if needed.</returns>
+    public virtual Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
     {
-        return nonMutatingRequestTask;
+        return requestTask;
     }
 
     /// <summary>
