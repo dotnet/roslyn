@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,18 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
-internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactoringProvider
+internal abstract class AbstractAddImportCodeRefactoringProvider<
+    TExpressionSyntax,
+    TMemberAccessExpressionSyntax,
+    TNameSyntax,
+    TQualifiedNameSyntax,
+    TAliasQualifiedNameSyntax>
+    : CodeRefactoringProvider
+    where TExpressionSyntax : SyntaxNode
+    where TMemberAccessExpressionSyntax : TExpressionSyntax
+    where TNameSyntax : TExpressionSyntax
+    where TQualifiedNameSyntax : TNameSyntax
+    where TAliasQualifiedNameSyntax : TNameSyntax
 {
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -28,133 +40,67 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        // Find the token at the position
         var token = root.FindToken(textSpan.Start);
-        if (token.Span.Length == 0)
+        var node = token.GetRequiredParent();
+        if (node is not TNameSyntax name)
             return;
 
-        // Find a qualified name node (e.g., System.Console or System.Threading.Tasks.Task)
-        // starting from the token's parent, walking up to find the outermost qualified name
-        var node = token.Parent;
-        if (node == null)
-            return;
-
-        // Get the qualified type reference - this might be a QualifiedName, AliasQualifiedName,
-        // or a member access expression that refers to a type
-        var qualifiedTypeReference = GetQualifiedTypeReference(syntaxFacts, node);
+        // Get the qualified type reference - this might be a QualifiedName, AliasQualifiedName, or a member access
+        // expression that refers to a type.
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var qualifiedTypeReference = GetQualifiedTypeReference();
         if (qualifiedTypeReference == null)
             return;
 
-        // Check if this qualified name represents a namespace + type (not just a namespace)
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var symbolInfo = semanticModel.GetSymbolInfo(qualifiedTypeReference, cancellationToken);
-
-        // We need the symbol to be a type (not a namespace or method)
-        var symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
-        if (symbol is not INamedTypeSymbol namedTypeSymbol)
+        if (symbolInfo.Symbol is not INamespaceOrTypeSymbol namespaceOrType)
             return;
 
-        // Get the namespace part of the qualified name
-        var namespaceSymbol = namedTypeSymbol.ContainingNamespace;
-        if (namespaceSymbol == null || namespaceSymbol.IsGlobalNamespace)
+        var namespaceSymbol = (namespaceOrType as INamespaceSymbol) ?? namespaceOrType.ContainingNamespace;
+        if (namespaceSymbol.IsGlobalNamespace)
             return;
 
         // Check if there's already a using directive for this namespace
+        var namespaceDisplayString = namespaceSymbol.ToDisplayString();
         var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
         var generator = SyntaxGenerator.GetGenerator(document);
-        var namespaceImport = generator.NamespaceImportDeclaration(namespaceSymbol.ToDisplayString());
+        var namespaceImport = generator.NamespaceImportDeclaration(namespaceDisplayString);
 
         if (addImportsService.HasExistingImport(semanticModel.Compilation, root, qualifiedTypeReference, namespaceImport, generator))
             return;
 
-        var namespaceDisplayString = namespaceSymbol.ToDisplayString();
+        context.RegisterRefactorings([
+            CodeAction.Create(
+                string.Format(FeaturesResources.Add_import_for_0, namespaceDisplayString),
+                cancellationToken => AddImportAndSimplifyAsync(simplifyAllOccurrences: false, cancellationToken)),
+            CodeAction.Create(
+                string.Format(FeaturesResources.Add_import_for_0_and_simplify_all_occurrences, namespaceDisplayString),
+                cancellationToken => AddImportAndSimplifyAsync(simplifyAllOccurrences: true, cancellationToken))],
+            qualifiedTypeReference.Span);
 
-        // First action: Add import and simplify just this occurrence
-        var title1 = string.Format(FeaturesResources.Add_import_for_0, namespaceDisplayString);
-        var action1 = CodeAction.Create(
-            title1,
-            ct => AddImportAndSimplifyAsync(document, qualifiedTypeReference, namespaceSymbol, simplifyAllOccurrences: false, ct),
-            title1);
+        static bool IsQualified([NotNullWhen(true)] SyntaxNode? node)
+            => node is TQualifiedNameSyntax or TAliasQualifiedNameSyntax or TMemberAccessExpressionSyntax;
 
-        // Second action: Add import and simplify all occurrences
-        var title2 = string.Format(FeaturesResources.Add_import_for_0_and_simplify_all_occurrences, namespaceDisplayString);
-        var action2 = CodeAction.Create(
-            title2,
-            ct => AddImportAndSimplifyAsync(document, qualifiedTypeReference, namespaceSymbol, simplifyAllOccurrences: true, ct),
-            title2);
-
-        context.RegisterRefactoring(action1, qualifiedTypeReference.Span);
-        context.RegisterRefactoring(action2, qualifiedTypeReference.Span);
-    }
-
-    private static SyntaxNode? GetQualifiedTypeReference(ISyntaxFactsService syntaxFacts, SyntaxNode? node)
-    {
-        // Walk up from the current node to find the outermost qualified name or member access
-        // that represents a type reference
-        SyntaxNode? current = node;
-        SyntaxNode? qualifiedName = null;
-
-        while (current != null)
+        TExpressionSyntax? GetQualifiedTypeReference()
         {
-            if (syntaxFacts.IsQualifiedName(current))
-            {
-                qualifiedName = current;
-                current = current.Parent;
-                continue;
-            }
-
-            if (syntaxFacts.IsAliasQualifiedName(current))
-            {
-                qualifiedName = current;
-                current = current.Parent;
-                continue;
-            }
-
-            // Handle member access expressions (for expression contexts like System.Console.WriteLine)
-            // We need to be careful here - we want to stop at the type, not continue to the method
-            if (syntaxFacts.IsMemberAccessExpression(current))
-            {
-                // If we already have a qualified name, and the parent is a member access,
-                // we should check if this is still part of a type reference
-                // For now, we'll mark this as a candidate and continue
-                qualifiedName = current;
-                current = current.Parent;
-                continue;
-            }
-
-            // If we hit a simple name that's not part of a qualified name, and we haven't found a qualified name yet
-            if (syntaxFacts.IsSimpleName(current) && qualifiedName == null)
-            {
-                // Check if parent is a qualified name
-                if (current.Parent != null && syntaxFacts.IsQualifiedName(current.Parent))
-                {
-                    current = current.Parent;
-                    continue;
-                }
-
-                // Check if parent is a member access expression
-                if (current.Parent != null && syntaxFacts.IsMemberAccessExpression(current.Parent))
-                {
-                    current = current.Parent;
-                    continue;
-                }
-
-                // Not a qualified name
+            // Offer on any of the namespace or type names in `global::System.Console.WriteLine()`.
+            var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol;
+            if (symbol is not INamespaceOrTypeSymbol namespaceOrType)
                 return null;
-            }
 
-            break;
+            // Walk up to the highest type/namespace we find.
+            SyntaxNode current = name;
+            while (IsQualified(current.Parent) && semanticModel.GetSymbolInfo(current.Parent, cancellationToken).Symbol is INamespaceOrTypeSymbol)
+                current = current.Parent;
+
+            return current switch
+            {
+                TQualifiedNameSyntax qualifiedName => qualifiedName,
+                TAliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName,
+                TMemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression,
+                _ => null,
+            };
         }
-
-        // If we found a member access expression, we need to find the part that refers to a type
-        // For example, in System.Console.WriteLine(), we want System.Console, not System.Console.WriteLine
-        if (qualifiedName != null && syntaxFacts.IsMemberAccessExpression(qualifiedName))
-        {
-            // Try to find the leftmost expression that's a type
-            return FindTypePartOfMemberAccess(syntaxFacts, qualifiedName);
-        }
-
-        return qualifiedName;
     }
 
     private static SyntaxNode? FindTypePartOfMemberAccess(ISyntaxFactsService syntaxFacts, SyntaxNode memberAccess)
