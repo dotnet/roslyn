@@ -31,4 +31,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         Replace = 4
     }
+
+    public enum ResourceEditKind
+    {
+        Update,
+        Insert,
+        Delete,
+    }
 }

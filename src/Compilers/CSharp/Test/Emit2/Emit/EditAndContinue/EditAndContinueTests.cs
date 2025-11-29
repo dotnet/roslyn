@@ -13572,10 +13572,10 @@ public class Y : X { }
 
             var diffA1 = compilationA1.EmitDifference(
                 generationA0,
-                ImmutableArray.Create(
+                edits: ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Insert, null, mA1),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, mX1)),
-                allAddedSymbols);
+                allAddedSymbols: allAddedSymbols);
 
             diffA1.EmitResult.Diagnostics.Verify();
 
@@ -13584,7 +13584,7 @@ public class Y : X { }
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, compilationB0.GetMember<MethodSymbol>("B.F"), compilationB1.GetMember<MethodSymbol>("B.F")),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, compilationB1.GetMember<TypeSymbol>("Y"))),
-                allAddedSymbols);
+                allAddedSymbols: allAddedSymbols);
 
             diffB1.EmitResult.Diagnostics.Verify(
                 // (7,14): error CS7101: Member 'X' added during the current debug session can only be accessed from within its declaring assembly 'LibA'.
@@ -22073,6 +22073,26 @@ file class C
                             "System.Collections.Generic.IList<T>.RemoveAt");
 
                         // Many EncLog and EncMap entries added.
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ManifestResource_Add()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C;
+                        """)
+                .AddGeneration(
+                    source: """
+                        class C;
+                        """,
+                    edits: [],
+                    validator: g =>
+                    {
+                        
                     })
                 .Verify();
         }
