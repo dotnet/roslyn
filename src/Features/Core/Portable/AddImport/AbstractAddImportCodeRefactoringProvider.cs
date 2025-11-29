@@ -21,14 +21,18 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
     TMemberAccessExpressionSyntax,
     TNameSyntax,
     TQualifiedNameSyntax,
-    TAliasQualifiedNameSyntax>
+    TAliasQualifiedNameSyntax,
+    TImportDirectiveSyntax>
     : CodeRefactoringProvider
     where TExpressionSyntax : SyntaxNode
     where TMemberAccessExpressionSyntax : TExpressionSyntax
     where TNameSyntax : TExpressionSyntax
     where TQualifiedNameSyntax : TNameSyntax
     where TAliasQualifiedNameSyntax : TNameSyntax
+    where TImportDirectiveSyntax : SyntaxNode
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
@@ -52,11 +56,14 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         if (qualifiedTypeReference == null)
             return;
 
-        var symbolInfo = semanticModel.GetSymbolInfo(qualifiedTypeReference, cancellationToken);
-        if (symbolInfo.Symbol is not INamespaceOrTypeSymbol namespaceOrType)
+        if (qualifiedTypeReference.AncestorsAndSelf().OfType<TImportDirectiveSyntax>().Any())
             return;
 
-        var namespaceSymbol = (namespaceOrType as INamespaceSymbol) ?? namespaceOrType.ContainingNamespace;
+        var symbolInfo = semanticModel.GetSymbolInfo(qualifiedTypeReference, cancellationToken);
+        if (symbolInfo.Symbol is not INamedTypeSymbol namedType)
+            return;
+
+        var namespaceSymbol = namedType.ContainingNamespace;
         if (namespaceSymbol.IsGlobalNamespace)
             return;
 
@@ -101,101 +108,58 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
                 _ => null,
             };
         }
-    }
 
-    private static SyntaxNode? FindTypePartOfMemberAccess(ISyntaxFactsService syntaxFacts, SyntaxNode memberAccess)
-    {
-        // Walk down the member access chain to find the part that refers to a type
-        // For System.Console.WriteLine, we start at the top and work down:
-        // - System.Console.WriteLine (method) - not a type
-        // - System.Console (type) - this is what we want
-        // - System (namespace) - not a type
-
-        var current = memberAccess;
-        while (syntaxFacts.IsMemberAccessExpression(current))
+        async Task<Document> AddImportAndSimplifyAsync(
+           bool simplifyAllOccurrences,
+           CancellationToken cancellationToken)
         {
-            syntaxFacts.GetPartsOfMemberAccessExpression(current, out var expression, out _, out _);
-            if (expression != null)
+            var options = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var rewrittenRoot = RewriteTree();
+            var rewrittenQualifiedTypeReference = rewrittenRoot;
+
+            if (simplifyAllOccurrences)
             {
-                // Check if the expression part is itself a member access that could be a type
-                if (syntaxFacts.IsMemberAccessExpression(expression))
+                // Find all qualified names that start with this namespace and annotate them for simplification
+                var namespaceDisplayString = namespaceSymbol.ToDisplayString();
+                var nodesToAnnotate = FindAllQualifiedNamesWithNamespace(newRoot, syntaxFacts, semanticModel, namespaceSymbol, cancellationToken);
+
+                foreach (var nodeToAnnotate in nodesToAnnotate)
                 {
-                    current = expression;
-                    continue;
-                }
-
-                // If the expression is a simple name or qualified name, return the whole current expression
-                // The caller will check if it resolves to a type
-                break;
-            }
-
-            break;
-        }
-
-        return current;
-    }
-
-    private static async Task<Document> AddImportAndSimplifyAsync(
-        Document document,
-        SyntaxNode qualifiedName,
-        INamespaceSymbol namespaceSymbol,
-        bool simplifyAllOccurrences,
-        CancellationToken cancellationToken)
-    {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
-        var options = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        // Create the using directive
-        var namespaceImport = generator.NamespaceImportDeclaration(namespaceSymbol.ToDisplayString());
-
-        // Add the using directive
-        var newRoot = addImportsService.AddImport(
-            semanticModel.Compilation,
-            root,
-            qualifiedName,
-            namespaceImport,
-            generator,
-            options,
-            cancellationToken);
-
-        if (simplifyAllOccurrences)
-        {
-            // Find all qualified names that start with this namespace and annotate them for simplification
-            var namespaceDisplayString = namespaceSymbol.ToDisplayString();
-            var nodesToAnnotate = FindAllQualifiedNamesWithNamespace(newRoot, syntaxFacts, semanticModel, namespaceSymbol, cancellationToken);
-
-            foreach (var nodeToAnnotate in nodesToAnnotate)
-            {
-                var currentNode = newRoot.FindNode(nodeToAnnotate.Span);
-                if (currentNode != null)
-                {
-                    var annotatedNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
-                    newRoot = newRoot.ReplaceNode(currentNode, annotatedNode);
+                    var currentNode = newRoot.FindNode(nodeToAnnotate.Span);
+                    if (currentNode != null)
+                    {
+                        var annotatedNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
+                        newRoot = newRoot.ReplaceNode(currentNode, annotatedNode);
+                    }
                 }
             }
-        }
-        else
-        {
-            // Find the qualified name in the new tree and annotate it for simplification
-            var newQualifiedName = newRoot.FindNode(qualifiedName.Span);
-            if (newQualifiedName != null)
+            else
             {
-                var annotatedNode = newQualifiedName.WithAdditionalAnnotations(Simplifier.Annotation);
-                newRoot = newRoot.ReplaceNode(newQualifiedName, annotatedNode);
+                newRoot = newRoot.ReplaceNode(qualifiedTypeReference, qualifiedTypeReference.WithAdditionalAnnotations(Simplifier.Annotation));
             }
+
+            var newDocument = document.WithSyntaxRoot(newRoot);
+
+            var newRoot = addImportsService.AddImport(
+                semanticModel.Compilation,
+                root,
+                qualifiedTypeReference,
+                namespaceImport,
+                generator,
+                options,
+                cancellationToken);
+
+            return newDocument;
         }
 
-        var newDocument = document.WithSyntaxRoot(newRoot);
-
-        // Simplify the document
-        newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        return newDocument;
+        SyntaxNode RewriteRoot(
+           bool simplifyAllOccurrences,
+           CancellationToken cancellationToken)
+        {
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+            
+        }
     }
 
     private static ImmutableArray<SyntaxNode> FindAllQualifiedNamesWithNamespace(
