@@ -3224,4 +3224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="extension_block" xml:space="preserve">
     <value>extension block</value>
   </data>
+  <data name="Add_import_for_0" xml:space="preserve">
+    <value>Add import for '{0}'</value>
+  </data>
 </root>
