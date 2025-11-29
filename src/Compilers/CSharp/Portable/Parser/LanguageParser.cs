@@ -4981,8 +4981,8 @@ parse_member_name:;
                 {
                     modifiers.Add(scopedKeyword);
 
-                    // Look if ref/out/in/readonly are next
-                    while (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
+                    // Look if ref/out/in/readonly/this are next
+                    while (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.ThisKeyword)
                     {
                         modifiers.Add(this.EatToken());
                     }
