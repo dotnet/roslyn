@@ -916,6 +916,53 @@ public sealed class RemoveUnusedMembersTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter_BinaryExpression()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                private const int _bar = 10;
+                public void M()
+                {
+                    var lam = (int x = _goo + _bar) => x;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter_QualifiedAccess()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                public void M()
+                {
+                    var lam = (int x = MyClass._goo) => x;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task FieldIsRead_Delegate()
     {
