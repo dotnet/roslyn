@@ -58,6 +58,48 @@ my_prop = my_val
         }
 
         [Fact]
+        public void KeysWithValueImpersonatingKeysCase()
+        {
+            var config = ParseConfigFile(@"
+a=b:c
+b:b=c#
+c=b=;c
+d:b:#;
+e::=
+f==:
+");
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("a", "b:c"),
+                        KeyValuePair.Create("b", "b=c"),
+                        KeyValuePair.Create("c", "b="),
+                        KeyValuePair.Create("d", "b:"),
+                        KeyValuePair.Create("e", ":="),
+                        KeyValuePair.Create("f", "=:") },
+                properties);
+        }
+
+        [Fact]
+        public void GlobsImpersonationCase()
+        {
+            var config = ParseConfigFile(@"
+[mykey]=
+[mykey=]=
+[mykey1]=[any#thing]
+");
+
+            Assert.Equal(0, config.NamedSections.Length);
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("[mykey]", ""),
+                        KeyValuePair.Create("[mykey", "]="),
+                        KeyValuePair.Create("[mykey1]", "[any") },
+                properties);
+        }
+
+        [Fact]
         [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void ConfigWithEscapedValues()
         {
@@ -265,7 +307,8 @@ my_prop2 = my val2");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop2", "my val2") },
+                new[] { KeyValuePair.Create("my prop1", "my_val1"),
+                        KeyValuePair.Create("my_prop2", "my val2") },
                 properties);
         }
 
@@ -289,7 +332,10 @@ my_prop2 = my val2 # Comment");
 @!$\# = my_val2");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(0, properties.Count);
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("@!$abc", "my_val1"),
+                        KeyValuePair.Create(@"@!$\#", "my_val2") },
+                properties);
         }
 
         [Fact]
@@ -302,7 +348,7 @@ my_key2 = my:val");
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my", "key1 = my_val"),
-                        KeyValuePair.Create("my_key2", "my:val")},
+                        KeyValuePair.Create("my_key2", "my:val") },
                 properties);
         }
 
@@ -315,7 +361,8 @@ my_key2 = my@val");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_key2", "my@val") },
+                new[] { KeyValuePair.Create("my@key1", "my_val"),
+                        KeyValuePair.Create("my_key2", "my@val") },
                 properties);
         }
 
