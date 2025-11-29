@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -47,6 +48,11 @@ internal static class SignatureHelpUtilities
 
     public static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
     {
+        if (IsPositionInAnonymousFunctionExpression(argumentList, position))
+        {
+            return null;
+        }
+
         return CommonSignatureHelpUtilities.GetSignatureHelpState(
             argumentList, position,
             s_getBaseArgumentListOpenToken,
@@ -138,5 +144,17 @@ internal static class SignatureHelpUtilities
             triggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is ArgumentListSyntax &&
             token.Parent.Parent is TSyntaxNode;
+    }
+
+    private static bool IsPositionInAnonymousFunctionExpression(SyntaxNode root, int position)
+    {
+        var token = root.FindToken(position);
+        var anonymous = token.Parent?.AncestorsAndSelf()?.OfType<AnonymousFunctionExpressionSyntax>().FirstOrDefault();
+        if (anonymous?.Body.Span is TextSpan span)
+        {
+            return span.Contains(position);
+        }
+
+        return false;
     }
 }
