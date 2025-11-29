@@ -91,7 +91,9 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
 
         // If this is actually a type reference off of an alias, don't offer to add a using/import.  The user
         // has already qualified in the way they want.
-        if (qualifiedTypeReference.DescendantNodes().Any(n => semanticModel.GetAliasInfo(n, cancellationToken) != null))
+        var namespaceReference = syntaxFacts.GetLeftSideOfDot(qualifiedTypeReference);
+        Contract.ThrowIfNull(namespaceReference);
+        if (namespaceReference.DescendantNodesAndSelf().Any(n => semanticModel.GetAliasInfo(n, cancellationToken) != null))
             return;
 
         // Check if there's already a using directive for this namespace

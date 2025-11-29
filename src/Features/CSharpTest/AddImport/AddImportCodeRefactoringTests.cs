@@ -1051,4 +1051,27 @@ public sealed class AddImportCodeRefactoringTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task TestOnGenericWithAliasNameInTypeArgument()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using SysTasks = System.Threading.Tasks;
+
+                class C
+                {
+                    [||]System.Collections.Generic.List<SysTasks.Task> M() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                using SysTasks = System.Threading.Tasks;
+                
+                class C
+                {
+                    List<SysTasks.Task> M() => null;
+                }
+                """,
+        }.RunAsync();
 }
