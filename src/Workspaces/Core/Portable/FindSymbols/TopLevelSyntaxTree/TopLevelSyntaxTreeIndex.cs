@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 
 internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopLevelSyntaxTreeIndex>
 {
+    public readonly bool IsGeneratedCode;
     private readonly DeclarationInfo _declarationInfo;
     private readonly ExtensionMemberInfo _extensionMemberInfo;
 
@@ -20,10 +21,12 @@ internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopL
 
     private TopLevelSyntaxTreeIndex(
         Checksum? checksum,
+        bool isGeneratedCode,
         DeclarationInfo declarationInfo,
         ExtensionMemberInfo extensionMemberInfo)
         : base(checksum)
     {
+        IsGeneratedCode = isGeneratedCode;
         _declarationInfo = declarationInfo;
         _extensionMemberInfo = extensionMemberInfo;
 

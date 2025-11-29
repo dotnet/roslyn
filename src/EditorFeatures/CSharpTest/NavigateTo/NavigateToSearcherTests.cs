@@ -32,7 +32,8 @@ public sealed class NavigateToSearcherTests
         Mock<IAdvancedNavigateToSearchService> searchService,
         string pattern,
         bool isFullyLoaded,
-        ImmutableArray<INavigateToSearchResult> results)
+        ImmutableArray<INavigateToSearchResult> results,
+        bool searchGeneratedCode = true)
     {
         if (isFullyLoaded)
         {
@@ -43,6 +44,7 @@ public sealed class NavigateToSearcherTests
                 It.IsAny<ImmutableArray<Document>>(),
                 pattern,
                 ImmutableHashSet<string>.Empty,
+                searchGeneratedCode,
                 It.IsAny<Document?>(),
                 It.IsAny<Func<ImmutableArray<INavigateToSearchResult>, Task>>(),
                 It.IsAny<Func<Task>>(),
@@ -52,6 +54,7 @@ public sealed class NavigateToSearcherTests
                  ImmutableArray<Document> priorityDocuments,
                  string pattern,
                  IImmutableSet<string> kinds,
+                 bool searchGeneratedCode,
                  Document? activeDocument,
                  Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
                  Func<Task> onProjectCompleted,
@@ -61,29 +64,31 @@ public sealed class NavigateToSearcherTests
                         onResultsFound(results);
                 }).Returns(Task.CompletedTask);
 
-            searchService.Setup(ss => ss.SearchGeneratedDocumentsAsync(
-                It.IsAny<Solution>(),
-                It.IsAny<ImmutableArray<Project>>(),
-                pattern,
-                ImmutableHashSet<string>.Empty,
-                It.IsAny<Document?>(),
-                It.IsAny<Func<ImmutableArray<INavigateToSearchResult>, Task>>(),
-                It.IsAny<Func<Task>>(),
-                It.IsAny<CancellationToken>())).Callback(
-                (Solution solution,
-                 ImmutableArray<Project> projects,
-                 string pattern,
-                 IImmutableSet<string> kinds,
-                 Document? activeDocument,
-                 Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
-                 Func<Task> onProjectCompleted,
-                 CancellationToken cancellationToken) =>
-                {
-                    if (results.Length > 0)
-                        onResultsFound(results);
-                }).Returns(Task.CompletedTask);
-
-            // Followed by a generated doc search.
+            if (searchGeneratedCode)
+            {
+                // Followed by a generated doc search.
+                searchService.Setup(ss => ss.SearchSourceGeneratedDocumentsAsync(
+                    It.IsAny<Solution>(),
+                    It.IsAny<ImmutableArray<Project>>(),
+                    pattern,
+                    ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
+                    It.IsAny<Func<ImmutableArray<INavigateToSearchResult>, Task>>(),
+                    It.IsAny<Func<Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Solution solution,
+                     ImmutableArray<Project> projects,
+                     string pattern,
+                     IImmutableSet<string> kinds,
+                     Document? activeDocument,
+                     Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
+                     Func<Task> onProjectCompleted,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (results.Length > 0)
+                            onResultsFound(results);
+                    }).Returns(Task.CompletedTask);
+            }
         }
         else
         {
@@ -263,6 +268,49 @@ public sealed class NavigateToSearcherTests
             hostMock.Object);
 
         await searcher.SearchAsync(NavigateToSearchScope.Solution, CancellationToken.None);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task SearchGeneratedCodeUserOption(bool searchGeneratedCode)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("");
+
+        var pattern = "irrelevant";
+
+        var results = ImmutableArray.Create<INavigateToSearchResult>(new TestNavigateToSearchResult(workspace, new TextSpan(0, 0)));
+
+        var searchService = new Mock<IAdvancedNavigateToSearchService>(MockBehavior.Strict);
+
+        // First call will pass in that we're fully loaded.  If we return null, we should not get another call.
+        SetupSearchProject(searchService, pattern, isFullyLoaded: true, results: [], searchGeneratedCode);
+
+        // Simulate a host that says the solution is fully loaded.
+        var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
+        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => IsFullyLoadedAsync(projectSystem: true, remoteHost: true));
+        hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
+
+        var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
+        callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
+
+        // Because we did a full search, we should let the user know it was totally accurate.
+        callbackMock.Setup(c => c.Done(true));
+
+        var searcher = NavigateToSearcher.Create(
+            workspace.CurrentSolution,
+            callbackMock.Object,
+            pattern,
+            kinds: ImmutableHashSet<string>.Empty,
+            hostMock.Object);
+
+        var documentSupport = searchGeneratedCode
+            ? NavigateToDocumentSupport.AllDocuments
+            : NavigateToDocumentSupport.RegularDocuments;
+
+        // Perform the search as the test wants.  The callbacks will be strictly checked to make sure the searcher
+        // respects these flags.
+        await searcher.SearchAsync(NavigateToSearchScope.Solution, documentSupport, CancellationToken.None);
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1933220")]
@@ -524,13 +572,13 @@ public sealed class NavigateToSearcherTests
             return Task.CompletedTask;
         }
 
-        public Task SearchGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public Task SearchSourceGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchGeneratedDocumentsAsyncCalled?.Invoke();
             return Task.CompletedTask;
         }
 
-        public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, bool searchGeneratedCode, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchProjectsAsyncCalled?.Invoke();
             return Task.CompletedTask;
