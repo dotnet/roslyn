@@ -110,9 +110,9 @@ internal sealed partial class ProjectSystemProjectFactory
             displayName: projectSystemName,
             language,
             assemblyName,
-            creationInfo.CompilationOptions,
+            compilationOptions: null,
             creationInfo.FilePath,
-            creationInfo.ParseOptions);
+            parseOptions: null);
 
         var versionStamp = creationInfo.FilePath != null
             ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -126,14 +126,14 @@ internal sealed partial class ProjectSystemProjectFactory
                 assemblyName,
                 language,
                 // generatedFilesOutputDirectory to be updated when initializing project from command line:
-                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath, generatedFilesOutputDirectory: null),
+                compilationOutputInfo: new(assemblyPath: null, generatedFilesOutputDirectory: null),
                 SourceHashAlgorithms.Default, // will be updated when command line is set
-                outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
+                outputFilePath: null,
                 filePath: creationInfo.FilePath,
-                telemetryId: creationInfo.TelemetryId,
+                telemetryId: default,
                 hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
-            compilationOptions: creationInfo.CompilationOptions,
-            parseOptions: creationInfo.ParseOptions);
+            compilationOptions: null,
+            parseOptions: null);
 
         await ApplyChangeToWorkspaceAsync(w =>
         {
@@ -185,7 +185,6 @@ internal sealed partial class ProjectSystemProjectFactory
         // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
         var disposableBatchScope = await project.CreateBatchScopeAsync(CancellationToken.None).ConfigureAwait(false);
         await using var _ = disposableBatchScope.ConfigureAwait(false);
-        project.CompilationOutputAssemblyFilePath = creationInfo.CompilationOutputAssemblyFilePath;
 
         return project;
     }
