@@ -636,7 +636,7 @@ public sealed class AddImportCodeRefactoringTests
             """
             class C
             {
-                [||]global::System.Console M() => null;
+                [||]global::System.DateTime M() => default;
             }
             """,
             """
@@ -644,7 +644,7 @@ public sealed class AddImportCodeRefactoringTests
 
             class C
             {
-                Console M() => null;
+                DateTime M() => default;
             }
             """);
 
@@ -654,7 +654,7 @@ public sealed class AddImportCodeRefactoringTests
             """
             class C
             {
-                global::[||]System.Console M() => null;
+                global::[||]System.DateTime M() => default;
             }
             """,
             """
@@ -662,17 +662,17 @@ public sealed class AddImportCodeRefactoringTests
 
             class C
             {
-                Console M() => null;
+                DateTime M() => default;
             }
             """);
 
     [Fact]
-    public Task TestGlobalQualifiedName_OnConsole()
+    public Task TestGlobalQualifiedName_OnTypeName()
         => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
-                global::System.[||]Console M() => null;
+                global::System.[||]DateTime M() => default;
             }
             """,
             """
@@ -680,7 +680,7 @@ public sealed class AddImportCodeRefactoringTests
 
             class C
             {
-                Console M() => null;
+                DateTime M() => default;
             }
             """);
 
@@ -770,8 +770,6 @@ public sealed class AddImportCodeRefactoringTests
             }
             """,
             """
-            using NS1.NS2;
-
             namespace NS1.NS2
             {
                 class T1
@@ -783,6 +781,72 @@ public sealed class AddImportCodeRefactoringTests
             class C
             {
                 T1.T2 M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_OfferOnOuterType2()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            
+                class C
+                {
+                    [||]T1.T2 M() => null;
+                }
+            }
+            """,
+            """
+            
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+
+                class C
+                {
+                    T1.T2 M() => null;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_OfferOnOuterType3()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            
+                class C
+                {
+                    T1.[||]T2 M() => null;
+                }
+            }
+            """,
+            """
+            
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+
+                class C
+                {
+                    T1.T2 M() => null;
+                }
             }
             """);
 
@@ -804,9 +868,6 @@ public sealed class AddImportCodeRefactoringTests
             }
             """,
             """
-            using NS1.NS2;
-
-            namespace NS1.NS2
             {
                 class T1
                 {
@@ -943,7 +1004,7 @@ public sealed class AddImportCodeRefactoringTests
                     System.Collections.Generic.List<List<int>> M() => null;
                 }
                 """,
-            CodeActionIndex = 0, // Only simplify current occurrence
+            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -966,7 +1027,7 @@ public sealed class AddImportCodeRefactoringTests
                     List<List<int>> M() => null;
                 }
                 """,
-            CodeActionIndex = 1, // Simplify all occurrences
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 }
