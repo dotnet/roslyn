@@ -61,15 +61,23 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         // Get the qualified type reference - this might be a QualifiedName, AliasQualifiedName, or a member access
         // expression that refers to a type.
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var qualifiedTypeReference = GetQualifiedTypeReference();
+        var (qualifiedTypeReferenceNode, namedType) = GetQualifiedTypeReference();
+        if (namedType == null)
+            return;
+
+        // To simplify things, we don't offer this on a naked alias.  In other words, we don't offer
+        // `global::TopLevelType`.  This simplifies later processing.
+        var qualifiedTypeReference = qualifiedTypeReferenceNode switch
+        {
+            TQualifiedNameSyntax qualifiedName => qualifiedName,
+            TMemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression,
+            _ => (TExpressionSyntax?)null,
+        };
+
         if (qualifiedTypeReference == null)
             return;
 
         if (qualifiedTypeReference.AncestorsAndSelf().OfType<TImportDirectiveSyntax>().Any())
-            return;
-
-        var symbolInfo = semanticModel.GetSymbolInfo(qualifiedTypeReference, cancellationToken);
-        if (symbolInfo.Symbol is not INamedTypeSymbol namedType)
             return;
 
         if (namedType.ContainingType != null)
@@ -100,39 +108,38 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         static bool IsQualified([NotNullWhen(true)] SyntaxNode? node)
             => node is TQualifiedNameSyntax or TAliasQualifiedNameSyntax or TMemberAccessExpressionSyntax;
 
-        TExpressionSyntax? GetQualifiedTypeReference()
+        (SyntaxNode? qualifiedTypeReference, INamedTypeSymbol? namedType) GetQualifiedTypeReference()
         {
             // Offer on any of the namespace or type names in `global::System.Console.WriteLine()`.
             var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol;
-            if (symbol is not INamespaceOrTypeSymbol namespaceOrType)
-                return null;
-
-            // Walk up if we keep seeing a named-type/namespace above us.
-            SyntaxNode current = name;
-            while (IsQualified(current.Parent))
+            if (symbol is INamespaceOrTypeSymbol namespaceOrType)
             {
-                var parentSymbol = semanticModel.GetSymbolInfo(current.Parent, cancellationToken).Symbol;
-                if (parentSymbol is INamespaceOrTypeSymbol)
+                // Walk up if we keep seeing a named-type/namespace above us.
+                SyntaxNode current = name;
+                while (IsQualified(current.Parent))
                 {
-                    current = current.Parent;
+                    var parentSymbol = semanticModel.GetSymbolInfo(current.Parent, cancellationToken).Symbol;
+                    if (parentSymbol is INamespaceOrTypeSymbol)
+                    {
+                        current = current.Parent;
 
-                    // we want to stop on the first named type we see. In other words, if we have NS1.NS2.T1.T2, we want 
-                    // to stop on T1.
-                    if (parentSymbol is INamespaceSymbol)
-                        continue;
+                        // we want to stop on the first named type we see. In other words, if we have NS1.NS2.T1.T2, we want 
+                        // to stop on T1.
+                        if (parentSymbol is INamespaceSymbol)
+                            continue;
+
+                        return (current, (INamedTypeSymbol)parentSymbol);
+                    }
+                    else if (parentSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor &&
+                        constructor.ContainingType.IsAttribute())
+                    {
+                        current = current.Parent;
+                        return (current, constructor.ContainingType);
+                    }
                 }
-
-                break;
             }
 
-            // To simplify things, we don't offer this on a naked alias.  In other words, we don't offer
-            // `global::TopLevelType`.  This simplifies later processing.
-            return current switch
-            {
-                TQualifiedNameSyntax qualifiedName => qualifiedName,
-                TMemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression,
-                _ => null,
-            };
+            return default;
         }
 
         async Task<Document> AddImportAndSimplifyAsync(
