@@ -488,7 +488,7 @@ public sealed class AddImportCodeRefactoringTests
                     Task<int> M3() => null;
                 }
                 """,
-            CodeActionIndex = 1 // Select "Add import and simplify all occurrences"
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 
@@ -515,7 +515,7 @@ public sealed class AddImportCodeRefactoringTests
                     Task<string> _field;
                 }
                 """,
-            CodeActionIndex = 1 // Select "Add import and simplify all occurrences"
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 
@@ -540,7 +540,7 @@ public sealed class AddImportCodeRefactoringTests
                     System.Collections.Generic.List<int> M2() => null;
                 }
                 """,
-            CodeActionIndex = 1 // Select "Add import and simplify all occurrences"
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 
@@ -565,7 +565,6 @@ public sealed class AddImportCodeRefactoringTests
                     System.Threading.Tasks.Task M2() => null;
                 }
                 """,
-            CodeActionIndex = 0 // Select "Add import" (first action, only simplifies current)
         }.RunAsync();
     }
 }
