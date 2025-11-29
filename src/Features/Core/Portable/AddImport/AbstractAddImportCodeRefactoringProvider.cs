@@ -242,7 +242,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
                         if (syntaxFacts.StringComparer.Equals(
                                 namespaceSymbol.Name,
                                 syntaxFacts.GetIdentifierOfSimpleName(rightSideName).ValueText) &&
-                            SymbolEquivalenceComparer.Instance.Equals(namespaceSymbol, semanticModel.GetSymbolInfo(leftSide, cancellationToken).Symbol))
+                            SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(namespaceSymbol, semanticModel.GetSymbolInfo(leftSide, cancellationToken).Symbol))
                         {
                             editor.ReplaceNode(
                                 child,
