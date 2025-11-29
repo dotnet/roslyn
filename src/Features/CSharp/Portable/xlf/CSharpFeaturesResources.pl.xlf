@@ -17,12 +17,12 @@
         <target state="translated">Dodaj nawiasy klamrowe w przypadku jednowierszowych instrukcji sterowania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_using_for_0">
+      <trans-unit id="Add_using_0">
         <source>Add 'using {0};'</source>
         <target state="new">Add 'using {0};'</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_using_for_0_and_simplify_all_occurrences">
+      <trans-unit id="Add_using_0_and_simplify_all_occurrences">
         <source>Add 'using {0};' and simplify all occurrences</source>
         <target state="new">Add 'using {0};' and simplify all occurrences</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>

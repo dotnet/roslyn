@@ -81,43 +81,18 @@ internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
     protected override bool IsEquivalentImport(SyntaxNode a, SyntaxNode b)
         => SyntaxFactory.AreEquivalent(a, b, kind => kind == SyntaxKind.NullableDirectiveTrivia);
 
-    private sealed class Rewriter : CSharpSyntaxRewriter
+    private sealed class Rewriter(
+        ExternAliasDirectiveSyntax[] externAliases,
+        UsingDirectiveSyntax[] usingDirectives,
+        UsingDirectiveSyntax[] staticUsingDirectives,
+        UsingDirectiveSyntax[] aliasDirectives,
+        SyntaxNode externContainer,
+        SyntaxNode usingContainer,
+        SyntaxNode aliasContainer,
+        SyntaxNode staticUsingContainer,
+        AddImportPlacementOptions options,
+        CancellationToken cancellationToken) : CSharpSyntaxRewriter
     {
-        private readonly AddImportPlacementOptions _options;
-        private readonly CancellationToken _cancellationToken;
-        private readonly SyntaxNode _externContainer;
-        private readonly SyntaxNode _usingContainer;
-        private readonly SyntaxNode _aliasContainer;
-        private readonly SyntaxNode _staticUsingContainer;
-        private readonly UsingDirectiveSyntax[] _aliasDirectives;
-        private readonly ExternAliasDirectiveSyntax[] _externAliases;
-        private readonly UsingDirectiveSyntax[] _usingDirectives;
-        private readonly UsingDirectiveSyntax[] _staticUsingDirectives;
-
-        public Rewriter(
-            ExternAliasDirectiveSyntax[] externAliases,
-            UsingDirectiveSyntax[] usingDirectives,
-            UsingDirectiveSyntax[] staticUsingDirectives,
-            UsingDirectiveSyntax[] aliasDirectives,
-            SyntaxNode externContainer,
-            SyntaxNode usingContainer,
-            SyntaxNode aliasContainer,
-            SyntaxNode staticUsingContainer,
-            AddImportPlacementOptions options,
-            CancellationToken cancellationToken)
-        {
-            _externAliases = externAliases;
-            _usingDirectives = usingDirectives;
-            _staticUsingDirectives = staticUsingDirectives;
-            _aliasDirectives = aliasDirectives;
-            _externContainer = externContainer;
-            _usingContainer = usingContainer;
-            _aliasContainer = aliasContainer;
-            _staticUsingContainer = staticUsingContainer;
-            _options = options;
-            _cancellationToken = cancellationToken;
-        }
-
         [return: NotNullIfNotNull(nameof(node))]
         public override SyntaxNode? Visit(SyntaxNode? node)
             => base.Visit(node);
@@ -128,36 +103,19 @@ internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
         public override SyntaxNode? VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
             => VisitBaseNamespaceDeclaration(node, (BaseNamespaceDeclarationSyntax?)base.VisitFileScopedNamespaceDeclaration(node));
 
-        private SyntaxNode VisitBaseNamespaceDeclaration(
+        private BaseNamespaceDeclarationSyntax VisitBaseNamespaceDeclaration(
             BaseNamespaceDeclarationSyntax node, BaseNamespaceDeclarationSyntax? rewritten)
         {
             Contract.ThrowIfNull(rewritten);
 
             // recurse downwards so we visit inner namespaces first.
-            if (!node.CanAddUsingDirectives(_options.AllowInHiddenRegions, _cancellationToken))
-            {
+            if (!node.CanAddUsingDirectives(options.AllowInHiddenRegions, cancellationToken))
                 return rewritten;
-            }
 
-            if (node == _aliasContainer)
-            {
-                rewritten = rewritten.AddUsingDirectives(_aliasDirectives, _options.PlaceSystemNamespaceFirst);
-            }
-
-            if (node == _usingContainer)
-            {
-                rewritten = rewritten.AddUsingDirectives(_usingDirectives, _options.PlaceSystemNamespaceFirst);
-            }
-
-            if (node == _staticUsingContainer)
-            {
-                rewritten = rewritten.AddUsingDirectives(_staticUsingDirectives, _options.PlaceSystemNamespaceFirst);
-            }
-
-            if (node == _externContainer)
-            {
-                rewritten = rewritten.AddExterns(_externAliases);
-            }
+            rewritten = node == aliasContainer ? rewritten.AddUsingDirectives(aliasDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == usingContainer ? rewritten.AddUsingDirectives(usingDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == staticUsingContainer ? rewritten.AddUsingDirectives(staticUsingDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == externContainer ? rewritten.AddExterns(externAliases) : rewritten;
 
             return rewritten;
         }
@@ -167,30 +125,13 @@ internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
             // recurse downwards so we visit inner namespaces first.
             var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable());
 
-            if (!node.CanAddUsingDirectives(_options.AllowInHiddenRegions, _cancellationToken))
-            {
+            if (!node.CanAddUsingDirectives(options.AllowInHiddenRegions, cancellationToken))
                 return rewritten;
-            }
 
-            if (node == _aliasContainer)
-            {
-                rewritten = rewritten.AddUsingDirectives(_aliasDirectives, _options.PlaceSystemNamespaceFirst);
-            }
-
-            if (node == _usingContainer)
-            {
-                rewritten = rewritten.AddUsingDirectives(_usingDirectives, _options.PlaceSystemNamespaceFirst);
-            }
-
-            if (node == _staticUsingContainer)
-            {
-                rewritten = rewritten.AddUsingDirectives(_staticUsingDirectives, _options.PlaceSystemNamespaceFirst);
-            }
-
-            if (node == _externContainer)
-            {
-                rewritten = rewritten.AddExterns(_externAliases);
-            }
+            rewritten = node == aliasContainer ? rewritten.AddUsingDirectives(aliasDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == usingContainer ? rewritten.AddUsingDirectives(usingDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == staticUsingContainer ? rewritten.AddUsingDirectives(staticUsingDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == externContainer ? rewritten.AddExterns(externAliases) : rewritten;
 
             return rewritten;
         }
