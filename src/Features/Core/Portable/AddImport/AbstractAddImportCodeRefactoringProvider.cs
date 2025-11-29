@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.AddImport;
@@ -24,7 +25,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
     TSimpleNameSyntax,
     TQualifiedNameSyntax,
     TAliasQualifiedNameSyntax,
-    TImportDirectiveSyntax>
+    TImportDirectiveSyntax>(ISyntaxFacts syntaxFacts)
     : CodeRefactoringProvider
     where TExpressionSyntax : SyntaxNode
     where TMemberAccessExpressionSyntax : TExpressionSyntax
@@ -35,12 +36,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
     where TImportDirectiveSyntax : SyntaxNode
 {
     private static readonly SyntaxAnnotation s_annotation = new();
-    private readonly ObjectPool<PooledHashSet<string>> _hashSetPool;
-
-    protected AbstractAddImportCodeRefactoringProvider(ISyntaxFacts syntaxFacts)
-    {
-        _hashSetPool = PooledHashSet<string>.CreatePool(syntaxFacts.StringComparer);
-    }
+    private readonly ObjectPool<PooledHashSet<string>> _hashSetPool = PooledHashSet<string>.CreatePool(syntaxFacts.StringComparer);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -153,12 +149,12 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
             var options = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var rewrittenRoot = RewriteRoot(simplifyAllOccurrences, cancellationToken);
-            var rewrittenQualifiedTypeReference = rewrittenRoot.GetAnnotatedNodes(s_annotation);
+            var rewrittenQualifiedTypeReference = rewrittenRoot.GetAnnotatedNodes(s_annotation).Single();
 
             var finalRoot = addImportsService.AddImport(
                 semanticModel.Compilation,
                 rewrittenRoot,
-                qualifiedTypeReference,
+                rewrittenQualifiedTypeReference,
                 namespaceImport,
                 generator,
                 options,
@@ -211,16 +207,19 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
                 // If we run into a name like `Console` and we know we're adding `System`, then qualify this name so
                 // that it doesn't change after this point.
                 if (child is TSimpleNameSyntax simpleName &&
-                    syntaxFacts.IsLeftSideOfDot(simpleName) &&
                     newTypeNamesInScope.Contains(syntaxFacts.GetIdentifierOfSimpleName(simpleName).ValueText))
                 {
-                    var symbol = semanticModel.GetSymbolInfo(simpleName, cancellationToken).Symbol;
-                    if (symbol is INamedTypeSymbol namedType)
+                    if (syntaxFacts.IsLeftSideOfDot(simpleName) ||
+                        syntaxFacts.GetStandaloneExpression(simpleName) == simpleName)
                     {
-                        var typeContext = syntaxFacts.IsInNamespaceOrTypeContext(simpleName);
-                        editor.ReplaceNode(
-                            simpleName,
-                            (current, _) => generator.SyntaxGeneratorInternal.Type(namedType, typeContext));
+                        var symbol = semanticModel.GetSymbolInfo(simpleName, cancellationToken).Symbol;
+                        if (symbol is INamedTypeSymbol namedType)
+                        {
+                            var typeContext = syntaxFacts.IsInNamespaceOrTypeContext(simpleName);
+                            editor.ReplaceNode(
+                                simpleName,
+                                (current, _) => generator.SyntaxGeneratorInternal.Type(namedType, typeContext));
+                        }
                     }
 
                     continue;
@@ -235,14 +234,15 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
                     var leftSide = syntaxFacts.GetLeftSideOfDot(child);
                     if (leftSide is TMemberAccessExpressionSyntax or TQualifiedNameSyntax or TSimpleNameSyntax)
                     {
-                        // Right side is now `System` or `Generic`.  Check if that's the name of the namespace we're
+                        // Right side is now something like `System` (in the `System.Console` case or `Generic` in the
+                        // `System.Collections.Generic.List<T>` case).  Check if that's the name of the namespace we're
                         // adding. if so, mark it to be simplified if possible.
                         var rightSideName = leftSide is TSimpleNameSyntax ? leftSide : syntaxFacts.GetRightSideOfDot(leftSide);
                         Debug.Assert(rightSideName != null);
                         if (syntaxFacts.StringComparer.Equals(
                                 namespaceSymbol.Name,
                                 syntaxFacts.GetIdentifierOfSimpleName(rightSideName).ValueText) &&
-                            namespaceSymbol.Equals(semanticModel.GetSymbolInfo(leftSide, cancellationToken).Symbol))
+                            SymbolEquivalenceComparer.Instance.Equals(namespaceSymbol, semanticModel.GetSymbolInfo(leftSide, cancellationToken).Symbol))
                         {
                             editor.ReplaceNode(
                                 child,

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddImport;
@@ -444,7 +443,7 @@ public sealed class AddImportCodeRefactoringTests
             """);
 
     [Fact]
-    public Task TestAmbiguity_TypeWithSameNameInScope()
+    public Task TestAmbiguity_TypeWithSameNameInScope1()
         => VerifyCS.VerifyRefactoringAsync(
             """
             class Task { }
@@ -462,6 +461,47 @@ public sealed class AddImportCodeRefactoringTests
             class C
             {
                 System.Threading.Tasks.Task M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestAmbiguity_TypeWithSameNameInScope2()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            using N;
+
+            namespace N
+            {
+                class Task { }
+            }
+
+            class C
+            {
+                [||]System.Threading.Tasks.Task M() => null;
+            }
+
+            class D
+            {
+                Task M() => null;
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            using N;
+
+            namespace N
+            {
+                class Task { }
+            }
+
+            class C
+            {
+                System.Threading.Tasks.Task M() => null;
+            }
+            
+            class D
+            {
+                N.Task M() => null;
             }
             """);
 
