@@ -1,4 +1,4 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -27,16 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
-        Protected Overrides ReadOnly Property AddImportTitle As String
-            Get
-                Return VBFeaturesResources.Add_Imports_0
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property AddImportAndSimplifyAllOccurrencesTitle As String
-            Get
-                Return VBFeaturesResources.Add_Imports_0_and_simplify_all_occurrences
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property AddImportTitle As String = VBFeaturesResources.Add_Imports_0
+        Protected Overrides ReadOnly Property AddImportAndSimplifyAllOccurrencesTitle As String = VBFeaturesResources.Add_Imports_0_and_simplify_all_occurrences
     End Class
 End Namespace
