@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,15 +67,24 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         if (addImportsService.HasExistingImport(semanticModel.Compilation, root, qualifiedTypeReference, namespaceImport, generator))
             return;
 
-        // Get the type name part (the rightmost part of the qualified name)
-        var title = string.Format(FeaturesResources.Add_import_for_0, namespaceSymbol.ToDisplayString());
+        var namespaceDisplayString = namespaceSymbol.ToDisplayString();
 
-        context.RegisterRefactoring(
-            CodeAction.Create(
-                title,
-                ct => AddImportAndSimplifyAsync(document, qualifiedTypeReference, namespaceSymbol, ct),
-                title),
-            qualifiedTypeReference.Span);
+        // First action: Add import and simplify just this occurrence
+        var title1 = string.Format(FeaturesResources.Add_import_for_0, namespaceDisplayString);
+        var action1 = CodeAction.Create(
+            title1,
+            ct => AddImportAndSimplifyAsync(document, qualifiedTypeReference, namespaceSymbol, simplifyAllOccurrences: false, ct),
+            title1);
+
+        // Second action: Add import and simplify all occurrences
+        var title2 = string.Format(FeaturesResources.Add_import_for_0_and_simplify_all_occurrences, namespaceDisplayString);
+        var action2 = CodeAction.Create(
+            title2,
+            ct => AddImportAndSimplifyAsync(document, qualifiedTypeReference, namespaceSymbol, simplifyAllOccurrences: true, ct),
+            title2);
+
+        context.RegisterRefactoring(action1, qualifiedTypeReference.Span);
+        context.RegisterRefactoring(action2, qualifiedTypeReference.Span);
     }
 
     private static SyntaxNode? GetQualifiedTypeReference(ISyntaxFactsService syntaxFacts, SyntaxNode? node)
@@ -183,10 +193,12 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         Document document,
         SyntaxNode qualifiedName,
         INamespaceSymbol namespaceSymbol,
+        bool simplifyAllOccurrences,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         var generator = SyntaxGenerator.GetGenerator(document);
         var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
@@ -205,12 +217,31 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
             options,
             cancellationToken);
 
-        // Find the qualified name in the new tree and annotate it for simplification
-        var newQualifiedName = newRoot.FindNode(qualifiedName.Span);
-        if (newQualifiedName != null)
+        if (simplifyAllOccurrences)
         {
-            var annotatedNode = newQualifiedName.WithAdditionalAnnotations(Simplifier.Annotation);
-            newRoot = newRoot.ReplaceNode(newQualifiedName, annotatedNode);
+            // Find all qualified names that start with this namespace and annotate them for simplification
+            var namespaceDisplayString = namespaceSymbol.ToDisplayString();
+            var nodesToAnnotate = FindAllQualifiedNamesWithNamespace(newRoot, syntaxFacts, semanticModel, namespaceSymbol, cancellationToken);
+
+            foreach (var nodeToAnnotate in nodesToAnnotate)
+            {
+                var currentNode = newRoot.FindNode(nodeToAnnotate.Span);
+                if (currentNode != null)
+                {
+                    var annotatedNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
+                    newRoot = newRoot.ReplaceNode(currentNode, annotatedNode);
+                }
+            }
+        }
+        else
+        {
+            // Find the qualified name in the new tree and annotate it for simplification
+            var newQualifiedName = newRoot.FindNode(qualifiedName.Span);
+            if (newQualifiedName != null)
+            {
+                var annotatedNode = newQualifiedName.WithAdditionalAnnotations(Simplifier.Annotation);
+                newRoot = newRoot.ReplaceNode(newQualifiedName, annotatedNode);
+            }
         }
 
         var newDocument = document.WithSyntaxRoot(newRoot);
@@ -219,5 +250,43 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return newDocument;
+    }
+
+    private static ImmutableArray<SyntaxNode> FindAllQualifiedNamesWithNamespace(
+        SyntaxNode root,
+        ISyntaxFactsService syntaxFacts,
+        SemanticModel semanticModel,
+        INamespaceSymbol namespaceSymbol,
+        CancellationToken cancellationToken)
+    {
+        var builder = ImmutableArray.CreateBuilder<SyntaxNode>();
+        var namespaceDisplayString = namespaceSymbol.ToDisplayString();
+
+        foreach (var node in root.DescendantNodes())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Check if this is a qualified name or member access expression
+            if (!syntaxFacts.IsQualifiedName(node) && !syntaxFacts.IsMemberAccessExpression(node) && !syntaxFacts.IsAliasQualifiedName(node))
+                continue;
+
+            // Get the symbol for this node
+            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+            var symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
+
+            // Check if this is a type from the namespace we're adding
+            if (symbol is INamedTypeSymbol typeSymbol)
+            {
+                var containingNamespace = typeSymbol.ContainingNamespace;
+                if (containingNamespace != null &&
+                    !containingNamespace.IsGlobalNamespace &&
+                    containingNamespace.ToDisplayString() == namespaceDisplayString)
+                {
+                    builder.Add(node);
+                }
+            }
+        }
+
+        return builder.ToImmutable();
     }
 }

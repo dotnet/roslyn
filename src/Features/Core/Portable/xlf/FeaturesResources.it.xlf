@@ -55,6 +55,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="new">Add import for '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_import_for_0_and_simplify_all_occurrences">
+        <source>Add import for '{0}' and simplify all occurrences</source>
+        <target state="new">Add import for '{0}' and simplify all occurrences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_negative_value_check">
         <source>Add negative value check</source>
         <target state="new">Add negative value check</target>

@@ -464,4 +464,108 @@ public sealed class AddImportCodeRefactoringTests
                 Task M() => null;
             }
             """);
+
+    [Fact]
+    public Task TestSimplifyAllOccurrences_MultipleUsages()
+    {
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    [||]System.Threading.Tasks.Task M1() => null;
+                    System.Threading.Tasks.Task M2() => null;
+                    System.Threading.Tasks.Task<int> M3() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    Task M1() => null;
+                    Task M2() => null;
+                    Task<int> M3() => null;
+                }
+                """,
+            CodeActionIndex = 1 // Select "Add import and simplify all occurrences"
+        }.RunAsync();
+    }
+
+    [Fact]
+    public Task TestSimplifyAllOccurrences_MixedUsages()
+    {
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    [||]System.Threading.Tasks.Task M1() => null;
+                    void M2(System.Threading.Tasks.Task t) { }
+                    System.Threading.Tasks.Task<string> _field;
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    Task M1() => null;
+                    void M2(Task t) { }
+                    Task<string> _field;
+                }
+                """,
+            CodeActionIndex = 1 // Select "Add import and simplify all occurrences"
+        }.RunAsync();
+    }
+
+    [Fact]
+    public Task TestSimplifyAllOccurrences_WithOtherNamespaces()
+    {
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    [||]System.Threading.Tasks.Task M1() => null;
+                    System.Collections.Generic.List<int> M2() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    Task M1() => null;
+                    System.Collections.Generic.List<int> M2() => null;
+                }
+                """,
+            CodeActionIndex = 1 // Select "Add import and simplify all occurrences"
+        }.RunAsync();
+    }
+
+    [Fact]
+    public Task TestSimplifyOnlyCurrentOccurrence()
+    {
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    [||]System.Threading.Tasks.Task M1() => null;
+                    System.Threading.Tasks.Task M2() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    Task M1() => null;
+                    System.Threading.Tasks.Task M2() => null;
+                }
+                """,
+            CodeActionIndex = 0 // Select "Add import" (first action, only simplifies current)
+        }.RunAsync();
+    }
 }
