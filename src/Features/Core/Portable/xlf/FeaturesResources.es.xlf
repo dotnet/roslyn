@@ -50,16 +50,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Agregar atributo de "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_import_for_0">
-        <source>Add import for '{0}'</source>
-        <target state="new">Add import for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_import_for_0_and_simplify_all_occurrences">
-        <source>Add import for '{0}' and simplify all occurrences</source>
-        <target state="new">Add import for '{0}' and simplify all occurrences</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_negative_value_check">
         <source>Add negative value check</source>
         <target state="new">Add negative value check</target>

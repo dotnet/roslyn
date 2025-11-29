@@ -22,4 +22,8 @@ internal sealed class CSharpAddImportCodeRefactoringProvider()
         SimpleNameSyntax,
         QualifiedNameSyntax,
         AliasQualifiedNameSyntax,
-        UsingDirectiveSyntax>(CSharpSyntaxFacts.Instance);
+        UsingDirectiveSyntax>(CSharpSyntaxFacts.Instance)
+{
+    protected override string AddImportTitle => CSharpFeaturesResources.Add_using_for_0;
+    protected override string AddImportAndSimplifyAllOccurrencesTitle => CSharpFeaturesResources.Add_using_for_0_and_simplify_all_occurrences;
+}

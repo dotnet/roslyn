@@ -17,6 +17,16 @@
         <target state="translated">Ajout des accolades nécessaires pour les instructions de contrôle sur une seule ligne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_using_for_0">
+        <source>Add using for '{0}'</source>
+        <target state="new">Add using for '{0}'</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_using_for_0_and_simplify_all_occurrences">
+        <source>Add using for '{0}' and simplify all occurrences</source>
+        <target state="new">Add using for '{0}' and simplify all occurrences</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Adds_a_NuGet_package_reference">
         <source>Adds a NuGet package reference.</source>
         <target state="new">Adds a NuGet package reference.</target>

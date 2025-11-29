@@ -607,4 +607,366 @@ public sealed class AddImportCodeRefactoringTests
                 """,
         }.RunAsync();
     }
+
+    [Fact]
+    public Task TestNotOfferedOnBuiltInType()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                [||]int M() => 0;
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedOnGlobalAloneType()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class TopLevel { }
+            
+            class C
+            {
+                [||]global::TopLevel M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestGlobalQualifiedName_OnGlobal()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                [||]global::System.Console M() => null;
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                Console M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestGlobalQualifiedName_OnSystem()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                global::[||]System.Console M() => null;
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                Console M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestGlobalQualifiedName_OnConsole()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                global::System.[||]Console M() => null;
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                Console M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedOnMethod_GlobalQualified()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    global::System.Console.[||]WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedOnMethod_Qualified()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    System.Console.[||]WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedOnMethod_Simple()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    Console.[||]WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedOnSimpleConsole()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedInUsingAliasDirective()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            using X = [||]System.Console;
+
+            class C
+            {
+                void M() { X.WriteLine(); }
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_OfferOnOuterType()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                [||]NS1.NS2.T1.T2 M() => null;
+            }
+            """,
+            """
+            using NS1.NS2;
+
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                T1.T2 M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_OfferOnNS1()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                [||]NS1.NS2.T1.T2 M() => null;
+            }
+            """,
+            """
+            using NS1.NS2;
+
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                T1.T2 M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_OfferOnNS2()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                NS1.[||]NS2.T1.T2 M() => null;
+            }
+            """,
+            """
+            using NS1.NS2;
+
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                T1.T2 M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_OfferOnT1()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                NS1.NS2.[||]T1.T2 M() => null;
+            }
+            """,
+            """
+            using NS1.NS2;
+
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                T1.T2 M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedType_NotOfferedOnT2()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            namespace NS1.NS2
+            {
+                class T1
+                {
+                    public class T2 { }
+                }
+            }
+
+            class C
+            {
+                NS1.NS2.T1.[||]T2 M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedGeneric_OuterName_SimplifiesBoth()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                [||]System.Collections.Generic.List<System.Collections.Generic.List<int>> M() => null;
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<List<int>> M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedGeneric_InnerName_SimplifiesOnlyInner()
+    {
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    System.Collections.Generic.List<[||]System.Collections.Generic.List<int>> M() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    System.Collections.Generic.List<List<int>> M() => null;
+                }
+                """,
+            CodeActionIndex = 0, // Only simplify current occurrence
+        }.RunAsync();
+    }
+
+    [Fact]
+    public Task TestNestedGeneric_InnerName_SimplifyAll_SimplifiesBoth()
+    {
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    System.Collections.Generic.List<[||]System.Collections.Generic.List<int>> M() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<List<int>> M() => null;
+                }
+                """,
+            CodeActionIndex = 1, // Simplify all occurrences
+        }.RunAsync();
+    }
 }

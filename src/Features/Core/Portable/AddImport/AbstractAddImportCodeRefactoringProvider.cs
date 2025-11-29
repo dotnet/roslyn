@@ -38,6 +38,9 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
     private static readonly SyntaxAnnotation s_annotation = new();
     private readonly ObjectPool<PooledHashSet<string>> _hashSetPool = PooledHashSet<string>.CreatePool(syntaxFacts.StringComparer);
 
+    protected abstract string AddImportTitle { get; }
+    protected abstract string AddImportAndSimplifyAllOccurrencesTitle { get; }
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
@@ -94,10 +97,10 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
 
         context.RegisterRefactorings([
             CodeAction.Create(
-                string.Format(FeaturesResources.Add_import_for_0, namespaceDisplayString),
+                string.Format(AddImportTitle, namespaceDisplayString),
                 cancellationToken => AddImportAndSimplifyAsync(simplifyAllOccurrences: false, cancellationToken)),
             CodeAction.Create(
-                string.Format(FeaturesResources.Add_import_for_0_and_simplify_all_occurrences, namespaceDisplayString),
+                string.Format(AddImportAndSimplifyAllOccurrencesTitle, namespaceDisplayString),
                 cancellationToken => AddImportAndSimplifyAsync(simplifyAllOccurrences: true, cancellationToken))],
             qualifiedTypeReference.Span);
 
