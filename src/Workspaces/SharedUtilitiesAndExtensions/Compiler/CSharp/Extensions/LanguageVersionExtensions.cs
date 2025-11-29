@@ -10,7 +10,7 @@ internal static class LanguageVersionExtensions
         => languageVersion >= LanguageVersion.Preview;
 
     public static bool IsCSharp14OrAbove(this LanguageVersion languageVersion)
-        => languageVersion >= (LanguageVersion)1400; // Update to LanguageVersion.CSharp14 when available.
+        => languageVersion >= LanguageVersion.CSharp14;
 
     public static bool IsCSharp13OrAbove(this LanguageVersion languageVersion)
         => languageVersion >= LanguageVersion.CSharp13;
