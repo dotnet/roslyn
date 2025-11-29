@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +25,6 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
             return;
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var semanticModelService = document.Project.Services.GetRequiredService<ISemanticFactsService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the token at the position
@@ -40,16 +38,17 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         if (node == null)
             return;
 
-        // Get the outermost qualified name or member access expression
-        var qualifiedName = GetOutermostQualifiedName(syntaxFacts, node);
-        if (qualifiedName == null)
+        // Get the qualified type reference - this might be a QualifiedName, AliasQualifiedName,
+        // or a member access expression that refers to a type
+        var qualifiedTypeReference = GetQualifiedTypeReference(syntaxFacts, node);
+        if (qualifiedTypeReference == null)
             return;
 
         // Check if this qualified name represents a namespace + type (not just a namespace)
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var symbolInfo = semanticModel.GetSymbolInfo(qualifiedName, cancellationToken);
+        var symbolInfo = semanticModel.GetSymbolInfo(qualifiedTypeReference, cancellationToken);
 
-        // We need the symbol to be a type (not a namespace)
+        // We need the symbol to be a type (not a namespace or method)
         var symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
         if (symbol is not INamedTypeSymbol namedTypeSymbol)
             return;
@@ -64,7 +63,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         var generator = SyntaxGenerator.GetGenerator(document);
         var namespaceImport = generator.NamespaceImportDeclaration(namespaceSymbol.ToDisplayString());
 
-        if (addImportsService.HasExistingImport(semanticModel.Compilation, root, qualifiedName, namespaceImport, generator))
+        if (addImportsService.HasExistingImport(semanticModel.Compilation, root, qualifiedTypeReference, namespaceImport, generator))
             return;
 
         // Get the type name part (the rightmost part of the qualified name)
@@ -73,14 +72,15 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
         context.RegisterRefactoring(
             CodeAction.Create(
                 title,
-                ct => AddImportAndSimplifyAsync(document, qualifiedName, namespaceSymbol, ct),
+                ct => AddImportAndSimplifyAsync(document, qualifiedTypeReference, namespaceSymbol, ct),
                 title),
-            qualifiedName.Span);
+            qualifiedTypeReference.Span);
     }
 
-    private static SyntaxNode? GetOutermostQualifiedName(ISyntaxFactsService syntaxFacts, SyntaxNode? node)
+    private static SyntaxNode? GetQualifiedTypeReference(ISyntaxFactsService syntaxFacts, SyntaxNode? node)
     {
         // Walk up from the current node to find the outermost qualified name or member access
+        // that represents a type reference
         SyntaxNode? current = node;
         SyntaxNode? qualifiedName = null;
 
@@ -101,8 +101,12 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
             }
 
             // Handle member access expressions (for expression contexts like System.Console.WriteLine)
+            // We need to be careful here - we want to stop at the type, not continue to the method
             if (syntaxFacts.IsMemberAccessExpression(current))
             {
+                // If we already have a qualified name, and the parent is a member access,
+                // we should check if this is still part of a type reference
+                // For now, we'll mark this as a candidate and continue
                 qualifiedName = current;
                 current = current.Parent;
                 continue;
@@ -118,6 +122,13 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
                     continue;
                 }
 
+                // Check if parent is a member access expression
+                if (current.Parent != null && syntaxFacts.IsMemberAccessExpression(current.Parent))
+                {
+                    current = current.Parent;
+                    continue;
+                }
+
                 // Not a qualified name
                 return null;
             }
@@ -125,7 +136,47 @@ internal abstract class AbstractAddImportCodeRefactoringProvider : CodeRefactori
             break;
         }
 
+        // If we found a member access expression, we need to find the part that refers to a type
+        // For example, in System.Console.WriteLine(), we want System.Console, not System.Console.WriteLine
+        if (qualifiedName != null && syntaxFacts.IsMemberAccessExpression(qualifiedName))
+        {
+            // Try to find the leftmost expression that's a type
+            return FindTypePartOfMemberAccess(syntaxFacts, qualifiedName);
+        }
+
         return qualifiedName;
+    }
+
+    private static SyntaxNode? FindTypePartOfMemberAccess(ISyntaxFactsService syntaxFacts, SyntaxNode memberAccess)
+    {
+        // Walk down the member access chain to find the part that refers to a type
+        // For System.Console.WriteLine, we start at the top and work down:
+        // - System.Console.WriteLine (method) - not a type
+        // - System.Console (type) - this is what we want
+        // - System (namespace) - not a type
+
+        var current = memberAccess;
+        while (syntaxFacts.IsMemberAccessExpression(current))
+        {
+            syntaxFacts.GetPartsOfMemberAccessExpression(current, out var expression, out _, out _);
+            if (expression != null)
+            {
+                // Check if the expression part is itself a member access that could be a type
+                if (syntaxFacts.IsMemberAccessExpression(expression))
+                {
+                    current = expression;
+                    continue;
+                }
+
+                // If the expression is a simple name or qualified name, return the whole current expression
+                // The caller will check if it resolves to a type
+                break;
+            }
+
+            break;
+        }
+
+        return current;
     }
 
     private static async Task<Document> AddImportAndSimplifyAsync(

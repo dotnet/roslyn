@@ -424,4 +424,44 @@ public sealed class AddImportCodeRefactoringTests
                 }
             }
             """);
+
+    [Fact]
+    public Task TestGlobalQualifiedName()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                [||]global::System.Threading.Tasks.Task M() => null;
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task M() => null;
+            }
+            """);
+
+    [Fact]
+    public Task TestAmbiguity_LocalTypeWithSameName()
+        => VerifyCS.VerifyRefactoringAsync(
+            """
+            class Task { }
+
+            class C
+            {
+                [||]System.Threading.Tasks.Task M() => null;
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class Task { }
+
+            class C
+            {
+                Task M() => null;
+            }
+            """);
 }
