@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -20,6 +21,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
     TExpressionSyntax,
     TMemberAccessExpressionSyntax,
     TNameSyntax,
+    TSimpleNameSyntax,
     TQualifiedNameSyntax,
     TAliasQualifiedNameSyntax,
     TImportDirectiveSyntax>
@@ -27,11 +29,18 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
     where TExpressionSyntax : SyntaxNode
     where TMemberAccessExpressionSyntax : TExpressionSyntax
     where TNameSyntax : TExpressionSyntax
+    where TSimpleNameSyntax : TNameSyntax
     where TQualifiedNameSyntax : TNameSyntax
     where TAliasQualifiedNameSyntax : TNameSyntax
     where TImportDirectiveSyntax : SyntaxNode
 {
     private static readonly SyntaxAnnotation s_annotation = new();
+    private readonly ObjectPool<PooledHashSet<string>> _hashSetPool;
+
+    protected AbstractAddImportCodeRefactoringProvider(ISyntaxFacts syntaxFacts)
+    {
+        _hashSetPool = PooledHashSet<string>.CreatePool(syntaxFacts.StringComparer);
+    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -63,8 +72,11 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         if (symbolInfo.Symbol is not INamedTypeSymbol namedType)
             return;
 
+        if (namedType.ContainingType != null)
+            return;
+
         var namespaceSymbol = namedType.ContainingNamespace;
-        if (namespaceSymbol.IsGlobalNamespace)
+        if (namespaceSymbol is null || namespaceSymbol.IsGlobalNamespace)
             return;
 
         // Check if there's already a using directive for this namespace
@@ -95,15 +107,29 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
             if (symbol is not INamespaceOrTypeSymbol namespaceOrType)
                 return null;
 
-            // Walk up to the highest type/namespace we find.
+            // Walk up if we keep seeing a named-type/namespace above us.
             SyntaxNode current = name;
-            while (IsQualified(current.Parent) && semanticModel.GetSymbolInfo(current.Parent, cancellationToken).Symbol is INamespaceOrTypeSymbol)
-                current = current.Parent;
+            while (IsQualified(current.Parent))
+            {
+                var parentSymbol = semanticModel.GetSymbolInfo(current.Parent, cancellationToken).Symbol;
+                if (parentSymbol is INamespaceOrTypeSymbol)
+                {
+                    current = current.Parent;
 
+                    // we want to stop on the first named type we see. In other words, if we have NS1.NS2.T1.T2, we want 
+                    // to stop on T1.
+                    if (parentSymbol is INamespaceSymbol)
+                        continue;
+                }
+
+                break;
+            }
+
+            // To simplify things, we don't offer this on a naked alias.  In other words, we don't offer
+            // `global::TopLevelType`.  This simplifies later processing.
             return current switch
             {
                 TQualifiedNameSyntax qualifiedName => qualifiedName,
-                TAliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName,
                 TMemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression,
                 _ => null,
             };
@@ -115,42 +141,19 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         {
             var options = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var rewrittenRoot = RewriteTree();
-            var rewrittenQualifiedTypeReference = rewrittenRoot;
+            var rewrittenRoot = RewriteRoot(simplifyAllOccurrences, cancellationToken);
+            var rewrittenQualifiedTypeReference = rewrittenRoot.GetAnnotatedNodes(s_annotation);
 
-            if (simplifyAllOccurrences)
-            {
-                // Find all qualified names that start with this namespace and annotate them for simplification
-                var namespaceDisplayString = namespaceSymbol.ToDisplayString();
-                var nodesToAnnotate = FindAllQualifiedNamesWithNamespace(newRoot, syntaxFacts, semanticModel, namespaceSymbol, cancellationToken);
-
-                foreach (var nodeToAnnotate in nodesToAnnotate)
-                {
-                    var currentNode = newRoot.FindNode(nodeToAnnotate.Span);
-                    if (currentNode != null)
-                    {
-                        var annotatedNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
-                        newRoot = newRoot.ReplaceNode(currentNode, annotatedNode);
-                    }
-                }
-            }
-            else
-            {
-                newRoot = newRoot.ReplaceNode(qualifiedTypeReference, qualifiedTypeReference.WithAdditionalAnnotations(Simplifier.Annotation));
-            }
-
-            var newDocument = document.WithSyntaxRoot(newRoot);
-
-            var newRoot = addImportsService.AddImport(
+            var finalRoot = addImportsService.AddImport(
                 semanticModel.Compilation,
-                root,
+                rewrittenRoot,
                 qualifiedTypeReference,
                 namespaceImport,
                 generator,
                 options,
                 cancellationToken);
 
-            return newDocument;
+            return document.WithSyntaxRoot(finalRoot);
         }
 
         SyntaxNode RewriteRoot(
@@ -158,45 +161,78 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
            CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
-            
-        }
-    }
 
-    private static ImmutableArray<SyntaxNode> FindAllQualifiedNamesWithNamespace(
-        SyntaxNode root,
-        ISyntaxFactsService syntaxFacts,
-        SemanticModel semanticModel,
-        INamespaceSymbol namespaceSymbol,
-        CancellationToken cancellationToken)
-    {
-        var builder = ImmutableArray.CreateBuilder<SyntaxNode>();
-        var namespaceDisplayString = namespaceSymbol.ToDisplayString();
+            // Add all the new type names we know the using/import will be bringing into scope. If we see such a name in
+            // the tree, we'll qualify it to ensure it doesn't change meaning.
 
-        foreach (var node in root.DescendantNodes())
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+            using var _1 = _hashSetPool.GetPooledObject();
+            using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var qualifiedTypeReferenceNodes);
 
-            // Check if this is a qualified name or member access expression
-            if (!syntaxFacts.IsQualifiedName(node) && !syntaxFacts.IsMemberAccessExpression(node) && !syntaxFacts.IsAliasQualifiedName(node))
-                continue;
+            var newTypeNamesInScope = _1.Object;
+            newTypeNamesInScope.AddRange(namespaceSymbol.GetTypeMembers().Select(t => t.Name));
 
-            // Get the symbol for this node
-            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
-            var symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
+            qualifiedTypeReferenceNodes.AddRange(qualifiedTypeReference.DescendantNodes());
 
-            // Check if this is a type from the namespace we're adding
-            if (symbol is INamedTypeSymbol typeSymbol)
+            Debug.Assert(qualifiedTypeReference is TQualifiedNameSyntax or TMemberAccessExpressionSyntax);
+            var namespacePortion = syntaxFacts.GetLeftSideOfDot(qualifiedTypeReference);
+
+            // Process simple names from inside out.
+            foreach (var child in root.DescendantNodes().OrderByDescending(n => n.SpanStart))
             {
-                var containingNamespace = typeSymbol.ContainingNamespace;
-                if (containingNamespace != null &&
-                    !containingNamespace.IsGlobalNamespace &&
-                    containingNamespace.ToDisplayString() == namespaceDisplayString)
+                // Don't touch any nodes under the `global::System.Console` node.  We handle that specially.
+                // This ensures we can always find it and always annotate it properly, without other edits
+                // interfering.
+                if (qualifiedTypeReferenceNodes.Contains(child))
+                    continue;
+
+                if (child == qualifiedTypeReference)
                 {
-                    builder.Add(node);
+                    // Mark the node to be simplified, and add the appropriate annotation on it so that our caller can
+                    // find this node again to use as the context node when adding the using/import. Note: we can use
+                    // the simple ReplaceNode that does not take a callback as the above check ensures that no edits
+                    // will have happened underneath us.
+                    editor.ReplaceNode(
+                        qualifiedTypeReference,
+                        qualifiedTypeReference.WithAdditionalAnnotations(Simplifier.Annotation, s_annotation));
+                    continue;
+                }
+
+                // If we run into a name like `Console` and we know we're adding `System`, then qualify this name so
+                // that it doesn't change after this point.
+                if (child is TSimpleNameSyntax simpleName &&
+                    syntaxFacts.IsLeftSideOfDot(simpleName) &&
+                    newTypeNamesInScope.Contains(syntaxFacts.GetIdentifierOfSimpleName(simpleName).ValueText))
+                {
+                    var symbol = semanticModel.GetSymbolInfo(simpleName, cancellationToken).Symbol;
+                    if (symbol is INamedTypeSymbol namedType)
+                    {
+                        var typeContext = syntaxFacts.IsInNamespaceOrTypeContext(simpleName);
+                        editor.ReplaceNode(
+                            simpleName,
+                            (current, _) => generator.SyntaxGeneratorInternal.Type(namedType, typeContext));
+                    }
+
+                    continue;
+                }
+
+                // If we're simplifying everything, and we run into `System.X`, attempt to simplify that as well.
+                if (simplifyAllOccurrences &&
+                    child is TMemberAccessExpressionSyntax or TQualifiedNameSyntax)
+                {
+                    var rightSideName = child is TSimpleNameSyntax ? child : syntaxFacts.GetRightSideOfDot(child);
+                    Debug.Assert(rightSideName != null);
+                    if (syntaxFacts.StringComparer.Equals(
+                            namespaceSymbol.Name,
+                            syntaxFacts.GetIdentifierOfSimpleName(rightSideName).ValueText))
+                    {
+                        editor.ReplaceNode(
+                            child,
+                            (child, _) => child.WithAdditionalAnnotations(Simplifier.Annotation));
+                    }
                 }
             }
-        }
 
-        return builder.ToImmutable();
+            return editor.GetChangedRoot();
+        }
     }
 }
