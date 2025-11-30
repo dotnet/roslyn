@@ -51,7 +51,9 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
 
     protected override bool IsBinaryLike(ExpressionSyntax node)
         => node is BinaryExpressionSyntax ||
+           // Support `x is const` pattern as binary-like for precedence purposes.
            node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax } ||
+           // Support `x is not const` pattern as binary-like for precedence purposes.
            node is IsPatternExpressionSyntax { Pattern: UnaryPatternSyntax { Pattern: ConstantPatternSyntax } };
 
     protected override (ExpressionSyntax, SyntaxToken, ExpressionSyntax) GetPartsOfBinaryLike(ExpressionSyntax binaryLike)
