@@ -51,7 +51,8 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
 
     protected override bool IsBinaryLike(ExpressionSyntax node)
         => node is BinaryExpressionSyntax ||
-           node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax };
+           node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax } ||
+           node is IsPatternExpressionSyntax { Pattern: UnaryPatternSyntax { Pattern: ConstantPatternSyntax } };
 
     protected override (ExpressionSyntax, SyntaxToken, ExpressionSyntax) GetPartsOfBinaryLike(ExpressionSyntax binaryLike)
     {
@@ -64,15 +65,26 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
             case IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax constantPattern } isPatternExpression:
                 return (isPatternExpression.Expression, isPatternExpression.IsKeyword, constantPattern.Expression);
 
+            case IsPatternExpressionSyntax { Pattern: UnaryPatternSyntax { Pattern: ConstantPatternSyntax constantPattern } } isPatternExpression:
+                return (isPatternExpression.Expression, isPatternExpression.IsKeyword, constantPattern.Expression);
+
             default:
                 throw ExceptionUtilities.UnexpectedValue(binaryLike);
         }
     }
 
     protected override ExpressionSyntax? TryGetAppropriateParent(ExpressionSyntax binaryLike)
-        => binaryLike.Parent is ConstantPatternSyntax
-            ? binaryLike.Parent.Parent as ExpressionSyntax
-            : binaryLike.Parent as ExpressionSyntax;
+    {
+        if (binaryLike.Parent is ConstantPatternSyntax constantPattern)
+        {
+            // Handle both 'is null' (direct ConstantPatternSyntax) and 'is not null' (ConstantPatternSyntax inside UnaryPatternSyntax)
+            return constantPattern.Parent is UnaryPatternSyntax unaryPattern
+                ? unaryPattern.Parent as ExpressionSyntax
+                : constantPattern.Parent as ExpressionSyntax;
+        }
+
+        return binaryLike.Parent as ExpressionSyntax;
+    }
 
     protected override bool IsAsExpression(ExpressionSyntax node)
         => node.Kind() == SyntaxKind.AsExpression;
