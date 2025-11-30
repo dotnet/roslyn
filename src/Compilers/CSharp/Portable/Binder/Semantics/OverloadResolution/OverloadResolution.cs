@@ -1263,9 +1263,15 @@ outerDefault:
                         expandedResult.Result.ParamsElementTypeOpt.HasType &&
                         expandedResult.Result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel)
                     {
-                        if (haveBadArgumentForLastParameter(normalResult) && haveBadArgumentForLastParameter(expandedResult))
+                        // Prefer expanded form if the normal form has a bad argument for the last parameter.
+                        // This handles two cases:
+                        // 1. Both normal and expanded forms have bad arguments for the last parameter
+                        //    (e.g., both fail but expanded gives better error messages)
+                        // 2. Normal form has a bad argument for the last parameter but expanded form doesn't
+                        //    (e.g., M(char c, params object[] args) called with M(string[], string) where
+                        //    string -> object[] is bad in normal form but string -> object is good in expanded form)
+                        if (haveBadArgumentForLastParameter(normalResult))
                         {
-                            // Errors are better if we use the expanded form in this case.
                             return true;
                         }
                     }
