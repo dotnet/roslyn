@@ -11962,7 +11962,7 @@ class C
         var currentIterator = Create(cts.Token);
 
         var currentIteratorType = currentIterator.GetType();
-        var combinedTokensField = currentIteratorType.GetField(""<>x__combinedTokens"", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var combinedTokensField = currentIteratorType.GetField("<>x__combinedTokens", BindingFlags.NonPublic | BindingFlags.Instance)!;
 
         var currentIteratorBug = await GenerateNonDisposedBug(currentIterator, () =>
         {
