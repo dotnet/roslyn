@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -51,11 +52,9 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
-        // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
-        // so that isn't a concern for calculating or setting _componentModel_doNotAccessDirectly multiple times.
+        // We register this task so our ComponentModel property is available during other parts of package initialization and OnAfterPackageLoaded work. The
+        // expectation at this point is no work scheduled to the UI thread needs the ComponentModel, so we only schedule it for the background thread.
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
         async Task EnsureComponentModelAsync(PackageLoadTasks packageInitializationTasks, CancellationToken token)
         {
@@ -69,6 +68,17 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
+    }
+
+    /// <summary>
+    /// Registers an editor factory. This is the same as <see cref="Microsoft.VisualStudio.Shell.Package.RegisterEditorFactory(IVsEditorFactory)"/> except it fetches the service async.
+    /// </summary>
+    protected async Task RegisterEditorFactoryAsync(IVsEditorFactory editorFactory, CancellationToken cancellationToken)
+    {
+        var registerEditors = await GetServiceAsync<SVsRegisterEditors, IVsRegisterEditors>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
+        Assumes.Present(registerEditors);
+
+        ErrorHandler.ThrowOnFailure(registerEditors.RegisterEditor(editorFactory.GetType().GUID, editorFactory, out _));
     }
 
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
