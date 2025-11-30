@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -115,11 +117,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
 
-        protected class RewrittenMethodParameterSymbol : RewrittenParameterSymbol
+        protected sealed class RewrittenMethodParameterSymbol : RewrittenMethodParameterSymbolBase
+        {
+            internal RewrittenMethodParameterSymbol(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter)
+                : base(containingMethod, originalParameter)
+            {
+            }
+
+            internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+                => throw ExceptionUtilities.Unreachable();
+        }
+
+        protected abstract class RewrittenMethodParameterSymbolBase : RewrittenParameterSymbol
         {
             protected readonly RewrittenMethodSymbol _containingMethod;
 
-            public RewrittenMethodParameterSymbol(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter) :
+            protected RewrittenMethodParameterSymbolBase(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter) :
                 base(originalParameter)
             {
                 _containingMethod = containingMethod;

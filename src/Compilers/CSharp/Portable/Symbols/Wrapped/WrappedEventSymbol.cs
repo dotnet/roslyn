@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -162,5 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingEvent.HasRuntimeSpecialName;
             }
         }
+
+        // If we need to un-seal this method, we should make it abstract.
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

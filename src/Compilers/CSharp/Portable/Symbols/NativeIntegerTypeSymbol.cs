@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -423,6 +424,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int TryGetOverloadResolutionPriority()
             => UnderlyingMethod.TryGetOverloadResolutionPriority();
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
@@ -465,6 +469,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
 
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
