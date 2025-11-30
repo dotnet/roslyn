@@ -88,23 +88,20 @@ End NameSpace"
                 .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
             }
 
-            Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
-            Dim simplifierOptions = VisualBasicSimplifierOptions.Default
-
             Dim imported = If(
                     useSymbolAnnotations,
                     Await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None),
                     Await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None))
 
             If importsAddedText IsNot Nothing Then
-                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
+                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(importsAddedText, actualText)
             End If
 
             If simplifiedText IsNot Nothing Then
-                Dim reduced = Await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None)
-                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
+                Dim reduced = Await Simplifier.ReduceAsync(imported, CancellationToken.None)
+                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 AssertEx.EqualOrDiff(simplifiedText, actualText)
             End If
