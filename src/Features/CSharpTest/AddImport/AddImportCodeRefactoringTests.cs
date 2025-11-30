@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1073,5 +1074,67 @@ public sealed class AddImportCodeRefactoringTests
                     List<SysTasks.Task> M() => null;
                 }
                 """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWithGlobalAliasInSameFile()
+        => new VerifyCS.Test
+        {
+            TestCode =
+                """
+                global using System.Threading.Tasks;
+
+                class C
+                {
+                    [||]System.Threading.Tasks.Task M() => null;
+                }
+                """,
+            FixedCode =
+                """
+                global using System.Threading.Tasks;
+
+                class C
+                {
+                    System.Threading.Tasks.Task M() => null;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWithGlobalAliasInDifferentFile()
+        => new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    global using System.Threading.Tasks;
+                    """,
+                    """
+                    class C
+                    {
+                        [||]System.Threading.Tasks.Task M() => null;
+                    }
+                    """,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    global using System.Threading.Tasks;
+                    """,
+                    """
+                    class C
+                    {
+                        [||]System.Threading.Tasks.Task M() => null;
+                    }
+                    """,
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
 }

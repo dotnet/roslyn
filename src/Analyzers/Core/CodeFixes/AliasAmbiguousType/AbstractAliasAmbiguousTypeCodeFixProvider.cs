@@ -45,7 +45,6 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
 
         var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
         var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
-        var compilation = semanticModel.Compilation;
 
         var placementOption = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -60,7 +59,7 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
                 cancellationToken =>
                 {
                     var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                    var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, placementOption, cancellationToken);
+                    var newRoot = addImportService.AddImport(semanticModel, root, diagnosticNode, aliasDirective, syntaxGenerator, placementOption, cancellationToken);
                     return Task.FromResult(document.WithSyntaxRoot(newRoot));
                 },
                 title));

@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,9 +31,31 @@ internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
     public override CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions)
         => configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
 
-    // C# doesn't have global imports.
-    protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator)
-        => [];
+    protected override ImmutableArray<SyntaxNode> GetGlobalImports(
+        SemanticModel semanticModel, SyntaxNode? contextLocation, SyntaxGenerator generator, CancellationToken cancellationToken)
+    {
+        using var result = TemporaryArray<SyntaxNode>.Empty;
+        if (semanticModel != null)
+        {
+            var importScopes = semanticModel.GetImportScopes(contextLocation?.SpanStart ?? 0, cancellationToken);
+
+            foreach (var scope in importScopes)
+            {
+                foreach (var usingNode in scope.Imports)
+                {
+                    if (usingNode.DeclaringSyntaxReference?.GetSyntax(cancellationToken) is not UsingDirectiveSyntax usingDirective)
+                        continue;
+
+                    if (usingDirective.GlobalKeyword == default)
+                        continue;
+
+                    result.Add(usingDirective.WithGlobalKeyword(default));
+                }
+            }
+        }
+
+        return result.ToImmutableAndClear();
+    }
 
     protected override SyntaxNode? GetAlias(UsingDirectiveSyntax usingOrAlias)
         => usingOrAlias.Alias;
