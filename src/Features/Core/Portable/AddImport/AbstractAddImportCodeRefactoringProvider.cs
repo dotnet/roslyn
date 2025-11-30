@@ -76,14 +76,24 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         if (qualifiedTypeReference == null)
             return;
 
+        // Don't want to offer to add a import/using for a namespace if we're already inside an import directive.
         if (qualifiedTypeReference.AncestorsAndSelf().OfType<TImportDirectiveSyntax>().Any())
             return;
 
+        // Only offer to add imports for top-most types.  We can't add a (normal) using/import to a type to pull in
+        // nested types.  And while we can make a static-using, that's niche enough to not support for now.
         if (namedType.ContainingType != null)
             return;
 
         var namespaceSymbol = namedType.ContainingNamespace;
         if (namespaceSymbol is null || namespaceSymbol.IsGlobalNamespace)
+            return;
+
+        // If this is actually a type reference off of an alias, don't offer to add a using/import.  The user
+        // has already qualified in the way they want.
+        var namespaceReference = syntaxFacts.GetLeftSideOfDot(qualifiedTypeReference);
+        Contract.ThrowIfNull(namespaceReference);
+        if (namespaceReference.DescendantNodesAndSelf().Any(n => semanticModel.GetAliasInfo(n, cancellationToken) is { Target: not INamespaceSymbol { IsGlobalNamespace: true } }))
             return;
 
         // Check if there's already a using directive for this namespace
@@ -92,7 +102,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
         var generator = SyntaxGenerator.GetGenerator(document);
         var namespaceImport = generator.NamespaceImportDeclaration(namespaceDisplayString);
 
-        if (addImportsService.HasExistingImport(semanticModel.Compilation, root, qualifiedTypeReference, namespaceImport, generator))
+        if (addImportsService.HasExistingImport(semanticModel, root, qualifiedTypeReference, namespaceImport, generator, cancellationToken))
             return;
 
         context.RegisterRefactorings([
@@ -155,7 +165,7 @@ internal abstract class AbstractAddImportCodeRefactoringProvider<
             var rewrittenQualifiedTypeReference = rewrittenRoot.GetAnnotatedNodes(s_annotation).Single();
 
             var finalRoot = addImportsService.AddImport(
-                semanticModel.Compilation,
+                semanticModel,
                 rewrittenRoot,
                 rewrittenQualifiedTypeReference,
                 namespaceImport,

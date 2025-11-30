@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -990,8 +991,7 @@ public sealed class AddImportCodeRefactoringTests
 
     [Fact]
     public Task TestNestedGeneric_InnerName_SimplifiesOnlyInner()
-    {
-        return new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1009,12 +1009,10 @@ public sealed class AddImportCodeRefactoringTests
                 """,
             CodeActionIndex = 0,
         }.RunAsync();
-    }
 
     [Fact]
     public Task TestNestedGeneric_InnerName_SimplifyAll_SimplifiesBoth()
-    {
-        return new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1032,5 +1030,111 @@ public sealed class AddImportCodeRefactoringTests
                 """,
             CodeActionIndex = 1,
         }.RunAsync();
-    }
+
+    [Fact]
+    public Task TestNotOnAliasQualifiedName()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using SysTasks = System.Threading.Tasks;
+
+                class C
+                {
+                    [||]SysTasks.Task M() => null;
+                }
+                """,
+            FixedCode = """
+                using SysTasks = System.Threading.Tasks;
+                
+                class C
+                {
+                    SysTasks.Task M() => null;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestOnGenericWithAliasNameInTypeArgument()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using SysTasks = System.Threading.Tasks;
+
+                class C
+                {
+                    [||]System.Collections.Generic.List<SysTasks.Task> M() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                using SysTasks = System.Threading.Tasks;
+                
+                class C
+                {
+                    List<SysTasks.Task> M() => null;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWithGlobalAliasInSameFile()
+        => new VerifyCS.Test
+        {
+            TestCode =
+                """
+                global using System.Threading.Tasks;
+
+                class C
+                {
+                    [||]System.Threading.Tasks.Task M() => null;
+                }
+                """,
+            FixedCode =
+                """
+                global using System.Threading.Tasks;
+
+                class C
+                {
+                    System.Threading.Tasks.Task M() => null;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWithGlobalAliasInDifferentFile()
+        => new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    global using System.Threading.Tasks;
+                    """,
+                    """
+                    class C
+                    {
+                        [||]System.Threading.Tasks.Task M() => null;
+                    }
+                    """,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    global using System.Threading.Tasks;
+                    """,
+                    """
+                    class C
+                    {
+                        [||]System.Threading.Tasks.Task M() => null;
+                    }
+                    """,
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 }
