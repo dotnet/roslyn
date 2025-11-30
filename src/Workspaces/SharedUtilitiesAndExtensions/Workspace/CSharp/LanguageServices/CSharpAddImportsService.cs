@@ -43,13 +43,11 @@ internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
             {
                 foreach (var usingNode in scope.Imports)
                 {
-                    if (usingNode.DeclaringSyntaxReference?.GetSyntax(cancellationToken) is not UsingDirectiveSyntax usingDirective)
-                        continue;
-
-                    if (usingDirective.GlobalKeyword == default)
-                        continue;
-
-                    result.Add(usingDirective.WithGlobalKeyword(default));
+                    if (usingNode.DeclaringSyntaxReference?.GetSyntax(cancellationToken) is UsingDirectiveSyntax usingDirective &&
+                        usingDirective.GlobalKeyword != default)
+                    {
+                        result.Add(usingDirective.WithGlobalKeyword(default));
+                    }
                 }
             }
         }
