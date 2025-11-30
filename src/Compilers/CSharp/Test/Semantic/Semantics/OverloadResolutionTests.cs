@@ -11945,5 +11945,141 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21950")]
+        public void PreferDelegateOverloadForLambdaArgument()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(x => { });
+                    }
+
+                    static void M(string s)
+                    {
+                    }
+
+                    static void M<T>(Action<T> a)
+                    {
+                    }
+                }
+                """;
+            // The error should mention the generic delegate overload, not the string overload.
+            // Before the fix, this would report: CS1660: Cannot convert lambda expression to type 'string'
+            // After the fix, it should report: CS0411: The type arguments for method 'Program.M<T>(Action<T>)' cannot be inferred
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'Program.M<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(x => { });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(System.Action<T>)").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21950")]
+        public void PreferDelegateOverloadForLambdaArgument_MultipleNonDelegateOverloads()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(x => { });
+                    }
+
+                    static void M(string s) { }
+                    static void M(int i) { }
+                    static void M<T>(Action<T> a) { }
+                }
+                """;
+            // Even with multiple non-delegate overloads, should report the delegate one
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'Program.M<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(x => { });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(System.Action<T>)").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21950")]
+        public void PreferDelegateOverloadForLambdaArgument_WithAnonymousMethod()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(delegate { });
+                    }
+
+                    static void M(object o) { }
+                    static void M<T>(Action<T> a) { }
+                }
+                """;
+            // Should also work with anonymous methods (delegate syntax)
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'Program.M<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(delegate { });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(System.Action<T>)").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21950")]
+        public void PreferDelegateOverloadForLambdaArgument_NoTypeInferenceFailure()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(x => { });
+                    }
+
+                    static void M(string s) { }
+                    static void M(object o) { }
+                }
+                """;
+            // When there's no delegate-accepting overload with type inference failure,
+            // should still report the bad argument error (no change from original behavior)
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                //         M(x => { });
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(5, 13)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10672")]
+        public void Issue10672_TaskRunWithInvalidArgument()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Task.Run(() => { }, TaskCreationOptions.LongRunning);
+                    }
+                }
+                """;
+            // Before the fix: CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
+            // After the fix: CS1503: Argument 2: cannot convert from 'TaskCreationOptions' to 'CancellationToken'
+            // This correctly identifies the real problem (wrong second argument) instead of complaining about the lambda
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1503: Argument 2: cannot convert from 'System.Threading.Tasks.TaskCreationOptions' to 'System.Threading.CancellationToken'
+                //         Task.Run(() => { }, TaskCreationOptions.LongRunning);
+                Diagnostic(ErrorCode.ERR_BadArgType, "TaskCreationOptions.LongRunning").WithArguments("2", "System.Threading.Tasks.TaskCreationOptions", "System.Threading.CancellationToken").WithLocation(7, 29)
+                );
+        }
     }
 }
