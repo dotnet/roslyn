@@ -11935,7 +11935,7 @@ static class Test1
         [WorkItem(81467, "https://github.com/dotnet/roslyn/issues/81467")]
         public void Multiple_GetAsyncEnumerator_Calls_Should_Dispose_Linked_Tokens()
         {
-            string source = @"
+            string source = """
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -12033,7 +12033,8 @@ class C
             return true;
         }
     }
-}";
+}
+""";
 
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
