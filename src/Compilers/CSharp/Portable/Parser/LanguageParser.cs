@@ -5506,9 +5506,6 @@ parse_member_name:;
             // specifically treats it as a variable name, even if it could be interpreted as a
             // keyword.
             var name = this.ParseIdentifierToken();
-            BracketedArgumentListSyntax argumentList = null;
-            EqualsValueClauseSyntax initializer = null;
-            TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
             bool isLocalOrField = (flags & VariableFlags.LocalOrField) != 0;
@@ -5524,125 +5521,206 @@ parse_member_name:;
                 name = this.AddError(name, ErrorCode.ERR_MultiTypeInDeclaration);
             }
 
-            switch (this.CurrentToken.Kind)
+            return this.CurrentToken.Kind switch
             {
-                case SyntaxKind.EqualsToken:
-                    if (isFixed)
-                    {
-                        goto default;
-                    }
+                SyntaxKind.EqualsToken when !isFixed => parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList: null, out localFunction),
+                SyntaxKind.LessThanToken => parseVariableDeclaratorWithLessThanToken(name, out localFunction),
+                SyntaxKind.OpenParenToken => parseVariableDeclaratorWithOpenParenToken(name, out localFunction),
+                SyntaxKind.OpenBracketToken => parseVariableDeclaratorWithOpenBracketToken(name, out localFunction),
+                _ => parseVariableDeclaratorDefault(name, out localFunction),
+            };
 
-                    var equals = this.EatToken();
+            VariableDeclaratorSyntax parseNonFixedVariableDeclaratorWithEqualsToken(
+                SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsToken);
+                Debug.Assert(!isFixed, "Should only be called in the non fixed-statement/fixed-size-buffer case");
 
-                    // check for lambda expression with explicit ref return type: `ref int () => { ... }`
-                    var refKeyword = isLocalOrField && !isConst && this.CurrentToken.Kind == SyntaxKind.RefKeyword && !this.IsPossibleLambdaExpression(Precedence.Expression)
-                        ? this.EatToken()
-                        : null;
+                var equals = this.EatToken();
 
-                    var init = this.ParseVariableInitializer();
-                    initializer = _syntaxFactory.EqualsValueClause(
-                        equals,
-                        refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
-                    break;
+                // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                var refKeyword = isLocalOrField && !isConst && this.CurrentToken.Kind == SyntaxKind.RefKeyword && !this.IsPossibleLambdaExpression(Precedence.Expression)
+                    ? this.EatToken()
+                    : null;
 
-                case SyntaxKind.LessThanToken:
-                    if (allowLocalFunctions && isFirst)
-                    {
-                        localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
-                        if (localFunction != null)
-                        {
-                            return null;
-                        }
-                    }
-                    goto default;
+                var init = this.ParseVariableInitializer();
+                var initializer = _syntaxFactory.EqualsValueClause(
+                    equals,
+                    refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
 
-                case SyntaxKind.OpenParenToken:
-                    if (allowLocalFunctions && isFirst)
-                    {
-                        localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
-                        if (localFunction != null)
-                        {
-                            return null;
-                        }
-                    }
-
-                    // Special case for accidental use of C-style constructors
-                    // Fake up something to hold the arguments.
-                    _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    argumentList = this.ParseBracketedArgumentList();
-                    _termState = saveTerm;
-                    argumentList = this.AddError(argumentList, ErrorCode.ERR_BadVarDecl);
-                    break;
-
-                case SyntaxKind.OpenBracketToken:
-                    bool sawNonOmittedSize;
-                    _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(sawNonOmittedSize: out sawNonOmittedSize);
-                    _termState = saveTerm;
-                    var open = specifier.OpenBracketToken;
-                    var sizes = specifier.Sizes;
-                    var close = specifier.CloseBracketToken;
-                    if (isFixed && !sawNonOmittedSize)
-                    {
-                        close = this.AddError(close, ErrorCode.ERR_ValueExpected);
-                    }
-
-                    var args = _pool.AllocateSeparated<ArgumentSyntax>();
-                    var withSeps = sizes.GetWithSeparators();
-                    foreach (var item in withSeps)
-                    {
-                        if (item is ExpressionSyntax expression)
-                        {
-                            bool isOmitted = expression.Kind == SyntaxKind.OmittedArraySizeExpression;
-                            if (!isFixed && !isOmitted)
-                            {
-                                expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
-                            }
-
-                            args.Add(_syntaxFactory.Argument(null, refKindKeyword: null, expression));
-                        }
-                        else
-                        {
-                            args.AddSeparator((SyntaxToken)item);
-                        }
-                    }
-
-                    argumentList = _syntaxFactory.BracketedArgumentList(open, _pool.ToListAndFree(args), close);
-                    if (!isFixed)
-                    {
-                        argumentList = this.AddError(argumentList, ErrorCode.ERR_CStyleArray);
-                        // If we have "int x[] = new int[10];" then parse the initializer.
-                        if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
-                        {
-                            goto case SyntaxKind.EqualsToken;
-                        }
-                    }
-
-                    break;
-
-                default:
-                    if (isConst)
-                    {
-                        name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);  // Error here for missing constant initializers
-                    }
-                    else if (isFixed)
-                    {
-                        if (parentType.Kind == SyntaxKind.ArrayType)
-                        {
-                            // They accidentally put the array before the identifier
-                            name = this.AddError(name, ErrorCode.ERR_FixedDimsRequired);
-                        }
-                        else
-                        {
-                            goto case SyntaxKind.OpenBracketToken;
-                        }
-                    }
-
-                    break;
+                localFunction = null;
+                return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
             }
 
-            localFunction = null;
-            return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
+            VariableDeclaratorSyntax parseVariableDeclaratorWithLessThanToken(SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
+            {
+                if (allowLocalFunctions && isFirst)
+                {
+                    Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
+                    localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
+                    if (localFunction != null)
+                    {
+                        return null;
+                    }
+                }
+
+                return parseVariableDeclaratorDefault(name, out localFunction);
+            }
+
+            VariableDeclaratorSyntax parseVariableDeclaratorWithOpenParenToken(
+                SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
+            {
+                if (allowLocalFunctions && isFirst)
+                {
+                    Debug.Assert(!isFixed, "Both the fixed-size-buffer and fixed-statement codepaths pass through allowLocalFunctions=false");
+                    localFunction = TryParseLocalFunctionStatementBody(attributes, mods, parentType, name);
+                    if (localFunction != null)
+                    {
+                        return null;
+                    }
+                }
+
+                // Special case for accidental use of C-style constructors
+                // Fake up something to hold the arguments.
+                var saveTerm = _termState;
+                _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
+                var argumentList = this.ParseBracketedArgumentList();
+                _termState = saveTerm;
+                argumentList = this.AddError(argumentList, ErrorCode.ERR_BadVarDecl);
+
+                localFunction = null;
+                return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
+            }
+
+            VariableDeclaratorSyntax parseVariableDeclaratorWithOpenBracketToken(
+                SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
+            {
+                var saveTerm = _termState;
+                _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
+                var specifier = this.ParseArrayRankSpecifier(sawNonOmittedSize: out var sawNonOmittedSize);
+                _termState = saveTerm;
+                var open = specifier.OpenBracketToken;
+                var sizes = specifier.Sizes;
+                var close = specifier.CloseBracketToken;
+                if (isFixed && !sawNonOmittedSize)
+                {
+                    close = this.AddError(close, ErrorCode.ERR_ValueExpected);
+                }
+
+                var args = _pool.AllocateSeparated<ArgumentSyntax>();
+                var withSeps = specifier.Sizes.GetWithSeparators();
+                foreach (var item in withSeps)
+                {
+                    if (item is ExpressionSyntax expression)
+                    {
+                        bool isOmitted = expression.Kind == SyntaxKind.OmittedArraySizeExpression;
+                        if (!isFixed && !isOmitted)
+                        {
+                            expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
+                        }
+
+                        args.Add(_syntaxFactory.Argument(null, refKindKeyword: null, expression));
+                    }
+                    else
+                    {
+                        args.AddSeparator((SyntaxToken)item);
+                    }
+                }
+
+                var argumentList = _syntaxFactory.BracketedArgumentList(open, _pool.ToListAndFree(args), close);
+                if (!isFixed)
+                {
+                    argumentList = this.AddError(argumentList, ErrorCode.ERR_CStyleArray);
+                    // If we have "int x[] = new int[10];" then parse the initializer.
+                    if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                        return parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList, out localFunction);
+                }
+
+                localFunction = null;
+                return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
+            }
+
+            VariableDeclaratorSyntax parseVariableDeclaratorDefault(
+                SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
+            {
+                // Note: it is ok that we do this work prior to the isConst/isFixed checks below.  If it looks like
+                // a variable initializer, that means we're missing at least an equals and we'll report that error
+                // here.  So it's fine to not report the other errors related to const/fixed as they can be fixed up
+                // once the user adds the '='.
+                if (looksLikeVariableInitializer())
+                {
+                    localFunction = null;
+                    return _syntaxFactory.VariableDeclarator(
+                        name,
+                        argumentList: null,
+                        _syntaxFactory.EqualsValueClause(
+                            this.EatToken(SyntaxKind.EqualsToken),
+                            this.ParseVariableInitializer()));
+                }
+
+                if (isConst)
+                {
+                    // Error here for missing constant initializers.  Note: this error would be better suited in the
+                    // binder as we do not need to make an syntax tree with diagnostics here.
+                    name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);
+                }
+                else if (isFixed)
+                {
+                    if (parentType.Kind == SyntaxKind.ArrayType)
+                    {
+                        // They accidentally put the array before the identifier
+                        name = this.AddError(name, ErrorCode.ERR_FixedDimsRequired);
+                    }
+                    else
+                    {
+                        return parseVariableDeclaratorWithOpenBracketToken(name, out localFunction);
+                    }
+                }
+
+                localFunction = null;
+                return _syntaxFactory.VariableDeclarator(name, argumentList: null, initializer: null);
+            }
+
+            bool looksLikeVariableInitializer()
+            {
+                // Note: this check is redundant, as CanStartExpression will return false for an equals-token. However,
+                // we want to guarantee that this always holds true, and thus the caller will *always* report an error
+                // when trying to consume the equals token.  That ensures that we it's then ok to skip other syntax
+                // errors that are reported with variable declarators.
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                    return false;
+
+                // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
+                // treat it as a missing '=' and parse the initializer.
+                //
+                // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
+                //
+                //      Type t1 t2 t3
+                //      Type t1 t2,
+                //      Type t1 t2 = ...
+                //      Type t1 t2;
+                //      Type t1 t2)    // likely an incorrect tuple.
+                var shouldParseAsNextDeclarator =
+                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind is SyntaxKind.IdentifierToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
+                if (shouldParseAsNextDeclarator)
+                    return false;
+
+                if (ContainsErrorDiagnostic(name))
+                    return false;
+
+                if (!CanStartExpression())
+                    return false;
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                var initializer = this.ParseExpressionCore();
+
+                // If we see a type following, then prefer to view this as a declarator for the next variable.
+                if (initializer is TypeSyntax)
+                    return false;
+
+                return !ContainsErrorDiagnostic(initializer);
+            }
         }
 
         // Is there a local function after an eaten identifier?
