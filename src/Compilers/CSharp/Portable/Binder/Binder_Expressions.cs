@@ -10540,7 +10540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!argIsIndex);
                     // Look for Substring
-                    var substring = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_String__Substring, diagnostics, syntax);
+                    var substring = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_String__SubstringIntInt, diagnostics, syntax);
                     if (substring is object)
                     {
                         makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);
