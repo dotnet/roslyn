@@ -468,7 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             ArrayTypeSymbol? arrayType = null;
             TypeSymbol? elementType = null;
-            if (wrappedExpression is not BoundArrayCreation { InitializerOpt: { } initializer } ac)
+            ImmutableArray<BoundExpression> initializers;
+            int elementCount;
+
+            if (wrappedExpression is not BoundArrayCreation ac)
             {
                 return false;
             }
@@ -477,8 +480,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             arrayType = (ArrayTypeSymbol)ac.Type;
             elementType = arrayType.ElementType;
 
-            ImmutableArray<BoundExpression> initializers = initializer.Initializers;
-            var elementCount = initializers.Length;
+            if (ac.InitializerOpt is { } initializer)
+            {
+                // Array created with initializer syntax: new T[] { ... }
+                initializers = initializer.Initializers;
+                elementCount = initializers.Length;
+            }
+            else if (ac.Bounds.Length == 1 && ac.Bounds[0].ConstantValueOpt is { } sizeConstant && sizeConstant.Discriminator == ConstantValueTypeDiscriminator.Int32)
+            {
+                // Array created with size syntax: new T[constSize]
+                // Treat this as equivalent to new T[] { default, default, ..., default }
+                var size = sizeConstant.Int32Value;
+                if (size < 0)
+                {
+                    return false;
+                }
+
+                elementCount = size;
+
+                // Check early if this type can be optimized
+                specialElementType = elementType.EnumUnderlyingTypeOrSelf().SpecialType;
+                if (!IsTypeAllowedInBlobWrapper(specialElementType))
+                {
+                    // For non-primitive types, we can't optimize this
+                    return false;
+                }
+
+                // For empty arrays, handle specially
+                if (size == 0)
+                {
+                    emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
+                    return true;
+                }
+
+                // We have a non-empty array with a primitive element type that can be optimized.
+                // Emit directly without synthesizing BoundLiteral objects.
+                return emitReadOnlySpanFromZeroInitializedArray(spanType, wrappedExpression, used, inPlaceTarget, elementType, specialElementType, size, start, length, out avoidInPlace);
+            }
+            else
+            {
+                // Not a pattern we can optimize
+                return false;
+            }
             if (elementCount == 0)
             {
                 emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
@@ -783,6 +826,140 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 Debug.Assert(!rosArrayCtor.HasUnsupportedMetadata);
                 return true;
+            }
+
+            // Emit code for a zero-initialized array: new T[constSize]
+            // This is semantically equivalent to new T[] { default, default, ..., default }
+            bool emitReadOnlySpanFromZeroInitializedArray(
+                NamedTypeSymbol spanType,
+                BoundExpression wrappedExpression,
+                bool used,
+                BoundExpression? inPlaceTarget,
+                TypeSymbol elementType,
+                SpecialType specialElementType,
+                int size,
+                BoundExpression? start,
+                BoundExpression? length,
+                out bool avoidInPlace)
+            {
+                avoidInPlace = false;
+
+                if (start is not null)
+                {
+                    // The start expression needs to be 0.
+                    if (start.ConstantValueOpt?.IsDefaultValue != true || start.ConstantValueOpt.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                    {
+                        return false;
+                    }
+
+                    // The length expression needs to be an Int32, and it needs to be in the range [0, size].
+                    Debug.Assert(length is not null);
+                    if (length.ConstantValueOpt?.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                    {
+                        return false;
+                    }
+
+                    var lengthValue = length.ConstantValueOpt.Int32Value;
+                    if (lengthValue > size || lengthValue < 0)
+                    {
+                        return false;
+                    }
+
+                    size = lengthValue;
+                }
+
+                if (IsPeVerifyCompatEnabled())
+                {
+                    // After this point, we're emitting code that may cause PEVerify to warn, so stop if PEVerify compat is enabled.
+                    return false;
+                }
+
+                // Create a blob of zeros for the specified size
+                int elementSize = specialElementType.SizeInBytes();
+                int totalBytes = size * elementSize;
+                var data = ImmutableArray.Create(new byte[totalBytes]);
+
+                if (specialElementType.SizeInBytes() == 1)
+                {
+                    // We're dealing with a ReadOnlySpan<byte/sbyte/bool>. We can optimize this on all target platforms,
+                    // whether the initialization is in-place or not.
+
+                    if (inPlaceTarget is not null)
+                    {
+                        EmitAddress(inPlaceTarget, AddressKind.Writeable);
+                    }
+
+                    // Map a field to the block (that makes it addressable).
+                    var field = _builder.module.GetFieldForData(data, alignment: 1, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitOpCode(ILOpCode.Ldsflda);
+                    _builder.EmitToken(field, wrappedExpression.Syntax);
+
+                    _builder.EmitIntConstant(size);
+
+                    if (inPlaceTarget is not null)
+                    {
+                        // Consumes target ref, data ptr and size, pushes nothing.
+                        _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -3);
+                    }
+                    else
+                    {
+                        // Consumes data ptr and size, pushes the instance.
+                        Debug.Assert(used);
+                        _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
+                    }
+
+                    var rosPointerCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+                    if (rosPointerCtor is null)
+                    {
+                        return false;
+                    }
+                    Debug.Assert(!rosPointerCtor.HasUnsupportedMetadata);
+                    EmitSymbolToken(rosPointerCtor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
+
+                    if (inPlaceTarget is not null && used)
+                    {
+                        EmitExpression(inPlaceTarget, used: true);
+                    }
+
+                    return true;
+                }
+
+                // We're dealing with a primitive that's larger than a single byte.
+                Debug.Assert(specialElementType.SizeInBytes() is 2 or 4 or 8, "Supported primitives are expected to be 2, 4, or 8 bytes");
+
+                if (inPlaceTarget is not null)
+                {
+                    // We can use RuntimeHelpers.CreateSpan, but not for in-place initialization. Fail to optimize,
+                    // but tell the caller they can call this again with a null inPlaceTarget, at which point this
+                    // should be able to optimize the call.
+                    avoidInPlace = true;
+                    return false;
+                }
+
+                // As we're dealing with multi-byte types, endianness needs to be considered. Such handling is provided by the
+                // runtime's RuntimeHelpers.CreateSpan, which will wrap a span around the blob on little endian and which will
+                // allocate an array and cache it on big endian.
+                MethodSymbol? createSpan = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+                if (createSpan is not null)
+                {
+                    // CreateSpan was available. Use it.
+                    Debug.Assert(!createSpan.HasUnsupportedMetadata);
+
+                    // ldtoken <PrivateImplementationDetails>...
+                    // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
+                    var field = _builder.module.GetFieldForData(data, alignment: (ushort)specialElementType.SizeInBytes(), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitOpCode(ILOpCode.Ldtoken);
+                    _builder.EmitToken(field, wrappedExpression.Syntax);
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    EmitSymbolToken(createSpan.Construct(elementType), wrappedExpression.Syntax, optArgList: null);
+                    return true;
+                }
+
+                // CreateSpan is not available. Fall back to caching an array.
+                // We need to create a BoundArrayCreation with a zero-initialized array for the cached array path.
+                // However, we can't use tryEmitAsCachedArrayOfConstants because it expects an existing BoundArrayCreation with initializers.
+                // For now, return false and let it fall through to the normal array allocation path.
+                return false;
             }
         }
 
