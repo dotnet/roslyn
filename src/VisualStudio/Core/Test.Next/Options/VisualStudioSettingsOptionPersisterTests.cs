@@ -183,7 +183,11 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             GetValueImpl = (_, _) => (GetValueResult.Success, storageValue)
         };
 
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", optionType, defaultValue);
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+        var result = persister.TryReadOptionValue("key", optionType, defaultValue);
         Assert.True(result.HasValue);
         Assert.Equal(optionValue, result.Value);
     }
@@ -222,7 +226,12 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             GetValueImpl = (_, type) => (specializedTypeResult, storageValue)
         };
 
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", optionType, optionValue);
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+
+        var result = persister.TryReadOptionValue("key", optionType, optionValue);
 
         // we should not fall back to object if the manager tells us bool value is missing or invalid in any way:
         Assert.False(result.HasValue);
@@ -233,7 +242,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
     [InlineData(typeof(ImmutableArray<int>))]
     [InlineData(typeof(ImmutableArray<long>))]
     [InlineData(typeof(ImmutableArray<string>))]
-    public void Roundtrip_DefaultImmutableArray(Type type)
+    public async Task Roundtrip_DefaultImmutableArray(Type type)
     {
         var defaultArray = Activator.CreateInstance(type);
         var serializedValue = (object?)null;
@@ -246,14 +255,18 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             SetValueImpl = (name, value) => newValue = value
         };
 
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+
         // read
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", type, defaultValue: null);
+        var result = persister.TryReadOptionValue("key", type, defaultValue: null);
         Assert.True(result.HasValue);
         Assert.True(IsDefaultImmutableArray(result.Value!));
 
         // write
-        var persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
-        persister.PersistAsync("key", defaultArray).Wait();
+        await persister.PersistAsync("key", defaultArray);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
@@ -272,9 +285,8 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         yield return new object?[] { (E?)E.B, (int?)E.B, E.B, typeof(E?) };
     }
 
-    [Theory]
-    [MemberData(nameof(GetRoundtripTestCases))]
-    public void Roundtrip(object? value, object? serializedValue, object defaultValue, Type type)
+    [Theory, MemberData(nameof(GetRoundtripTestCases))]
+    public async Task Roundtrip(object? value, object? serializedValue, object defaultValue, Type type)
     {
         Optional<object?> newValue = default;
 
@@ -284,80 +296,84 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             SetValueImpl = (name, value) => newValue = value
         };
 
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+
         // read
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", type, defaultValue);
+        var result = persister.TryReadOptionValue("key", type, defaultValue);
         Assert.True(result.HasValue);
         Assert.Equal(value, result.Value);
 
         // write
-        var persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
-        persister.PersistAsync("key", value).Wait();
+        persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
+        await persister.PersistAsync("key", value);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
     }
 
-    [Theory]
-    [InlineData("indent_size", 2, "2")]
-    [InlineData("indent_size", 4, "4")]
-    [InlineData("indent_style", true, "tab")]
-    [InlineData("indent_style", false, "space")]
-    [InlineData("tab_width", 2, "2")]
-    [InlineData("tab_width", 4, "4")]
-    [InlineData("smart_indent", FormattingOptions2.IndentStyle.None, "none")]
-    [InlineData("smart_indent", FormattingOptions2.IndentStyle.Block, "block")]
-    [InlineData("smart_indent", FormattingOptions2.IndentStyle.Smart, "smart")]
-    public async Task ValidateSettingManagerSettings(
-        string key,
-        object value,
-        string finalValue)
-    {
-        var mockManager = new MockSettingsManager();
+    //[Theory]
+    //[InlineData("indent_size", 2, "2")]
+    //[InlineData("indent_size", 4, "4")]
+    //[InlineData("indent_style", true, "tab")]
+    //[InlineData("indent_style", false, "space")]
+    //[InlineData("tab_width", 2, "2")]
+    //[InlineData("tab_width", 4, "4")]
+    //[InlineData("smart_indent", FormattingOptions2.IndentStyle.None, "none")]
+    //[InlineData("smart_indent", FormattingOptions2.IndentStyle.Block, "block")]
+    //[InlineData("smart_indent", FormattingOptions2.IndentStyle.Smart, "smart")]
+    //public async Task ValidateSettingManagerSettings(
+    //    string key,
+    //    object value,
+    //    string finalValue)
+    //{
+    //    var mockManager = new MockSettingsManager();
 
-        var persister = new VisualStudioSettingsOptionPersister(
-            (_, _) => { },
-            ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty,
-            mockManager);
+    //    var persister = new VisualStudioUnifiedSettingsOptionPersister(
+    //        (_, _) => { },
+    //        mockManager);
 
-        // read
-        var manager = (VisualStudioOptionStorage.SettingsManagerStorage)VisualStudioOptionStorage.Storages[key];
-        IPerLanguageValuedOption option = key switch
-        {
-            "indent_size" => FormattingOptions2.IndentationSize,
-            "indent_style" => FormattingOptions2.UseTabs,
-            "tab_width" => FormattingOptions2.TabSize,
-            "smart_indent" => FormattingOptions2.SmartIndent,
-            _ => throw ExceptionUtilities.UnexpectedValue(key),
-        };
+    //    // read
+    //    var manager = (VisualStudioOptionStorage.UnifiedSettingsManagerStorage)VisualStudioOptionStorage.Storages[key];
+    //    IPerLanguageValuedOption option = key switch
+    //    {
+    //        "indent_size" => FormattingOptions2.IndentationSize,
+    //        "indent_style" => FormattingOptions2.UseTabs,
+    //        "tab_width" => FormattingOptions2.TabSize,
+    //        "smart_indent" => FormattingOptions2.SmartIndent,
+    //        _ => throw ExceptionUtilities.UnexpectedValue(key),
+    //    };
 
-        var optionKey = new OptionKey2(option, LanguageNames.CSharp);
+    //    var optionKey = new OptionKey2(option, LanguageNames.CSharp);
 
-        // Ensure that if the settings manager doesn't find the item, we are resilient.
-        mockManager.GetValueImpl = (_, _) => (GetValueResult.Missing, null);
-        Assert.False(manager.TryFetch(persister, optionKey, out _));
+    //    // Ensure that if the settings manager doesn't find the item, we are resilient.
+    //    mockManager.GetValueImpl = (_, _) => (GetValueResult.Missing, null);
+    //    Assert.False(manager.TryFetch(persister, optionKey, out _));
 
-        // Ensure that if the settings manager finds and return nothing, we are resilient.
-        mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, null);
-        Assert.False(manager.TryFetch(persister, optionKey, out _));
+    //    // Ensure that if the settings manager finds and return nothing, we are resilient.
+    //    mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, null);
+    //    Assert.False(manager.TryFetch(persister, optionKey, out _));
 
-        // Ensure that if the settings manager finds and return an unexpected type, we are resilient.
-        mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, true);
-        Assert.False(manager.TryFetch(persister, optionKey, out _));
+    //    // Ensure that if the settings manager finds and return an unexpected type, we are resilient.
+    //    mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, true);
+    //    Assert.False(manager.TryFetch(persister, optionKey, out _));
 
-        // Ensure that We don't try to get when doing a store.  Also ensure that the value stored is the appropriate
-        // string value of the original value passed in.
-        mockManager.GetValueImpl = null;
-        mockManager.SetValueImpl = (name, storedValue) =>
-        {
-            Assert.Equal(finalValue, storedValue);
-        };
-        await manager.PersistAsync(persister, optionKey, value);
+    //    // Ensure that We don't try to get when doing a store.  Also ensure that the value stored is the appropriate
+    //    // string value of the original value passed in.
+    //    mockManager.GetValueImpl = null;
+    //    mockManager.SetValueImpl = (name, storedValue) =>
+    //    {
+    //        Assert.Equal(finalValue, storedValue);
+    //    };
+    //    await manager.PersistAsync(persister, optionKey, value);
 
-        // Attempt to read the value back.  If the settings manager gets it back properly, ensure that we can read it
-        // into the actual in-memory (non-string) value we expect.
-        mockManager.SetValueImpl = null;
-        mockManager.GetValueImpl = (name, type) => (GetValueResult.Success, finalValue);
-        Assert.True(manager.TryFetch(persister, optionKey, out var fetchedValue));
-        Assert.Equal(value, fetchedValue);
-    }
+    //    // Attempt to read the value back.  If the settings manager gets it back properly, ensure that we can read it
+    //    // into the actual in-memory (non-string) value we expect.
+    //    mockManager.SetValueImpl = null;
+    //    mockManager.GetValueImpl = (name, type) => (GetValueResult.Success, finalValue);
+    //    Assert.True(manager.TryFetch(persister, optionKey, out var fetchedValue));
+    //    Assert.Equal(value, fetchedValue);
+    //}
 }

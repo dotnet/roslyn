@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal sealed class VisualStudioOptionPersister(
     VisualStudioSettingsOptionPersister visualStudioSettingsOptionPersister,
+    VisualStudioUnifiedSettingsOptionPersister visualStudioUnifiedSettingsOptionPersister,
     LocalUserRegistryOptionPersister localUserRegistryPersister,
     FeatureFlagPersister featureFlagPersister) : IOptionPersister
 {
@@ -27,8 +28,8 @@ internal sealed class VisualStudioOptionPersister(
     private bool TryFetch(VisualStudioOptionStorage storage, OptionKey2 optionKey, out object? value)
         => storage switch
         {
-            VisualStudioOptionStorage.SettingsManagerStorage settingsManager => settingsManager.TryFetch(_visualStudioSettingsOptionPersister, optionKey, out value),
             VisualStudioOptionStorage.RoamingProfileStorage roaming => roaming.TryFetch(_visualStudioSettingsOptionPersister, optionKey, out value),
+            VisualStudioOptionStorage.UnifiedSettingsManagerStorage settingsManager => settingsManager.TryFetch(visualStudioUnifiedSettingsOptionPersister, optionKey, out value),
             VisualStudioOptionStorage.FeatureFlagStorage featureFlags => featureFlags.TryFetch(_featureFlagPersister, optionKey, out value),
             VisualStudioOptionStorage.LocalUserProfileStorage local => local.TryFetch(_localUserRegistryPersister, optionKey, out value),
             _ => throw ExceptionUtilities.UnexpectedValue(storage)
@@ -49,8 +50,8 @@ internal sealed class VisualStudioOptionPersister(
     public Task PersistAsync(VisualStudioOptionStorage storage, OptionKey2 optionKey, object? value)
         => storage switch
         {
-            VisualStudioOptionStorage.SettingsManagerStorage settingsManager => settingsManager.PersistAsync(_visualStudioSettingsOptionPersister, optionKey, value),
             VisualStudioOptionStorage.RoamingProfileStorage roaming => roaming.PersistAsync(_visualStudioSettingsOptionPersister, optionKey, value),
+            VisualStudioOptionStorage.UnifiedSettingsManagerStorage settingsManager => settingsManager.PersistAsync(visualStudioUnifiedSettingsOptionPersister, optionKey, value),
             VisualStudioOptionStorage.FeatureFlagStorage featureFlags => featureFlags.PersistAsync(_featureFlagPersister, value),
             VisualStudioOptionStorage.LocalUserProfileStorage local => local.PersistAsync(_localUserRegistryPersister, optionKey, value),
             _ => throw ExceptionUtilities.UnexpectedValue(storage)
