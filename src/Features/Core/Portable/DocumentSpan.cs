@@ -10,4 +10,10 @@ namespace Microsoft.CodeAnalysis;
 /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
 /// </summary>
 internal readonly record struct DocumentSpan(
-    Document Document, TextSpan SourceSpan, bool IsGeneratedCode = false);
+    Document Document, TextSpan SourceSpan, bool IsGeneratedCode)
+{
+    public DocumentSpan(Document document, TextSpan sourceSpan)
+        : this(document, sourceSpan, IsGeneratedCode: false)
+    {
+    }
+}

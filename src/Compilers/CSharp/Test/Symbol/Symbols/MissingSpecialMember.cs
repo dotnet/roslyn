@@ -570,6 +570,8 @@ namespace System
                     || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
                     || special == SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
                     )
                 {
@@ -651,6 +653,21 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray2:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray3:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray4:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray5:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray6:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray7:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray8:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray9:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray10:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray11:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray12:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray13:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray14:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray15:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray16:
                     case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute:
                     case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind:
                         // Not yet in the platform.

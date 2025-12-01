@@ -331,6 +331,11 @@
         <target state="translated">Unnötige Unterdrückung entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_unsafe_modifier">
+        <source>Remove unnecessary 'unsafe' modifier</source>
+        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">Ungelesene private Member entfernen</target>
@@ -489,6 +494,11 @@
       <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
         <target state="translated">'{0}' Anweisung konvertiert implizit '{1}' in '{2}'. Fügen Sie eine explizite Umwandlung hinzu, um die Absicht klarer zu machen, da sie zur Laufzeit fehlschlagen kann.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="unsafe_modifier_is_unnecessary">
+        <source>'unsafe' modifier is unnecessary</source>
+        <target state="new">'unsafe' modifier is unnecessary</target>
         <note />
       </trans-unit>
     </body>

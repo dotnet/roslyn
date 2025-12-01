@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
             var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 if (method is not null)
@@ -725,6 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 compilationState.Free();
+
+                CompileSynthesizedMethods(additionalType.GetTypeMembers(), diagnostics);
             }
         }
 

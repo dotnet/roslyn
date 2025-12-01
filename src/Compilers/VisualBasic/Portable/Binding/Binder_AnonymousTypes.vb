@@ -34,16 +34,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return CreateAnonymousObjectCreationExpression(node, typeDescr, initExpressions)
+            Return CreateAnonymousObjectCreationExpression(node, typeDescr, initExpressions, diagnostics)
         End Function
 
         Private Function CreateAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                typeDescr As AnonymousTypeDescriptor,
                                                                initExpressions As ImmutableArray(Of BoundExpression),
+                                                               diagnostics As BindingDiagnosticBag,
                                                                Optional hasErrors As Boolean = False) As BoundExpression
             '  Get or create an anonymous type
             Dim anonymousType As AnonymousTypeManager.AnonymousTypePublicSymbol =
-                Me.Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(typeDescr)
+                Me.Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(typeDescr, diagnostics)
 
             ' get constructor
             Dim constructor As MethodSymbol = anonymousType.InstanceConstructors.First()
@@ -186,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If String.IsNullOrEmpty(fieldName) Then
                         ' since the field does not have name, we generate a pseudo name to be used in template
-                        fieldName = "$"c & fieldIndex.ToString()
+                        fieldName = "$"c & fieldIndex.ToString(Globalization.CultureInfo.InvariantCulture)
 
                     Else
                         ' check the name for duplications (in System.Object and in the list of fields)
@@ -280,7 +281,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     Me._fields.AsImmutableOrNull(),
                                                                     typeLocationToken.GetLocation(),
                                                                     False),
-                                                                boundInitializers.AsImmutableOrNull())
+                                                                boundInitializers.AsImmutableOrNull(),
+                                                                diagnostics)
 
                 Me._freeze = True
 

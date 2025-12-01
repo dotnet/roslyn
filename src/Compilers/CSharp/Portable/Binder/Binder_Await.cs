@@ -185,9 +185,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            info = method.ReturnsVoid ?
-                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod) :
-                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
+                            if (method.ReturnsVoid)
+                            {
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod);
+                            }
+                            else if (method.IsIterator && InMethodBinder.IsAsyncStreamInterface(Compilation, method.RefKind, method.ReturnType))
+                            {
+                                // For async iterators, we don't report an error on await because ERR_IteratorMustBeAsync
+                                // is already reported by ExecutableCodeBinder.ValidateIteratorMethod, which tells the user to add 'async'.
+                                // Reporting a second error here would be redundant.
+                                return false;
+                            }
+                            else
+                            {
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
+                            }
                         }
                         break;
                 }
@@ -625,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (qualified is not BoundPropertyAccess { PropertySymbol: { } propertySymbol } || propertySymbol.GetIsNewExtensionMember())
+            if (qualified is not BoundPropertyAccess { PropertySymbol: { } propertySymbol } || propertySymbol.IsExtensionBlockMember())
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.IsCompleted);
                 isCompletedProperty = null;
@@ -705,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!call.IsErroneousNode);
 
             getResultMethod = call.Method;
-            if (getResultMethod.IsExtensionMethod || getResultMethod.GetIsNewExtensionMember())
+            if (getResultMethod.IsExtensionMethod || getResultMethod.IsExtensionBlockMember())
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
                 getResultMethod = null;

@@ -1453,7 +1453,7 @@ namespace Microsoft.Cci
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
-            return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
+            return symbolOpt?.GetFirstLocationOrNone() ?? Location.None;
         }
 
         internal TypeAttributes GetTypeAttributes(ITypeDefinition typeDef)
@@ -3840,9 +3840,7 @@ namespace Microsoft.Cci
             {
                 if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
-                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
-                    // Tracked by https://github.com/dotnet/runtime/issues/80812
-                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    encoder.TypedReference();
                     return;
                 }
 

@@ -17,6 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
 
         Public Function ReportMissingOrErroneousSymbols(diagnostics As BindingDiagnosticBag, hasClass As Boolean, hasDelegate As Boolean, hasKeys As Boolean) As Boolean
+            ' If we start reporting errors for non-Special types or members here when hasClass is false,
+            ' we need to call this method from ConstructAnonymousDelegateSymbol to collect dependencies. 
+
             Debug.Assert(hasClass OrElse hasDelegate)
             Debug.Assert(Not hasKeys OrElse hasClass)
 
