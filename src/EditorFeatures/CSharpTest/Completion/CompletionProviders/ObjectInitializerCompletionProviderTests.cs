@@ -1291,6 +1291,129 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
             }
             """, "PropC");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    public async Task ExtensionPropertyInObjectInitializer()
+    {
+        var markup = """
+            public class MyClass { }
+
+            public static class MyExtensions
+            {
+                extension(MyClass myClass)
+                {
+                    public int NewProperty { get => 0; set { } }
+                }
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyClass myClass = new MyClass()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "NewProperty");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    public async Task ExtensionPropertyInObjectInitializer_ReadOnlyNotShown()
+    {
+        var markup = """
+            public class MyClass { }
+
+            public static class MyExtensions
+            {
+                extension(MyClass myClass)
+                {
+                    public int ReadOnlyProp => 0;
+                }
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyClass myClass = new MyClass()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "ReadOnlyProp");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    public async Task ExtensionPropertyInObjectInitializer_MixedWithRegularProperties()
+    {
+        var markup = """
+            public class MyClass
+            {
+                public int RegularProperty { get; set; }
+            }
+
+            public static class MyExtensions
+            {
+                extension(MyClass myClass)
+                {
+                    public int ExtensionProperty { get => 0; set { } }
+                }
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyClass myClass = new MyClass()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "RegularProperty");
+        await VerifyItemExistsAsync(markup, "ExtensionProperty");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    public async Task ExtensionPropertyInObjectInitializer_HidePreviouslyTyped()
+    {
+        var markup = """
+            public class MyClass { }
+
+            public static class MyExtensions
+            {
+                extension(MyClass myClass)
+                {
+                    public int ExtProp1 { get => 0; set { } }
+                    public int ExtProp2 { get => 0; set { } }
+                }
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyClass myClass = new MyClass()
+                    {
+                        ExtProp1 = 1,
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "ExtProp1");
+        await VerifyItemExistsAsync(markup, "ExtProp2");
+    }
+
     private async Task VerifyExclusiveAsync(string markup, bool exclusive)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: GetComposition());
