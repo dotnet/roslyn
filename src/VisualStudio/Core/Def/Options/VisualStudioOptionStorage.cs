@@ -41,7 +41,7 @@ internal abstract class VisualStudioOptionStorage
         {
             // In-memory representation was different than persisted representation (often a bool/enum), so
             // serialize it as per the option's serializer.
-            var serialized = optionKey.Option.Definition.Serializer.Serialize(value);
+            var serialized = optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant();
             return persister.PersistAsync(GetKey(optionKey.Language), serialized);
         }
 
