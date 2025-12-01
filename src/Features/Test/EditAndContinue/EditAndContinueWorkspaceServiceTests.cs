@@ -2894,7 +2894,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // The error is reported as emit diagnostic:
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal([$"proj: <no location>: Error CS9344: {CSharpResources.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime}"], InspectDiagnostics(results.Diagnostics));
+        AssertEx.Equal([$"proj: <no location>: Error CS9346: {CSharpResources.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime}"], InspectDiagnostics(results.Diagnostics));
 
         // no emitted delta:
         Assert.Empty(results.ModuleUpdates.Updates);
