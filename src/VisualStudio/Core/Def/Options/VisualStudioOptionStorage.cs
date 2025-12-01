@@ -296,7 +296,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_generate_summary_tag_on_single_line", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateSummaryTagOnSingleLine")},
         {"dotnet_generate_only_summary_tag", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateOnlySummaryTag")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
-
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"dotnet_sort_system_directives_first", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_style_allow_multiple_blank_lines_experimental", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines")},
