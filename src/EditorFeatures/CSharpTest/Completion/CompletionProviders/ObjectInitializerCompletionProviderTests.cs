@@ -1291,7 +1291,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
             }
             """, "PropC");
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81405")]
     public async Task ExtensionPropertyInObjectInitializer()
     {
         var markup = """
@@ -1320,7 +1320,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
         await VerifyItemExistsAsync(markup, "NewProperty");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81405")]
     public async Task ExtensionPropertyInObjectInitializer_ReadOnlyNotShown()
     {
         var markup = """
@@ -1349,7 +1349,38 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
         await VerifyItemIsAbsentAsync(markup, "ReadOnlyProp");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81405")]
+    public async Task ExtensionPropertyInObjectInitializer_ReadOnlyCollectionShown()
+    {
+        var markup = """
+            using System.Collections.Generic;
+
+            public class MyClass { }
+
+            public static class MyExtensions
+            {
+                extension(MyClass myClass)
+                {
+                    public List<int> ReadOnlyListProp => new List<int>();
+                }
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyClass myClass = new MyClass()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "ReadOnlyListProp");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81405")]
     public async Task ExtensionPropertyInObjectInitializer_MixedWithRegularProperties()
     {
         var markup = """
@@ -1382,7 +1413,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
         await VerifyItemExistsAsync(markup, "ExtensionProperty");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77484")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81405")]
     public async Task ExtensionPropertyInObjectInitializer_HidePreviouslyTyped()
     {
         var markup = """
