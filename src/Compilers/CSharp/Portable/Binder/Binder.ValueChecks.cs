@@ -1270,15 +1270,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Checks if a parenthesized expression is the left operand of a subtraction (the -X part of (T)-X).
+        /// Checks if a parenthesized expression is the left operand of a subtraction (the <c>(T)</c> part of <c>(T)-X</c>).
         /// This method is shared between CheckNotNamespaceOrType and BindSimpleBinaryOperator to ensure they
         /// check for the same pattern consistently.
         /// </summary>
         private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(ParenthesizedExpressionSyntax parenthesized)
         {
-            // Check if it's the left side of a subtraction: (T) - X
-            return parenthesized.Parent is Syntax.BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
-                binary.Left == parenthesized;
+            return parenthesized.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
+                   binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
