@@ -21,7 +21,7 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
             OnSettingChanged, "languages.*");
     }
 
-    private void OnSettingChanged(VisualStudio.Utilities.UnifiedSettings.SettingsUpdate update)
+    private void OnSettingChanged(SettingsUpdate update)
     {
         foreach (var key in update.ChangedSettingMonikers)
             this.RefreshIfTracked(key);
