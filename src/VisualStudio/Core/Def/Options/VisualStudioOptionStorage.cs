@@ -41,6 +41,10 @@ internal abstract class VisualStudioOptionStorage
         {
             // In-memory representation was different than persisted representation (often a bool/enum), so
             // serialize it as per the option's serializer.
+            //
+            // Note, we persist as a lowercase value, as that's what the setting manager does for these modern keys. On
+            // read, TryParse will handle lowercase enum values just fine due to it using `Enum.TryParse(str,
+            // ignoreCase: true, out result)`
             var serialized = optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant();
             return persister.PersistAsync(GetKey(optionKey.Language), serialized);
         }
