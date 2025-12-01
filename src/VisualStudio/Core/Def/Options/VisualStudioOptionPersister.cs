@@ -9,21 +9,14 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
-internal sealed class VisualStudioOptionPersister : IOptionPersister
+internal sealed class VisualStudioOptionPersister(
+    VisualStudioSettingsOptionPersister visualStudioSettingsOptionPersister,
+    LocalUserRegistryOptionPersister localUserRegistryPersister,
+    FeatureFlagPersister featureFlagPersister) : IOptionPersister
 {
-    private readonly VisualStudioSettingsOptionPersister _visualStudioSettingsOptionPersister;
-    private readonly LocalUserRegistryOptionPersister _localUserRegistryPersister;
-    private readonly FeatureFlagPersister _featureFlagPersister;
-
-    public VisualStudioOptionPersister(
-        VisualStudioSettingsOptionPersister visualStudioSettingsOptionPersister,
-        LocalUserRegistryOptionPersister localUserRegistryPersister,
-        FeatureFlagPersister featureFlagPersister)
-    {
-        _visualStudioSettingsOptionPersister = visualStudioSettingsOptionPersister;
-        _localUserRegistryPersister = localUserRegistryPersister;
-        _featureFlagPersister = featureFlagPersister;
-    }
+    private readonly VisualStudioSettingsOptionPersister _visualStudioSettingsOptionPersister = visualStudioSettingsOptionPersister;
+    private readonly LocalUserRegistryOptionPersister _localUserRegistryPersister = localUserRegistryPersister;
+    private readonly FeatureFlagPersister _featureFlagPersister = featureFlagPersister;
 
     public bool TryFetch(OptionKey2 optionKey, out object? value)
     {
@@ -31,9 +24,10 @@ internal sealed class VisualStudioOptionPersister : IOptionPersister
         return VisualStudioOptionStorage.Storages.TryGetValue(optionKey.Option.Definition.ConfigName, out var storage) && TryFetch(storage, optionKey, out value);
     }
 
-    public bool TryFetch(VisualStudioOptionStorage storage, OptionKey2 optionKey, out object? value)
+    private bool TryFetch(VisualStudioOptionStorage storage, OptionKey2 optionKey, out object? value)
         => storage switch
         {
+            VisualStudioOptionStorage.SettingsManagerStorage settingsManager => settingsManager.TryFetch(_visualStudioSettingsOptionPersister, optionKey, out value),
             VisualStudioOptionStorage.RoamingProfileStorage roaming => roaming.TryFetch(_visualStudioSettingsOptionPersister, optionKey, out value),
             VisualStudioOptionStorage.FeatureFlagStorage featureFlags => featureFlags.TryFetch(_featureFlagPersister, optionKey, out value),
             VisualStudioOptionStorage.LocalUserProfileStorage local => local.TryFetch(_localUserRegistryPersister, optionKey, out value),
@@ -55,6 +49,7 @@ internal sealed class VisualStudioOptionPersister : IOptionPersister
     public Task PersistAsync(VisualStudioOptionStorage storage, OptionKey2 optionKey, object? value)
         => storage switch
         {
+            VisualStudioOptionStorage.SettingsManagerStorage settingsManager => settingsManager.PersistAsync(_visualStudioSettingsOptionPersister, optionKey, value),
             VisualStudioOptionStorage.RoamingProfileStorage roaming => roaming.PersistAsync(_visualStudioSettingsOptionPersister, optionKey, value),
             VisualStudioOptionStorage.FeatureFlagStorage featureFlags => featureFlags.PersistAsync(_featureFlagPersister, value),
             VisualStudioOptionStorage.LocalUserProfileStorage local => local.PersistAsync(_localUserRegistryPersister, optionKey, value),
