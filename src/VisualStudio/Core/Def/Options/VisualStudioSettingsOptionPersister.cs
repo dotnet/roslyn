@@ -61,8 +61,11 @@ internal sealed class VisualStudioSettingsOptionPersister
     }
 
     public bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
+        => TryFetch(optionKey, storageKey, optionKey.Option.Type, out value);
+
+    public bool TryFetch(OptionKey2 optionKey, string storageKey, Type optionType, out object? value)
     {
-        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionKey.Option.Type, optionKey.Option.DefaultValue);
+        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionType, optionKey.Option.DefaultValue);
         if (result.HasValue)
         {
             value = result.Value;
