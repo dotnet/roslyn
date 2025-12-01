@@ -44,5 +44,21 @@ End Class
             Await VerifyBlockSpansAsync(code,
                 Region("span", "If (True) ...", autoCollapse:=False))
         End Function
+
+        <Fact>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2094051")>
+        Public Async Function TestIfBlock3() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|span:If Invoked("""") Then $$
+        ElseIf True Then
+        End If|}    End Sub
+End Class
+"
+
+            Await VerifyBlockSpansAsync(code,
+                Region("span", "If Invoked("""") Then ...", autoCollapse:=False))
+        End Function
     End Class
 End Namespace
