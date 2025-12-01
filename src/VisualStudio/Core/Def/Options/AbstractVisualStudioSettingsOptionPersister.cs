@@ -47,12 +47,12 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         }
     }
 
-    public bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
-        => TryFetch(optionKey, storageKey, optionKey.Option.Type, out value);
-
     public virtual bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
+        => TryFetchWorker(optionKey, storageKey, optionKey.Option.Type, out value);
+
+    protected bool TryFetchWorker(OptionKey2 optionKey, string storageKey, Type optionType, out object? value)
     {
-        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionKey.Option.Type, optionKey.Option.DefaultValue);
+        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionType, optionKey.Option.DefaultValue);
         if (result.HasValue)
         {
             value = result.Value;
@@ -167,7 +167,10 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
             => TryGetValue(storageKey, out T[] value) ? (value is null ? default : value.ToImmutableArray()) : default(Optional<object?>);
     }
 
-    public Task PersistAsync(string storageKey, object? value)
+    public virtual Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
+        => PersistWorkerAsync(storageKey, value);
+
+    protected Task PersistWorkerAsync(string storageKey, object? value)
     {
         if (value is ICodeStyleOption2 codeStyleOption)
         {
