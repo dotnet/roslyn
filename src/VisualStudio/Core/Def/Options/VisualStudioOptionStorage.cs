@@ -92,7 +92,7 @@ internal abstract class VisualStudioOptionStorage
             });
 
         public Task PersistAsync(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.PersistAsync(GetKey(optionKey.Language), value);
+            => persister.PersistAsync(optionKey, GetKey(optionKey.Language), value);
 
         public bool TryFetch(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);

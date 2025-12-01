@@ -265,7 +265,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         Assert.True(IsDefaultImmutableArray(result.Value!));
 
         // write
-        await persister.PersistAsync("key", defaultArray);
+        await persister.PersistWorkerAsync("key", defaultArray);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
@@ -307,7 +307,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
 
         // write
         persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
-        await persister.PersistAsync("key", value);
+        await persister.PersistWorkerAsync("key", value);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);

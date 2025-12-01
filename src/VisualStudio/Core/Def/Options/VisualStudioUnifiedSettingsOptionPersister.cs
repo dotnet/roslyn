@@ -29,7 +29,7 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
 
     public override bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
     {
-        if (!base.TryFetchWorker(optionKey, storageKey, typeof(string), out var innerValue) ||
+        if (!TryFetchWorker(optionKey, storageKey, typeof(string), out var innerValue) ||
             innerValue is not string innerStringValue)
         {
             value = null;
@@ -56,10 +56,10 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
     {
         Debug.Assert(typeof(T) == typeof(string));
         var retrieval = this.SettingsManager.GetReader().GetValue<T>(
-            storageKey, VisualStudio.Utilities.UnifiedSettings.SettingReadOptions.NoRequirements);
+            storageKey, SettingReadOptions.NoRequirements);
 
         value = retrieval.Value!;
-        return retrieval.Outcome == VisualStudio.Utilities.UnifiedSettings.SettingRetrievalOutcome.Success;
+        return retrieval.Outcome == SettingRetrievalOutcome.Success;
     }
 
     protected override Task SetValueAsync<T>(string storageKey, T value, bool isMachineLocal)
