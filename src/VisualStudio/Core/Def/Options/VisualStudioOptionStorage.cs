@@ -39,28 +39,10 @@ internal abstract class VisualStudioOptionStorage
             });
 
         public Task PersistAsync(VisualStudioUnifiedSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
-        {
-            // In-memory representation was different than persisted representation (often a bool/enum), so
-            // serialize it as per the option's serializer.
-            //
-            // Note, we persist as a lowercase value, as that's what the setting manager does for these modern keys. On
-            // read, TryParse will handle lowercase enum values just fine due to it using `Enum.TryParse(str,
-            // ignoreCase: true, out result)`
-            var serialized = optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant();
-            return persister.PersistAsync(GetKey(optionKey.Language), serialized);
-        }
+            => persister.PersistAsync(optionKey, GetKey(optionKey.Language), value);
 
         public bool TryFetch(VisualStudioUnifiedSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
-        {
-            if (!persister.TryFetch(optionKey, GetKey(optionKey.Language), typeof(string), out var innerValue) ||
-                innerValue is not string innerStringValue)
-            {
-                value = null;
-                return false;
-            }
-
-            return optionKey.Option.Definition.Serializer.TryParse(innerStringValue, out value);
-        }
+            => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);
     }
 
     internal sealed class RoamingProfileStorage : VisualStudioOptionStorage
