@@ -33,6 +33,7 @@ internal abstract class VisualStudioOptionStorage
                 LanguageNames.VisualBasic => "basic",
                 LanguageNames.FSharp => "fsharp",
                 "Xaml" => "xaml",
+                // 'S' in 'typeScript' being capitalized is intentional.
                 "TypeScript" => "typeScript",
                 _ => language,
             });
