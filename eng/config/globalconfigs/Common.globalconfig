@@ -41,6 +41,9 @@ dotnet_diagnostic.IDE0051.severity = warning
 # IDE0170: Prefer extended property pattern
 dotnet_diagnostic.IDE0170.severity = warning
 
+# IDE0370: Remove unnecessary suppression
+dotnet_diagnostic.IDE0370.severity = warning
+
 # dotnet_style_allow_multiple_blank_lines_experimental
 dotnet_diagnostic.IDE2000.severity = warning
 
