@@ -331,12 +331,21 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         };
 
         var optionKey = new OptionKey2(option, LanguageNames.CSharp);
+
+        // Ensure that if the settings manager doesn't find the item, we are resilient.
         mockManager.GetValueImpl = (_, _) => (GetValueResult.Missing, null);
         Assert.False(manager.TryFetch(persister, optionKey, out _));
 
+        // Ensure that if the settings manager finds and return nothing, we are resilient.
         mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, null);
         Assert.False(manager.TryFetch(persister, optionKey, out _));
 
+        // Ensure that if the settings manager finds and return an unexpected type, we are resilient.
+        mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, true);
+        Assert.False(manager.TryFetch(persister, optionKey, out _));
+
+        // Ensure that We don't try to get when doing a store.  Also ensure that the value stored is the appropriate
+        // string value of the original value passed in.
         mockManager.GetValueImpl = null;
         mockManager.SetValueImpl = (name, storedValue) =>
         {
@@ -344,6 +353,8 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         };
         await manager.PersistAsync(persister, optionKey, value);
 
+        // Attempt to read the value back.  If the settings manager gets it back properly, ensure that we can read it
+        // into the actual in-memory (non-string) value we expect.
         mockManager.SetValueImpl = null;
         mockManager.GetValueImpl = (name, type) => (GetValueResult.Success, finalValue);
         Assert.True(manager.TryFetch(persister, optionKey, out var fetchedValue));
