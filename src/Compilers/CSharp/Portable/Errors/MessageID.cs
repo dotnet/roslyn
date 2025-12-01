@@ -4,12 +4,12 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
+        IDS_FeatureExtensionIndexers = MessageBase + 13000, // PROTOTYPE move to right position and compact/renumber
         None = 0,
         MessageBase = 1200,
 
@@ -720,6 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
                     return LanguageVersion.CSharp1;
+
+                case MessageID.IDS_FeatureExtensionIndexers:
+                    return LanguageVersion.Preview; // PROTOTYPE move to right position
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);

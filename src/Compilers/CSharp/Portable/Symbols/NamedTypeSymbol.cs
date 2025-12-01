@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var candidate in candidates)
                 {
-                    if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                    if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                     {
                         // Not supported yet
                         continue;

@@ -762,6 +762,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static void ReportDiagnosticsIfDisallowedExtensionIndexer(BindingDiagnosticBag diagnostics, PropertySymbol property, SyntaxNode syntax)
+        {
+            if (property.IsExtensionBlockMember())
+            {
+                MessageID.IDS_FeatureExtensionIndexers.CheckFeatureAvailability(diagnostics, syntax);
+            }
+        }
+
         internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);

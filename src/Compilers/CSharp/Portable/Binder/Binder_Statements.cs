@@ -1618,7 +1618,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
                             methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
-                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
                             handleExtensionSetter(in methodInvocationInfo);
                             return;
                     }

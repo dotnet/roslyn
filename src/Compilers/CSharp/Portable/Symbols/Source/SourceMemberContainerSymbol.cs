@@ -1851,7 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsExtension)
             {
-                CheckExtensionMembers(this.GetMembers(), diagnostics);
+                CheckExtensionMembers(this.GetMembers(), compilation.LanguageVersion, diagnostics);
                 MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, compilation, location);
             }
 
@@ -2296,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (!indexer.IsExtensionBlockMember() && indexer.ContainingType.Arity > 0)
+                            if (indexer.ContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
                                 foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)
@@ -4616,25 +4616,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckExtensionMembers(ImmutableArray<Symbol> members, BindingDiagnosticBag diagnostics)
+        private static void CheckExtensionMembers(ImmutableArray<Symbol> members, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
         {
             foreach (var member in members)
             {
-                checkExtensionMember(member, diagnostics);
+                checkExtensionMember(member, languageVersion, diagnostics);
             }
 
             return;
 
-            static void checkExtensionMember(Symbol member, BindingDiagnosticBag diagnostics)
+            static void checkExtensionMember(Symbol member, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
             {
-                if (!IsAllowedExtensionMember(member))
+                if (!IsAllowedExtensionMember(member, languageVersion))
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
+                    if (member is PropertySymbol)
+                    {
+                        diagnostics.Add(new CSDiagnostic(
+                            new CSDiagnosticInfo(ErrorCode.ERR_ExtensionDisallowsIndexerMember, new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureExtensionIndexers.RequiredVersion())),
+                            member.GetFirstLocation()));
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
+                    }
                 }
             }
         }
 
-        internal static bool IsAllowedExtensionMember(Symbol member)
+        internal static bool IsAllowedExtensionMemberInCSharp14(Symbol member)
         {
             switch (member.Kind)
             {
@@ -4665,6 +4674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return true;
                     }
+
                     break;
 
                 case SymbolKind.Field:
@@ -4674,6 +4684,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+
+            return false;
+        }
+
+        internal static bool IsAllowedExtensionMember(Symbol member, LanguageVersion languageVersion)
+        {
+            if (IsAllowedExtensionMemberInCSharp14(member))
+            {
+                return true;
+            }
+
+            if (member is PropertySymbol property)
+            {
+                return MessageID.IDS_FeatureExtensionIndexers.RequiredVersion() <= languageVersion;
             }
 
             return false;

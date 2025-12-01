@@ -196,12 +196,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             singleLookupResults.Free();
         }
 
+        private void LookupAllNewExtensionMembersInSingleBinder(LookupResult result, string? name,
+                int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            EnumerateAllNewExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder, ref useSiteInfo);
+            foreach (var singleLookupResult in singleLookupResults)
+            {
+                result.MergeEqual(singleLookupResult);
+            }
+
+            singleLookupResults.Free();
+        }
+
         internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
             string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
+            // 1. Collect new extension members
+            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateAllNewExtensionMembersInSingleBinder(result, name, arity, options, originalBinder, ref useSiteInfo);
+
+            // 2. Collect classic extension methods
+            var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.GetCandidateExtensionMethodsInSingleBinder(extensionMethods, name, arity, options, originalBinder: originalBinder);
+
+            foreach (var method in extensionMethods)
+            {
+                // Prefer instance extension declarations vs. their implementations
+                if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                {
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
+                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
+                    {
+                        result.Add(resultOfThisMember);
+                    }
+                }
+            }
+
+            extensionMethods.Free();
+            implementationsToShadow?.Free();
+        }
+
+        private PooledHashSet<MethodSymbol>? EnumerateAllNewExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result, string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
-            // 1. Collect new extension members
             var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
             this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
@@ -225,26 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             extensionCandidates.Free();
-
-            // 2. Collect classic extension methods
-            var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.GetCandidateExtensionMethodsInSingleBinder(extensionMethods, name, arity, options, originalBinder: originalBinder);
-
-            foreach (var method in extensionMethods)
-            {
-                // Prefer instance extension declarations vs. their implementations
-                if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
-                {
-                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
-                    {
-                        result.Add(resultOfThisMember);
-                    }
-                }
-            }
-
-            extensionMethods.Free();
-            implementationsToShadow?.Free();
+            return implementationsToShadow;
         }
 #nullable disable
 

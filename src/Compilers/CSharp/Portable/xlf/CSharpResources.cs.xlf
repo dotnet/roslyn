@@ -862,6 +862,11 @@
         <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsIndexerMember">
+        <source>Extension indexers are not allowed. Please use language version {0} or greater to allow.</source>
+        <target state="new">Extension indexers are not allowed. Please use language version {0} or greater to allow.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
         <target state="new">This member is not allowed in an extension block</target>
@@ -2780,6 +2785,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">vzory rozšířených vlastností</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
