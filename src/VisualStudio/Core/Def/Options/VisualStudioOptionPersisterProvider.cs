@@ -48,7 +48,7 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
     public IOptionPersister GetOrCreatePersister()
         => _lazyPersister.Value;
 
-    private IOptionPersister CreatePersister()
+    private VisualStudioOptionPersister CreatePersister()
     {
         var settingsManager = GetFreeThreadedService<SVsSettingsPersistenceManager, ISettingsManager>();
         Assumes.Present(settingsManager);
@@ -56,12 +56,14 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
         var localRegistry = GetFreeThreadedService<SLocalRegistry, ILocalRegistry4>();
         Assumes.Present(localRegistry);
 
+        var unifiedSettingsManager = GetFreeThreadedService<SVsUnifiedSettingsManager, UnifiedSettingsManager>();
+        Assumes.Present(unifiedSettingsManager);
+
         var featureFlags = GetFreeThreadedService<SVsFeatureFlags, IVsFeatureFlags>();
 
-        var unifiedSettingsManager = GetFreeThreadedService<SVsUnifiedSettingsManager, UnifiedSettingsManager>();
-
         return new VisualStudioOptionPersister(
-            new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager, unifiedSettingsManager),
+            new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
+            new VisualStudioUnifiedSettingsOptionPersister(RefreshOption, unifiedSettingsManager),
             LocalUserRegistryOptionPersister.Create(localRegistry),
             new FeatureFlagPersister(featureFlags));
     }

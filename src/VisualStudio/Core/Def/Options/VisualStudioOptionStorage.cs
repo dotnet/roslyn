@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal abstract class VisualStudioOptionStorage
 {
-    internal sealed class SettingsManagerStorage(string key) : VisualStudioOptionStorage
+    internal sealed class UnifiedSettingsManagerStorage(string key) : VisualStudioOptionStorage
     {
         private const string LanguagePlaceholder = "%LANGUAGE%";
 
@@ -38,7 +38,7 @@ internal abstract class VisualStudioOptionStorage
                 _ => language,
             });
 
-        public Task PersistAsync(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
+        public Task PersistAsync(VisualStudioUnifiedSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
         {
             // In-memory representation was different than persisted representation (often a bool/enum), so
             // serialize it as per the option's serializer.
@@ -50,7 +50,7 @@ internal abstract class VisualStudioOptionStorage
             return persister.PersistAsync(GetKey(optionKey.Language), serialized);
         }
 
-        public bool TryFetch(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
+        public bool TryFetch(VisualStudioUnifiedSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
         {
             if (!persister.TryFetch(optionKey, GetKey(optionKey.Language), typeof(string), out var innerValue) ||
                 innerValue is not string innerStringValue)
@@ -153,10 +153,10 @@ internal abstract class VisualStudioOptionStorage
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
         // Modern settings-manager stored options.
-        {"indent_size", new SettingsManagerStorage("languages.%LANGUAGE%.tabs.indentSize")},
-        {"indent_style", new SettingsManagerStorage("languages.%LANGUAGE%.tabs.character")},
-        {"tab_width", new SettingsManagerStorage("languages.%LANGUAGE%.tabs.tabSize")},
-        {"smart_indent", new SettingsManagerStorage("languages.%LANGUAGE%arp.tabs.indenting")},
+        {"indent_size", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indentSize")},
+        {"indent_style", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.character")},
+        {"tab_width", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.tabSize")},
+        {"smart_indent", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%arp.tabs.indenting")},
 
         {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
         {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
