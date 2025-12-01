@@ -288,6 +288,59 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    public async Task TestRename_WithRazorSourceGeneratedFile_NoMappingService(bool mutatingLspWorkspace)
+    {
+        var generatedMarkup = """
+            class B
+            {
+                void M()
+                {
+                    new A().{|renamed:M|}();
+
+                    var a = new A();
+                    a.{|renamed:M|}();
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            public class A
+            {
+                public void {|caret:|}{|renamed:M|}()
+                {
+                }
+
+                void M2()
+                {
+                    {|renamed:M|}()
+                }
+            }
+            """, mutatingLspWorkspace);
+
+        TestFileMarkupParser.GetSpans(generatedMarkup, out var generatedCode, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+        var generatedSourceText = SourceText.From(generatedCode);
+
+        var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
+        var workspace = testLspServer.TestWorkspace;
+        var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
+        workspace.TryApplyChanges(project.Solution);
+
+        var generatedDocument = (await workspace.CurrentSolution.Projects.First().GetSourceGeneratedDocumentsAsync()).First();
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        service.Enable = false;
+
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renameValue = "RENAME";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+        var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
+
+        var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+
+        Assert.False(service.DidMapEdits);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestRename_OriginateInSourceGeneratedFile(bool mutatingLspWorkspace)
     {
         var generatedMarkup = """
