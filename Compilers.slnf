@@ -5,6 +5,7 @@
       "src\\Compilers\\CSharp\\CSharpAnalyzerDriver\\CSharpAnalyzerDriver.shproj",
       "src\\Compilers\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.csproj",
       "src\\Compilers\\CSharp\\Test\\CommandLine\\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj",
+      "src\\Compilers\\CSharp\\Test\\Emit15\\Microsoft.CodeAnalysis.CSharp.Emit15.UnitTests.csproj",
       "src\\Compilers\\CSharp\\Test\\Emit3\\Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj",
       "src\\Compilers\\CSharp\\Test\\Emit2\\Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests.csproj",
       "src\\Compilers\\CSharp\\Test\\Emit\\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj",
