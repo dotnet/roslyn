@@ -20,7 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
                      ERRID.ERR_SymbolDefinedInAssembly,
-                     ERRID.ERR_AsyncSubMain
+                     ERRID.ERR_AsyncSubMain,
+                     ERRID.ERR_EncUpdateFailedMissingSymbol,
+                     ERRID.ERR_EncNoPIAReference,
+                     ERRID.ERR_EncReferenceToAddedMember,
+                     ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                     ' Update src\Features\VisualBasic\Portable\Diagnostics\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
                     ' and TestIsBuildOnlyDiagnostic in src\Compilers\VisualBasic\Test\Semantic\Diagnostics\DiagnosticTests.vb
                     ' whenever new values are added here.
@@ -1235,7 +1239,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_PublicKeyFileFailure,
                      ERRID.ERR_PublicKeyContainerFailure,
                      ERRID.ERR_InvalidAssemblyCulture,
-                     ERRID.ERR_EncUpdateFailedMissingSymbol,
                      ERRID.ERR_CantAwaitAsyncSub1,
                      ERRID.ERR_ResumableLambdaInExpressionTree,
                      ERRID.ERR_DllImportOnResumableMethod,
@@ -1277,7 +1280,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_ResourceInModule,
                      ERRID.ERR_FieldHasMultipleDistinctConstantValues,
                      ERRID.ERR_AmbiguousInNamespaces2,
-                     ERRID.ERR_EncNoPIAReference,
                      ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage,
                      ERRID.ERR_CantReadRulesetFile,
                      ERRID.ERR_MetadataReferencesNotSupported,
@@ -1295,7 +1297,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_InvalidNameOfSubExpression,
                      ERRID.ERR_MethodTypeArgsUnexpected,
                      ERRID.ERR_InReferencedAssembly,
-                     ERRID.ERR_EncReferenceToAddedMember,
                      ERRID.ERR_InterpolationFormatWhitespace,
                      ERRID.ERR_InterpolationAlignmentOutOfRange,
                      ERRID.ERR_InterpolatedStringFactoryError,
@@ -1371,7 +1372,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
                      ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember,
                      ERRID.ERR_NextAvailable,
-                     ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,
                      ERRID.WRN_MustOverloadBase4,
