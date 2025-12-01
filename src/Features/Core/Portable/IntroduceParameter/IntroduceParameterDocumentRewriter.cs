@@ -80,17 +80,25 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         /// <summary>
         /// Gets the parameter name, if the expression's grandparent is a variable declarator then it just gets the
         /// local declarations name. Otherwise, it generates a name based on the context of the expression.
+        /// Ensures the generated name is unique and does not conflict with existing parameters.
         /// </summary>
         private async Task<string> GetNewParameterNameAsync(CancellationToken cancellationToken)
         {
             if (ShouldRemoveVariableDeclaratorContainingExpression(out var varDeclName, out _))
-            {
                 return varDeclName;
-            }
 
             var semanticModel = await _originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = _originalDocument.GetRequiredLanguageService<ISemanticFactsService>();
-            return semanticFacts.GenerateNameForExpression(semanticModel, _expression, capitalize: false, cancellationToken);
+            var baseName = _semanticFacts.GenerateNameForExpression(semanticModel, _expression, capitalize: false, cancellationToken);
+
+            // Ensure the parameter name doesn't conflict with existing parameters
+            var uniqueName = _semanticFacts.GenerateUniqueLocalName(
+                semanticModel,
+                _expression,
+                container: null,
+                baseName,
+                cancellationToken);
+
+            return uniqueName.ValueText;
         }
 
         /// <summary>

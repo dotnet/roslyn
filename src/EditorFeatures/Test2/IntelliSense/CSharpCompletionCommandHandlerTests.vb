@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
-Imports Microsoft.CodeAnalysis.CSharp.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -7013,7 +7012,7 @@ namespace NS2
                 Dim completionService = document.GetLanguageService(Of CompletionService)()
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
@@ -7021,7 +7020,7 @@ namespace NS2
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
 
                 ' Make sure any background work would be completed.
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
@@ -13349,6 +13348,49 @@ class C
 
                 state.SendTypeChars("tick")
                 Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81022")>
+        Public Async Function TestStartTypingInsideTargetTypedSwitchExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(int i)
+    {
+        return i switch
+        {
+            1 => new($$),
+            _ => default,
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73894")>
+        Public Async Function TestStartTypingOnRightHandSideOfNullCoalescingExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+List<int> list = null;
+list ??= new($$);
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("cap")
+                Await state.AssertSelectedCompletionItem("capacity:")
             End Using
         End Function
     End Class

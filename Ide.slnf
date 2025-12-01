@@ -175,7 +175,6 @@
       "src\\Tools\\ExternalAccess\\RazorTest\\Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests.csproj",
       "src\\Tools\\ExternalAccess\\Razor\\EditorFeatures\\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj",
       "src\\Tools\\ExternalAccess\\Razor\\Features\\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj",
-      "src\\Tools\\ExternalAccess\\Razor\\Shared\\Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.shproj",
       "src\\Tools\\ExternalAccess\\Xaml\\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj",
       "src\\Tools\\GenerateRulesMissingDocumentation\\GenerateRulesMissingDocumentation.csproj",
       "src\\Tools\\IdeBenchmarks\\IdeBenchmarks.csproj",

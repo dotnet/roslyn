@@ -94,7 +94,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         if (!fieldOrProperty.IsStatic &&
             !fieldOrProperty.IsImplicitlyDeclared &&
             fieldOrProperty.CanBeReferencedByName &&
-            fieldOrProperty.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
+            fieldOrProperty is IFieldSymbol or IPropertySymbol &&
             fieldOrProperty.IsAccessibleWithin(containingType))
         {
             if (fieldOrProperty.IsWriteableFieldOrProperty() ||

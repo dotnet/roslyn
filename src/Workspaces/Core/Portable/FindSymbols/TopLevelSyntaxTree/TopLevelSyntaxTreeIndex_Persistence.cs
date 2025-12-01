@@ -21,21 +21,21 @@ internal sealed partial class TopLevelSyntaxTreeIndex
     public override void WriteTo(ObjectWriter writer)
     {
         _declarationInfo.WriteTo(writer);
-        _extensionMethodInfo.WriteTo(writer);
+        _extensionMemberInfo.WriteTo(writer);
     }
 
     private static TopLevelSyntaxTreeIndex? ReadIndex(
         StringTable stringTable, ObjectReader reader, Checksum? checksum)
     {
         var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
-        var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
+        var extensionMemberInfo = ExtensionMemberInfo.TryReadFrom(reader);
 
-        if (declarationInfo == null || extensionMethodInfo == null)
+        if (declarationInfo == null || extensionMemberInfo == null)
             return null;
 
         return new TopLevelSyntaxTreeIndex(
             checksum,
             declarationInfo.Value,
-            extensionMethodInfo.Value);
+            extensionMemberInfo.Value);
     }
 }
