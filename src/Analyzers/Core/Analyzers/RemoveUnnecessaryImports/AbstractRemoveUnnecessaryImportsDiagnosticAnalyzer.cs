@@ -43,14 +43,40 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         customTags: [.. DiagnosticCustomTags.Microsoft, EnforceOnBuild.Never.ToCustomTag()]);
 #pragma warning restore RS0030 // Do not used banned APIs
 
+    /// <summary>
+    /// Contains the subset of <see cref="AbstractBuiltInCodeStyleDiagnosticAnalyzer.SupportedDiagnostics"/> which is
+    /// related to the analysis in <see cref="AnalyzeCompilation"/>. The specific condition for inclusion in this array
+    /// is <see cref="AnalyzeCompilation"/> needs to run when one or more descriptors in this array are enabled at or
+    /// above <see cref="AnalysisContext.MinimumReportedSeverity"/>.
+    /// </summary>
+    private static readonly ImmutableArray<DiagnosticDescriptor> s_compilationAnalysisDescriptors = [s_enableGenerateDocumentationFileIdDescriptor];
+
     private readonly DiagnosticDescriptor _classificationIdDescriptor;
     private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
+
+    /// <summary>
+    /// Contains the subset of <see cref="AbstractBuiltInCodeStyleDiagnosticAnalyzer.SupportedDiagnostics"/> which is
+    /// related to the analysis in <see cref="AnalyzeSemanticModel"/> for normal (not generated) code. The specific
+    /// condition for inclusion in this array is <see cref="AnalyzeSemanticModel"/> needs to run when one or more
+    /// descriptors in this array are enabled at or above <see cref="AnalysisContext.MinimumReportedSeverity"/>.
+    /// </summary>
+    private readonly ImmutableArray<DiagnosticDescriptor> _semanticModelAnalysisDescriptors;
+
+    /// <summary>
+    /// Contains the subset of <see cref="AbstractBuiltInCodeStyleDiagnosticAnalyzer.SupportedDiagnostics"/> which is
+    /// related to the analysis in <see cref="AnalyzeSemanticModel"/> for generated code. The specific condition for
+    /// inclusion in this array is <see cref="AnalyzeSemanticModel"/> needs to run when one or more descriptors in this
+    /// array are enabled at or above <see cref="AnalysisContext.MinimumReportedSeverity"/>.
+    /// </summary>
+    private readonly ImmutableArray<DiagnosticDescriptor> _generatedCodeSemanticModelAnalysisDescriptors;
 
     protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(LocalizableString titleAndMessage)
         : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor))
     {
         _classificationIdDescriptor = classificationIdDescriptor;
         _generatedCodeClassificationIdDescriptor = generatedCodeClassificationIdDescriptor;
+        _semanticModelAnalysisDescriptors = [_classificationIdDescriptor, s_fixableIdDescriptor];
+        _generatedCodeSemanticModelAnalysisDescriptors = [_generatedCodeClassificationIdDescriptor, s_fixableIdDescriptor];
     }
 
     private static ImmutableArray<DiagnosticDescriptor> GetDescriptors(LocalizableString titleAndMessage, out DiagnosticDescriptor classificationIdDescriptor, out DiagnosticDescriptor generatedCodeClassificationIdDescriptor)
@@ -81,11 +107,13 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
 
     private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
     {
-        if (ShouldSkipAnalysis(context, notification: null))
-            return;
-
         var tree = context.SemanticModel.SyntaxTree;
         var cancellationToken = context.CancellationToken;
+        var isGeneratedCode = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken);
+
+        var descriptorsToCheck = isGeneratedCode ? _generatedCodeSemanticModelAnalysisDescriptors : _semanticModelAnalysisDescriptors;
+        if (ShouldSkipAnalysis(context, notification: null, descriptorsToCheck))
+            return;
 
         var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, context.FilterSpan, cancellationToken);
         if (unnecessaryImports.Any())
@@ -97,7 +125,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
             // for us appropriately.
             var mergedImports = MergeImports(unnecessaryImports);
 
-            var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
+            var descriptor = isGeneratedCode
                 ? _generatedCodeClassificationIdDescriptor
                 : _classificationIdDescriptor;
             var contiguousSpans = GetContiguousSpans(mergedImports);
@@ -128,7 +156,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
             return;
 
-        if (ShouldSkipAnalysis(tree, context.Options, compilation.Options, notification: null, context.CancellationToken))
+        if (ShouldSkipAnalysis(tree, context.Options, compilation.Options, notification: null, s_compilationAnalysisDescriptors, context.CancellationToken))
             return;
 
         var effectiveSeverity = _classificationIdDescriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
