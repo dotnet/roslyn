@@ -327,7 +327,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var generatedDocument = (await workspace.CurrentSolution.Projects.First().GetSourceGeneratedDocumentsAsync()).First();
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
-        service.Enable = false;
+        service.Enabled = false;
 
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";

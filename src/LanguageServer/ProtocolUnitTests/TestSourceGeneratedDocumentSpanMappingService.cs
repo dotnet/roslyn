@@ -26,7 +26,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
 {
     public bool DidMapSpans { get; private set; }
     public bool DidMapEdits { get; private set; }
-    public bool Enable { get; set; } = true;
+    public bool Enabled { get; set; } = true;
 
     private readonly Dictionary<string, string> _mappedFileNames = [];
 
@@ -37,7 +37,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
 
     public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
     {
-        return Enable && sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
+        return Enabled && sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
     }
 
     public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
