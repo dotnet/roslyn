@@ -170,7 +170,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
     public virtual Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
         => PersistWorkerAsync(storageKey, value);
 
-    protected Task PersistWorkerAsync(string storageKey, object? value)
+    internal Task PersistWorkerAsync(string storageKey, object? value)
     {
         if (value is ICodeStyleOption2 codeStyleOption)
         {
