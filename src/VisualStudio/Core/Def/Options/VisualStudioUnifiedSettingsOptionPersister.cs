@@ -62,9 +62,9 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
         return retrieval.Outcome == SettingRetrievalOutcome.Success;
     }
 
-    protected override Task SetValueAsync<T>(string storageKey, T value, bool isMachineLocal)
+    protected override Task SetValueAsync(string storageKey, object? value, bool isMachineLocal)
     {
-        Debug.Assert(typeof(T) == typeof(string));
+        Debug.Assert(value?.GetType() == typeof(string));
         var writer = this.SettingsManager.GetWriter(nameof(VisualStudioUnifiedSettingsOptionPersister));
 
         var result = writer.EnqueueChange(storageKey, value);

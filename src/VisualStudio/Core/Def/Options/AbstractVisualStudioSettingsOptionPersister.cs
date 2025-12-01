@@ -36,7 +36,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
     }
 
     protected abstract bool TryGetValue<T>(string storageKey, out T value);
-    protected abstract Task SetValueAsync<T>(string storageKey, T value, bool isMachineLocal);
+    protected abstract Task SetValueAsync(string storageKey, object? value, bool isMachineLocal);
 
     protected void RefreshIfTracked(string key)
     {
