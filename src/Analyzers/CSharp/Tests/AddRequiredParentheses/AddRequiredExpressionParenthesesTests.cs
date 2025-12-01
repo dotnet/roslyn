@@ -439,7 +439,7 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
             }
             """, RequireAllParenthesesForClarity);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79655")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81488")]
     public Task TestCoalescePrecedence_IsNull()
         => TestAsync(
             """
@@ -455,7 +455,7 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
             }
             """, RequireAllParenthesesForClarity);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79655")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81488")]
     public Task TestCoalescePrecedence_IsNotNull()
         => TestAsync(
             """
