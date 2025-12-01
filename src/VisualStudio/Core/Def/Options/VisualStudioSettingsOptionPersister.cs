@@ -43,9 +43,9 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
         return Task.CompletedTask;
     }
 
-    public override bool TryFetch(OptionKey2 optionKey, string storageKey, Type optionType, out object? value)
+    public override bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
     {
-        if (base.TryFetch(optionKey, storageKey, optionType, out value))
+        if (base.TryFetch(optionKey, storageKey, out value))
             return true;
 
         if (_readFallbacks.TryGetValue(optionKey.Option.Definition.ConfigName, out var lazyReadFallback))
