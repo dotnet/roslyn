@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Settings;
 using Roslyn.Utilities;
+using UnifiedSettingsManager = Microsoft.VisualStudio.Utilities.UnifiedSettings.ISettingsManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -24,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 internal sealed class VisualStudioSettingsOptionPersister
 {
     private readonly ISettingsManager _settingManager;
+    private readonly UnifiedSettingsManager _unifiedSettingsManager;
     private readonly Action<OptionKey2, object?> _refreshOption;
     private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
@@ -37,27 +39,48 @@ internal sealed class VisualStudioSettingsOptionPersister
     /// <remarks>
     /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.RegisterOnAfterPackageLoadedAsyncWork"/>
     /// </remarks>
-    public VisualStudioSettingsOptionPersister(Action<OptionKey2, object?> refreshOption, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager settingsManager)
+    public VisualStudioSettingsOptionPersister(
+        Action<OptionKey2, object?> refreshOption,
+        ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
+        ISettingsManager settingsManager,
+        UnifiedSettingsManager unifiedSettingsManager)
     {
         _settingManager = settingsManager;
+        _unifiedSettingsManager = unifiedSettingsManager;
         _refreshOption = refreshOption;
         _readFallbacks = readFallbacks;
 
         var settingsSubset = _settingManager.GetSubset("*");
         settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
+
+        _unifiedSettingsManager.GetReader().SubscribeToChanges(
+            OnUnifiedSettingChanged,
+            ["textEditor.*", "environment.search.enableSearchExclude", "environment.search.searchExclude"]);
+    }
+
+    private void OnUnifiedSettingChanged(VisualStudio.Utilities.UnifiedSettings.SettingsUpdate update)
+    {
+        Contract.ThrowIfNull(_unifiedSettingsManager);
+
+        foreach (var key in update.ChangedSettingMonikers)
+            RefreshIfTracked(key);
     }
 
     private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
     {
         Contract.ThrowIfNull(_settingManager);
 
-        if (_storageKeysToMonitorForChanges.TryGetValue(args.PropertyName, out var entry) &&
+        RefreshIfTracked(args.PropertyName);
+        return Task.CompletedTask;
+    }
+
+    private void RefreshIfTracked(string key)
+    {
+        if (_storageKeysToMonitorForChanges.TryGetValue(key, out var entry) &&
             TryFetch(entry.primaryOptionKey, entry.primaryStorageKey, out var newValue))
         {
             _refreshOption(entry.primaryOptionKey, newValue);
         }
-
-        return Task.CompletedTask;
     }
 
     public bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
