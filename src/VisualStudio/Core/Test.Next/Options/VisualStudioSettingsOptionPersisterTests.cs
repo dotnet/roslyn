@@ -9,9 +9,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Options;
@@ -295,5 +295,58 @@ public sealed class VisualStudioSettingsOptionPersisterTests
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
+    }
+
+    [Theory]
+    [InlineData("indent_size", 2, "2")]
+    [InlineData("indent_size", 4, "4")]
+    [InlineData("indent_style", true, "tab")]
+    [InlineData("indent_style", false, "space")]
+    [InlineData("tab_width", 2, "2")]
+    [InlineData("tab_width", 4, "4")]
+    [InlineData("smart_indent", FormattingOptions2.IndentStyle.None, "none")]
+    [InlineData("smart_indent", FormattingOptions2.IndentStyle.Block, "block")]
+    [InlineData("smart_indent", FormattingOptions2.IndentStyle.Smart, "smart")]
+    public async Task ValidateSettingManagerSettings(
+        string key,
+        object value,
+        string finalValue)
+    {
+        var mockManager = new MockSettingsManager();
+
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty,
+            mockManager);
+
+        // read
+        var manager = (VisualStudioOptionStorage.SettingsManagerStorage)VisualStudioOptionStorage.Storages[key];
+        IPerLanguageValuedOption option = key switch
+        {
+            "indent_size" => FormattingOptions2.IndentationSize,
+            "indent_style" => FormattingOptions2.UseTabs,
+            "tab_width" => FormattingOptions2.TabSize,
+            "smart_indent" => FormattingOptions2.SmartIndent,
+            _ => throw ExceptionUtilities.UnexpectedValue(key),
+        };
+
+        var optionKey = new OptionKey2(option, LanguageNames.CSharp);
+        mockManager.GetValueImpl = (_, _) => (GetValueResult.Missing, null);
+        Assert.False(manager.TryFetch(persister, optionKey, out _));
+
+        mockManager.GetValueImpl = (_, _) => (GetValueResult.Success, null);
+        Assert.False(manager.TryFetch(persister, optionKey, out _));
+
+        mockManager.GetValueImpl = null;
+        mockManager.SetValueImpl = (name, storedValue) =>
+        {
+            Assert.Equal(finalValue, storedValue);
+        };
+        await manager.PersistAsync(persister, optionKey, value);
+
+        mockManager.SetValueImpl = null;
+        mockManager.GetValueImpl = (name, type) => (GetValueResult.Success, finalValue);
+        Assert.True(manager.TryFetch(persister, optionKey, out var fetchedValue));
+        Assert.Equal(value, fetchedValue);
     }
 }
