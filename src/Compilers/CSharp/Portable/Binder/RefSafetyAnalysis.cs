@@ -1315,7 +1315,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
                 {
                     var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                    var safeContext = LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
+                    var safeContext =
+                        node.Elements.Length == 0 ? SafeContext.CallingMethod :
+                        LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
 
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
                     placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
