@@ -35,7 +35,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         SettingsManager = settingsManager;
     }
 
-    protected abstract bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value);
+    protected abstract bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, Type storageType, out T value);
     protected abstract Task SetValueAsync(OptionKey2 optionKey, string storageKey, object? value, bool isMachineLocal);
 
     protected void RefreshIfTracked(string key)
@@ -82,7 +82,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
 
         if (storageType == typeof(NamingStylePreferences))
         {
-            if (TryGetValue(optionKey, storageKey, out string value))
+            if (TryGetValue(optionKey, storageKey, storageType, out string value))
             {
                 try
                 {
@@ -99,7 +99,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
 
         if (defaultValue is ICodeStyleOption2 codeStyle)
         {
-            if (TryGetValue(optionKey, storageKey, out string value))
+            if (TryGetValue(optionKey, storageKey, storageType, out string value))
             {
                 try
                 {
@@ -141,10 +141,10 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         throw ExceptionUtilities.UnexpectedValue(storageType);
 
         Optional<object?> Read<T>()
-            => TryGetValue(optionKey, storageKey, out T value) ? value : default(Optional<object?>);
+            => TryGetValue(optionKey, storageKey, storageType, out T value) ? value : default(Optional<object?>);
 
         Optional<object?> ReadImmutableArray<T>()
-            => TryGetValue(optionKey, storageKey, out T[] value) ? (value is null ? default : value.ToImmutableArray()) : default(Optional<object?>);
+            => TryGetValue(optionKey, storageKey, storageType, out T[] value) ? (value is null ? default : value.ToImmutableArray()) : default(Optional<object?>);
     }
 
     public Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)

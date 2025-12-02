@@ -26,7 +26,7 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
             this.RefreshIfTracked(key);
     }
 
-    protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value)
+    protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, Type storageType, out T value)
     {
         var retrieval = this.SettingsManager.GetReader().GetValue<string>(
             storageKey, SettingReadOptions.NoRequirements);

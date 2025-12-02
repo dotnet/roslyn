@@ -44,7 +44,20 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         public GetValueResult TryGetValue<T>(string name, out T value)
         {
             var (result, objValue) = GetValueImpl!(name, typeof(T));
-            value = (result == GetValueResult.Success) ? (T)objValue! : default!;
+
+            if (objValue is null)
+            {
+                value = default!;
+                return result;
+            }
+
+            if (objValue is not T typedValue)
+            {
+                value = default!;
+                return GetValueResult.IncompatibleType;
+            }
+
+            value = result == GetValueResult.Success ? typedValue : default!;
             return result;
         }
 
@@ -142,7 +155,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
 
         settingsManager.GetValueImpl = (name, type) => name switch
         {
-            "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace" => (GetValueResult.Success, NewLineBeforeOpenBracePlacement.Accessors | NewLineBeforeOpenBracePlacement.LambdaExpressionBody),
+            "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace" => (GetValueResult.Success, (int)(NewLineBeforeOpenBracePlacement.Accessors | NewLineBeforeOpenBracePlacement.LambdaExpressionBody)),
             "TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes" => (GetValueResult.Success, false),
             "TextEditor.CSharp.Specific.NewLinesForBracesInMethods" => (GetValueResult.Success, true),
             _ => (GetValueResult.Missing, null),

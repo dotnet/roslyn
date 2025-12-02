@@ -65,9 +65,8 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
         return false;
     }
 
-    protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value)
+    protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, Type storageType, out T value)
     {
-        var storageType = optionKey.Option.Type;
         var underlyingType = Nullable.GetUnderlyingType(storageType);
         storageType = underlyingType ?? storageType;
 
