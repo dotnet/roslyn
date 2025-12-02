@@ -5863,9 +5863,9 @@ class Program
                 // (9,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(() => 1, () => 2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(9, 9),
-                // (10,14): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (10,9): error CS0411: The type arguments for method 'Program.M<T, U>(T, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(() => 1, f);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(T, U)").WithLocation(10, 9),
                 // (11,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(f, () => 2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(11, 9));
@@ -5935,12 +5935,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T, U>(T, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 14),
-                // (10,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(T, U)").WithLocation(9, 9),
+                // (10,9): error CS0411: The type arguments for method 'Program.M<T, U>(T, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(() => 1, f);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(10, 14));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(T, U)").WithLocation(10, 9));
 
             var expectedOutput =
 @"M<T, U>(T x, U y)
@@ -5972,9 +5972,9 @@ class Program
                 // (8,11): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Delegate'
                 //         F(Main);
                 Diagnostic(ErrorCode.ERR_BadArgType, "Main").WithArguments("1", "method group", "System.Delegate").WithLocation(8, 11),
-                // (9,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (9,9): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 14));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(9, 9));
 
             var expectedOutput =
 @"F<Action>(Action t)
@@ -6036,9 +6036,6 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
-                //         F(() => 1, () => 2, string.Empty);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 14),
                 // (12,23): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         F(() => 1, () => 2, string.Empty);
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 23));

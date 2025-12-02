@@ -13782,9 +13782,9 @@ class Test
 }
 ")
                 .VerifyDiagnostics(
-                    // (7,19): error CS0411: The type arguments for method 'Queryable.Select<TSource, TResult>(IQueryable<TSource>, Expression<Func<TSource, TResult>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                    // (7,19): error CS0411: The type arguments for method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                     //         var q = 1.Select(z => z);
-                    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Select").WithArguments("System.Linq.Queryable.Select<TSource, TResult>(System.Linq.IQueryable<TSource>, System.Linq.Expressions.Expression<System.Func<TSource, TResult>>)").WithLocation(7, 19));
+                    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Select").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)").WithLocation(7, 19));
         }
 
         [Fact]
