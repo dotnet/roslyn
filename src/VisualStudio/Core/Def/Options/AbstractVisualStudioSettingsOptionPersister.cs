@@ -44,7 +44,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
 
     protected bool TryFetchWorker(OptionKey2 optionKey, string storageKey, Type optionType, out object? value)
     {
-        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionType, optionKey.Option.DefaultValue);
+        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionType);
         if (result.HasValue)
         {
             value = result.Value;
@@ -55,13 +55,13 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         return false;
     }
 
-    public Optional<object?> TryReadAndMonitorOptionValue(OptionKey2 primaryOptionKey, string primaryStorageKey, string storageKey, Type storageType, object? defaultValue)
+    public Optional<object?> TryReadAndMonitorOptionValue(OptionKey2 primaryOptionKey, string primaryStorageKey, string storageKey, Type storageType)
     {
         ImmutableInterlocked.GetOrAdd(ref _storageKeysToMonitorForChanges, storageKey, static (_, arg) => arg, factoryArgument: (primaryOptionKey, primaryStorageKey));
-        return TryReadOptionValue(primaryOptionKey, storageKey, storageType, defaultValue);
+        return TryReadOptionValue(primaryOptionKey, storageKey, storageType);
     }
 
-    internal abstract Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType, object? defaultValue);
+    internal abstract Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType);
 
     public abstract Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value);
 }
