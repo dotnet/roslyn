@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 
@@ -27,50 +27,60 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
             this.RefreshIfTracked(key);
     }
 
-    public override bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
+    private static void CheckStorageKey(string storageKey)
     {
-        if (!TryFetchWorker(optionKey, storageKey, typeof(string), out var innerValue) ||
-            innerValue is not string innerStringValue)
+        Contract.ThrowIfFalse(storageKey.StartsWith("languages"), "Need to update SubscribeToChanges in constructor to listen to changes to this key");
+    }
+
+    internal override Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType, object? defaultValue)
+    {
+        CheckStorageKey(storageKey);
+
+        if (storageType == typeof(int))
         {
-            value = null;
-            return false;
+            var retrieval = this.SettingsManager.GetReader().GetValue<int>(storageKey, SettingReadOptions.NoRequirements);
+            return retrieval.Outcome == SettingRetrievalOutcome.Success ? new(retrieval.Value) : new(defaultValue);
+        }
+        else if (storageType.IsEnum)
+        {
+            var retrieval = this.SettingsManager.GetReader().GetValue<string>(storageKey, SettingReadOptions.NoRequirements);
+            return retrieval is { Outcome: SettingRetrievalOutcome.Success, Value: string stringValue } &&
+                   optionKey.Option.Definition.Serializer.TryParse(stringValue, out var value) ? new(value) : new(defaultValue);
         }
 
-        return optionKey.Option.Definition.Serializer.TryParse(innerStringValue, out value);
+        // Add more types to support here as needed.
+
+        throw ExceptionUtilities.UnexpectedValue(storageType);
     }
 
     public override Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
     {
-        // In-memory representation was different than persisted representation (often a bool/enum), so
-        // serialize it as per the option's serializer.
-        //
-        // Note, we persist as a lowercase value, as that's what the setting manager does for these modern keys. On
-        // read, TryParse will handle lowercase enum values just fine due to it using `Enum.TryParse(str,
-        // ignoreCase: true, out result)`
-        var serialized = optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant();
-        return this.PersistWorkerAsync(storageKey, serialized);
-    }
+        CheckStorageKey(storageKey);
 
-#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
-    protected override bool TryGetValue<T>(string storageKey, out T value)
-    {
-        Debug.Assert(typeof(T) == typeof(string));
-        var retrieval = this.SettingsManager.GetReader().GetValue<T>(
-            storageKey, SettingReadOptions.NoRequirements);
-
-        value = retrieval.Value!;
-        return retrieval.Outcome == SettingRetrievalOutcome.Success;
-    }
-
-    protected override Task SetValueAsync(string storageKey, object? value, bool isMachineLocal)
-    {
-        Debug.Assert(value?.GetType() == typeof(string));
         var writer = this.SettingsManager.GetWriter(nameof(VisualStudioUnifiedSettingsOptionPersister));
 
-        var result = writer.EnqueueChange(storageKey, value);
+        var storageType = value?.GetType();
+        if (storageType == typeof(int))
+        {
+            writer.EnqueueChange(storageKey, value!);
+        }
+        else if (storageType?.IsEnum is true)
+        {
+            // In-memory representation was different than persisted representation (often a bool/enum), so
+            // serialize it as per the option's serializer.
+            //
+            // Note, we persist as a lowercase value, as that's what the setting manager does for these modern keys. On
+            // read, TryParse will handle lowercase enum values just fine due to it using `Enum.TryParse(str,
+            // ignoreCase: true, out result)`
+            writer.EnqueueChange(storageKey, optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant());
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(storageType);
+        }
+
         writer.RequestCommit(nameof(VisualStudioUnifiedSettingsOptionPersister));
 
         return Task.CompletedTask;
     }
-#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 }
