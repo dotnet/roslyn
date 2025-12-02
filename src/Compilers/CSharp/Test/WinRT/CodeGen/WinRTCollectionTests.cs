@@ -6079,7 +6079,7 @@ class AllMembers
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/386")]
-        public void LegacyCollectionTest15()
+        public void LegacyCollectionCSharp15()
         {
             var source =
 @"using Windows.Languages.WinRTTest;

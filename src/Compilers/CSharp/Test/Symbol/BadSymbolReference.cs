@@ -131,7 +131,7 @@ class Module1
         object z = y.x;
     }
 
-    void Test15()
+    void CSharp15()
     {
         CL3_C2 y = null;
         object z;

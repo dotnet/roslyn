@@ -2582,7 +2582,7 @@ public class X
         }
     }
 
-    void Test15()
+    void CSharp15()
     {
         try {}
         catch (System.Exception x15)
@@ -2799,7 +2799,7 @@ public class X
         }
     }
 
-    void Test15()
+    void CSharp15()
     {
         try {}
         catch (System.Exception x15)
@@ -7488,7 +7488,7 @@ public class X
         {}
     }
 
-    void Test15()
+    void CSharp15()
     {
         for (Dummy(x15);
              Dummy(x15);
@@ -8323,7 +8323,7 @@ public class X
         }
     }
 
-    void Test15()
+    void CSharp15()
     {
         foreach (var x15 in 
                             Dummy(TakeOutParam(1, out var x15), x15))
@@ -14048,7 +14048,7 @@ public class X
         }
     }
 
-    void Test15(int val)
+    void CSharp15(int val)
     {
         switch (val)
         {

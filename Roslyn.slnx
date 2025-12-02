@@ -101,7 +101,6 @@
     <Project Path="src/Compilers/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.csproj" />
     <Project Path="src/Compilers/CSharp/Test/CommandLine/Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Emit/Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj" />
-    <Project Path="src/Compilers/CSharp/Test/Test15/Microsoft.CodeAnalysis.CSharp.Test15.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Emit2/Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Emit3/Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/EndToEnd/Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj" />
@@ -109,6 +108,7 @@
     <Project Path="src/Compilers/CSharp/Test/Semantic/Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Symbol/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Syntax/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.csproj" />
+    <Project Path="src/Compilers/CSharp/Test/CSharp15/Microsoft.CodeAnalysis.CSharp.CSharp15.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/WinRT/Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.csproj" />
     <Project Path="src/Compilers/Test/Utilities/CSharp/Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
   </Folder>
