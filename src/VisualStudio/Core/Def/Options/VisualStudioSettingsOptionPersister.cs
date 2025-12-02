@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -56,7 +57,7 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
         {
             var fallbackResult = lazyReadFallback.Value.TryRead(
                 optionKey.Language,
-                (altStorageKey, altStorageType, altDefaultValue) => TryReadAndMonitorOptionValue(optionKey, storageKey, altStorageKey, altStorageType, altDefaultValue));
+                (altStorageKey, altStorageType) => TryReadAndMonitorOptionValue(optionKey, storageKey, altStorageKey, altStorageType));
 
             if (fallbackResult.HasValue)
             {
@@ -75,7 +76,7 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
     private Task SetValueAsync(string storageKey, object? value)
         => this.SettingsManager.SetValueAsync(storageKey, value, isMachineLocal: false);
 
-    internal override Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType, object? defaultValue)
+    internal override Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType)
     {
         if (storageType == typeof(bool))
             return Read<bool>();
@@ -123,13 +124,14 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
             return default;
         }
 
-        if (defaultValue is ICodeStyleOption2 codeStyle)
+        if (typeof(ICodeStyleOption2).IsAssignableFrom(storageType))
         {
             if (TryGetValue(storageKey, out string value))
             {
                 try
                 {
-                    return new Optional<object?>(codeStyle.FromXElement(XElement.Parse(value)));
+                    var fromXElementMember = storageType.GetMethod(nameof(CodeStyleOption2<>.FromXElement), BindingFlags.Public | BindingFlags.Static);
+                    return new Optional<object?>(fromXElementMember.Invoke(null, [XElement.Parse(value)]));
                 }
                 catch
                 {

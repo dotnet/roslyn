@@ -41,7 +41,7 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
             storageType?.IsEnum is true);
     }
 
-    internal override Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType, object? defaultValue)
+    internal override Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType)
     {
         CheckStorageKeyAndType(storageKey, storageType);
 
