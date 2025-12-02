@@ -640,6 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
                 or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
+                or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -2548,6 +2549,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
                 or ErrorCode.ERR_AmbigOperator
                 or ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
+                or ErrorCode.ERR_EqualityOperatorInPatternNotSupported
+                or ErrorCode.ERR_InequalityOperatorInPatternNotSupported
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

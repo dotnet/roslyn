@@ -21,14 +21,6 @@ internal interface ICodeStyleOption2
     NotificationOption2 Notification { get; }
     ICodeStyleOption2 WithValue(object value);
     ICodeStyleOption2 WithNotification(NotificationOption2 notification);
-
-    /// <summary>
-    /// Creates a new <see cref="ICodeStyleOption2"/> from a specified <paramref name="element"/>.
-    /// </summary>
-    /// <exception cref="Exception">
-    /// The type of the serialized data does not match the type of <see cref="ICodeStyleOption2.Value"/> or the format of the serialized data is invalid.
-    /// </exception>
-    ICodeStyleOption2 FromXElement(XElement element);
 }
 
 internal static class CodeStyleOption2
@@ -162,9 +154,9 @@ internal sealed partial class CodeStyleOption2<T>(T value, NotificationOption2 n
         return intVal is 0 or 1;
     }
 
-    ICodeStyleOption2 ICodeStyleOption2.FromXElement(XElement element)
-        => FromXElement(element);
-
+    /// <summary>
+    /// Called, using reflection, from VisualStudioSettingsOptionPersister.TryReadOptionValue.
+    /// </summary>
     public static CodeStyleOption2<T> FromXElement(XElement element)
     {
         var typeAttribute = element.Attribute(XmlAttribute_Type);

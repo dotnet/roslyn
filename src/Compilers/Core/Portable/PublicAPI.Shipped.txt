@@ -235,15 +235,24 @@ const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.MetadataReferences = "Meta
 const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.ParseOptions = "ParseOptions" -> string!
 const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.ImplementationSourceOutput = "ImplementationSourceOutput" -> string!
 const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.SourceOutput = "SourceOutput" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionAssignmentOperatorName = "op_AdditionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionOperatorName = "op_Addition" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseAndAssignmentOperatorName = "op_BitwiseAndAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseAndOperatorName = "op_BitwiseAnd" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseOrAssignmentOperatorName = "op_BitwiseOrAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseOrOperatorName = "op_BitwiseOr" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedAdditionAssignmentOperatorName = "op_CheckedAdditionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedAdditionOperatorName = "op_CheckedAddition" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOperatorName = "op_CheckedDecrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementOperatorName = "op_CheckedDecrement" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionAssignmentOperatorName = "op_CheckedDivisionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionOperatorName = "op_CheckedDivision" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName = "op_CheckedExplicit" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementOperatorName = "op_CheckedIncrement" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName = "op_CheckedMultiplicationAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplyOperatorName = "op_CheckedMultiply" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName = "op_CheckedSubtractionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionOperatorName = "op_CheckedSubtraction" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedUnaryNegationOperatorName = "op_CheckedUnaryNegation" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CollectionInitializerAddMethodName = "Add" -> string!
@@ -251,6 +260,7 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.ConcatenateOperatorName = "op_
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CountPropertyName = "Count" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CurrentPropertyName = "Current" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementOperatorName = "op_Decrement" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DefaultScriptClassName = "Script" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DelegateBeginInvokeName = "BeginInvoke" -> string!
@@ -259,10 +269,12 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.DelegateInvokeName = "Invoke" 
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DestructorName = "Finalize" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeAsyncMethodName = "DisposeAsync" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeMethodName = "Dispose" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DivisionAssignmentOperatorName = "op_DivisionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DivisionOperatorName = "op_Division" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.EntryPointMethodName = "Main" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.EnumBackingFieldName = "value__" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.EqualityOperatorName = "op_Equality" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.ExclusiveOrAssignmentOperatorName = "op_ExclusiveOrAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ExclusiveOrOperatorName = "op_ExclusiveOr" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ExplicitConversionName = "op_Explicit" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ExponentOperatorName = "op_Exponent" -> string!
@@ -274,12 +286,14 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.GetResult = "GetResult" -> str
 const Microsoft.CodeAnalysis.WellKnownMemberNames.GreaterThanOperatorName = "op_GreaterThan" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.GreaterThanOrEqualOperatorName = "op_GreaterThanOrEqual" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ImplicitConversionName = "op_Implicit" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementOperatorName = "op_Increment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.Indexer = "this[]" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.InequalityOperatorName = "op_Inequality" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.InstanceConstructorName = ".ctor" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IntegerDivisionOperatorName = "op_IntegerDivision" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IsCompleted = "IsCompleted" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.LeftShiftAssignmentOperatorName = "op_LeftShiftAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LeftShiftOperatorName = "op_LeftShift" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LengthPropertyName = "Length" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LessThanOperatorName = "op_LessThan" -> string!
@@ -288,9 +302,11 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.LikeOperatorName = "op_Like" -
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LogicalAndOperatorName = "op_LogicalAnd" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LogicalNotOperatorName = "op_LogicalNot" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LogicalOrOperatorName = "op_LogicalOr" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.ModulusAssignmentOperatorName = "op_ModulusAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ModulusOperatorName = "op_Modulus" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextMethodName = "MoveNext" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.MultiplicationAssignmentOperatorName = "op_MultiplicationAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MultiplyOperatorName = "op_Multiply" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ObjectEquals = "Equals" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ObjectGetHashCode = "GetHashCode" -> string!
@@ -298,9 +314,11 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.ObjectToString = "ToString" ->
 const Microsoft.CodeAnalysis.WellKnownMemberNames.OnCompleted = "OnCompleted" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.OnesComplementOperatorName = "op_OnesComplement" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.RightShiftAssignmentOperatorName = "op_RightShiftAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.RightShiftOperatorName = "op_RightShift" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.SliceMethodName = "Slice" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.StaticConstructorName = ".cctor" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.SubtractionAssignmentOperatorName = "op_SubtractionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.SubtractionOperatorName = "op_Subtraction" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "Program" -> string!
@@ -308,6 +326,7 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.TrueOperatorName = "op_True" -
 const Microsoft.CodeAnalysis.WellKnownMemberNames.UnaryNegationOperatorName = "op_UnaryNegation" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.UnaryPlusOperatorName = "op_UnaryPlus" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedLeftShiftOperatorName = "op_UnsignedLeftShift" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedRightShiftOperatorName = "op_UnsignedRightShift" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.ValuePropertyName = "Value" -> string!
 Microsoft.CodeAnalysis.Accessibility
@@ -454,6 +473,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.GetOutputFilePath(string! outputFile
 Microsoft.CodeAnalysis.CommandLineArguments.GetPdbFilePath(string! outputFileName) -> string!
 Microsoft.CodeAnalysis.CommandLineArguments.InteractiveMode.get -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.KeyFileSearchPaths.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.CodeAnalysis.CommandLineArguments.ManifestResourceArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineResource>
 Microsoft.CodeAnalysis.CommandLineArguments.ManifestResources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ResourceDescription!>
 Microsoft.CodeAnalysis.CommandLineArguments.MetadataReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineReference>
 Microsoft.CodeAnalysis.CommandLineArguments.NoWin32Manifest.get -> bool
@@ -489,6 +509,14 @@ Microsoft.CodeAnalysis.CommandLineReference.CommandLineReference(string! referen
 Microsoft.CodeAnalysis.CommandLineReference.Equals(Microsoft.CodeAnalysis.CommandLineReference other) -> bool
 Microsoft.CodeAnalysis.CommandLineReference.Properties.get -> Microsoft.CodeAnalysis.MetadataReferenceProperties
 Microsoft.CodeAnalysis.CommandLineReference.Reference.get -> string!
+Microsoft.CodeAnalysis.CommandLineResource
+Microsoft.CodeAnalysis.CommandLineResource.CommandLineResource() -> void
+Microsoft.CodeAnalysis.CommandLineResource.FullPath.get -> string!
+Microsoft.CodeAnalysis.CommandLineResource.IsEmbedded.get -> bool
+Microsoft.CodeAnalysis.CommandLineResource.IsLinked.get -> bool
+Microsoft.CodeAnalysis.CommandLineResource.IsPublic.get -> bool
+Microsoft.CodeAnalysis.CommandLineResource.LinkedResourceFileName.get -> string?
+Microsoft.CodeAnalysis.CommandLineResource.ResourceName.get -> string!
 Microsoft.CodeAnalysis.CommandLineSourceFile
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile() -> void
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string! path, bool isScript) -> void
@@ -527,6 +555,7 @@ Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream! peStream, System.IO.St
 Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream! peStream, System.IO.Stream? pdbStream = null, System.IO.Stream? xmlDocumentationStream = null, System.IO.Stream? win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription!>? manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions? options = null, Microsoft.CodeAnalysis.IMethodSymbol? debugEntryPoint = null, System.IO.Stream? sourceLinkStream = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText!>? embeddedTexts = null, System.IO.Stream? metadataPEStream = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult!
 Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream! peStream, System.IO.Stream? pdbStream, System.IO.Stream? xmlDocumentationStream, System.IO.Stream? win32Resources, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription!>? manifestResources, Microsoft.CodeAnalysis.Emit.EmitOptions! options, Microsoft.CodeAnalysis.IMethodSymbol? debugEntryPoint, System.IO.Stream? sourceLinkStream, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText!>? embeddedTexts, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitResult!
 Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream! peStream, System.IO.Stream? pdbStream, System.IO.Stream? xmlDocumentationStream, System.IO.Stream? win32Resources, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription!>? manifestResources, Microsoft.CodeAnalysis.Emit.EmitOptions! options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitResult!
+Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Collections.Generic.ICollection<System.Reflection.Metadata.MethodDefinitionHandle>! updatedMethods, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Collections.Generic.ICollection<System.Reflection.Metadata.MethodDefinitionHandle>! updatedMethods, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
@@ -763,8 +792,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.AnalysisOptions.get 
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions! analysisOptions) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync() -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
@@ -797,6 +826,7 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.AnalyzerExcep
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions! options, System.Action<System.Exception!, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostic!>? onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions! options, System.Action<System.Exception!, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostic!>? onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Action<System.Exception!, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostic!>? onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics, System.Func<System.Exception!, bool>? analyzerExceptionFilter) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Action<System.Exception!, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostic!>? onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics, System.Func<System.Exception!, bool>? analyzerExceptionFilter, System.Func<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>? getAnalyzerConfigOptionsProvider) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ConcurrentAnalysis.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.LogAnalyzerExecutionTime.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.OnAnalyzerException.get -> System.Action<System.Exception!, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostic!>?
@@ -1005,6 +1035,10 @@ Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
 Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.EditAndContinueMethodDebugInformation() -> void
 Microsoft.CodeAnalysis.Emit.EmitBaseline
 Microsoft.CodeAnalysis.Emit.EmitBaseline.OriginalMetadata.get -> Microsoft.CodeAnalysis.ModuleMetadata!
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.Baseline.get -> Microsoft.CodeAnalysis.Emit.EmitBaseline?
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
@@ -1061,8 +1095,8 @@ Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit
 Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.ErrorCode.get -> int
 Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.Message.get -> string!
 Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit() -> void
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit(string! message, int errorCode) -> void
 Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit(string! message) -> void
+Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit(string! message, int errorCode) -> void
 Microsoft.CodeAnalysis.Emit.SemanticEdit
 Microsoft.CodeAnalysis.Emit.SemanticEdit.Equals(Microsoft.CodeAnalysis.Emit.SemanticEdit other) -> bool
 Microsoft.CodeAnalysis.Emit.SemanticEdit.Instrumentation.get -> Microsoft.CodeAnalysis.Emit.MethodInstrumentation
@@ -1072,9 +1106,9 @@ Microsoft.CodeAnalysis.Emit.SemanticEdit.OldSymbol.get -> Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.Emit.SemanticEdit.PreserveLocalVariables.get -> bool
 Microsoft.CodeAnalysis.Emit.SemanticEdit.RuntimeRudeEdit.get -> System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>?
 Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit() -> void
-Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap, bool preserveLocalVariables, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation) -> void
 Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>? runtimeRudeEdit = null, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation = default(Microsoft.CodeAnalysis.Emit.MethodInstrumentation)) -> void
 Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap, bool preserveLocalVariables) -> void
+Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap, bool preserveLocalVariables, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation) -> void
 Microsoft.CodeAnalysis.Emit.SemanticEdit.SyntaxMap.get -> System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>?
 Microsoft.CodeAnalysis.Emit.SemanticEditKind
 Microsoft.CodeAnalysis.Emit.SemanticEditKind.Delete = 3 -> Microsoft.CodeAnalysis.Emit.SemanticEditKind
@@ -1210,9 +1244,9 @@ Microsoft.CodeAnalysis.GeneratorDriver.RemoveGenerators(System.Collections.Immut
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceAdditionalText(Microsoft.CodeAnalysis.AdditionalText! oldText, Microsoft.CodeAnalysis.AdditionalText! newText) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceAdditionalTexts(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> newTexts) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
+Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Func<Microsoft.CodeAnalysis.GeneratorFilterContext, bool>? generatorFilter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.GeneratorDriver!
-Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGeneratorsAndUpdateCompilation(Microsoft.CodeAnalysis.Compilation! compilation, out Microsoft.CodeAnalysis.Compilation! outputCompilation, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.WithUpdatedAnalyzerConfigOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider! newOptions) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.WithUpdatedParseOptions(Microsoft.CodeAnalysis.ParseOptions! newOptions) -> Microsoft.CodeAnalysis.GeneratorDriver!
@@ -1311,10 +1345,13 @@ Microsoft.CodeAnalysis.IErrorTypeSymbol.CandidateSymbols.get -> System.Collectio
 Microsoft.CodeAnalysis.IEventSymbol
 Microsoft.CodeAnalysis.IEventSymbol.AddMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IEventSymbol.ExplicitInterfaceImplementations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IEventSymbol!>
+Microsoft.CodeAnalysis.IEventSymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.IEventSymbol.IsWindowsRuntimeEvent.get -> bool
 Microsoft.CodeAnalysis.IEventSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IEventSymbol.OriginalDefinition.get -> Microsoft.CodeAnalysis.IEventSymbol!
 Microsoft.CodeAnalysis.IEventSymbol.OverriddenEvent.get -> Microsoft.CodeAnalysis.IEventSymbol?
+Microsoft.CodeAnalysis.IEventSymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
+Microsoft.CodeAnalysis.IEventSymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
 Microsoft.CodeAnalysis.IEventSymbol.RaiseMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IEventSymbol.RemoveMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IEventSymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol!
@@ -1363,6 +1400,7 @@ Microsoft.CodeAnalysis.ILocalSymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSymb
 Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.Arity.get -> int
 Microsoft.CodeAnalysis.IMethodSymbol.AssociatedAnonymousDelegate.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+Microsoft.CodeAnalysis.IMethodSymbol.AssociatedExtensionImplementation.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.AssociatedSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.CallingConvention.get -> System.Reflection.Metadata.SignatureCallingConvention
 Microsoft.CodeAnalysis.IMethodSymbol.Construct(params Microsoft.CodeAnalysis.ITypeSymbol![]! typeArguments) -> Microsoft.CodeAnalysis.IMethodSymbol!
@@ -1379,6 +1417,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsExtensionMethod.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsGenericMethod.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsInitOnly.get -> bool
+Microsoft.CodeAnalysis.IMethodSymbol.IsIterator.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsReadOnly.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsVararg.get -> bool
@@ -1429,9 +1468,13 @@ Microsoft.CodeAnalysis.INamedTypeSymbol.Constructors.get -> System.Collections.I
 Microsoft.CodeAnalysis.INamedTypeSymbol.ConstructUnboundGenericType() -> Microsoft.CodeAnalysis.INamedTypeSymbol!
 Microsoft.CodeAnalysis.INamedTypeSymbol.DelegateInvokeMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.INamedTypeSymbol.EnumUnderlyingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionGroupingName.get -> string?
+Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionMarkerName.get -> string?
+Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
 Microsoft.CodeAnalysis.INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier!>
 Microsoft.CodeAnalysis.INamedTypeSymbol.InstanceConstructors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IMethodSymbol!>
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsComImport.get -> bool
+Microsoft.CodeAnalysis.INamedTypeSymbol.IsExtension.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsGenericType.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsImplicitClass.get -> bool
@@ -1484,6 +1527,7 @@ Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.None = 0 -> Microsoft.Code
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.PostInit = 2 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Source = 1 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext
+Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, string! source) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.CancellationToken.get -> System.Threading.CancellationToken
@@ -1650,9 +1694,11 @@ Microsoft.CodeAnalysis.ITypeParameterSymbol.Variance.get -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.ITypeSymbol.AllInterfaces.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.ITypeSymbol.BaseType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+Microsoft.CodeAnalysis.ITypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
 Microsoft.CodeAnalysis.ITypeSymbol.FindImplementationForInterfaceMember(Microsoft.CodeAnalysis.ISymbol! interfaceMember) -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.ITypeSymbol.Interfaces.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.ITypeSymbol.IsAnonymousType.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsNativeIntegerType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsReadOnly.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
@@ -2504,6 +2550,7 @@ Microsoft.CodeAnalysis.RuntimeCapability.CovariantReturnsOfClasses = 2 -> Micros
 Microsoft.CodeAnalysis.RuntimeCapability.DefaultImplementationsOfInterfaces = 3 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.RuntimeCapability.InlineArrayTypes = 7 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.RuntimeCapability.NumericIntPtr = 4 -> Microsoft.CodeAnalysis.RuntimeCapability
+Microsoft.CodeAnalysis.RuntimeCapability.RuntimeAsyncMethods = 9 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.RuntimeCapability.UnmanagedSignatureCallingConvention = 5 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.RuntimeCapability.VirtualStaticsInInterfaces = 6 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.SarifVersion
@@ -3335,6 +3382,7 @@ Microsoft.CodeAnalysis.TypeKind.Delegate = 3 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.TypeKind.Dynamic = 4 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.TypeKind.Enum = 5 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.TypeKind.Error = 6 -> Microsoft.CodeAnalysis.TypeKind
+Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.TypeKind.FunctionPointer = 13 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.TypeKind.Interface = 7 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.TypeKind.Module = 8 -> Microsoft.CodeAnalysis.TypeKind
@@ -3410,6 +3458,7 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Id.get -> object!
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Display.get -> string!
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.FullPath.get -> string?
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzers(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!>
@@ -3623,8 +3672,8 @@ static Microsoft.CodeAnalysis.EmbeddedText.FromSource(string! filePath, Microsof
 static Microsoft.CodeAnalysis.EmbeddedText.FromStream(string! filePath, System.IO.Stream! stream, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText!
 static Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray<byte> compressedSlotMap, System.Collections.Immutable.ImmutableArray<byte> compressedLambdaMap) -> Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
 static Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray<byte> compressedSlotMap, System.Collections.Immutable.ImmutableArray<byte> compressedLambdaMap, System.Collections.Immutable.ImmutableArray<byte> compressedStateMachineStateMap) -> Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
-static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
 static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle>! localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
+static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
 static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle>! localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
 static Microsoft.CodeAnalysis.Emit.EmitOptions.operator !=(Microsoft.CodeAnalysis.Emit.EmitOptions? left, Microsoft.CodeAnalysis.Emit.EmitOptions? right) -> bool
 static Microsoft.CodeAnalysis.Emit.EmitOptions.operator ==(Microsoft.CodeAnalysis.Emit.EmitOptions? left, Microsoft.CodeAnalysis.Emit.EmitOptions? right) -> bool
@@ -3699,8 +3748,8 @@ static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromFile(string! path) -> Mic
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(nint peImage, int size) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.Collections.Generic.IEnumerable<byte>! peImage) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.Collections.Immutable.ImmutableArray<byte> peImage) -> Microsoft.CodeAnalysis.ModuleMetadata!
-static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(nint metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(nint metadata, int size) -> Microsoft.CodeAnalysis.ModuleMetadata!
+static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(nint metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream! peStream, bool leaveOpen = false) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream! peStream, System.Reflection.PortableExecutable.PEStreamOptions options) -> Microsoft.CodeAnalysis.ModuleMetadata!
 static Microsoft.CodeAnalysis.NullableContextExtensions.AnnotationsEnabled(this Microsoft.CodeAnalysis.NullableContext context) -> bool
@@ -3849,6 +3898,7 @@ static Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(int start, int end) -> Mi
 static Microsoft.CodeAnalysis.Text.TextSpan.operator !=(Microsoft.CodeAnalysis.Text.TextSpan left, Microsoft.CodeAnalysis.Text.TextSpan right) -> bool
 static Microsoft.CodeAnalysis.Text.TextSpan.operator ==(Microsoft.CodeAnalysis.Text.TextSpan left, Microsoft.CodeAnalysis.Text.TextSpan right) -> bool
 static Microsoft.CodeAnalysis.XmlFileResolver.Default.get -> Microsoft.CodeAnalysis.XmlFileResolver!
+static readonly Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.Default -> Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.Default -> Microsoft.CodeAnalysis.SymbolEqualityComparer!
 static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.IncludeNullability -> Microsoft.CodeAnalysis.SymbolEqualityComparer!
 static readonly Microsoft.CodeAnalysis.SyntaxTree.EmptyDiagnosticOptions -> System.Collections.Immutable.ImmutableDictionary<string!, Microsoft.CodeAnalysis.ReportDiagnostic>!
