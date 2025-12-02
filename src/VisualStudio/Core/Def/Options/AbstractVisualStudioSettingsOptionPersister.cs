@@ -77,25 +77,8 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         if (storageType == typeof(int))
             return Read<int>();
 
-        if (storageType.IsEnum)
-            return TryGetValue(optionKey, storageKey, out int value) ? Enum.ToObject(storageType, value) : default(Optional<object?>);
-
-        var underlyingType = Nullable.GetUnderlyingType(storageType);
-        if (underlyingType?.IsEnum == true)
-        {
-            if (TryGetValue(optionKey, storageKey, out int? nullableValue))
-            {
-                return nullableValue.HasValue ? Enum.ToObject(underlyingType, nullableValue.Value) : null;
-            }
-            else if (TryGetValue(optionKey, storageKey, out int value))
-            {
-                return Enum.ToObject(underlyingType, value);
-            }
-            else
-            {
-                return default;
-            }
-        }
+        if (storageType.IsEnum || Nullable.GetUnderlyingType(storageType)?.IsEnum is true)
+            return Read<object>();
 
         if (storageType == typeof(NamingStylePreferences))
         {
@@ -191,14 +174,6 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         else if (value is ImmutableArray<long> longArray)
         {
             value = longArray.IsDefault ? null : longArray.ToArray();
-        }
-        else if (value != null)
-        {
-            var type = value.GetType();
-            if (type.IsEnum || Nullable.GetUnderlyingType(type)?.IsEnum == true)
-            {
-                value = (int)value;
-            }
         }
 
         return SetValueAsync(optionKey, storageKey, value, isMachineLocal: false);

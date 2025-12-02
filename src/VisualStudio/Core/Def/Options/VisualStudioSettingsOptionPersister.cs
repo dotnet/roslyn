@@ -66,8 +66,67 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
     }
 
     protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value)
+    {
+        var storageType = optionKey.Option.Type;
+        if (storageType.IsEnum)
+        {
+            if (TryGetValueWorker(storageKey, out int intValue))
+            {
+                value = (T)Enum.ToObject(storageType, intValue);
+                return true;
+            }
+            else
+            {
+                value = default!;
+                return false;
+            }
+        }
+
+        var underlyingType = Nullable.GetUnderlyingType(storageType);
+        if (underlyingType?.IsEnum == true)
+        {
+            if (TryGetValueWorker(storageKey, out int? nullableValue))
+            {
+                if (nullableValue.HasValue)
+                {
+                    value = (T)Enum.ToObject(underlyingType, nullableValue.Value);
+                }
+                else
+                {
+                    value = default!;
+                }
+
+                return true;
+            }
+            else if (TryGetValueWorker(storageKey, out int intValue))
+            {
+                value = (T)Enum.ToObject(storageType, intValue);
+                return true;
+            }
+            else
+            {
+                value = default!;
+                return false;
+            }
+        }
+
+        return TryGetValueWorker(storageKey, out value);
+    }
+
+    private bool TryGetValueWorker<T>(string storageKey, out T value)
         => this.SettingsManager.TryGetValue(storageKey, out value) == GetValueResult.Success;
 
     protected override Task SetValueAsync(OptionKey2 optionKey, string storageKey, object? value, bool isMachineLocal)
-        => this.SettingsManager.SetValueAsync(storageKey, value, isMachineLocal);
+    {
+        if (value != null)
+        {
+            var type = value.GetType();
+            if (type.IsEnum || Nullable.GetUnderlyingType(type)?.IsEnum == true)
+            {
+                value = (int)value;
+            }
+        }
+
+        return this.SettingsManager.SetValueAsync(storageKey, value, isMachineLocal);
+    }
 }
