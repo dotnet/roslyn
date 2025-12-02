@@ -115,11 +115,11 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25578.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25601.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>846929727a388f2b1fd3ccf21f67694f44b91b4d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25578.1">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25601.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>846929727a388f2b1fd3ccf21f67694f44b91b4d</Sha>
     </Dependency>
@@ -131,7 +131,7 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25578.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25601.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>846929727a388f2b1fd3ccf21f67694f44b91b4d</Sha>
     </Dependency>
