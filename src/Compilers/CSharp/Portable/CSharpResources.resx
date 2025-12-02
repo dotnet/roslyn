@@ -8186,4 +8186,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsafeOperation" xml:space="preserve">
     <value>This operation may only be used in an unsafe context</value>
   </data>
+  <data name="ERR_UnsafeUninitializedStackAlloc" xml:space="preserve">
+    <value>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</value>
+    <comment>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</comment>
+  </data>
 </root>
