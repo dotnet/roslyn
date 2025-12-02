@@ -4734,7 +4734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A non-empty collection expression with span type may be stored
             // on the stack. In those cases the expression may have local scope.
 
-            if (expr.Type?.IsRefLikeType != true || expr.Elements.Length == 0)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return SafeContext.CallingMethod;
             }
@@ -4744,17 +4744,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType.Type is { });
+
+                    // We do not have an explicit expr.Elements.IsEmpty check as ShouldUseRuntimeHelpersCreateSpan
+                    // already checks that.
                     return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
                         ? _localScopeDepth
                         : SafeContext.CallingMethod;
+
                 case CollectionExpressionTypeKind.Span:
-                    return _localScopeDepth;
+                    return expr.Elements.IsEmpty
+                        ? SafeContext.CallingMethod
+                        : _localScopeDepth;
+
                 case CollectionExpressionTypeKind.CollectionBuilder:
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    // For a ref struct type with a builder method, the scope of the collection expression is the scope
+                    // of an invocation of the builder method with the collection expression as the span argument. That
+                    // is, `R r = [x, y, z];` is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    //
+                    // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
+                    // element, and the place-holder representing the elements.
+                    //
+                    // Note: we do not have an explicit expr.Elements.IsEmpty check as we still need to account for
+                    // arguments passed to with(...) even if there are no elements passed to the collection builder
+                    // method.
                     return expr.CollectionCreation is null
                         ? SafeContext.CallingMethod
                         : GetValEscape(expr.CollectionCreation);
 
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
+                    // be doing here is examining the arguments passed to the collection constructor (from the
+                    // `with(...)` element), intersected well as any arguments passed to `Add` methods to determine the
+                    // final safety context.  However, the latter is highly challenging as we do not know that
+                    // information until the lowering phase.  We'll need to pull out that logic to do things properly
+                    // here.
+                    return expr.Elements.IsEmpty ? SafeContext.CallingMethod : _localScopeDepth;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
