@@ -4731,13 +4731,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private SafeContext GetCollectionExpressionSafeContext(BoundCollectionExpression expr)
         {
-            // A non-empty collection expression with span type may be stored
-            // on the stack. In those cases the expression may have local scope.
-
+            // Don't need to consider safety context if it's not a ref-like type.
             if (expr.Type?.IsRefLikeType != true)
-            {
                 return SafeContext.CallingMethod;
-            }
+
+            // A non-empty collection expression (either has elements and/or has a with(...) element) with span type may
+            // be stored on the stack. In those cases the expression may have local scope.
+            if (!expr.HasWithElement && expr.Elements.IsEmpty)
+                return SafeContext.CallingMethod;
 
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
             switch (collectionTypeKind)
@@ -4747,16 +4748,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // An empty ReadOnlySpan can always be returned outwards.  Similarly if this is a span we're going
                     // to create out of a readonly-data segment of the program.
-                    return expr.Elements.IsEmpty || LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
+                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
                         ? SafeContext.CallingMethod
                         : _localScopeDepth;
 
                 case CollectionExpressionTypeKind.Span:
                     Debug.Assert(elementType.Type is { });
-
-                    return expr.Elements.IsEmpty
-                        ? SafeContext.CallingMethod
-                        : _localScopeDepth;
+                    return _localScopeDepth;
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     Debug.Assert(expr.CollectionCreation is not null);
@@ -4767,12 +4765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
                     // element, and the place-holder representing the elements.
-                    //
-                    // Note: If we have no elements, and no with(...) element, then we know that the collection could
-                    // not have actually captured any local data.  So that collection is safe to return out.
-                    return expr.Elements.IsEmpty && !expr.HasWithElement
-                        ? SafeContext.CallingMethod
-                        : GetValEscape(expr.CollectionCreation);
+                    return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                     // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
@@ -4781,7 +4774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // final safety context.  However, the latter is highly challenging as we do not know that
                     // information until the lowering phase.  We'll need to pull out that logic to do things properly
                     // here.
-                    return expr.Elements.IsEmpty ? SafeContext.CallingMethod : _localScopeDepth;
+                    return _localScopeDepth;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
