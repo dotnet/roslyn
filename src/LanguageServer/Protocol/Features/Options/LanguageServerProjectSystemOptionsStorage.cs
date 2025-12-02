@@ -24,4 +24,9 @@ internal static class LanguageServerProjectSystemOptionsStorage
     /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience.
     /// </summary>
     public static readonly Option2<bool> EnableFileBasedPrograms = new("dotnet_enable_file_based_programs", defaultValue: true, s_optionGroup);
+
+    /// <summary>
+    /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience in files which lack '#:' or '#!' directives.
+    /// </summary>
+    public static readonly Option2<bool> EnableFileBasedProgramsWithoutDirectives = new("dotnet_enable_file_based_programs_without_directives", defaultValue: true, s_optionGroup);
 }

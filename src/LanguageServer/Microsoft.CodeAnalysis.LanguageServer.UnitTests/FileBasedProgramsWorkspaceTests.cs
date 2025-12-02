@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -219,6 +220,44 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.NotEqual(canonicalDocumentOne.Project.Id, canonicalDocumentTwo.Project.Id);
         // Now that it has top-level statements, it should be considered to have all information.
         Assert.True(canonicalDocumentTwo.Project.State.HasAllInformation);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestSemanticDiagnosticsNotEnabledWhenFineGrainedFlagDisabled(bool mutatingLspWorkspace)
+    {
+        // Verify that using top-level statements does not enable semantic diagnostics when option 'UseFileBasedProgramsWithoutDirectives' is false.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWithoutDirectives, false)
+        });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var looseFileUriOne = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        await testLspServer.OpenDocumentAsync(looseFileUriOne, """
+            Console.WriteLine("Hello World!");
+            class C { }
+            """).ConfigureAwait(false);
+
+        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
+        // Should have the primordial canonical document and the loose document.
+        Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Empty(looseDocumentOne.Project.MetadataReferences);
+        // Semantic diagnostics are not expected because we haven't loaded references
+        Assert.False(looseDocumentOne.Project.State.HasAllInformation);
+
+        // Wait for the canonical project to finish loading.
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify the document is loaded in the canonical project.
+        var (_, canonicalDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.NotEqual(looseDocumentOne, canonicalDocumentOne);
+        // Should have the appropriate generated files now that we ran a design time build
+        Assert.Contains(canonicalDocumentOne.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
+        // The 'EnableFileBasedProgramsWithoutDirectives' setting is false, and there are no directives, so semantic errors are not expected.
+        Assert.False(canonicalDocumentOne.Project.State.HasAllInformation);
     }
 
     [Theory, CombinatorialData]
