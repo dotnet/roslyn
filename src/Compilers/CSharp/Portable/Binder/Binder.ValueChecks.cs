@@ -4757,6 +4757,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : _localScopeDepth;
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
+                    Debug.Assert(expr.CollectionCreation is not null);
+
                     // For a ref struct type with a builder method, the scope of the collection expression is the scope
                     // of an invocation of the builder method with the collection expression as the span argument. That
                     // is, `R r = [x, y, z];` is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
@@ -4767,9 +4769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note: we do not have an explicit expr.Elements.IsEmpty check as we still need to account for
                     // arguments passed to with(...) even if there are no elements passed to the collection builder
                     // method.
-                    return expr.CollectionCreation is null
-                        ? SafeContext.CallingMethod
-                        : GetValEscape(expr.CollectionCreation);
+                    return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                     // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
