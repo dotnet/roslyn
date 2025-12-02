@@ -4745,11 +4745,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType.Type is { });
 
-                    // We do not have an explicit expr.Elements.IsEmpty check as ShouldUseRuntimeHelpersCreateSpan
-                    // already checks that.
-                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
-                        ? _localScopeDepth
-                        : SafeContext.CallingMethod;
+                    // An empty ReadOnlySpan can always be returned outwards.  Similarly if this is a span we're going
+                    // to create out of a readonly-data segment of the program.
+                    return expr.Elements.IsEmpty || LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
+                        ? SafeContext.CallingMethod
+                        : _localScopeDepth;
 
                 case CollectionExpressionTypeKind.Span:
                     return expr.Elements.IsEmpty
