@@ -1854,6 +1854,7 @@ End Module").Path
         End Sub
 
         <Fact>
+        <UseCulture("en-US")>
         Public Sub Codepage()
             Dim parsedArgs = DefaultParse({"/CodePage:1200", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
