@@ -5098,10 +5098,7 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (9,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1]").WithArguments("R").WithLocation(9, 13));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -5251,10 +5248,17 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (9,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(1), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(9, 13));
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (9,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(9, 13));
+            }
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -5369,10 +5373,17 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (10,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(local), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(10, 13));
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (10,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(10, 13));
+            }
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]

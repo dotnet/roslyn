@@ -1315,9 +1315,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
                 {
                     var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                    var safeContext =
-                        node.Elements.Length == 0 ? SafeContext.CallingMethod :
-                        LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
+
+                    // If there are no elements, or if the span is being created from the program-data segment over
+                    // readonly data, then this span of elements is safe to return out to the calling method. Otherwise,
+                    // as it could be capturing local data, we conservatively restrict it to the local scope.
+                    var safeContext = node.Elements.Length == 0 || LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type)
+                        ? SafeContext.CallingMethod
+                        : _localScopeDepth;
 
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
                     placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
