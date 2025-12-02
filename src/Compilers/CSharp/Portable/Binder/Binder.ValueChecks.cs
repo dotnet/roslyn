@@ -4779,6 +4779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // information until the lowering phase.  We'll need to pull out that logic to do things properly
                     // here.
                     return expr.Elements.IsEmpty ? SafeContext.CallingMethod : _localScopeDepth;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
