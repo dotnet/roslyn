@@ -640,6 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
                 or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
+                or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
