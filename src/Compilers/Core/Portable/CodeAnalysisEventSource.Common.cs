@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         internal void ProjectCreated(string projectSystemName, string? filePath) => WriteEvent(20, projectSystemName, filePath ?? string.Empty);
 
         [Event(21)]
-        internal void GeneratorDriverCreated(string trackingName) => WriteEvent(21, trackingName);
+        internal void GeneratorDriverCreated(string trackingName, string stacktrace) => WriteEvent(21, trackingName, stacktrace);
 
         [Event(22)]
         internal void GeneratorDriverUsedFromCache(string trackingName) => WriteEvent(22, trackingName);
