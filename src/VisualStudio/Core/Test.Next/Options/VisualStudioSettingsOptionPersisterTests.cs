@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -183,7 +182,11 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             GetValueImpl = (_, _) => (GetValueResult.Success, storageValue)
         };
 
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", optionType, defaultValue);
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+        var result = persister.TryReadOptionValue("key", optionType, defaultValue);
         Assert.True(result.HasValue);
         Assert.Equal(optionValue, result.Value);
     }
@@ -222,7 +225,12 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             GetValueImpl = (_, type) => (specializedTypeResult, storageValue)
         };
 
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", optionType, optionValue);
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+
+        var result = persister.TryReadOptionValue("key", optionType, optionValue);
 
         // we should not fall back to object if the manager tells us bool value is missing or invalid in any way:
         Assert.False(result.HasValue);
@@ -233,7 +241,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
     [InlineData(typeof(ImmutableArray<int>))]
     [InlineData(typeof(ImmutableArray<long>))]
     [InlineData(typeof(ImmutableArray<string>))]
-    public void Roundtrip_DefaultImmutableArray(Type type)
+    public async Task Roundtrip_DefaultImmutableArray(Type type)
     {
         var defaultArray = Activator.CreateInstance(type);
         var serializedValue = (object?)null;
@@ -246,14 +254,18 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             SetValueImpl = (name, value) => newValue = value
         };
 
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+
         // read
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", type, defaultValue: null);
+        var result = persister.TryReadOptionValue("key", type, defaultValue: null);
         Assert.True(result.HasValue);
         Assert.True(IsDefaultImmutableArray(result.Value!));
 
         // write
-        var persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
-        persister.PersistAsync("key", defaultArray).Wait();
+        await persister.PersistWorkerAsync("key", defaultArray);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
@@ -272,9 +284,8 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         yield return new object?[] { (E?)E.B, (int?)E.B, E.B, typeof(E?) };
     }
 
-    [Theory]
-    [MemberData(nameof(GetRoundtripTestCases))]
-    public void Roundtrip(object? value, object? serializedValue, object defaultValue, Type type)
+    [Theory, MemberData(nameof(GetRoundtripTestCases))]
+    public async Task Roundtrip(object? value, object? serializedValue, object defaultValue, Type type)
     {
         Optional<object?> newValue = default;
 
@@ -284,14 +295,19 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             SetValueImpl = (name, value) => newValue = value
         };
 
+        var persister = new VisualStudioSettingsOptionPersister(
+            (_, _) => { },
+            s_noFallbacks,
+            mockManager);
+
         // read
-        var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", type, defaultValue);
+        var result = persister.TryReadOptionValue("key", type, defaultValue);
         Assert.True(result.HasValue);
         Assert.Equal(value, result.Value);
 
         // write
-        var persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
-        persister.PersistAsync("key", value).Wait();
+        persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
+        await persister.PersistWorkerAsync("key", value);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
