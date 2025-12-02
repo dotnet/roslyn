@@ -1,0 +1,153 @@
+name: PR Validation
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  validate-and-trigger:
+    name: Validate and Trigger Azure Pipeline
+    if: |
+      github.event.issue.pull_request &&
+      (contains(github.event.comment.body, '/dart') || contains(github.event.comment.body, '/pr-val'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if user has write access
+        id: check-access
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.actor
+            });
+            
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.permission);
+            console.log(`User ${context.actor} has permission: ${permission.permission}`);
+            core.setOutput('has-access', hasWriteAccess);
+            return hasWriteAccess;
+
+      - name: Check Microsoft org membership
+        id: check-org
+        if: steps.check-access.outputs.has-access == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.orgs.checkMembershipForUser({
+                org: 'microsoft',
+                username: context.actor
+              });
+              console.log(`User ${context.actor} is a member of Microsoft org`);
+              core.setOutput('is-member', 'true');
+              return true;
+            } catch (error) {
+              console.log(`User ${context.actor} is not a member of Microsoft org`);
+              core.setOutput('is-member', 'false');
+              return false;
+            }
+
+      - name: Comment on unauthorized access
+        if: steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ You do not have permission to trigger this workflow. You must have write access to the repository and be a member of the Microsoft organization.'
+            });
+
+      - name: Exit if unauthorized
+        if: steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true'
+        run: exit 1
+
+      - name: Get PR details
+        id: pr-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            core.setOutput('sha', pr.head.sha);
+            core.setOutput('ref', pr.head.ref);
+            core.setOutput('repo', pr.head.repo.full_name);
+            console.log(`PR #${context.issue.number}: ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha})`);
+
+      - name: Azure Login with Service Principal
+        run: |
+          az login --service-principal \
+            --username ${{ secrets.AZURE_CLIENT_ID }} \
+            --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+            --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Trigger Azure DevOps Pipeline
+        id: trigger-pipeline
+        run: |
+          # Get Azure DevOps access token
+          AZDO_TOKEN=$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv)
+          
+          # Trigger the pipeline
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $AZDO_TOKEN" \
+            -d '{
+              "resources": {
+                "repositories": {
+                  "self": {
+                    "refName": "refs/heads/${{ steps.pr-details.outputs.ref }}",
+                    "version": "${{ steps.pr-details.outputs.sha }}"
+                  }
+                }
+              }
+            }' \
+            "${{ secrets.AZDO_ORGANIZATION_URL }}/${{ secrets.AZDO_PROJECT }}/_apis/pipelines/${{ secrets.AZDO_PIPELINE_ID }}/runs?api-version=7.0")
+          
+          echo "Response: $RESPONSE"
+          
+          # Extract pipeline run URL
+          PIPELINE_URL=$(echo $RESPONSE | jq -r '.url // empty')
+          BUILD_ID=$(echo $RESPONSE | jq -r '.id // empty')
+          
+          if [ -z "$BUILD_ID" ]; then
+            echo "Failed to trigger pipeline"
+            exit 1
+          fi
+          
+          WEB_URL="${{ secrets.AZDO_ORGANIZATION_URL }}/${{ secrets.AZDO_PROJECT }}/_build/results?buildId=$BUILD_ID"
+          echo "pipeline-url=$WEB_URL" >> $GITHUB_OUTPUT
+          echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
+
+      - name: Comment pipeline link
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ Azure DevOps pipeline **dotnet-roslyn-internal-validation-test** has been triggered by @${context.actor}\n\n🔗 [View Pipeline Run](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\nBuild ID: ${{ steps.trigger-pipeline.outputs.build-id }}`
+            });
+
+      - name: Comment on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ Failed to trigger the Azure DevOps pipeline. Please check the workflow logs for details.'
+            });
