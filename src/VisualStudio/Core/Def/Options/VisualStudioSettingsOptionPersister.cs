@@ -68,28 +68,16 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
     protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value)
     {
         var storageType = optionKey.Option.Type;
-        if (storageType.IsEnum)
-        {
-            if (TryGetValueWorker(storageKey, out int intValue))
-            {
-                value = (T)Enum.ToObject(storageType, intValue);
-                return true;
-            }
-            else
-            {
-                value = default!;
-                return false;
-            }
-        }
-
         var underlyingType = Nullable.GetUnderlyingType(storageType);
-        if (underlyingType?.IsEnum == true)
+        storageType = underlyingType ?? storageType;
+
+        if (storageType.IsEnum)
         {
             if (TryGetValueWorker(storageKey, out int? nullableValue))
             {
                 if (nullableValue.HasValue)
                 {
-                    value = (T)Enum.ToObject(underlyingType, nullableValue.Value);
+                    value = (T)Enum.ToObject(storageType, nullableValue.Value);
                 }
                 else
                 {
