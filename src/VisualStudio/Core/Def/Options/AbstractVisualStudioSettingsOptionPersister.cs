@@ -35,8 +35,8 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         SettingsManager = settingsManager;
     }
 
-    protected abstract bool TryGetValue<T>(string storageKey, out T value);
-    protected abstract Task SetValueAsync(string storageKey, object? value, bool isMachineLocal);
+    protected abstract bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value);
+    protected abstract Task SetValueAsync(OptionKey2 optionKey, string storageKey, object? value, bool isMachineLocal);
 
     protected void RefreshIfTracked(string key)
     {
@@ -48,11 +48,8 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
     }
 
     public virtual bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
-        => TryFetchWorker(optionKey, storageKey, optionKey.Option.Type, out value);
-
-    protected bool TryFetchWorker(OptionKey2 optionKey, string storageKey, Type optionType, out object? value)
     {
-        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionType, optionKey.Option.DefaultValue);
+        var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionKey.Option.Type, optionKey.Option.DefaultValue);
         if (result.HasValue)
         {
             value = result.Value;
@@ -63,13 +60,13 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         return false;
     }
 
-    public Optional<object?> TryReadAndMonitorOptionValue(OptionKey2 primaryOptionKey, string primaryStorageKey, string storageKey, Type storageType, object? defaultValue)
+    protected Optional<object?> TryReadAndMonitorOptionValue(OptionKey2 primaryOptionKey, string primaryStorageKey, string storageKey, Type storageType, object? defaultValue)
     {
         ImmutableInterlocked.GetOrAdd(ref _storageKeysToMonitorForChanges, storageKey, static (_, arg) => arg, factoryArgument: (primaryOptionKey, primaryStorageKey));
-        return TryReadOptionValue(storageKey, storageType, defaultValue);
+        return TryReadOptionValue(primaryOptionKey, storageKey, storageType, defaultValue);
     }
 
-    internal Optional<object?> TryReadOptionValue(string storageKey, Type storageType, object? defaultValue)
+    internal Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType, object? defaultValue)
     {
         if (storageType == typeof(bool))
             return Read<bool>();
@@ -81,16 +78,16 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
             return Read<int>();
 
         if (storageType.IsEnum)
-            return TryGetValue(storageKey, out int value) ? Enum.ToObject(storageType, value) : default(Optional<object?>);
+            return TryGetValue(optionKey, storageKey, out int value) ? Enum.ToObject(storageType, value) : default(Optional<object?>);
 
         var underlyingType = Nullable.GetUnderlyingType(storageType);
         if (underlyingType?.IsEnum == true)
         {
-            if (TryGetValue(storageKey, out int? nullableValue))
+            if (TryGetValue(optionKey, storageKey, out int? nullableValue))
             {
                 return nullableValue.HasValue ? Enum.ToObject(underlyingType, nullableValue.Value) : null;
             }
-            else if (TryGetValue(storageKey, out int value))
+            else if (TryGetValue(optionKey, storageKey, out int value))
             {
                 return Enum.ToObject(underlyingType, value);
             }
@@ -102,7 +99,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
 
         if (storageType == typeof(NamingStylePreferences))
         {
-            if (TryGetValue(storageKey, out string value))
+            if (TryGetValue(optionKey, storageKey, out string value))
             {
                 try
                 {
@@ -119,7 +116,7 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
 
         if (defaultValue is ICodeStyleOption2 codeStyle)
         {
-            if (TryGetValue(storageKey, out string value))
+            if (TryGetValue(optionKey, storageKey, out string value))
             {
                 try
                 {
@@ -161,16 +158,13 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         throw ExceptionUtilities.UnexpectedValue(storageType);
 
         Optional<object?> Read<T>()
-            => TryGetValue(storageKey, out T value) ? value : default(Optional<object?>);
+            => TryGetValue(optionKey, storageKey, out T value) ? value : default(Optional<object?>);
 
         Optional<object?> ReadImmutableArray<T>()
-            => TryGetValue(storageKey, out T[] value) ? (value is null ? default : value.ToImmutableArray()) : default(Optional<object?>);
+            => TryGetValue(optionKey, storageKey, out T[] value) ? (value is null ? default : value.ToImmutableArray()) : default(Optional<object?>);
     }
 
-    public virtual Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
-        => PersistWorkerAsync(storageKey, value);
-
-    internal Task PersistWorkerAsync(string storageKey, object? value)
+    public Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
     {
         if (value is ICodeStyleOption2 codeStyleOption)
         {
@@ -207,6 +201,6 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
             }
         }
 
-        return SetValueAsync(storageKey, value, isMachineLocal: false);
+        return SetValueAsync(optionKey, storageKey, value, isMachineLocal: false);
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
@@ -27,19 +26,26 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
             this.RefreshIfTracked(key);
     }
 
-    public override bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
+    protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value)
     {
-        if (!TryFetchWorker(optionKey, storageKey, typeof(string), out var innerValue) ||
-            innerValue is not string innerStringValue)
+        var retrieval = this.SettingsManager.GetReader().GetValue<string>(
+            storageKey, SettingReadOptions.NoRequirements);
+
+        if (retrieval.Outcome != SettingRetrievalOutcome.Success ||
+            retrieval.Value is null ||
+            !optionKey.Option.Definition.Serializer.TryParse(retrieval.Value, out var untypedValue) ||
+            untypedValue is not T typedValue)
         {
-            value = null;
+            value = default!;
             return false;
         }
 
-        return optionKey.Option.Definition.Serializer.TryParse(innerStringValue, out value);
+        value = typedValue;
+        return true;
     }
 
-    public override Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
+#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
+    protected override Task SetValueAsync(OptionKey2 optionKey, string storageKey, object? value, bool isMachineLocal)
     {
         // In-memory representation was different than persisted representation (often a bool/enum), so
         // serialize it as per the option's serializer.
@@ -48,26 +54,9 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
         // read, TryParse will handle lowercase enum values just fine due to it using `Enum.TryParse(str,
         // ignoreCase: true, out result)`
         var serialized = optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant();
-        return this.PersistWorkerAsync(storageKey, serialized);
-    }
-
-#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
-    protected override bool TryGetValue<T>(string storageKey, out T value)
-    {
-        Debug.Assert(typeof(T) == typeof(string));
-        var retrieval = this.SettingsManager.GetReader().GetValue<T>(
-            storageKey, SettingReadOptions.NoRequirements);
-
-        value = retrieval.Value!;
-        return retrieval.Outcome == SettingRetrievalOutcome.Success;
-    }
-
-    protected override Task SetValueAsync(string storageKey, object? value, bool isMachineLocal)
-    {
-        Debug.Assert(value?.GetType() == typeof(string));
         var writer = this.SettingsManager.GetWriter(nameof(VisualStudioUnifiedSettingsOptionPersister));
 
-        var result = writer.EnqueueChange(storageKey, value);
+        var result = writer.EnqueueChange(storageKey, serialized);
         writer.RequestCommit(nameof(VisualStudioUnifiedSettingsOptionPersister));
 
         return Task.CompletedTask;

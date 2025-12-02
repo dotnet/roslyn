@@ -186,7 +186,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             (_, _) => { },
             s_noFallbacks,
             mockManager);
-        var result = persister.TryReadOptionValue("key", optionType, defaultValue);
+        var result = persister.TryReadOptionValue(default, "key", optionType, defaultValue);
         Assert.True(result.HasValue);
         Assert.Equal(optionValue, result.Value);
     }
@@ -230,7 +230,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             s_noFallbacks,
             mockManager);
 
-        var result = persister.TryReadOptionValue("key", optionType, optionValue);
+        var result = persister.TryReadOptionValue(default, "key", optionType, optionValue);
 
         // we should not fall back to object if the manager tells us bool value is missing or invalid in any way:
         Assert.False(result.HasValue);
@@ -260,12 +260,12 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             mockManager);
 
         // read
-        var result = persister.TryReadOptionValue("key", type, defaultValue: null);
+        var result = persister.TryReadOptionValue(default, "key", type, defaultValue: null);
         Assert.True(result.HasValue);
         Assert.True(IsDefaultImmutableArray(result.Value!));
 
         // write
-        await persister.PersistWorkerAsync("key", defaultArray);
+        await persister.PersistAsync(default, "key", defaultArray);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);
@@ -301,13 +301,13 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             mockManager);
 
         // read
-        var result = persister.TryReadOptionValue("key", type, defaultValue);
+        var result = persister.TryReadOptionValue(default, "key", type, defaultValue);
         Assert.True(result.HasValue);
         Assert.Equal(value, result.Value);
 
         // write
         persister = new VisualStudioSettingsOptionPersister((_, _) => { }, s_noFallbacks, mockManager);
-        await persister.PersistWorkerAsync("key", value);
+        await persister.PersistAsync(default, "key", value);
 
         Assert.True(newValue.HasValue);
         Assert.Equal(serializedValue, newValue.Value);

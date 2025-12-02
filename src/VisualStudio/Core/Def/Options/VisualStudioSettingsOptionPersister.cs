@@ -65,9 +65,9 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
         return false;
     }
 
-    protected override bool TryGetValue<T>(string storageKey, out T value)
+    protected override bool TryGetValue<T>(OptionKey2 optionKey, string storageKey, out T value)
         => this.SettingsManager.TryGetValue(storageKey, out value) == GetValueResult.Success;
 
-    protected override Task SetValueAsync(string storageKey, object? value, bool isMachineLocal)
-        => this.SettingsManager.SetValueAsync(storageKey, value, isMachineLocal: false);
+    protected override Task SetValueAsync(OptionKey2 optionKey, string storageKey, object? value, bool isMachineLocal)
+        => this.SettingsManager.SetValueAsync(storageKey, value, isMachineLocal);
 }

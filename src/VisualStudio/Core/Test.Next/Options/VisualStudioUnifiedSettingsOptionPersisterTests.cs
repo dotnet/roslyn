@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Options;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.Options;
+namespace Microsoft.CodeAnalysis.UnitTests;
 
 public class VisualStudioUnifiedSettingsOptionPersisterTests
 {
