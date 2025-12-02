@@ -20,3 +20,11 @@ internal sealed class SemanticEditDescription(
     public readonly Func<SyntaxNode, RuntimeRudeEdit?>? RudeEdits = rudeEdits;
     public readonly bool PreserveLocalVariables = preserveLocalVariables;
 }
+
+internal sealed class ResourceEditDescription(
+    ResourceEditKind kind,
+    string name)
+{
+    public readonly ResourceEditKind Kind = kind;
+    public readonly string Name = name;
+}

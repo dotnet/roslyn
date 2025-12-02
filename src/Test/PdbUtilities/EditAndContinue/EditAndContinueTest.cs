@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private TSelf This => (TSelf)this;
 
-        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>? debugInformationProvider = null)
+        internal TSelf AddBaseline(
+            string source,
+            Action<GenerationVerifier>? validator = null,
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>? debugInformationProvider = null,
+            IEnumerable<ResourceDescription>? manifestResources = null)
         {
             _hasVerified = false;
 
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 trimOutput: false,
                 expectedReturnCode: null,
                 args: null,
-                manifestResources: null,
+                manifestResources,
                 emitOptions: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 peVerify: _verification,
                 expectedSignatures: null);
@@ -97,7 +101,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             output?.WriteLine($"Emitting generation #{_generations.Count}");
 
-            CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits, options: options);
+            var r = new ResourceDescription(
+                "MyResource",
+                () =>
+                {
+                    var s = new MemoryStream();
+                    s.WriteByte(12);
+                    return s;
+                },
+                isPublic: true);
+
+            CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits, resourceEdits: [new(ResourceEditKind.Insert, r)], options: options);
 
             diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
             if (expectedErrors is not [])

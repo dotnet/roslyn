@@ -3093,7 +3093,7 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             CancellationToken cancellationToken = default(CancellationToken))
-            => EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, EmitDifferenceOptions.Default, cancellationToken);
+            => EmitDifference(baseline, edits, resourceEdits: [], isAddedSymbol, metadataStream, ilStream, pdbStream, EmitDifferenceOptions.Default, cancellationToken);
 
         /// <summary>
         /// Emit the differences between the compilation and the previous generation
@@ -3105,6 +3105,7 @@ namespace Microsoft.CodeAnalysis
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            IEnumerable<ResourceEdit> resourceEdits,
             Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
@@ -3123,6 +3124,11 @@ namespace Microsoft.CodeAnalysis
             if (edits == null)
             {
                 throw new ArgumentNullException(nameof(edits));
+            }
+
+            if (resourceEdits == null)
+            {
+                throw new ArgumentNullException(nameof(resourceEdits));
             }
 
             if (isAddedSymbol == null)
@@ -3145,13 +3151,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, options, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, resourceEdits, isAddedSymbol, metadataStream, ilStream, pdbStream, options, testData: null, cancellationToken);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         internal abstract EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            IEnumerable<ResourceEdit> resourceEdits,
             Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
