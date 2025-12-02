@@ -4774,6 +4774,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // final safety context.  However, the latter is highly challenging as we do not know that
                     // information until the lowering phase.  We'll need to pull out that logic to do things properly
                     // here.
+                    //
+                    // Tracked with: https://github.com/dotnet/roslyn/issues/81520
                     return _localScopeDepth;
 
                 default:
