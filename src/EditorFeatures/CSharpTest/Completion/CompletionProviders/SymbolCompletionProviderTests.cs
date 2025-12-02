@@ -865,11 +865,9 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
             """;
 
-        // This results is incorrect.  It should be `Absent("ClassOnly")`.  This is happening
-        // because the parser doesn't properly recover in this error scenario.
         await VerifyExpectedItemsAsync(code, [
             ItemExpectation.Exists("GenericParameterOnly"),
-            ItemExpectation.Exists("ClassOnly")
+            ItemExpectation.Absent("ClassOnly")
         ]);
     }
 
