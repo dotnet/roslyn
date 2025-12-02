@@ -11935,110 +11935,76 @@ static class Test1
         [WorkItem(81467, "https://github.com/dotnet/roslyn/issues/81467")]
         public void Multiple_GetAsyncEnumerator_Calls_Should_Dispose_Linked_Tokens()
         {
+            string testUtilsSource = """
+#pragma warning disable CS0436 // Type conflicts with imported type
+
+public static class TestUtils
+{
+    public static System.Threading.CancellationTokenSource CreateOriginalCancellationTokenSource()
+    {
+        return new System.Threading.CancellationTokenSource();
+    }
+}
+""";
+            var testUtilsComp = CreateCompilation(testUtilsSource, options: TestOptions.ReleaseDll);
+            var testUtilsRef = testUtilsComp.EmitToImageReference(aliases: ["TestUtils"]);
+
             string source = """
-using System;
+#pragma warning disable CS0436 // Type conflicts with imported type
+
+extern alias TestUtils;
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Console;
 
 class C
 {
     static async IAsyncEnumerable<int> Create([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         yield return default!;
-
-        cancellationToken.ThrowIfCancellationRequested();
         yield return default!;
     }
 
     static async Task Main()
     {
-        using var cts = new CancellationTokenSource();
+        var cts = new CancellationTokenSource();
 
-        var currentIterator = Create(cts.Token);
+        var iterator = Create(cts.Token);
 
-        var currentIteratorType = currentIterator.GetType();
-        var combinedTokensField = currentIteratorType.GetField("<>x__combinedTokens", BindingFlags.NonPublic | BindingFlags.Instance)!;
-
-        var currentIteratorBug = await GenerateNonDisposedBug(currentIterator, () =>
-        {
-            var combinedTokens = (CancellationTokenSource)combinedTokensField.GetValue(currentIterator)!;
-
-            return combinedTokens;
-        });
-
-        var disposedValue = GetDisposedValue(currentIteratorBug);
-
-        var disposedCount = 0;
-        for (int i = 0; i < disposedValue.Count; i++)
-        {
-            if (disposedValue[i])
-            {
-                disposedCount++;
-            }
-        }
-
-        Write(disposedCount);
-    }
-
-    static async Task<List<CancellationTokenSource>> GenerateNonDisposedBug(IAsyncEnumerable<int> iterator, Func<CancellationTokenSource> getCancellationTokenSource)
-    {
-        var result = new List<CancellationTokenSource>();
-
-        using var cts1 = new CancellationTokenSource();
-        using var cts2 = new CancellationTokenSource();
-        using var cts3 = new CancellationTokenSource();
+        var cts1 = new CancellationTokenSource();
+        var cts2 = new CancellationTokenSource();
+        var cts3 = new CancellationTokenSource();
 
         var it1 = iterator.GetAsyncEnumerator(cts1.Token);
-        result.Add(getCancellationTokenSource());
-
         var it2 = iterator.GetAsyncEnumerator(cts2.Token);
-        result.Add(getCancellationTokenSource());
-
         var it3 = iterator.GetAsyncEnumerator(cts3.Token);
-        result.Add(getCancellationTokenSource());
 
         await it1.DisposeAsync();
         await it2.DisposeAsync();
         await it3.DisposeAsync();
-
-        return result;
     }
+}
 
-    static List<bool> GetDisposedValue(List<CancellationTokenSource> sources)
+namespace System.Threading
+{
+    public class CancellationTokenSource
     {
-        var result = new List<bool>();
-
-        for (int i = 0; i < sources.Count; i++)
-        {
-            result.Add(IsDisposed(sources[i]));
-        }
-
-        return result;
-    }
-
-    static bool IsDisposed(CancellationTokenSource cts)
-    {
-        try
-        {
-            var _ = cts.Token;
-            return false;
-        }
-        catch (ObjectDisposedException)
-        {
-            return true;
-        }
+        // This ensures that the tokens are always different (CancellationToken.Equals(CancellationToken) == false) to force the tokens to be linked
+        public CancellationToken Token => TestUtils::TestUtils.CreateOriginalCancellationTokenSource().Token;
+        public void Dispose() { System.Console.Write('d'); }
+        public void Cancel() { }
+        public static CancellationTokenSource CreateLinkedTokenSource(CancellationToken token1, CancellationToken token2) => new();
     }
 }
 """;
 
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, options: TestOptions.DebugExe, references: [testUtilsRef]);
+
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3");
+
+            CompileAndVerify(comp, expectedOutput: "ddd");
         }
     }
 }
