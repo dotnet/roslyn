@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
+using Microsoft.VisualStudio.VCProjectEngine;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -27,50 +29,43 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
             this.RefreshIfTracked(key);
     }
 
-    public override bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
+    private static void CheckStorageKeyAndType(string storageKey, [NotNull] Type? storageType)
     {
-        if (!TryFetchWorker(optionKey, storageKey, typeof(string), out var innerValue) ||
-            innerValue is not string innerStringValue)
-        {
-            value = null;
-            return false;
-        }
+        Contract.ThrowIfFalse(storageKey.StartsWith("languages"), "Need to update SubscribeToChanges in constructor to listen to changes to this key");
 
-        return optionKey.Option.Definition.Serializer.TryParse(innerStringValue, out value);
+        // Currently, these are the only types we expect.  This can be augmented in the future if we need to serialize
+        // more kinds to unified settings backend.
+        Contract.ThrowIfFalse(
+            storageType == typeof(int) ||
+            storageType == typeof(bool) ||
+            storageType?.IsEnum is true);
+    }
+
+    internal override Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType, object? defaultValue)
+    {
+        CheckStorageKeyAndType(storageKey, storageType);
+
+        var retrieval = this.SettingsManager.GetReader().GetValue<string>(storageKey, SettingReadOptions.NoRequirements);
+        return retrieval is { Outcome: SettingRetrievalOutcome.Success, Value: string stringValue } &&
+               optionKey.Option.Definition.Serializer.TryParse(stringValue, out var value) ? new(value) : default;
     }
 
     public override Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
     {
+        var storageType = value?.GetType();
+        CheckStorageKeyAndType(storageKey, storageType);
+
+        var writer = this.SettingsManager.GetWriter(nameof(VisualStudioUnifiedSettingsOptionPersister));
+
         // In-memory representation was different than persisted representation (often a bool/enum), so
         // serialize it as per the option's serializer.
         //
         // Note, we persist as a lowercase value, as that's what the setting manager does for these modern keys. On
         // read, TryParse will handle lowercase enum values just fine due to it using `Enum.TryParse(str,
         // ignoreCase: true, out result)`
-        var serialized = optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant();
-        return this.PersistWorkerAsync(storageKey, serialized);
-    }
-
-#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
-    protected override bool TryGetValue<T>(string storageKey, out T value)
-    {
-        Debug.Assert(typeof(T) == typeof(string));
-        var retrieval = this.SettingsManager.GetReader().GetValue<T>(
-            storageKey, SettingReadOptions.NoRequirements);
-
-        value = retrieval.Value!;
-        return retrieval.Outcome == SettingRetrievalOutcome.Success;
-    }
-
-    protected override Task SetValueAsync(string storageKey, object? value, bool isMachineLocal)
-    {
-        Debug.Assert(value?.GetType() == typeof(string));
-        var writer = this.SettingsManager.GetWriter(nameof(VisualStudioUnifiedSettingsOptionPersister));
-
-        var result = writer.EnqueueChange(storageKey, value);
+        writer.EnqueueChange(storageKey, optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant());
         writer.RequestCommit(nameof(VisualStudioUnifiedSettingsOptionPersister));
 
         return Task.CompletedTask;
     }
-#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 }
