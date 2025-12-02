@@ -4752,6 +4752,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : _localScopeDepth;
 
                 case CollectionExpressionTypeKind.Span:
+                    Debug.Assert(elementType.Type is { });
+
                     return expr.Elements.IsEmpty
                         ? SafeContext.CallingMethod
                         : _localScopeDepth;
@@ -4766,10 +4768,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
                     // element, and the place-holder representing the elements.
                     //
-                    // Note: we do not have an explicit expr.Elements.IsEmpty check as we still need to account for
-                    // arguments passed to with(...) even if there are no elements passed to the collection builder
-                    // method.
-                    return GetValEscape(expr.CollectionCreation);
+                    // Note: If we have no elements, and no with(...) element, then we know that the collection could
+                    // not have actually captured any local data.  So that collection is safe to return out.
+                    return expr.Elements.IsEmpty && !expr.HasWithElement
+                        ? SafeContext.CallingMethod
+                        : GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                     // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
