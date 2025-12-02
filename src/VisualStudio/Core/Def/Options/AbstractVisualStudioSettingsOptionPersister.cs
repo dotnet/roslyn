@@ -77,6 +77,8 @@ internal abstract class AbstractVisualStudioSettingsOptionPersister<TSettingsMan
         if (storageType == typeof(int))
             return Read<int>();
 
+        // Encoding of enums is handled by the underlying settings store.  For example, with the legacy settings manager
+        // we encode them as ints.  With the unified settings manager we encode them as the name of the enum member.
         if (storageType.IsEnum || Nullable.GetUnderlyingType(storageType)?.IsEnum is true)
             return Read<object>();
 
