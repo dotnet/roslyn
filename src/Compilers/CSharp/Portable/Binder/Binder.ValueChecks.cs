@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1245,11 +1246,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadSKknown, expr.Syntax, ((BoundNamespaceExpression)expr).NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize(), MessageID.IDS_SK_VARIABLE.Localize());
                     return false;
                 case BoundKind.TypeExpression:
-                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    // Don't report ERR_BadSKunknown if we're in a (T)-X pattern, as we'll report
+                    // ERR_PossibleBadNegCast instead which is more specific and helpful.
+                    // Note: This check must be kept in sync with BindSimpleBinaryOperator where ERR_PossibleBadNegCast is reported.
+                    if (!IsInPossibleBadNegCastContext(expr.Syntax))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    }
                     return false;
                 default:
                     return true;
             }
+        }
+
+        private static bool IsInPossibleBadNegCastContext(SyntaxNode syntax)
+        {
+            // Check if the syntax is a type name inside (T)-X pattern:
+            // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
+            // Additionally, the parenthesized expression should not itself be parenthesized (i.e., we want (T)-X, not ((T))-X)
+            return syntax.Parent is ParenthesizedExpressionSyntax parenthesized &&
+                !parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) &&
+                IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesized);
+        }
+
+        /// <summary>
+        /// Checks if a parenthesized expression is the left operand of a subtraction (the <c>(T)</c> part of <c>(T)-X</c>).
+        /// This method is shared between CheckNotNamespaceOrType and BindSimpleBinaryOperator to ensure they
+        /// check for the same pattern consistently.
+        /// </summary>
+        private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(ParenthesizedExpressionSyntax parenthesized)
+        {
+            return parenthesized.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
+                   binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
