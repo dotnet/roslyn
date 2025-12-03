@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 needsAttributes |= EmbeddableAttributes.RefSafetyRulesAttribute;
             }
 
-            if (sourceModule.RequiresMemorySafetyRulesAttribute() &&
+            if (sourceModule.UseUpdatedMemorySafetyRules &&
                 Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.MemorySafetyRulesAttribute, diagnostics, Location.None))
             {
                 needsAttributes |= EmbeddableAttributes.MemorySafetyRulesAttribute;
