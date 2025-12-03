@@ -24,6 +24,9 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
     {
     }
 
+    private TaskCompletionSource<bool> GetSessionCompletionSource(int sessionId)
+        => _sessionIdToCompletionSource.GetOrAdd(sessionId, static _ => new());
+
     public async ValueTask KeepAliveAsync(
         Checksum solutionChecksum,
         int sessionId,
@@ -33,7 +36,7 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
         // WaitForSessionIdAsync on the host side, so it's possible that it will beat us to creating the entry in this
         // dictionary.  That's fine though, as both calls will be guaranteed to get the same completionSource thanks to
         // GetOrAdd.
-        var completionSource = _sessionIdToCompletionSource.GetOrAdd(sessionId, static _ => new());
+        var completionSource = GetSessionCompletionSource(sessionId);
         try
         {
 
@@ -69,7 +72,7 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
         // Ensure we have a completion source for this sessionId.  Note: we are potentially racing with KeepAliveAsync
         // on the host side, so it's possible that it will beat us to creating the entry in this dictionary.  That's
         // fine though, as both calls will be guaranteed to get the same completionSource thanks to GetOrAdd.
-        var completionSource = _sessionIdToCompletionSource.GetOrAdd(sessionId, static _ => new());
+        var completionSource = GetSessionCompletionSource(sessionId);
 
         // Now, wait for KeepAliveAsync to finally signal us to proceed.  We also listen for cancellation so that the
         // host can bail out if needed, without waiting on the full solution (or project cone) to sync over.
