@@ -315,8 +315,9 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
 
             // Because we're adding the initial project to the solution, we need to ensure that this solution snapshot
             // has the right fallback analyzer options.  This normally happens in Workspace.SetCurrentSolutionAsync as
-            // it mutates.  But that has never happened so far, so we have to simulate that manually here.  This ensures
-            // we pick up the right host/vs options which is needed in order to run the code cleanup pass below.
+            // it mutates.  But that may never have happened so far (especially if the user has just opened VS and is
+            // making a fresh solution/project), so we have to simulate that manually here.  This ensures we pick up the
+            // right host/vs options which is needed in order to run the code cleanup pass below.
             solution = projectToAddTo.Solution.WithFallbackAnalyzerOptions(Workspace.ComputeFinalFallbackAnalyzerOptions(solution, projectToAddTo.Solution));
 
             projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
