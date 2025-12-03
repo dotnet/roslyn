@@ -115,6 +115,11 @@ internal sealed partial class SolutionCompilationState
             // We're going to be making multiple calls over to OOP.  No point in resyncing data multiple times.  Keep a
             // single connection, and keep this solution instance alive (and synced) on both sides of the connection
             // throughout the calls.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the connection.  All subsequent
+            // uses of this connection must do that aas well. This ensures that all calls will see the same exact
+            // snapshot on the OOP side, which is necessary for the GetSourceGeneratedDocumentInfoAsync and
+            // GetContentsAsync calls to see the exact same data and return sensible results.
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
             using var _ = await RemoteKeepAliveSession.CreateAsync(
                 compilationState, projectId, cancellationToken).ConfigureAwait(false);
