@@ -373,6 +373,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
+        internal static bool IsReflectionType(this Type type)
+        {
+            return type.IsMscorlibType("System", "Type");
+        }
+
         /// <summary>
         /// Returns type argument if the type is
         /// Nullable&lt;T&gt;, otherwise null.
