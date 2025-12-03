@@ -13393,5 +13393,178 @@ list ??= new($$);
                 Await state.AssertSelectedCompletionItem("capacity:")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int NewProperty { get => 0; set { } }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("N")
+                Await state.AssertCompletionItemsContainAll("NewProperty")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_ReadOnlyNotShown(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int ReadOnlyProp => 0;
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("R")
+                Await state.AssertCompletionItemsDoNotContainAny("ReadOnlyProp")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_ReadOnlyCollectionShown(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public List<int> ReadOnlyListProp => new List<int>();
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("R")
+                Await state.AssertCompletionItemsContainAll("ReadOnlyListProp")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_MixedWithRegularProperties(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass
+{
+    public int RegularProperty { get; set; }
+}
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int ExtensionProperty { get => 0; set { } }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionItemsContainAll("RegularProperty", "ExtensionProperty")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_HidePreviouslyTyped(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int ExtProp1 { get => 0; set { } }
+        public int ExtProp2 { get => 0; set { } }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            ExtProp1 = 1,
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("E")
+                Await state.AssertCompletionItemsContainAll("ExtProp2")
+                Await state.AssertCompletionItemsDoNotContainAny("ExtProp1")
+            End Using
+        End Function
     End Class
 End Namespace

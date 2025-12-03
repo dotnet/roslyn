@@ -757,7 +757,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
                     // a delegate type.
 
                     var relevantLocals = newReferencedSymbols
-                        .Where(s => s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter) && s.Name == token.ValueText);
+                        .Where(s => s is ILocalSymbol or IParameterSymbol && s.Name == token.ValueText);
 
                     if (relevantLocals.Count() != 1)
                     {
@@ -766,8 +766,8 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
 
                     var matchingLocal = relevantLocals.Single();
                     var invocationTargetsLocalOfDelegateType =
-                        (matchingLocal.IsKind(SymbolKind.Local) && ((ILocalSymbol)matchingLocal).Type.IsDelegateType()) ||
-                        (matchingLocal.IsKind(SymbolKind.Parameter) && ((IParameterSymbol)matchingLocal).Type.IsDelegateType());
+                        matchingLocal is ILocalSymbol { Type.TypeKind: TypeKind.Delegate } ||
+                        matchingLocal is IParameterSymbol { Type.TypeKind: TypeKind.Delegate };
 
                     return !invocationTargetsLocalOfDelegateType;
                 }
