@@ -196,6 +196,10 @@ namespace Microsoft.CodeAnalysis
         [Event(23)]
         internal void GeneratorDriverCacheCreated(string projectName, string stacktrace) => WriteEvent(23, projectName, stacktrace);
 
+        [Event(24)]
+        internal void SyncProjectInfo(int count, string infos) => WriteEvent(24, count, infos);
+
+
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {
             fixed (char* ptr2 = value)
