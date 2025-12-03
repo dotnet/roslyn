@@ -521,7 +521,8 @@ public partial class Solution
         => WithCompilationState(CompilationState.WithFallbackAnalyzerOptions(options));
 
     /// <summary>
-    /// Forks this solution to ensure that its <see cref="FallbackAnalyzerOptions"/> are correct using <paramref
+    /// Forks this solution to ensure that its <see cref="FallbackAnalyzerOptions"/> are updated with the latest values
+    /// from the host, provided via <see cref="IFallbackAnalyzerConfigOptionsProvider"/>, using <paramref
     /// name="oldSolution"/> as the baseline solution that this solution was forked from.  Specifically, this will
     /// ensure that if this solution no longer contains certain project in certain languages that those languages are
     /// removed from <see cref="FallbackAnalyzerOptions"/>.  Similarly, if there are new languages in this solution not
