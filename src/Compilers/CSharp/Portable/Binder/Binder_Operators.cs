@@ -903,18 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindExpression(current, diagnostics);
 
-            if (node.IsKind(SyntaxKind.SubtractExpression)
-                && current.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (current is ParenthesizedExpressionSyntax parenthesizedExpression
+                && IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesizedExpression))
             {
                 if (result.Kind == BoundKind.TypeExpression
-                    && !((ParenthesizedExpressionSyntax)current).Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                    && !parenthesizedExpression.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)current;
-
                     if (parenthesizedExpression.Expression.IsKind(SyntaxKind.IdentifierName)
                         && ((IdentifierNameSyntax)parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
                     {

@@ -52055,7 +52055,7 @@ static class E
             void handle(SyntaxNodeAnalysisContext context)
             {
                 _results.Enqueue(print(context));
-                Assert.Same(context.Node.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(context.Node.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             static string print(SyntaxNodeAnalysisContext context)

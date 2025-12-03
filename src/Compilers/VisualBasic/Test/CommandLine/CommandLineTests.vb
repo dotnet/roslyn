@@ -1865,7 +1865,7 @@ End Module").Path
 
             parsedArgs = DefaultParse({"/CodePage:1252", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("Western European (Windows)", parsedArgs.Encoding.EncodingName)
+            Assert.Equal(1252, parsedArgs.Encoding.CodePage)
 
             ' errors 
             parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)

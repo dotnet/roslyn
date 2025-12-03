@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <summary>
-        /// Is this type a managed type (false for everything but enum, pointer, and
+        /// Is this type a managed type (true for everything but enum, pointer, and
         /// some struct types).
         /// </summary>
         /// <remarks>
