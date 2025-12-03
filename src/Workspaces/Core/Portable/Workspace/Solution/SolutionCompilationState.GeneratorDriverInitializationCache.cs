@@ -45,7 +45,7 @@ internal sealed partial class SolutionCompilationState
             if (existingDriverCache is not null)
             {
                 var cachedDriver = await existingDriverCache.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                CodeAnalysisEventSource.Log.GeneratorDriverUsedFromCache($"{projectState.Name} ({projectState.Id}) - {cachedDriver.GetHashCode()}");
+                CodeAnalysisEventSource.Log.GeneratorDriverUsedFromCache($"{projectState.Name} ({projectState.Id}) - Cache: {this.GetHashCode()}, Driver: {cachedDriver.GetHashCode()}");
                 var result = UpdateDriverAndRunGenerators(cachedDriver);
             }
 
@@ -68,7 +68,7 @@ internal sealed partial class SolutionCompilationState
             else
             {
                 var cachedDriver = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                CodeAnalysisEventSource.Log.GeneratorDriverUsedFromCache($"{projectState.Name} ({projectState.Id}) - {cachedDriver.GetHashCode()}");
+                CodeAnalysisEventSource.Log.GeneratorDriverUsedFromCache($"{projectState.Name} ({projectState.Id}) - Cache: {this.GetHashCode()}, Driver: {cachedDriver.GetHashCode()}");
                 return UpdateDriverAndRunGenerators(cachedDriver);
             }
 

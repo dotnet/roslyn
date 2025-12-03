@@ -118,8 +118,8 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
 
-        CodeAnalysisEventSource.Log.GeneratorDriverCacheCreated($"{projectInfo.Name} ({projectInfo.Id})");
         GeneratorDriverCache = new();
+        CodeAnalysisEventSource.Log.GeneratorDriverCacheCreated($"{projectInfo.Name} ({projectInfo.Id}) - Cache: {GeneratorDriverCache.GetHashCode()}");
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
