@@ -317,7 +317,7 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
             // has the right fallback analyzer options.  This normally happens in Workspace.SetCurrentSolutionAsync as
             // it mutates.  But that has never happened so far, so we have to simulate that manually here.  This ensures
             // we pick up the right host/vs options which is needed in order to run the code cleanup pass below.
-            solution = solution.WithFallbackAnalyzerOptions(Workspace.ComputeFinalFallbackAnalyzerOptions(solution, projectToAddTo.Solution));
+            solution = projectToAddTo.Solution.WithFallbackAnalyzerOptions(Workspace.ComputeFinalFallbackAnalyzerOptions(solution, projectToAddTo.Solution));
 
             projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
         }
@@ -379,6 +379,11 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
             // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
             formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
         });
+    }
+
+    private void AbstractEditorFactory_Event()
+    {
+        throw new NotImplementedException();
     }
 
     private static Project AddEditorConfigFiles(Project projectToAddTo, string projectFolder)
