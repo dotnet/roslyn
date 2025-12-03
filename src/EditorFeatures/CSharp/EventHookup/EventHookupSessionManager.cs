@@ -14,9 +14,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -25,12 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class EventHookupSessionManager(
     IThreadingContext threadingContext,
-    IToolTipService toolTipService)
+    IToolTipService toolTipService,
+    Lazy<SuggestionServiceBase> suggestionServiceBase)
 {
     public readonly IThreadingContext ThreadingContext = threadingContext;
     private readonly IToolTipService _toolTipService = toolTipService;
+    internal readonly Lazy<SuggestionServiceBase> SuggestionServiceBase = suggestionServiceBase;
 
     private IToolTipPresenter _toolTipPresenter;
+    private VisualStudio.Threading.IAsyncDisposable _suggestionBlocker;
 
     internal EventHookupSession CurrentSession
     {
@@ -83,6 +88,12 @@ internal sealed partial class EventHookupSessionManager(
             var content = new[] { new ClassifiedTextElement(textRuns) };
 
             _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
+
+            // Dismiss and suppress gray text proposals for the duration of the event hookup session.
+            _suggestionBlocker?.DisposeAsync().ConfigureAwait(false);
+            _suggestionBlocker = await SuggestionServiceBase.Value.DismissAndBlockProposalsAsync(analyzedSession.TextView,
+                ReasonForDismiss.DismissedAfterBufferChange, cancellationToken)
+                .ConfigureAwait(false);
 
             // For test purposes only!
             TEST_MostRecentToolTipContent = content;
@@ -137,6 +148,8 @@ internal sealed partial class EventHookupSessionManager(
 
         _toolTipPresenter?.Dismiss();
         _toolTipPresenter = null;
+        _suggestionBlocker?.DisposeAsync().Forget();
+        _suggestionBlocker = null;
 
         CurrentSession = null;
 
