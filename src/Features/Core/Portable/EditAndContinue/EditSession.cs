@@ -1346,7 +1346,7 @@ internal sealed class EditSession
                                 new EmitDifferenceOptions()
                                 {
                                     EmitFieldRva = capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva),
-                                    DisallowExplicitMethodImplementations = !capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
+                                    MethodImplEntriesSupported = capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
                                 },
                                 cancellationToken);
 

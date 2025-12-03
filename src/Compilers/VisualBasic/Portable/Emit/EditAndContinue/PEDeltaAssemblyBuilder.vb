@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides ReadOnly Property MethodImplSupported As Boolean
             Get
-                Return Not _options.DisallowExplicitMethodImplementations
+                Return _options.MethodImplEntriesSupported
             End Get
         End Property
 

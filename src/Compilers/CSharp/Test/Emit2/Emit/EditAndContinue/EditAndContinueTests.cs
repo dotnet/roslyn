@@ -22105,7 +22105,7 @@ file class C
                     ],
                     options: new EmitDifferenceOptions()
                     {
-                        DisallowExplicitMethodImplementations = true
+                        MethodImplEntriesSupported = false
                     },
                     expectedErrors:
                     [
@@ -22144,7 +22144,7 @@ file class C
                     ],
                     options: new EmitDifferenceOptions()
                     {
-                        DisallowExplicitMethodImplementations = true
+                        MethodImplEntriesSupported = false
                     },
                     expectedErrors:
                     [

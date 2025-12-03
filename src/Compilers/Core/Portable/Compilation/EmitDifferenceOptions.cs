@@ -6,7 +6,10 @@ namespace Microsoft.CodeAnalysis.Emit;
 
 public readonly struct EmitDifferenceOptions()
 {
-    public static readonly EmitDifferenceOptions Default = new();
+    public static readonly EmitDifferenceOptions Default = new()
+    {
+        MethodImplEntriesSupported = true,
+    };
 
     /// <summary>
     /// True to emit FieldRva table entries. The runtime must support this feature.
@@ -14,8 +17,8 @@ public readonly struct EmitDifferenceOptions()
     public bool EmitFieldRva { get; init; }
 
     /// <summary>
-    /// True to disallow explicit method implementations in the delta.
+    /// True if the runtime supports adding entries to MethodImpl table (i.e. adding explicit method implementations in the delta).
     /// Some runtimes (.NET Framework) do not support this feature.
     /// </summary>
-    public bool DisallowExplicitMethodImplementations { get; init; }
+    public bool MethodImplEntriesSupported { get; init; }
 }

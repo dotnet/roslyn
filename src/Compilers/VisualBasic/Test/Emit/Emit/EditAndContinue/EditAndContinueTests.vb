@@ -8105,7 +8105,7 @@ End Class
                     options:=
                         New EmitDifferenceOptions() With
                         {
-                            .DisallowExplicitMethodImplementations = True
+                            .MethodImplEntriesSupported = False
                         },
                     expectedErrors:=
                     {
