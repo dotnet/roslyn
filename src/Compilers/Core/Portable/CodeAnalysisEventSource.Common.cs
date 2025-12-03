@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
         internal void GeneratorDriverUsedFromCache(string trackingName) => WriteEvent(22, trackingName);
 
         [Event(23)]
-        internal void GeneratorDriverCacheCreated(string projectName) => WriteEvent(23, projectName);
+        internal void GeneratorDriverCacheCreated(string projectName, string stacktrace) => WriteEvent(23, projectName, stacktrace);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {

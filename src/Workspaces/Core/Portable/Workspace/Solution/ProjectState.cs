@@ -119,7 +119,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
 
         GeneratorDriverCache = new();
-        CodeAnalysisEventSource.Log.GeneratorDriverCacheCreated($"{projectInfo.Name} ({projectInfo.Id}) - Cache: {GeneratorDriverCache.GetHashCode()}");
+        CodeAnalysisEventSource.Log.GeneratorDriverCacheCreated($"{projectInfo.Name} ({projectInfo.Id}) - Cache: {GeneratorDriverCache.GetHashCode()}", new StackTrace(true).ToString());
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
