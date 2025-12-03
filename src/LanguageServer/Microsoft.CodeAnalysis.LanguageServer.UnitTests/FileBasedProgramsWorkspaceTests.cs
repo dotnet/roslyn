@@ -223,6 +223,50 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     }
 
     [Theory, CombinatorialData]
+    public async Task TestSemanticDiagnosticsNotEnabledWhenCoarseGrainedFlagDisabled(bool mutatingLspWorkspace)
+    {
+        // Verify that using top-level statements and '#:' directives does not enable semantic diagnostics when option 'EnableFileBasedPrograms' is false.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, false)
+        });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var looseFileUriOne = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        await testLspServer.OpenDocumentAsync(looseFileUriOne, """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World!");
+            class C { }
+            """).ConfigureAwait(false);
+
+        // File should be a "primordial" miscellaneous document and stay that way.
+        var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
+        verify(looseDocumentOne);
+
+        Assert.Single(looseDocumentOne.Project.Documents);
+        Assert.Empty(looseDocumentOne.Project.MetadataReferences);
+        // Semantic diagnostics are not expected because we haven't loaded references
+        Assert.False(looseDocumentOne.Project.State.HasAllInformation);
+
+        // Wait for project initialization to complete
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Document is still in a primordial miscellaneous project
+        var (_, looseDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        verify(looseDocumentTwo);
+
+        void verify(Document looseDocument)
+        {
+            Assert.Single(looseDocument.Project.Documents);
+            Assert.Empty(looseDocument.Project.MetadataReferences);
+            // Semantic diagnostics are not expected because we haven't loaded references
+            Assert.False(looseDocument.Project.State.HasAllInformation);
+        }
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestSemanticDiagnosticsNotEnabledWhenFineGrainedFlagDisabled(bool mutatingLspWorkspace)
     {
         // Verify that using top-level statements does not enable semantic diagnostics when option 'EnableFileBasedProgramsWhenAmbiguous' is false.

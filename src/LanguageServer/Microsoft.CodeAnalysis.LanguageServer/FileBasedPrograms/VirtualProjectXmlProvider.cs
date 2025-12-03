@@ -124,11 +124,11 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
 
     internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        // This check should not be performed if the core enableFileBasedPrograms setting is disabled
-        Contract.ThrowIfFalse(globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms));
-
-        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
+            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        {
             return false;
+        }
 
         var root = await tree.GetRootAsync(cancellationToken);
         if (root is CompilationUnitSyntax compilationUnit)
