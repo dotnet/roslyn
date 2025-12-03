@@ -412,58 +412,23 @@ public abstract partial class Workspace : IDisposable
 
             return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray);
         }
-    }
 
-    /// <summary>
-    /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
-    /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
-    /// Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
-    /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
-    /// 
-    /// This mechanism only takes care of flowing the initial snapshot of option values.
-    /// It's up to the host to keep the individual values up-to-date by updating 
-    /// <see cref="CurrentSolution"/> as appropriate.
-    /// 
-    /// Implementing the initialization here allows us to uphold an invariant that
-    /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
-    /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
-    /// </summary>
-    private static Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
-        => newSolution.WithFallbackAnalyzerOptions(ComputeFinalFallbackAnalyzerOptions(oldSolution, newSolution));
-
-    internal static ImmutableDictionary<string, StructuredAnalyzerConfigOptions> ComputeFinalFallbackAnalyzerOptions(Solution oldSolution, Solution newSolution)
-    {
-        var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
-
-        // Clear out languages that are no longer present in the solution.
-        // If we didn't, the workspace might clear the solution (which removes the fallback options)
-        // and we would never re-initialize them from global options.
-        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
-        {
-            if (!newSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
-            {
-                newFallbackOptions = newFallbackOptions.Remove(language);
-            }
-        }
-
-        // Update solution snapshot to include options for newly added languages:
-        foreach (var (language, _) in newSolution.SolutionState.ProjectCountByLanguage)
-        {
-            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
-            {
-                continue;
-            }
-
-            if (newFallbackOptions.ContainsKey(language))
-            {
-                continue;
-            }
-
-            var provider = oldSolution.Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
-            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
-        }
-
-        return newFallbackOptions;
+        // <summary>
+        // Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
+        // allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
+        // Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
+        // we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
+        // 
+        // This mechanism only takes care of flowing the initial snapshot of option values.
+        // It's up to the host to keep the individual values up-to-date by updating 
+        // <see cref="CurrentSolution"/> as appropriate.
+        // 
+        // Implementing the initialization here allows us to uphold an invariant that
+        // the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
+        // of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
+        // </summary>
+        static Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+            => newSolution.EnsureCorrectFallbackAnalyzerOptions(oldSolution);
     }
 
     /// <summary>
