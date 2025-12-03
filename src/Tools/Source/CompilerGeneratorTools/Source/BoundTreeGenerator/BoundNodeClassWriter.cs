@@ -1387,7 +1387,7 @@ namespace BoundTreeGenerator
                     WriteLine($"BoundKind.{StripBound(node.Name)} => PipelinePhase.{doesNotSurvive},");
                 }
             }
-            WriteLine("_ => PipelinePhase.All");
+            WriteLine("_ => PipelinePhase.Emit");
             Outdent();
             WriteLine("}};");
             Unbrace();

@@ -145,6 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
+
+                PipelinePhaseValidator.AssertAfterLocalRewriting(loweredStatement);
+#if DEBUG
+                localRewriter.AssertNoPlaceholderReplacements();
+#endif
+
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
@@ -158,11 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
+                PipelinePhaseValidator.AssertAfterSpilling(loweredStatement);
+
                 codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
-                PipelinePhaseValidator.AssertAfterLocalRewriting(loweredStatement);
-#if DEBUG
-                localRewriter.AssertNoPlaceholderReplacements();
-#endif
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

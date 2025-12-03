@@ -67,12 +67,6 @@ namespace BoundTreeGenerator
         public string DoesNotSurvive;
     }
 
-    public class Kind
-    {
-        [XmlAttribute]
-        public string Name;
-    }
-
     public class Field
     {
         [XmlAttribute]

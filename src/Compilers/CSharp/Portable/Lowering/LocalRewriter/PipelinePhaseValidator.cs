@@ -7,12 +7,34 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal sealed partial class PipelinePhaseValidator
+#if DEBUG
+internal enum PipelinePhase
 {
-    private PipelinePhaseValidator()
+    InitialBinding,
+    LocalRewriting,
+    Spilling,
+    ClosureConversion,
+    StateMachineRewriting,
+    Emit
+}
+#endif
+
+internal sealed partial class PipelinePhaseValidator
+#if DEBUG
+     : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+#endif
+{
+
+#if DEBUG
+    private readonly PipelinePhase _completedPhase;
+#endif
+
+#if DEBUG
+    private PipelinePhaseValidator(PipelinePhase completedPhase)
     {
-        throw new NotSupportedException();
+        _completedPhase = completedPhase;
     }
+#endif
 
     [Conditional("DEBUG")]
     public static void AssertAfterInitialBinding(BoundNode node)
@@ -31,6 +53,14 @@ internal sealed partial class PipelinePhaseValidator
     }
 
     [Conditional("DEBUG")]
+    public static void AssertAfterSpilling(BoundNode node)
+    {
+#if DEBUG
+        Assert(node, PipelinePhase.Spilling);
+#endif
+    }
+
+    [Conditional("DEBUG")]
     public static void AssertAfterClosureConversion(BoundNode node)
     {
 #if DEBUG
@@ -45,22 +75,8 @@ internal sealed partial class PipelinePhaseValidator
         Assert(node, PipelinePhase.StateMachineRewriting);
 #endif
     }
-}
 
 #if DEBUG
-internal enum PipelinePhase
-{
-    InitialBinding,
-    LocalRewriting,
-    ClosureConversion,
-    StateMachineRewriting,
-    All
-}
-
-internal sealed partial class PipelinePhaseValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
-{
-    private readonly PipelinePhase _completedPhase;
-
     /// <summary>
     /// Asserts that no unexpected nodes survived a given phase of rewriting.
     /// </summary>
@@ -76,11 +92,6 @@ internal sealed partial class PipelinePhaseValidator : BoundTreeWalkerWithStackG
         }
     }
 
-    private PipelinePhaseValidator(PipelinePhase completedPhase)
-    {
-        _completedPhase = completedPhase;
-    }
-
     public override BoundNode? Visit(BoundNode? node)
     {
         if (node is null || node.HasErrors)
@@ -91,6 +102,6 @@ internal sealed partial class PipelinePhaseValidator : BoundTreeWalkerWithStackG
 
         return base.Visit(node);
     }
-}
 #endif
+}
 

@@ -302,7 +302,7 @@
       always *false*, but the left-hand-side of the is operator is a method
       group whose receiver is a BoundTypeOrValueExpression.
     -->
-  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
+  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" DoesNotSurvive="LocalRewriting">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Data" Type="BoundTypeOrValueData"/>
@@ -1720,8 +1720,10 @@
   spill sequence because the process of moving it to the top level
   causes values that would be on the stack during its evaluation to be
   spilled to temporary variables.
+  Note: this node is also produced during async rewriting for runtime async codegen
+        but is removed shortly thereafter.
   -->
-  <Node Name="BoundSpillSequence" Base="BoundExpression">
+  <Node Name="BoundSpillSequence" Base="BoundExpression" DoesNotSurvive="Spilling">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;"/>

@@ -17311,6 +17311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.ListPatternIndexPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.SlicePatternReceiverPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.SlicePatternRangePlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.TypeOrValueExpression => PipelinePhase.LocalRewriting,
                 BoundKind.UnconvertedAddressOfOperator => PipelinePhase.InitialBinding,
                 BoundKind.UnconvertedConditionalOperator => PipelinePhase.InitialBinding,
                 BoundKind.AwaitableInfo => PipelinePhase.StateMachineRewriting,
@@ -17322,6 +17323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.IfStatement => PipelinePhase.LocalRewriting,
                 BoundKind.UsingStatement => PipelinePhase.LocalRewriting,
                 BoundKind.UnconvertedSwitchExpression => PipelinePhase.InitialBinding,
+                BoundKind.SpillSequence => PipelinePhase.Spilling,
                 BoundKind.UnconvertedObjectCreationExpression => PipelinePhase.InitialBinding,
                 BoundKind.UnconvertedCollectionExpression => PipelinePhase.InitialBinding,
                 BoundKind.TupleLiteral => PipelinePhase.InitialBinding,
@@ -17330,7 +17332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.InterpolatedStringHandlerPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.InterpolatedStringArgumentPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.DeconstructionVariablePendingInference => PipelinePhase.LocalRewriting,
-                _ => PipelinePhase.All
+                _ => PipelinePhase.Emit
             };
         }
     }
