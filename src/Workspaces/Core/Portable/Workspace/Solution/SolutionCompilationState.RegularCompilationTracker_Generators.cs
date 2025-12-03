@@ -128,6 +128,10 @@ internal sealed partial class SolutionCompilationState
             // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
             // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
             // any overlaid 'frozen' source generated documents.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures the call to GetContentsAsync below sees the exact same solution
+            // instance as this call.
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
@@ -197,6 +201,10 @@ internal sealed partial class SolutionCompilationState
             // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
             // side reflects that by asking for the real source generated docs, and *not* any overlaid 'frozen' source
             // generated documents.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures that we see the exact same solution instance on the OOP side as the
+            // call to GetSourceGeneratedDocumentInfoAsync above.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
