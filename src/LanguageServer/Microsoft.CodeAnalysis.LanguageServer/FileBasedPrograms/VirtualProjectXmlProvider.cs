@@ -127,7 +127,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         // This check should not be performed if the core enableFileBasedPrograms setting is disabled
         Contract.ThrowIfFalse(globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms));
 
-        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWithoutDirectives))
+        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
             return false;
 
         var root = await tree.GetRootAsync(cancellationToken);

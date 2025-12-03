@@ -225,11 +225,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     [Theory, CombinatorialData]
     public async Task TestSemanticDiagnosticsNotEnabledWhenFineGrainedFlagDisabled(bool mutatingLspWorkspace)
     {
-        // Verify that using top-level statements does not enable semantic diagnostics when option 'UseFileBasedProgramsWithoutDirectives' is false.
+        // Verify that using top-level statements does not enable semantic diagnostics when option 'EnableFileBasedProgramsWhenAmbiguous' is false.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWithoutDirectives, false)
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous, false)
         });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
@@ -256,7 +256,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.NotEqual(looseDocumentOne, canonicalDocumentOne);
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocumentOne.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
-        // The 'EnableFileBasedProgramsWithoutDirectives' setting is false, and there are no directives, so semantic errors are not expected.
+        // The 'EnableFileBasedProgramsWhenAmbiguous' setting is false, and there are no directives, so semantic errors are not expected.
         Assert.False(canonicalDocumentOne.Project.State.HasAllInformation);
     }
 
