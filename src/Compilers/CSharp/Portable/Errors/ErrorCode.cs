@@ -2453,5 +2453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE: pack numbers and move this up with others
         ERR_UnsafeOperation = 9500,
+        ERR_UnsafeUninitializedStackAlloc = 9501,
     }
 }

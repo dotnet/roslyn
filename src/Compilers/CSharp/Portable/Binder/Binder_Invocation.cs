@@ -2562,7 +2562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
+            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) ||
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated);
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,

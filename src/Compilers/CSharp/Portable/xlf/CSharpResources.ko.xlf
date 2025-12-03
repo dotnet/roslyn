@@ -2587,6 +2587,11 @@
         <target state="new">This operation may only be used in an unsafe context</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
         <target state="translated">구현된 멤버 '{0}'에 이 특성이 없으므로 UnscopedRefAttribute를 인터페이스 구현에 적용할 수 없습니다.</target>
