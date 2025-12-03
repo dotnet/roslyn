@@ -26,6 +26,9 @@ namespace CSharpSyntaxGenerator
         [XmlElement]
         public Comment FactoryComment;
 
+        [XmlAttribute]
+        public string HasValidate;
+
         [XmlElement(ElementName = "Field", Type = typeof(Field))]
         [XmlElement(ElementName = "Choice", Type = typeof(Choice))]
         [XmlElement(ElementName = "Sequence", Type = typeof(Sequence))]

@@ -33,8 +33,8 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
         // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
         if (globalOptions.GetBackgroundAnalysisScope(context.GetRequiredDocument().Project.Language) == BackgroundAnalysisScope.FullSolution)
         {
-            // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
-            return new([new NonLocalDocumentDiagnosticSource(context.GetRequiredDocument(), a => !a.IsCompilerAnalyzer())]);
+            // NOTE: Compiler does not report any non-local diagnostics, so we only ask to run non-compiler-analyzers.
+            return new([new NonLocalDocumentDiagnosticSource(context.GetRequiredDocument(), AnalyzerFilter.NonCompilerAnalyzer)]);
         }
 
         return new([]);

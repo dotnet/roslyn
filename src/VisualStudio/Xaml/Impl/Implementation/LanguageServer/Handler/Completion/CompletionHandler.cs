@@ -31,7 +31,7 @@ internal sealed class CompletionHandler : ILspServiceDocumentRequestHandler<Comp
 {
     private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
-    private static readonly Command s_retriggerCompletionCommand = new Command()
+    private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = StringConstants.RetriggerCompletionCommand,
         Title = "Re-trigger completions"

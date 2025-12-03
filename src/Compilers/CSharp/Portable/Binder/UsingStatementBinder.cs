@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (awaitableTypeOpt is null)
                 {
-                    awaitOpt = new BoundAwaitableInfo(syntax, awaitableInstancePlaceholder: null, isDynamic: true, getAwaiter: null, isCompleted: null, getResult: null) { WasCompilerGenerated = true };
+                    awaitOpt = new BoundAwaitableInfo(syntax, awaitableInstancePlaceholder: null, isDynamic: true, getAwaiter: null, isCompleted: null, getResult: null, runtimeAsyncAwaitCall: null, runtimeAsyncAwaitCallPlaceholder: null) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -200,6 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
                     {
+                        Debug.Assert(!disposeMethod.IsExtensionMethod && !disposeMethod.IsExtensionBlockMember(),
+                            "No extension disposal. See TryFindDisposePatternMethod");
+
                         diagnostics.AddRangeAndFree(patternDiagnostics);
                         MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
@@ -212,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // at the end of the using statement, is on the whole using statement, not on the current expression.
                             usingBinderOpt?._syntax ?? syntax,
                             disposeMethod.Parameters,
+                            extensionReceiver: null,
                             argumentsBuilder,
                             argumentRefKindsBuilder: null,
                             namesBuilder: null,

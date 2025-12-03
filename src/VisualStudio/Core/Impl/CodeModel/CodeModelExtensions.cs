@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 internal static class CodeModelExtensions
 {
     private static readonly SymbolDisplayFormat s_fullNameWithEscapedKeywordsFormat =
-        new SymbolDisplayFormat(
+        new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             propertyStyle: SymbolDisplayPropertyStyle.NameOnly,

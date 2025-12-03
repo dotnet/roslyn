@@ -44,12 +44,7 @@ internal sealed class AssignOutParametersAtStartCodeFixProvider() : AbstractAssi
             return;
         }
 
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                CSharpCodeFixesResources.Assign_out_parameters_at_start,
-                GetDocumentUpdater(context),
-                nameof(CSharpCodeFixesResources.Assign_out_parameters_at_start)),
-            context.Diagnostics);
+        RegisterCodeFix(context, CSharpCodeFixesResources.Assign_out_parameters_at_start, nameof(CSharpCodeFixesResources.Assign_out_parameters_at_start));
     }
 
     protected override void AssignOutParameters(
@@ -64,11 +59,10 @@ internal sealed class AssignOutParametersAtStartCodeFixProvider() : AbstractAssi
                   .OrderBy(p => p.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SpanStart)
                   .ToImmutableArray();
 
-        var statements = GenerateAssignmentStatements(generator, unassignedParameters);
-        var originalStatements = generator.GetStatements(container).ToImmutableArray();
-
-        var finalStatements = statements.AddRange(originalStatements);
-        var updatedContainer = generator.WithStatements(container, finalStatements);
+        var updatedContainer = generator.WithStatements(
+            container,
+            [.. GenerateAssignmentStatements(generator, unassignedParameters),
+             .. generator.GetStatements(container)]);
 
         editor.ReplaceNode(container, updatedContainer);
     }

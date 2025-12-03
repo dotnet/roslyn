@@ -16,6 +16,7 @@ internal static class AsyncEnumerableFactory
     {
         public static readonly IAsyncEnumerable<T> Empty = GetEmptyAsync();
 
+        // Remove after .NET 10, https://github.com/dotnet/roslyn/issues/80198
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async IAsyncEnumerable<T> GetEmptyAsync()
         {
@@ -24,6 +25,7 @@ internal static class AsyncEnumerableFactory
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 
+    // Remove after .NET 10, https://github.com/dotnet/roslyn/issues/80198
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     internal static async IAsyncEnumerable<T> SingletonAsync<T>(T value)
     {

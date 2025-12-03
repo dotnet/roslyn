@@ -5,61 +5,78 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer;
 
-internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>
+internal sealed class AnalyzerSettingsProvider
+    : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>,
+    // So we can unify descriptors across VB/C# to create single settings that apply to both languages.
+    IEqualityComparer<DiagnosticDescriptor>
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-
     public AnalyzerSettingsProvider(
+        IThreadingContext threadingContext,
         string fileName,
         AnalyzerSettingsUpdater settingsUpdater,
         Workspace workspace,
         IGlobalOptionService optionService)
-        : base(fileName, settingsUpdater, workspace, optionService)
+        : base(threadingContext, fileName, settingsUpdater, workspace, optionService)
     {
-        _analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override async Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var analyzerReferences = RoslynEnumerableExtensions.DistinctBy(projectsInScope.SelectMany(p => p.AnalyzerReferences), a => a.Id).ToImmutableArray();
+        using var _ = PooledDictionary<AnalyzerReference, Project>.GetInstance(out var analyzerReferenceToSomeReferencingProject);
+
+        foreach (var project in projectsInScope)
+        {
+            foreach (var analyzerReference in project.AnalyzerReferences)
+                analyzerReferenceToSomeReferencingProject[analyzerReference] = project;
+        }
+
         foreach (var analyzerReference in analyzerReferences)
         {
-            var configSettings = GetSettings(analyzerReference, options.EditorConfigOptions);
+            var someReferencingProject = analyzerReferenceToSomeReferencingProject[analyzerReference];
+            var configSettings = await GetSettingsAsync(
+                someReferencingProject, analyzerReference, options.EditorConfigOptions, cancellationToken).ConfigureAwait(false);
             AddRange(configSettings);
         }
     }
 
-    private IEnumerable<AnalyzerSetting> GetSettings(AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions)
+    private async Task<ImmutableArray<AnalyzerSetting>> GetSettingsAsync(
+        Project someReferencingProject, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
     {
-        IEnumerable<DiagnosticAnalyzer> csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
-        IEnumerable<DiagnosticAnalyzer> visualBasicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
-        var dotnetAnalyzers = csharpAnalyzers.Intersect(visualBasicAnalyzers, DiagnosticAnalyzerComparer.Instance);
-        csharpAnalyzers = csharpAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance);
-        visualBasicAnalyzers = visualBasicAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance);
+        var solution = someReferencingProject.Solution;
+        var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var csharpSettings = ToAnalyzerSetting(csharpAnalyzers, Language.CSharp);
-        var csharpAndVisualBasicSettings = csharpSettings.Concat(ToAnalyzerSetting(visualBasicAnalyzers, Language.VisualBasic));
-        return csharpAndVisualBasicSettings.Concat(ToAnalyzerSetting(dotnetAnalyzers, Language.CSharp | Language.VisualBasic));
+        var csharpDescriptors = await service.GetDiagnosticDescriptorsAsync(solution, someReferencingProject.Id, analyzerReference, LanguageNames.CSharp, cancellationToken).ConfigureAwait(false);
+        var vbDescriptors = await service.GetDiagnosticDescriptorsAsync(solution, someReferencingProject.Id, analyzerReference, LanguageNames.VisualBasic, cancellationToken).ConfigureAwait(false);
 
-        IEnumerable<AnalyzerSetting> ToAnalyzerSetting(IEnumerable<DiagnosticAnalyzer> analyzers,
-                                                               Language language)
+        var dotnetDescriptors = csharpDescriptors.Intersect(vbDescriptors, this).ToImmutableArray();
+
+        return [
+            .. ToAnalyzerSettings(csharpDescriptors.Except(dotnetDescriptors), Language.CSharp),
+            .. ToAnalyzerSettings(vbDescriptors.Except(dotnetDescriptors), Language.VisualBasic),
+            .. ToAnalyzerSettings(dotnetDescriptors, Language.CSharp | Language.VisualBasic)];
+
+        IEnumerable<AnalyzerSetting> ToAnalyzerSettings(
+            IEnumerable<DiagnosticDescriptor> descriptors, Language language)
         {
-            return analyzers
-                .SelectMany(a => _analyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+            return descriptors
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .Select(g =>
@@ -73,35 +90,9 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         }
     }
 
-    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
-    {
-        public static readonly DiagnosticAnalyzerComparer Instance = new();
+    bool IEqualityComparer<DiagnosticDescriptor>.Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+        => x.Id == y.Id;
 
-        public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
-            => (x, y) switch
-            {
-                (null, null) => true,
-                (null, _) => false,
-                (_, null) => false,
-                _ => GetAnalyzerIdAndLastWriteTime(x) == GetAnalyzerIdAndLastWriteTime(y)
-            };
-
-        public int GetHashCode(DiagnosticAnalyzer obj) => GetAnalyzerIdAndLastWriteTime(obj).GetHashCode();
-
-        private static (string analyzerId, DateTime lastWriteTime) GetAnalyzerIdAndLastWriteTime(DiagnosticAnalyzer analyzer)
-        {
-            // Get the unique ID for given diagnostic analyzer.
-            // note that we also put version stamp so that we can detect changed analyzer.
-            var typeInfo = analyzer.GetType().GetTypeInfo();
-            return (analyzer.GetAnalyzerId(), GetAnalyzerLastWriteTime(typeInfo.Assembly.Location));
-        }
-
-        private static DateTime GetAnalyzerLastWriteTime(string path)
-        {
-            if (path == null || !File.Exists(path))
-                return default;
-
-            return File.GetLastWriteTimeUtc(path);
-        }
-    }
+    int IEqualityComparer<DiagnosticDescriptor>.GetHashCode(DiagnosticDescriptor obj)
+        => obj.Id.GetHashCode();
 }

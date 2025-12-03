@@ -119,14 +119,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If getMethod Is Nothing Then
                             getMethod = accessorMethod
                         Else
-                            diagnostics.Add(ERRID.ERR_DuplicatePropertyGet, accessorMethod.Locations(0))
+                            diagnostics.Add(ERRID.ERR_DuplicatePropertyGet, accessorMethod.GetFirstLocation())
                         End If
                     ElseIf accessorKind = SyntaxKind.SetAccessorStatement Then
                         Dim accessorMethod = CreateAccessor(prop, SourceMemberFlags.MethodKindPropertySet, accessorFlags, bodyBinder, accessor, diagnostics)
                         If setMethod Is Nothing Then
                             setMethod = accessorMethod
                         Else
-                            diagnostics.Add(ERRID.ERR_DuplicatePropertySet, accessorMethod.Locations(0))
+                            diagnostics.Add(ERRID.ERR_DuplicatePropertySet, accessorMethod.GetFirstLocation())
                         End If
                     End If
                 Next
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_ReadOnlyHasNoGet, location)
                     End If
                     If setMethod IsNot Nothing Then
-                        diagnostics.Add(ERRID.ERR_ReadOnlyHasSet, setMethod.Locations(0))
+                        diagnostics.Add(ERRID.ERR_ReadOnlyHasSet, setMethod.GetFirstLocation())
                     End If
                 End If
 
@@ -158,14 +158,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_WriteOnlyHasNoWrite, location)
                     End If
                     If getMethod IsNot Nothing Then
-                        diagnostics.Add(ERRID.ERR_WriteOnlyHasGet, getMethod.Locations(0))
+                        diagnostics.Add(ERRID.ERR_WriteOnlyHasGet, getMethod.GetFirstLocation())
                     End If
                 End If
 
                 If (getMethod IsNot Nothing) AndAlso (setMethod IsNot Nothing) Then
                     If (getMethod.LocalAccessibility <> Accessibility.NotApplicable) AndAlso (setMethod.LocalAccessibility <> Accessibility.NotApplicable) Then
                         ' Both accessors have explicit accessibility. Report an error on the second.
-                        Dim accessor = If(getMethod.Locations(0).SourceSpan.Start < setMethod.Locations(0).SourceSpan.Start, setMethod, getMethod)
+                        Dim accessor = If(getMethod.GetFirstLocation().SourceSpan.Start < setMethod.GetFirstLocation().SourceSpan.Start, setMethod, getMethod)
                         diagnostics.Add(ERRID.ERR_OnlyOneAccessorForGetSet, GetAccessorBlockBeginLocation(accessor))
                     ElseIf prop.IsOverridable AndAlso
                         ((getMethod.LocalAccessibility = Accessibility.Private) OrElse (setMethod.LocalAccessibility = Accessibility.Private)) Then
@@ -1248,7 +1248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                 Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
-                                     Locations(0), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                                     GetFirstLocation(), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
                 sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
                 diagnostics.Free()
             End If

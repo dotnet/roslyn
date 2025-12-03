@@ -289,21 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static int GetFullWidth(SyntaxListBuilder? builder)
-        {
-            int width = 0;
-
-            if (builder != null)
-            {
-                for (int i = 0; i < builder.Count; i++)
-                {
-                    width += builder[i]!.FullWidth;
-                }
-            }
-
-            return width;
-        }
-
         private SyntaxToken LexSyntaxToken()
         {
             _leadingTriviaCache.Clear();
@@ -314,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanSyntaxToken(ref tokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             _trailingTriviaCache.Clear();
             this.LexSyntaxTrivia(isFollowingToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
@@ -2209,7 +2194,7 @@ LoopExit:
         {
             if (this.HasErrors)
             {
-                trivia = trivia.WithDiagnosticsGreen(this.GetErrors(leadingTriviaWidth: 0));
+                trivia = trivia.WithDiagnosticsGreen(this.GetErrors());
             }
 
             if (list == null)
@@ -2483,7 +2468,7 @@ top:
             this.Start();
             TokenInfo info = default(TokenInfo);
             this.ScanDirectiveToken(ref info);
-            var errors = this.GetErrors(leadingTriviaWidth: 0);
+            var errors = this.GetErrors();
 
             var directiveTriviaCache = _directiveTriviaCache;
             directiveTriviaCache?.Clear();
@@ -2846,7 +2831,7 @@ top:
 
             this.Start();
             this.ScanXmlToken(ref xmlTokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in xmlTokenInfo, leading, null, errors);
         }
@@ -3202,7 +3187,7 @@ top:
 
             this.Start();
             this.ScanXmlElementTagToken(ref tagInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             // PERF: De-dupe common XML element tags
             if (errors == null && tagInfo.ContextualKind == SyntaxKind.None && tagInfo.Kind == SyntaxKind.IdentifierToken)
@@ -3388,7 +3373,7 @@ top:
 
             this.Start();
             this.ScanXmlAttributeTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -3542,7 +3527,7 @@ top:
 
             this.Start();
             this.ScanXmlCharacter(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -3598,7 +3583,7 @@ top:
 
             this.Start();
             this.ScanXmlCrefToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4010,7 +3995,7 @@ top:
 
             this.Start();
             this.ScanXmlCDataSectionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4132,7 +4117,7 @@ top:
 
             this.Start();
             this.ScanXmlCommentTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4262,7 +4247,7 @@ top:
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }

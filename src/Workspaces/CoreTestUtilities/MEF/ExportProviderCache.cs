@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -21,11 +20,11 @@ public static class ExportProviderCache
 {
     private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
 
-    private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
-        .AddAssemblies(MefHostServices.DefaultAssemblies)
+    private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Default
         .AddParts(typeof(TestSerializerService.Factory));
-    private static readonly Scope _localCompositionScope = new Scope("local");
-    private static readonly Scope _remoteCompositionScope = new Scope("remote");
+
+    private static readonly Scope _localCompositionScope = new("local");
+    private static readonly Scope _remoteCompositionScope = new("remote");
 
     internal static bool Enabled { get; private set; }
 

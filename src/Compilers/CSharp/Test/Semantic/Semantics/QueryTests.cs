@@ -2713,7 +2713,7 @@ public class QueryExpressionTest
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
-            var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
+            var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let namespace = expr1 select i").Single();
             var symbolInfo = semanticModel.GetSemanticInfoSummary(queryExpr);
 
             Assert.Null(symbolInfo.Symbol);
@@ -3199,7 +3199,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?, IsInvalid) (Syntax: 'x')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0186: Use of null is not valid in this context
@@ -3246,7 +3246,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?, IsInvalid) (Syntax: 'x')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1936: Could not find an implementation of the query pattern for source type 'anonymous method'.  'Select' not found.
@@ -4738,6 +4738,53 @@ Console.WriteLine(string.Join(string.Empty, test));
                 // (6,12): error CS8332: Cannot assign to a member of field 'V' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     select r.V.F++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "r.V.F").WithArguments("field", "V").WithLocation(6, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+        public void PropertyAccess_Instance()
+        {
+            var code = """
+                using System.Linq;
+
+                var f = new F();
+                var r = from string s in f.M from string s2 in f.M2 select s.ToString();
+                foreach (var x in r)
+                {
+                    System.Console.Write(x.ToString());
+                }
+
+                public class F
+                {
+                    public object[] M => ["ran"];
+                    public object[] M2 => [""];
+                }
+                """;
+
+            var comp = CreateCompilation(code);
+            CompileAndVerify(code, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+        public void PropertyAccess_Static()
+        {
+            var code = """
+                using System.Linq;
+
+                var r = from string s in F.M from string s2 in F.M2 select s.ToString();
+                foreach (var x in r)
+                {
+                    System.Console.Write(x.ToString());
+                }
+
+                public static class F
+                {
+                    public static object[] M => ["ran"];
+                    public static object[] M2 => [""];
+                }
+                """;
+
+            var comp = CreateCompilation(code);
+            CompileAndVerify(code, expectedOutput: "ran").VerifyDiagnostics();
         }
     }
 }

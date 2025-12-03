@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerOptions(additionalFiles);
         }
 
+        internal AnalyzerOptions WithAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
+            => this.AnalyzerConfigOptionsProvider == optionsProvider
+                ? this
+                : new(this.AdditionalFiles, optionsProvider);
+
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))

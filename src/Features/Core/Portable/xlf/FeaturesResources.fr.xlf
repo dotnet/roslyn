@@ -885,6 +885,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Un seul assembly trouvé : '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Générer des opérateurs de comparaison</target>
@@ -2575,11 +2580,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Le changement de nom d’une variable capturée, de « {0} » à « {1} », requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Le changement de nom des membres de type anonyme n'est pas encore pris en charge.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>
@@ -3613,6 +3613,11 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
         <target state="translated">Rapport</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
       </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="external">
         <source>external</source>
         <target state="translated">externe</target>
@@ -3930,11 +3935,6 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
         <target state="translated">Générer Equals et GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Générer Equals(object)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Générer GetHashCode()</target>
@@ -4145,8 +4145,8 @@ Voulez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Modifier la signature...</target>
-        <note />
+        <target state="needs-review-translation">Modifier la signature...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

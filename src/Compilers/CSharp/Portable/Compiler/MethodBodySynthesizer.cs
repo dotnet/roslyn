@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = (SourcePropertySymbolBase)accessor.AssociatedSymbol;
             CSharpSyntaxNode syntax = property.CSharpSyntaxNode;
             BoundExpression thisReference = null;
-            if (!accessor.IsStatic)
+            if (!accessor.IsStatic && !accessor.IsExtensionBlockMember())
             {
                 var thisSymbol = accessor.ThisParameter;
                 thisReference = new BoundThisReference(syntax, thisSymbol.Type) { WasCompilerGenerated = true };
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // _tokenTable
             BoundFieldAccess fieldAccess = new BoundFieldAccess(
                 syntax,
-                field.IsStatic ? null : new BoundThisReference(syntax, accessor.ThisParameter.Type),
+                field.IsStatic || field.ContainingSymbol is NamedTypeSymbol { IsExtension: true } ? null : new BoundThisReference(syntax, accessor.ThisParameter.Type),
                 field,
                 constantValueOpt: null)
             { WasCompilerGenerated = true };
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder.ReportUseSite(updateMethod, diagnostics, syntax);
 
-            BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
+            BoundThisReference fieldReceiver = eventSymbol.IsStatic || eventSymbol.ContainingSymbol is NamedTypeSymbol { IsExtension: true } ?
                 null :
                 new BoundThisReference(syntax, thisParameter.Type) { WasCompilerGenerated = true };
 

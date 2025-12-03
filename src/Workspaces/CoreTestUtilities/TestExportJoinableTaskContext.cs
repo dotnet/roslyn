@@ -120,7 +120,7 @@ internal sealed partial class TestExportJoinableTaskContext
             var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
             if (type != null)
             {
-                type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, thread);
+                type.GetField("s_foregroundThread", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, thread);
                 type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, taskScheduler);
 
                 break;

@@ -114,13 +114,11 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                     {
                         canBeSingleLine = false;
                     }
-                    else if (interpolatedStringText == firstContent &&
-                        characters.First().Rune.Value == '"')
+                    else if (interpolatedStringText == firstContent && characters[0] == '"')
                     {
                         canBeSingleLine = false;
                     }
-                    else if (interpolatedStringText == lastContent &&
-                        characters.Last().Rune.Value == '"')
+                    else if (interpolatedStringText == lastContent && characters[^1] == '"')
                     {
                         canBeSingleLine = false;
                     }
@@ -131,7 +129,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                 // the user may be invoking this on lots of strings that they have no interest in converting.
                 if (priority == CodeActionPriority.Low &&
                     AllEscapesAre(characters,
-                        static c => c.Utf16SequenceLength == 1 && (char)c.Value is '"' or '{' or '}'))
+                        static c => c.Value is '"' or '{' or '}'))
                 {
                     priority = CodeActionPriority.Default;
                 }

@@ -37,7 +37,7 @@ public sealed class StatementMatchingTests : EditingTestBase
 
         var knownMatches = new KeyValuePair<SyntaxNode, SyntaxNode>[]
         {
-            new KeyValuePair<SyntaxNode, SyntaxNode>(((BlockSyntax)m1.RootNodes.First()).Statements[1], ((BlockSyntax)m2.RootNodes.First()).Statements[0])
+            new(((BlockSyntax)m1.RootNodes.First()).Statements[1], ((BlockSyntax)m2.RootNodes.First()).Statements[0])
         };
 
         // pre-matched:

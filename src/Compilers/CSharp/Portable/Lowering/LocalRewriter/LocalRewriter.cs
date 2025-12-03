@@ -1049,6 +1049,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Used for Length or Count properties only which are effectively readonly.
                     return true;
 
+                case BoundKind.AwaitableValuePlaceholder:
+                    // AwaitableValuePlaceholder that makes it here is always a parameter to a runtime async AsyncHelper method,
+                    // and are always passed by value.
+                    return false;
+
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
                     if (eventAccess.IsUsableAsField)
@@ -1138,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
         {
-            if (member.GetIsNewExtensionMember())
+            if (member.IsExtensionBlockMember())
             {
                 Debug.Assert(!member.IsStatic);
                 ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
@@ -1195,6 +1200,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
             {
                 Fail(node);
                 return null;

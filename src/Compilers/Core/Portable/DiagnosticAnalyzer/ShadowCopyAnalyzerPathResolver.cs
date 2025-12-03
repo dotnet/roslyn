@@ -5,19 +5,24 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Reflection;
-using System.Globalization;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
+        private enum DirectoryCleanupState
+        {
+            InProgress,
+            Completed
+        }
+
+        private static readonly ConcurrentDictionary<string, DirectoryCleanupState> s_directoryCleanupStates = new(AnalyzerAssemblyLoader.OriginalPathComparer);
+
         /// <summary>
         /// The base directory for shadow copies. Each instance of
         /// <see cref="ShadowCopyAnalyzerPathResolver"/> gets its own
@@ -91,62 +96,88 @@ namespace Microsoft.CodeAnalysis
 
         private void DeleteLeftoverDirectories()
         {
-            // Avoid first chance exception
-            if (!Directory.Exists(BaseDirectory))
+            if (!s_directoryCleanupStates.TryAdd(BaseDirectory, DirectoryCleanupState.InProgress))
+            {
+                // Someone else is already cleaning up this directory. Wait until it's completed
+                SpinWait.SpinUntil(() => s_directoryCleanupStates[BaseDirectory] == DirectoryCleanupState.Completed, millisecondsTimeout: -1);
                 return;
+            }
 
-            IEnumerable<string> subDirectories;
             try
             {
-                subDirectories = Directory.EnumerateDirectories(BaseDirectory);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                return;
-            }
+                // Avoid first chance exception
+                if (!Directory.Exists(BaseDirectory))
+                    return;
 
-            foreach (var subDirectory in subDirectories)
-            {
-                string name = Path.GetFileName(subDirectory).ToLowerInvariant();
-                Mutex? mutex = null;
+                IEnumerable<string> subDirectories;
                 try
                 {
-                    // We only want to try deleting the directory if no-one else is currently
-                    // using it. That is, if there is no corresponding mutex.
-                    if (!Mutex.TryOpenExisting(name, out mutex))
+                    subDirectories = Directory.EnumerateDirectories(BaseDirectory);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return;
+                }
+
+                foreach (var subDirectory in subDirectories)
+                {
+                    string name = Path.GetFileName(subDirectory).ToLowerInvariant();
+                    Mutex? mutex = null;
+                    try
                     {
-                        try
+                        // We only want to try deleting the directory if no-one else is currently
+                        // using it. That is, if there is no corresponding mutex.
+                        if (!Mutex.TryOpenExisting(name, out mutex))
                         {
-                            // Avoid calling ClearReadOnlyFlagOnFiles before calling Directory.Delete. In general, files
-                            // created by the shadow copy should not be marked read-only (CopyFile also clears the
-                            // read-only flag), and clearing the read-only flag for the entire directory requires
-                            // significant disk access.
-                            //
-                            // If the deletion fails for an IOException, it may have been the result of a file being
-                            // marked read-only. We catch that exception and perform an explicit clear before trying
-                            // again.
-                            Directory.Delete(subDirectory, recursive: true);
-                        }
-                        catch (IOException)
-                        {
-                            // Retry after clearing the read-only flag
-                            ClearReadOnlyFlagOnFiles(subDirectory);
-                            Directory.Delete(subDirectory, recursive: true);
+                            try
+                            {
+                                // Avoid calling ClearReadOnlyFlagOnFiles before calling Directory.Delete. In general, files
+                                // created by the shadow copy should not be marked read-only (CopyFile also clears the
+                                // read-only flag), and clearing the read-only flag for the entire directory requires
+                                // significant disk access.
+                                //
+                                // If the deletion fails for an IOException, it may have been the result of a file being
+                                // marked read-only. We catch that exception and perform an explicit clear before trying
+                                // again.
+                                //
+                                // It's possible for us to race with multiple shadow copy instances trying to delete the
+                                // same directory. If that happens, we may get a DirectoryNotFoundException. We
+                                // explicitly ignore that exception as it means our work is already done.
+                                // This isn't a perfect check, as two processes could race here, but it's close enough.
+                                if (Directory.Exists(subDirectory))
+                                {
+                                    try
+                                    {
+                                        Directory.Delete(subDirectory, recursive: true);
+                                    }
+                                    catch (DirectoryNotFoundException)
+                                    {
+                                        // Another process beat us to it. Nothing to do.
+                                    }
+                                }
+                            }
+                            catch (IOException)
+                            {
+                                // Retry after clearing the read-only flag
+                                ClearReadOnlyFlagOnFiles(subDirectory);
+                                Directory.Delete(subDirectory, recursive: true);
+                            }
                         }
                     }
-                }
-                catch
-                {
-                    // If something goes wrong we will leave it to the next run to clean up.
-                    // Just swallow the exception and move on.
-                }
-                finally
-                {
-                    if (mutex != null)
+                    catch
                     {
-                        mutex.Dispose();
+                        // If something goes wrong we will leave it to the next run to clean up.
+                        // Just swallow the exception and move on.
+                    }
+                    finally
+                    {
+                        mutex?.Dispose();
                     }
                 }
+            }
+            finally
+            {
+                s_directoryCleanupStates[BaseDirectory] = DirectoryCleanupState.Completed;
             }
         }
 
@@ -182,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
             var originalDirName = Path.GetDirectoryName(analyzerFilePath)!;
-            var shadowDirName = OriginalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
+            var shadowDirName = OriginalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString(System.Globalization.CultureInfo.InvariantCulture);
             return Path.Combine(ShadowDirectory, shadowDirName);
         }
 
@@ -266,6 +297,5 @@ namespace Microsoft.CodeAnalysis
                 // There are many reasons this could fail. Ignore it and keep going.
             }
         }
-
     }
 }

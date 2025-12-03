@@ -199,7 +199,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         {
             var structuralTypeParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
+                new(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
             };
 
             structuralTypeParts.AddRange(info.TypesParts);

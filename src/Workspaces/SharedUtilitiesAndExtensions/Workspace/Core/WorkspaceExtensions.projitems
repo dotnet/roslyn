@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\AbstractFixAllSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\IFixAllSpanMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\MultiProjectSafeFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeAndImportGenerationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProviders.cs" />
@@ -96,7 +97,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />

@@ -5,6 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -5709,4 +5710,154 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80471")]
+    public Task TestNeedForCast1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private void CodeFixErrorRepro_OldEnumerables()
+                    {
+                        ArrayList arrayList = [1, 2, 3];
+
+                        List<int> stronglyTypedList = [|new|]();
+                        [|foreach (int i in |]arrayList)
+                        {
+                            stronglyTypedList.Add(i);
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
+                
+                class C
+                {
+                    private void CodeFixErrorRepro_OldEnumerables()
+                    {
+                        ArrayList arrayList = [1, 2, 3];
+                
+                        List<int> stronglyTypedList = [.. arrayList.Cast<int>()];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
+    public Task TestNotInCollectionBuilderMethod()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
+    public Task TestCollectionBuilderOutsideMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection<int> c = [|new|]();
+                    [|c.Add(|]1);
+                }
+            }
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection<int> c = [1];
+                }
+            }
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
 }
+

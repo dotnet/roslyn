@@ -486,6 +486,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 foreach (var type in types)
                 {
+                    if (type.IsExtension)
+                    {
+                        // This symbol represents an extension block, not the marker type itself.  
+                        continue;
+                    }
+
                     bool added;
                     added = TypeHandleToTypeMap.TryAdd(type.Handle, type);
                     Debug.Assert(added);

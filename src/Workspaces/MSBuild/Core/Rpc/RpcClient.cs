@@ -30,13 +30,13 @@ internal sealed class RpcClient
     /// <summary>
     /// A semaphore taken to synchronize all writes to <see cref="_stream"/>.
     /// </summary>
-    private readonly SemaphoreSlim _streamWritingSemaphore = new SemaphoreSlim(initialCount: 1);
+    private readonly SemaphoreSlim _streamWritingSemaphore = new(initialCount: 1);
     private readonly TextReader _receivingStreamReader;
 
     private readonly ConcurrentDictionary<int, (TaskCompletionSource<object?>, System.Type? expectedReturnType)> _outstandingRequests = [];
     private volatile int _nextRequestId = 0;
 
-    private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+    private readonly CancellationTokenSource _shutdownTokenSource = new();
 
     public RpcClient(PipeStream stream)
     {

@@ -689,7 +689,7 @@ internal sealed class GenerateTypeDialogViewModel : AbstractNotifyPropertyChange
         {
             // Populate the project list
             // Add the current project
-            new ProjectSelectItem(document.Project)
+            new(document.Project)
         };
 
         // Add the rest of the projects

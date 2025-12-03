@@ -27,11 +27,18 @@ internal static class MiscellaneousFileUtilities
         var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
 
-        // For Razor files we need to override the language name to C# as thats what code is generated
-        var isRazor = languageInformation.LanguageName == "Razor";
-        var languageName = isRazor ? LanguageNames.CSharp : languageInformation.LanguageName;
-
+        var languageName = languageInformation.LanguageName;
         var languageServices = services.GetLanguageServices(languageName);
+        var miscellaneousProjectInfoService = languageServices.GetService<IMiscellaneousProjectInfoService>();
+
+        if (miscellaneousProjectInfoService is not null)
+        {
+            // The MiscellaneousProjectInfoService can override the language name to use for the project, and therefore we have to re-get
+            // the right set of language services.
+            languageName = miscellaneousProjectInfoService.ProjectLanguageOverride;
+            languageServices = services.GetLanguageServices(languageName);
+        }
+
         var compilationOptions = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
 
         // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
@@ -40,13 +47,14 @@ internal static class MiscellaneousFileUtilities
 
         if (parseOptions != null &&
             compilationOptions != null &&
+            languageInformation.ScriptExtension is not null &&
             fileExtension == languageInformation.ScriptExtension)
         {
             parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
             compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
         }
 
-        if (parseOptions != null && fileExtension != languageInformation.ScriptExtension)
+        if (parseOptions != null && languageInformation.ScriptExtension is not null && fileExtension != languageInformation.ScriptExtension)
         {
             // Any non-script misc file should not complain about usage of '#:' ignored directives.
             parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
@@ -67,6 +75,7 @@ internal static class MiscellaneousFileUtilities
         // a random GUID can be used.
         var assemblyName = Guid.NewGuid().ToString("N");
 
+        var addAsAdditionalDocument = miscellaneousProjectInfoService?.AddAsAdditionalDocument ?? false;
         var projectInfo = ProjectInfo.Create(
             new ProjectInfo.ProjectAttributes(
                 id: projectId,
@@ -81,9 +90,10 @@ internal static class MiscellaneousFileUtilities
                 hasAllInformation: sourceCodeKind == SourceCodeKind.Script),
             compilationOptions: compilationOptions,
             parseOptions: parseOptions,
-            documents: isRazor ? null : [documentInfo],
-            additionalDocuments: isRazor ? [documentInfo] : null,
-            metadataReferences: metadataReferences);
+            documents: addAsAdditionalDocument ? null : [documentInfo],
+            additionalDocuments: addAsAdditionalDocument ? [documentInfo] : null,
+            metadataReferences: metadataReferences,
+            analyzerReferences: miscellaneousProjectInfoService?.GetAnalyzerReferences(services));
 
         return projectInfo;
     }
@@ -112,9 +122,9 @@ internal static class MiscellaneousFileUtilities
     }
 }
 
-internal sealed class LanguageInformation(string languageName, string scriptExtension)
+internal sealed class LanguageInformation(string languageName, string? scriptExtension)
 {
     public string LanguageName { get; } = languageName;
-    public string ScriptExtension { get; } = scriptExtension;
+    public string? ScriptExtension { get; } = scriptExtension;
 }
 

@@ -165,20 +165,17 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return service;
     }
 
-    internal async Task<DebuggingSession> StartDebuggingSessionAsync(
+    internal DebuggingSession StartDebuggingSession(
         EditAndContinueService service,
         Solution solution,
         CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
         IPdbMatchingSourceTextProvider? sourceTextProvider = null)
     {
-        var sessionId = await service.StartDebuggingSessionAsync(
+        var sessionId = service.StartDebuggingSession(
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: false,
-            reportDiagnostics: true,
-            CancellationToken.None);
+            reportDiagnostics: true);
 
         var session = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
@@ -392,7 +389,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         if (generatorProject != null)
         {
             var generators = generatorProject.AnalyzerReferences.SelectMany(r => r.GetGenerators(language: generatorProject.Language));
-            var driverOptions = new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory()!);
+            var driverOptions = new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
 
             var optionsProvider = (analyzerOptions != null) ? new EditAndContinueTestAnalyzerConfigOptionsProvider(analyzerOptions) : null;
             var additionalTexts = (additionalFileText != null) ? new[] { new InMemoryAdditionalText("additional_file", additionalFileText) } : null;
@@ -403,7 +400,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
                 generatorDriver = CSharpGeneratorDriver.Create(
                     generators,
                     additionalTexts,
-                    csParseOptions!,
+                    csParseOptions,
                     optionsProvider,
                     driverOptions);
             }
@@ -412,7 +409,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
                 generatorDriver = VisualBasic.VisualBasicGeneratorDriver.Create(
                     [.. generators],
                     additionalTexts.ToImmutableArrayOrEmpty<AdditionalText>(),
-                    vbParseOptions!,
+                    vbParseOptions,
                     optionsProvider,
                     driverOptions);
             }
@@ -470,7 +467,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     }
 
     internal static TextSpan GetSpan(string str, string substr)
-        => new TextSpan(str.IndexOf(substr), substr.Length);
+        => new(str.IndexOf(substr), substr.Length);
 
     internal static void VerifyReadersDisposed(IEnumerable<IDisposable> readers)
     {

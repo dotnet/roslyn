@@ -181,7 +181,7 @@ struct S
         }
 
         [Fact]
-        public void RefReassignLifetimeIsLHS()
+        public void RefReassignLifetimeIsRHS()
         {
             var comp = CreateCompilation(@"
 class C
@@ -193,10 +193,7 @@ class C
         return ref (rx = ref (new int[1])[0]);
     }
 }");
-            comp.VerifyDiagnostics(
-                // (8,21): error CS8157: Cannot return 'rx' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref (rx = ref (new int[1])[0]);
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "rx = ref (new int[1])[0]").WithArguments("rx").WithLocation(8, 21));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3807,10 +3804,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics(
-                // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async void Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(6, 23));
+            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics();
         }
 
         [Fact]

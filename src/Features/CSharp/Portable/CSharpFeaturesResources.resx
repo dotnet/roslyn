@@ -587,4 +587,44 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
+  <data name="Build_property_value" xml:space="preserve">
+    <value>Value</value>
+    <comment>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</comment>
+  </data>
+  <data name="Build_property_name" xml:space="preserve">
+    <value>Name</value>
+    <comment>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</comment>
+  </data>
+  <data name="Package_name" xml:space="preserve">
+    <value>Name</value>
+    <comment>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</comment>
+  </data>
+  <data name="Package_version" xml:space="preserve">
+    <value>Version</value>
+    <comment>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</comment>
+  </data>
+  <data name="Project_directive_file_path" xml:space="preserve">
+    <value>path</value>
+    <comment>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</comment>
+  </data>
+  <data name="Adds_an_SDK_reference" xml:space="preserve">
+    <value>Adds an SDK reference.</value>
+  </data>
+  <data name="Defines_a_build_property" xml:space="preserve">
+    <value>Defines a build property.</value>
+  </data>
+  <data name="Adds_a_NuGet_package_reference" xml:space="preserve">
+    <value>Adds a NuGet package reference.</value>
+  </data>
+  <data name="Adds_a_project_reference" xml:space="preserve">
+    <value>Adds a project reference.</value>
+  </data>
+  <data name="Add_using_0" xml:space="preserve">
+    <value>Add 'using {0};'</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_using_0_and_simplify_all_occurrences" xml:space="preserve">
+    <value>Add 'using {0};' and simplify all occurrences</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

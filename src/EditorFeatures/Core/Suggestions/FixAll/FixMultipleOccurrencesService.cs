@@ -9,15 +9,15 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
 /// <summary>
-/// Service to compute and apply <see cref="FixMultipleCodeAction"/> code fixes.
+/// Service to compute and apply <see cref="RefactorOrFixAllCodeAction"/> code fixes.
 /// </summary>
 [ExportWorkspaceService(typeof(IFixMultipleOccurrencesService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
@@ -68,7 +68,8 @@ internal sealed class FixMultipleOccurrencesService() : IFixMultipleOccurrencesS
         IProgress<CodeAnalysisProgress> progress,
         CancellationToken cancellationToken)
     {
-        var fixMultipleCodeAction = new FixMultipleCodeAction(fixAllState, title, waitDialogMessage);
+        var fixMultipleCodeAction = new RefactorOrFixAllCodeAction(
+            fixAllState, showPreviewChangesDialog: false, title, waitDialogMessage);
 
         Solution newSolution = null;
         var extensionManager = workspace.Services.GetService<IExtensionManager>();

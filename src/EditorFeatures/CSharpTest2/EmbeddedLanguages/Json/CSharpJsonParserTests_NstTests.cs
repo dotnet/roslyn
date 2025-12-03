@@ -17,7 +17,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
         var (_, tree, allChars) = JustParseTree(stringText, JsonOptions.Strict, conversionFailureOk: false);
         Assert.NotNull(tree);
         Contract.ThrowIfNull(tree);
-        var actualTree = TreeToText(tree!).Replace("""
+        var actualTree = TreeToText(tree).Replace("""
             "
             """, """
             ""
@@ -4724,12 +4724,12 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     """
     <Diagnostics>
-      <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
+      <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """,
     """
     <Diagnostics>
-      <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
+      <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
 

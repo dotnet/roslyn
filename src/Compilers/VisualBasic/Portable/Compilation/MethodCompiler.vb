@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Deleted definitions must be emitted before PrivateImplementationDetails are frozen since
                 ' it may add new members to it. All changes to PrivateImplementationDetails are additions,
                 ' so we don't need to create deleted method defs for those.
-                moduleBeingBuiltOpt.CreateDeletedMethodDefinitions(diagnostics.DiagnosticBag)
+                moduleBeingBuiltOpt.CreateDeletedMemberDefinitions(diagnostics.DiagnosticBag)
 
                 ' all threads that were adding methods must be finished now, we can freeze the class:
                 Dim privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails()
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceTypeBinder As Binder = If(method.MethodKind = MethodKind.Ordinary, Nothing,
                                                     BinderBuilder.CreateBinderForType(
                                                         DirectCast(method.ContainingModule, SourceModuleSymbol),
-                                                        method.ContainingType.Locations(0).PossiblyEmbeddedOrMySourceTree(),
+                                                        method.ContainingType.GetFirstLocation().PossiblyEmbeddedOrMySourceTree(),
                                                         method.ContainingType))
 
             ' Since embedded method bodies don't produce synthesized methods (see the assertion below)
@@ -593,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(sourceTypeSymbol.Locations.Length > 0)
                 sourceTypeBinder = BinderBuilder.CreateBinderForType(
                                         DirectCast(sourceTypeSymbol.ContainingModule, SourceModuleSymbol),
-                                        sourceTypeSymbol.Locations(0).PossiblyEmbeddedOrMySourceTree,
+                                        sourceTypeSymbol.GetFirstLocation().PossiblyEmbeddedOrMySourceTree,
                                         sourceTypeSymbol)
 
                 processedStaticInitializers = New Binder.ProcessedFieldOrPropertyInitializers(Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
@@ -1165,7 +1165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.Add(
                     New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_SubNewCycle1, referencingMethod,
                                                           New CompoundDiagnosticInfo(diagnosticInfos.ToArray())),
-                                   referencingMethod.Locations(0)))
+                                   referencingMethod.GetFirstLocation()))
 
                 '  Rotate 'diagnosticInfos' for the next constructor
                 If diagnosticInfos.Count > 1 Then
@@ -1980,12 +1980,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Synthesized constructor
                             diagnostics.Add(New VBDiagnostic(
                                                 ErrorFactory.ErrorInfo(ERRID.ERR_NoUniqueConstructorOnBase2, containingType, containingType.BaseTypeNoUseSiteDiagnostics),
-                                                containingType.Locations(0)))
+                                                containingType.GetFirstLocation()))
                         Else
                             ' Regular constructor
                             diagnostics.Add(New VBDiagnostic(
                                                 ErrorFactory.ErrorInfo(ERRID.ERR_RequiredNewCallTooMany2, defaultConstructorType, containingType),
-                                                constructor.Locations(0)))
+                                                constructor.GetFirstLocation()))
                         End If
 
                         Return candidate
@@ -2007,12 +2007,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Synthesized constructor
                         diagnostics.Add(New VBDiagnostic(
                                             ErrorFactory.ErrorInfo(ERRID.ERR_NoConstructorOnBase2, containingType, containingType.BaseTypeNoUseSiteDiagnostics),
-                                            containingType.Locations(0)))
+                                            containingType.GetFirstLocation()))
                     Else
                         ' Regular constructor
                         diagnostics.Add(New VBDiagnostic(
                                             ErrorFactory.ErrorInfo(ERRID.ERR_RequiredNewCall2, defaultConstructorType, containingType),
-                                            constructor.Locations(0)))
+                                            constructor.GetFirstLocation()))
                     End If
 
                 Else
@@ -2021,7 +2021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       in *all* cases, so changing the error location to containingType's location
                     diagnostics.Add(New VBDiagnostic(
                                         ErrorFactory.ErrorInfo(ERRID.ERR_NoAccessibleConstructorOnBase, containingType.BaseTypeNoUseSiteDiagnostics),
-                                        containingType.Locations(0)))
+                                        containingType.GetFirstLocation()))
                 End If
             End If
 
@@ -2041,13 +2041,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Synthesized constructor.
                         If String.IsNullOrEmpty(data.Message) Then
                             diagnostics.Add(If(data.IsError, ERRID.ERR_NoNonObsoleteConstructorOnBase3, ERRID.WRN_NoNonObsoleteConstructorOnBase3),
-                                            containingType.Locations(0),
+                                            containingType.GetFirstLocation(),
                                             containingType,
                                             candidate,
                                             containingType.BaseTypeNoUseSiteDiagnostics)
                         Else
                             diagnostics.Add(If(data.IsError, ERRID.ERR_NoNonObsoleteConstructorOnBase4, ERRID.WRN_NoNonObsoleteConstructorOnBase4),
-                                            containingType.Locations(0),
+                                            containingType.GetFirstLocation(),
                                             containingType,
                                             candidate,
                                             containingType.BaseTypeNoUseSiteDiagnostics,
@@ -2057,13 +2057,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Regular constructor.
                         If String.IsNullOrEmpty(data.Message) Then
                             diagnostics.Add(If(data.IsError, ERRID.ERR_RequiredNonObsoleteNewCall3, ERRID.WRN_RequiredNonObsoleteNewCall3),
-                                            constructor.Locations(0),
+                                            constructor.GetFirstLocation(),
                                             candidate,
                                             containingType.BaseTypeNoUseSiteDiagnostics,
                                             containingType)
                         Else
                             diagnostics.Add(If(data.IsError, ERRID.ERR_RequiredNonObsoleteNewCall4, ERRID.WRN_RequiredNonObsoleteNewCall4),
-                                            constructor.Locations(0),
+                                            constructor.GetFirstLocation(),
                                             candidate,
                                             containingType.BaseTypeNoUseSiteDiagnostics,
                                             containingType,

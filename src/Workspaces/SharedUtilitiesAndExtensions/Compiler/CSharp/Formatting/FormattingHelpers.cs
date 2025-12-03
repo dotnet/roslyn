@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -216,15 +217,17 @@ internal static class FormattingHelpers
             token.Parent.IsAnyArgumentList();
     }
 
-    public static bool IsParenInParenthesizedExpression(this SyntaxToken token)
+    public static bool IsCommaInVariableDeclaration(this SyntaxToken token)
     {
-        if (token.Parent is not ParenthesizedExpressionSyntax parenthesizedExpression)
-        {
-            return false;
-        }
-
-        return parenthesizedExpression.OpenParenToken.Equals(token) || parenthesizedExpression.CloseParenToken.Equals(token);
+        return token.Kind() == SyntaxKind.CommaToken &&
+            token.Parent.IsKind(SyntaxKind.VariableDeclaration);
     }
+
+    public static bool IsOpenParenOfParenthesizedExpression(this SyntaxToken token)
+        => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.OpenParenToken.Equals(token);
+
+    public static bool IsCloseParenOfParenthesizedExpression(this SyntaxToken token)
+        => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.CloseParenToken.Equals(token);
 
     public static bool IsParenInArgumentList(this SyntaxToken token)
     {
@@ -371,11 +374,7 @@ internal static class FormattingHelpers
     }
 
     public static bool IsNestedQueryExpression(this SyntaxToken token)
-    {
-        return token.Kind() == SyntaxKind.InKeyword &&
-               token.Parent is FromClauseSyntax fromClause &&
-               fromClause.Expression is QueryExpressionSyntax;
-    }
+        => token.Kind() == SyntaxKind.InKeyword && token.Parent is FromClauseSyntax { Expression: QueryExpressionSyntax };
 
     public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
     {
@@ -525,9 +524,7 @@ internal static class FormattingHelpers
     /// </summary>
     public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
     {
-        return currentToken.Kind() == SyntaxKind.OpenParenToken &&
-            currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
-            currentToken.Parent.Parent is DeclarationExpressionSyntax;
+        return currentToken.Kind() == SyntaxKind.OpenParenToken && currentToken is { Parent: ParenthesizedVariableDesignationSyntax, Parent.Parent: DeclarationExpressionSyntax };
     }
 
     /// <summary>
@@ -539,6 +536,26 @@ internal static class FormattingHelpers
             currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
     }
 
+    public static bool IsCommaInTupleType(this SyntaxToken currentToken)
+    {
+        return currentToken.IsKind(SyntaxKind.CommaToken) &&
+            currentToken.Parent.IsKind(SyntaxKind.TupleType);
+    }
+
+    public static bool IsCommaInParenthesizedVariableDesignation(this SyntaxToken currentToken)
+    {
+        return currentToken.IsKind(SyntaxKind.CommaToken) &&
+            currentToken.Parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation);
+    }
+
     public static bool IsCommaInCollectionExpression(this SyntaxToken token)
         => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.CollectionExpression);
+
+    public static bool AreOnSameLine(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        Debug.Assert(previousToken != default);
+        Debug.Assert(currentToken != default);
+        Debug.Assert(previousToken.FullSpan.End == currentToken.FullSpan.Start);
+        return !previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) && !currentToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+    }
 }

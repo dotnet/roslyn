@@ -75,18 +75,19 @@ internal sealed class HostDiagnosticAnalyzers
     public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> GetOrCreateHostDiagnosticAnalyzersPerReference(string language)
         => _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache)
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(
+        DiagnosticAnalyzerInfoCache infoCache,
+        Project? project)
     {
-        return ConvertReferenceIdentityToName(
-            CreateDiagnosticDescriptorsPerReference(infoCache, _lazyHostDiagnosticAnalyzersPerReferenceMap.Value),
-            _hostAnalyzerReferencesMap);
-    }
+        var descriptorsPerReference = project is null
+            ? CreateDiagnosticDescriptorsPerReference(infoCache, _lazyHostDiagnosticAnalyzersPerReferenceMap.Value)
+            : CreateDiagnosticDescriptorsPerReference(infoCache, CreateDiagnosticAnalyzersPerReference(project));
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache, Project project)
-    {
-        var descriptorPerReference = CreateDiagnosticDescriptorsPerReference(infoCache, CreateDiagnosticAnalyzersPerReference(project));
-        var map = _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(project.AnalyzerReferences));
-        return ConvertReferenceIdentityToName(descriptorPerReference, map);
+        var map = project is null
+            ? _hostAnalyzerReferencesMap
+            : _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(project.AnalyzerReferences));
+
+        return ConvertReferenceIdentityToName(descriptorsPerReference, map);
     }
 
     private static ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(

@@ -31,7 +31,7 @@ internal sealed class ServiceBrokerFactory
     private readonly ExportProvider _exportProvider;
     private readonly WrappedServiceBroker _wrappedServiceBroker;
     private Task _bridgeCompletionTask;
-    private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
 
     [ImportingConstructor]

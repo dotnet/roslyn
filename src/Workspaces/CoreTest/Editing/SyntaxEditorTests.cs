@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing;
@@ -33,7 +34,7 @@ public sealed class SyntaxEditorTests
     }
 
     private SyntaxEditor GetEditor(SyntaxNode root)
-        => new SyntaxEditor(root, EmptyWorkspace.Services.SolutionServices);
+        => new(root, EmptyWorkspace.Services.SolutionServices);
 
     [Fact]
     public void TestReplaceNode()
@@ -324,5 +325,41 @@ public class C
     }
 }
 """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78860")]
+    public void TestInsertDelegateIntoInterface()
+    {
+        var code = """
+            public interface ITest
+            {
+                void Method();
+            }
+            """;
+
+        var cu = SyntaxFactory.ParseCompilationUnit(code);
+        var interfaceDecl = (InterfaceDeclarationSyntax)cu.Members[0];
+
+        var editor = GetEditor(cu);
+
+        // Create a delegate declaration
+        var delegateDecl = SyntaxFactory.DelegateDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+            SyntaxFactory.Identifier("MyDelegate"))
+            .WithParameterList(SyntaxFactory.ParameterList());
+
+        editor.InsertMembers(interfaceDecl, 0, new[] { delegateDecl });
+        var newRoot = editor.GetChangedRoot();
+
+        VerifySyntax<CompilationUnitSyntax>(
+            newRoot,
+            """
+            public interface ITest
+            {
+                delegate void MyDelegate();
+
+                void Method();
+            }
+            """);
     }
 }

@@ -24,8 +24,7 @@ internal sealed class DocumentationProviderServiceFactory : IWorkspaceServiceFac
 
     internal sealed class DocumentationProviderService : IDocumentationProviderService
     {
-        private readonly ConcurrentDictionary<string, DocumentationProvider> _assemblyPathToDocumentationProviderMap =
-            new();
+        private readonly ConcurrentDictionary<string, DocumentationProvider> _assemblyPathToDocumentationProviderMap = new();
 
         public DocumentationProvider GetDocumentationProvider(string assemblyPath)
         {

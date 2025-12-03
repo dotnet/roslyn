@@ -885,6 +885,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Našlo se jedno sestavení: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Vygenerovat operátory porovnání</target>
@@ -2575,11 +2580,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Změna názvu zachycené proměnné z {0} na {1} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Přejmenování členů anonymního typu se zatím nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Místo {0} použijte {1}</target>
@@ -3613,6 +3613,11 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
         <target state="translated">zapuštěná</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
       </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="external">
         <source>external</source>
         <target state="translated">external</target>
@@ -3930,11 +3935,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Generovat Equals a GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Generovat Equals(objekt)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Generovat GetHashCode()</target>
@@ -4145,8 +4145,8 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Změnit signaturu...</target>
-        <note />
+        <target state="needs-review-translation">Změnit signaturu...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

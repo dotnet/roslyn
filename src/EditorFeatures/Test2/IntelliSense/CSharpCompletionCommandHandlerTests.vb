@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
-Imports Microsoft.CodeAnalysis.CSharp.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -1477,6 +1476,7 @@ class Variable
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22342")>
         Public Async Function TestParenthesizedDeconstructionDeclarationWithSymbol(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1493,7 +1493,7 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("(Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertNoCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=False)
 
                 state.SendTypeChars("x, vari")
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
@@ -7012,7 +7012,7 @@ namespace NS2
                 Dim completionService = document.GetLanguageService(Of CompletionService)()
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
@@ -7020,7 +7020,7 @@ namespace NS2
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
 
                 ' Make sure any background work would be completed.
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
@@ -13078,8 +13078,8 @@ public class Class1
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/78284")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78284")>
         Public Async Function TestOverrideInstanceAssignmentOperator(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -13107,6 +13107,290 @@ class C2 : C1
     {
         throw new System.NotImplementedException();
     }", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo($$)
+    }
+
+    private void Goo(ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ref")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo($$)
+    }
+
+    private void Goo(int i, ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("x")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo(x, $$)
+    }
+
+    private void Goo(int i, ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ref")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList4(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo(a: $$)
+    }
+
+    private void Goo(int i, ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ref")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeParameterPattern_InMemberDeclaration(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("TBu", "Func<TBu")> typeParameter As String) As Task ' not testing "(TBu" here because `TBuilder` would not be in the completion list in this case
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    public <%= typeParameter %>$$ GetBuilder&lt;TBuilder&gt;() { }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TBuilder", isHardSelected:=True) ' hard-select TBuilder type parameter (which is in the completion list)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeParameterPatternInTuple_InMemberDeclaration(
+            showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    public (TBu$$ GetBuilder&lt;TBuilder&gt;() { }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isSoftSelected:=True) ' soft-select TypeBuilder type parameter (because `TBuilder` is not in the completion list)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestSpeculativeTypeParameterPattern_InMemberDeclaration(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("TBu", "(TBu", "Func<TBu", "delegate TBu")> typeParameter As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    public <%= typeParameter %>$$
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isSoftSelected:=True) ' soft-select TypeBuilder class
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestSpeculativeTypeParameterPattern_InMemberDeclarationNoModifier(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("TBu", "(TBu", "Func<TBu", "delegate TBu")> typeParameter As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    <%= typeParameter %>$$
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isSoftSelected:=True) ' soft-select TypeBuilder class
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeParameterPattern_InStatement(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("TBu", "(TBu", "Func<TBu")> typeParameter As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    public bool M&lt;TBuilder&gt;()
+    {
+        <%= typeParameter %>$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TBuilder", isHardSelected:=True) ' hard-select TBuilder type parameter
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestSpeculativeTypeParameterPattern_InStatement(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("TBu", "(TBu", "Func<TBu")> typeParameter As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    public bool M()
+    {
+        <%= typeParameter %>$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isHardSelected:=True) ' hard-select TypeBuilder class
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81021")>
+        Public Async Function TestStartTypingInsideTargetTypedConditionalExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(bool b)
+    {
+        return b ? new($$) : default;
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81022")>
+        Public Async Function TestStartTypingInsideTargetTypedSwitchExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(int i)
+    {
+        return i switch
+        {
+            1 => new($$),
+            _ => default,
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73894")>
+        Public Async Function TestStartTypingOnRightHandSideOfNullCoalescingExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+List<int> list = null;
+list ??= new($$);
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("cap")
+                Await state.AssertSelectedCompletionItem("capacity:")
             End Using
         End Function
     End Class

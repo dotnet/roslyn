@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitOrExplicitType;
 
 public partial class UseImplicitTypeTests
 {
@@ -81,8 +81,8 @@ public partial class UseImplicitTypeTests
                 static int F(int x, int y)
                 {
                     var i1 = 0;
-                    var p = new Program();
-                    var tuple = Tuple.Create(true, 1);
+                    Program p = new Program();
+                    Tuple&lt;bool, int&gt; tuple = Tuple.Create(true, 1);
 
                     return i1;
                 }
@@ -191,8 +191,8 @@ public partial class UseImplicitTypeTests
                 static int F(int x, int y)
                 {
                     var i1 = 0;
-                    var p = new Program();
-                    var tuple = Tuple.Create(true, 1);
+                    Program p = new Program();
+                    Tuple&lt;bool, int&gt; tuple = Tuple.Create(true, 1);
 
                     return i1;
                 }
@@ -206,8 +206,8 @@ public partial class UseImplicitTypeTests
                 static int F(int x, int y)
                 {
                     var i2 = 0;
-                    var p2 = new Program2();
-                    var tuple2 = Tuple.Create(true, 1);
+                    Program2 p2 = new Program2();
+                    Tuple&lt;bool, int&gt; tuple2 = Tuple.Create(true, 1);
 
                     return i2;
                 }
@@ -301,8 +301,8 @@ public partial class UseImplicitTypeTests
                 static int F(int x, int y)
                 {
                     var i1 = 0;
-                    var p = new Program();
-                    var tuple = Tuple.Create(true, 1);
+                    Program p = new Program();
+                    Tuple&lt;bool, int&gt; tuple = Tuple.Create(true, 1);
 
                     return i1;
                 }
@@ -316,8 +316,8 @@ public partial class UseImplicitTypeTests
                 static int F(int x, int y)
                 {
                     var i2 = 0;
-                    var p2 = new Program2();
-                    var tuple2 = Tuple.Create(true, 1);
+                    Program2 p2 = new Program2();
+                    Tuple&lt;bool, int&gt; tuple2 = Tuple.Create(true, 1);
 
                     return i2;
                 }
@@ -333,8 +333,8 @@ public partial class UseImplicitTypeTests
                 static int F(int x, int y)
                 {
                     var i3 = 0;
-                    var p3 = new Program2();
-                    var tuple3 = Tuple.Create(true, 1);
+                    Program2 p3 = new Program2();
+                    Tuple&lt;bool, int&gt; tuple3 = Tuple.Create(true, 1);
 
                     return i3;
                 }

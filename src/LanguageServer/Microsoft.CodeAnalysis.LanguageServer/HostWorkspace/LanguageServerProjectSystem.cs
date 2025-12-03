@@ -35,17 +35,18 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
             : base(
-                workspaceFactory.TargetFrameworkManager,
-                workspaceFactory.ProjectSystemHostInfo,
+                workspaceFactory,
                 fileChangeWatcher,
                 globalOptionService,
                 loggerFactory,
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider)
+                binLogPathProvider,
+                dotnetCliHelper)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _hostProjectFactory = workspaceFactory.HostProjectFactory;
@@ -90,12 +91,29 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return new RemoteProjectLoadResult(loadedFile, _hostProjectFactory, IsMiscellaneousFile: false, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult
+        {
+            ProjectFile = loadedFile,
+            ProjectFactory = _hostProjectFactory,
+            IsFileBasedProgram = false,
+            IsMiscellaneousFile = false,
+            PreferredBuildHostKind = preferredBuildHostKind,
+            ActualBuildHostKind = actualBuildHostKind
+        };
     }
 
     protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
         // Nothing else to unload for ordinary projects.
         return ValueTask.CompletedTask;
+    }
+
+    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
+        string projectPath,
+        ProjectSystemProjectFactory primordialProjectFactory,
+        ProjectId primordialProjectId,
+        CancellationToken cancellationToken)
+    {
+        throw ExceptionUtilities.Unreachable();
     }
 }

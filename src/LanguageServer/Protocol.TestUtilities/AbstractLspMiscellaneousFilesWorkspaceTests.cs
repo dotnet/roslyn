@@ -2,14 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -178,8 +183,10 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
     [Theory, CombinatorialData]
     public async Task TestLooseFile_RazorFile(bool mutatingLspWorkspace)
     {
+        var composition = Composition.AddParts(typeof(TestRazorMiscellaneousProjectInfoService));
+
         // Create a server that supports LSP misc files and verify no misc files present.
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
 
@@ -341,6 +348,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         AssertEx.NotNull(miscDocument);
         var miscText = await miscDocument.GetTextAsync(CancellationToken.None);
         Assert.Equal("More LSP textLSP text", miscText.ToString());
+        Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
 
         // Update the registered workspace with the new document.
         var newDocumentId = (await AddDocumentAsync(testLspServer, newDocumentFilePath, "New Doc")).Id;
@@ -354,18 +362,30 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         // Verify we still are using the tracked LSP text for the document.
         var documentText = await document.GetTextAsync(CancellationToken.None);
         Assert.Equal("More LSP textLSP text", documentText.ToString());
+
+        // There should not be any other misc document in the solution anymore.
+        var matchingDocuments = await document.Project.Solution.GetTextDocumentsAsync(newDocumentUri, CancellationToken.None);
+        Assert.Single(matchingDocuments);
     }
 
     private protected abstract ValueTask<Document> AddDocumentAsync(TestLspServer testLspServer, string filePath, string content);
     private protected abstract Workspace GetHostWorkspace(TestLspServer testLspServer);
 
-    private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
+    private protected static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
         return (workspace, document as Document);
     }
 
-    private static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
+    private protected static async Task<(Workspace workspace, Document document)> GetRequiredLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
+    {
+        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(uri, testLspServer);
+        Assert.NotNull(workspace);
+        Assert.NotNull(document);
+        return (workspace, document);
+    }
+
+    private protected static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
     {
         var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);
         return documents.SingleOrDefault();
@@ -377,7 +397,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return documents.SingleOrDefault();
     }
 
-    private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
+    private protected static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
         var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
         Assert.NotNull(document);
@@ -396,5 +416,18 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
             CreateTextDocumentPositionParams(caret), CancellationToken.None);
         Contract.ThrowIfNull(result);
         return result;
+    }
+
+    // This is a test version of the real service which lives in the Razor EA, which is not referenced here
+    [PartNotDiscoverable]
+    [ExportLanguageService(typeof(IMiscellaneousProjectInfoService), "Razor"), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestRazorMiscellaneousProjectInfoService() : IMiscellaneousProjectInfoService
+    {
+        public string ProjectLanguageOverride => LanguageNames.CSharp;
+        public bool AddAsAdditionalDocument => true;
+
+        public IEnumerable<AnalyzerReference>? GetAnalyzerReferences(SolutionServices services) => null;
     }
 }

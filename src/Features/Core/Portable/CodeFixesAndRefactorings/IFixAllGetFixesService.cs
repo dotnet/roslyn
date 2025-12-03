@@ -16,12 +16,12 @@ internal interface IFixAllGetFixesService : IWorkspaceService
     /// Computes the fix all occurrences code fix, brings up the preview changes dialog for the fix and
     /// returns the code action operations corresponding to the fix.
     /// </summary>
-    Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(IFixAllContext fixAllContext, bool showPreviewChangesDialog);
+    Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(IRefactorOrFixAllContext fixAllContext, bool showPreviewChangesDialog);
 
     /// <summary>
     /// Computes the fix all occurrences code fix and returns the changed solution.
     /// </summary>
-    Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext);
+    Task<Solution?> GetFixAllChangedSolutionAsync(IRefactorOrFixAllContext fixAllContext);
 
     /// <summary>
     /// Previews the changes that would occur after a code fix and returns the updated solution with those changes.

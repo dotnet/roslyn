@@ -1393,6 +1393,242 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
                 { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction2" } }]));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")]
+    public void FindCorrectAttributeOnTopLevelPartialClass_OneAttributeOnOnePartInSameFile()
+    {
+        var source = """
+            [N1.X]
+            partial class C1 { }
+            partial class C1 { }
+
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("N1.XAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")]
+    public void FindCorrectAttributeOnTopLevelPartialClass_SameAttributeOnMultiplePartsInSameFile()
+    {
+        var source = """
+            [N1.X]
+            partial class C1 { }
+            [N1.X]
+            partial class C1 { }
+
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+                "N1.XAttribute",
+                (node, _) => node is ClassDeclarationSyntax,
+                (context, _) =>
+                {
+                    // We should only see one attribute on each node we're called back for.
+                    Assert.True(context.Attributes.Length == 1);
+                    return (ClassDeclarationSyntax)context.TargetNode;
+                });
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        var steps = runResult.TrackedSteps["result_ForAttributeWithMetadataName"];
+        Assert.Collection(steps,
+            step => Assert.Collection(step.Outputs,
+                output => Assert.True(output.Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }),
+                output => Assert.True(output.Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" })));
+
+        // We should have a hit for each class decl.
+        Assert.Equal(2, steps.SelectMany(s => s.Outputs.Select(o => (ClassDeclarationSyntax)o.Value)).Distinct().Count());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")]
+    public void FindCorrectAttributeOnTopLevelPartialClass_DifferentAttributeOnMultiplePartsInSameFile()
+    {
+        var source = """
+            [N1.X]
+            partial class C1 { }
+            [N1.Y]
+            partial class C1 { }
+
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+                class YAttribute : System.Attribute { }
+            }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+                "N1.XAttribute",
+                (node, _) => node is ClassDeclarationSyntax,
+                (context, _) =>
+                {
+                    // We should only see one attribute on each node we're called back for.
+                    Assert.True(context.Attributes.Length == 1);
+                    return (ClassDeclarationSyntax)context.TargetNode;
+                });
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")]
+    public void FindCorrectAttributeOnTopLevelPartialClass_OneAttributeOnOnePartInDifferentFiles()
+    {
+        var source1 = """
+            [N1.X]
+            partial class C1 { }
+
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
+        var source2 = """
+            partial class C1 { }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation([source1, source2], options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("N1.XAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")]
+    public void FindCorrectAttributeOnTopLevelPartialClass_SameAttributeOnMultiplePartsInDifferentFile()
+    {
+        var source1 = """
+            [N1.X]
+            partial class C1 { }
+
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
+        var source2 = """
+            [N1.X]
+            partial class C1 { }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation([source1, source2], options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+                "N1.XAttribute",
+                (node, _) => node is ClassDeclarationSyntax,
+                (context, _) =>
+                {
+                    // We should only see one attribute on each node we're called back for.
+                    Assert.True(context.Attributes.Length == 1);
+                    return (ClassDeclarationSyntax)context.TargetNode;
+                });
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        var steps = runResult.TrackedSteps["result_ForAttributeWithMetadataName"];
+
+        Assert.Collection(steps,
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }),
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+
+        // We should find the C1 class in both files.
+        AssertEx.SetEqual(
+            steps.Select(s => ((ClassDeclarationSyntax)s.Outputs.Single().Value).SyntaxTree),
+            compilation.SyntaxTrees);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79519")]
+    public void FindCorrectAttributeOnTopLevelPartialClass_DifferentAttributeOnMultiplePartsInDifferentFile()
+    {
+        var source1 = """
+            [N1.X]
+            partial class C1 { }
+
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+                class YAttribute : System.Attribute { }
+            }
+            """;
+        var source2 = """
+            [N1.Y]
+            partial class C1 { }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation([source1, source2], options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("N1.XAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+    }
+
     #endregion
 
     #region Incremental tests

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (interceptor.GetIsNewExtensionMember())
+            if (interceptor.IsExtensionBlockMember())
             {
                 if (interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
                 {
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (methodOrIndexer.GetIsNewExtensionMember())
+                if (methodOrIndexer.IsExtensionBlockMember())
                 {
                     refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                   (methodOrIndexer.GetIsNewExtensionMember() ?
+                   (methodOrIndexer.IsExtensionBlockMember() ?
                      !receiverTemp.Type.IsValueType :
                      CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
@@ -1219,23 +1219,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < parameters.Length; i++)
             {
                 var paramRefKind = parameters[i].RefKind;
-                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
-                {
-                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
-                    fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                    refKindsBuilder[i] = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
-                }
-                else if (paramRefKind == RefKind.Ref)
-                {
-                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
-                    if (argRefKind == RefKind.None)
-                    {
-                        // Interpolated strings used as interpolated string handlers are allowed to match ref parameters without `ref`
-                        Debug.Assert(parameters[i].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true });
+                var currentArgRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
+                var effectiveArgRefKind = GetEffectiveRefKind(paramRefKind, currentArgRefKind, parameters[i].Type, comRefKindMismatchPossible: false);
 
-                        fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                        refKindsBuilder[i] = RefKind.Ref;
-                    }
+                if (currentArgRefKind != effectiveArgRefKind)
+                {
+                    fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
+                    refKindsBuilder[i] = effectiveArgRefKind;
                 }
             }
 
@@ -1264,6 +1254,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        internal static RefKind GetEffectiveRefKind(RefKind paramRefKind, RefKind initialArgRefKind, TypeSymbol paramType, bool comRefKindMismatchPossible)
+        {
+            // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
+            // For the purpose of further analysis we will mark the arguments as -
+            // - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
+            // - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
+            // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
+            // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
+            if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
+            {
+                Debug.Assert(initialArgRefKind is RefKind.None or RefKind.In or RefKind.Ref);
+                return initialArgRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
+            }
+            else if (paramRefKind == RefKind.Ref && initialArgRefKind == RefKind.None)
+            {
+                // For interpolated string handlers, we allow struct handlers to be passed as ref without a `ref`
+                // keyword
+                if (paramType is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
+                {
+                    return RefKind.Ref;
+                }
+                else
+                {
+                    // For complex call locations, it's possible that there's a com parameter that allows passing by ref without an explicit ref keyword. This
+                    // is not handled at the local rewriter.
+                    Debug.Assert(comRefKindMismatchPossible);
+                }
+            }
+
+            return initialArgRefKind;
         }
 
         // temporariesBuilder will be null when factory is null.
@@ -1305,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
                 }
 
-                if (methodOrIndexer.GetIsNewExtensionMember())
+                if (methodOrIndexer.IsExtensionBlockMember())
                 {
                     Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
                     return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
@@ -1428,20 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 arguments[p] = StoreArgumentToTempIfNecessary(forceLambdaSpilling, storesToTemps, argument, argRefKind, paramRefKind);
-
-                // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
-                // For the purpose of further analysis we will mark the arguments as -
-                // - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
-                // - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
-                // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
-                // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
-                {
-                    Debug.Assert(argRefKind is RefKind.None or RefKind.In or RefKind.Ref);
-                    argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
-                }
-
-                refKinds[p] = argRefKind;
+                refKinds[p] = GetEffectiveRefKind(paramRefKind, argRefKind, parameters[p].Type, comRefKindMismatchPossible: true);
             }
 
             return;

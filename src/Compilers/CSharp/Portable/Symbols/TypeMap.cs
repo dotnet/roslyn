@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(ConstructMapping(from, to))
         {
             // mapping contents are read-only hereafter
-            Debug.Assert(allowAlpha || !from.Any(static tp => tp is SubstitutedTypeParameterSymbol));
+            Debug.Assert(allowAlpha || from.All(static tp => tp.IsDefinition));
         }
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, bool propagateAttributes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             if (oldTypeParameters.Length == 0)
             {
@@ -116,15 +116,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap result = new TypeMap(this.Mapping);
             ArrayBuilder<TypeParameterSymbol> newTypeParametersBuilder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
 
-            // The case where it is "synthesized" is when we're creating type parameters for a synthesized (generic)
-            // class or method for a lambda appearing in a generic method.
+            // The case where it is "synthesized" is when we're creating type parameters for:
+            // - a synthesized (generic) class or method for a lambda appearing in a generic method
+            // - the implementation method of an extension member
             bool synthesized = !ReferenceEquals(oldTypeParameters[0].ContainingSymbol.OriginalDefinition, newOwner.OriginalDefinition);
 
             int ordinal = 0;
             foreach (var tp in oldTypeParameters)
             {
-                var newTp = synthesized ?
-                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
+                TypeParameterSymbol newTp = synthesized ?
+                    new SynthesizedTypeParameterSymbol(newOwner, result, tp, ordinal, propagateAttributes) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, TypeWithAnnotations.Create(newTp));
                 newTypeParametersBuilder.Add(newTp);
@@ -138,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeMap WithAlphaRename(NamedTypeSymbol oldOwner, NamedTypeSymbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(TypeSymbol.Equals(oldOwner.ConstructedFrom, oldOwner, TypeCompareKind.ConsiderEverything2));
-            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, propagateAttributes: false, out newTypeParameters);
         }
 
-        internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, bool propagateAttributes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
-            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, propagateAttributes: propagateAttributes, out newTypeParameters);
         }
 
         internal static ImmutableArray<TypeParameterSymbol> ConcatMethodTypeParameters(MethodSymbol oldOwner, MethodSymbol stopAt)

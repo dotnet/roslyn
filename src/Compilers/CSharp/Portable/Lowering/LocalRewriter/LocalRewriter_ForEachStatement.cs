@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return RewriteInlineArrayForEachStatementAsFor(node);
             }
-            else if (node.AwaitOpt is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (node.EnumeratorInfoOpt?.MoveNextAwaitableInfo is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
             {
                 return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }
@@ -70,25 +70,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, [NotNullWhen(true)] out MethodSymbol? indexerGet, [NotNullWhen(true)] out MethodSymbol? lengthGet)
         {
+            return CanRewriteForEachAsFor(_compilation, forEachSyntax, nodeExpressionType, out indexerGet, out lengthGet, _diagnostics);
+        }
+
+        internal static bool CanRewriteForEachAsFor(CSharpCompilation compilation, SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, [NotNullWhen(true)] out MethodSymbol? indexerGet, [NotNullWhen(true)] out MethodSymbol? lengthGet, BindingDiagnosticBag diagnostics)
+        {
             lengthGet = indexerGet = null;
             var origDefinition = nodeExpressionType.OriginalDefinition;
 
             if (origDefinition.SpecialType == SpecialType.System_String)
             {
-                lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
-                indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
+                lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length, compilation, diagnostics);
+                indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars, compilation, diagnostics);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            else if ((object)origDefinition == compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
-                lengthGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
-                indexerGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+                lengthGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__get_Length, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__get_Item, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
+            else if ((object)origDefinition == compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
-                lengthGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
-                indexerGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+                lengthGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_ReadOnlySpan_T__get_Length, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_ReadOnlySpan_T__get_Item, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
             }
 
             return lengthGet is { } && indexerGet is { };
@@ -127,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ElementConversion,
                 node.IterationVariables,
                 node.DeconstructionOpt,
-                node.AwaitOpt,
                 node.BreakLabel,
                 node.ContinueLabel,
                 rewrittenBody);
@@ -141,13 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            BoundAwaitableInfo? awaitableInfo,
             LabelSymbol breakLabel,
             LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
-            bool isAsync = awaitableInfo != null;
+            bool isAsync = enumeratorInfo.MoveNextAwaitableInfo != null;
 
             BoundExpression rewrittenExpression = VisitExpression(convertedCollection.Operand);
 
@@ -224,14 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var disposalFinallyBlock = GetDisposalFinallyBlock(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, out var hasAsyncDisposal);
             if (isAsync)
             {
-                Debug.Assert(awaitableInfo is { GetResult: { } });
+                var moveNextAwaitableInfo = enumeratorInfo.MoveNextAwaitableInfo;
+                Debug.Assert(moveNextAwaitableInfo is { GetResult: not null } or { RuntimeAsyncAwaitCall: not null });
 
                 // We need to be sure that when the disposal isn't async we reserve an unused state machine state number for it,
                 // so that await foreach always produces 2 state machine states: one for MoveNextAsync and the other for DisposeAsync.
                 // Otherwise, EnC wouldn't be able to map states when the disposal changes from having async dispose to not, or vice versa.
                 var debugInfo = new BoundAwaitExpressionDebugInfo(s_moveNextAsyncAwaitId, ReservedStateMachineCount: (byte)(hasAsyncDisposal ? 0 : 1));
 
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, awaitableInfo.GetResult.ReturnType, debugInfo, used: true);
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, moveNextAwaitableInfo, (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall!.Method)!.ReturnType, debugInfo, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(

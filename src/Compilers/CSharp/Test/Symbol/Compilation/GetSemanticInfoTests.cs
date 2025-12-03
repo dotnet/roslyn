@@ -5027,6 +5027,17 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
+        [Fact, WorkItem(72907, "https://github.com/dotnet/roslyn/issues/72907")]
+        public void GetPreprocessingSymbolInfoOnUnrelatedDirective()
+        {
+            const string sourceCode = """
+                #pragma warning disable Z //bind pragma warning disable
+                """;
+
+            var symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Z //bind pragma warning disable");
+            Assert.Null(symbolInfo.Symbol);
+        }
+
         [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_01()
         {
@@ -6104,6 +6115,42 @@ class B<T, U, U>
                 ],
                 ReceiverType.Name: nameof(Enumerable),
             });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79930")]
+        public void NotInvoicableInvocationTarget()
+        {
+            var source =
+@"
+public class OuterClass
+{
+    void M()
+    {
+        var s = OuterClass.InnerClass();
+    }
+
+    public class InnerClass
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (6,28): error CS1955: Non-invocable member 'OuterClass.InnerClass' cannot be used like a method.
+                //         var s = OuterClass.InnerClass();
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "InnerClass").WithArguments("OuterClass.InnerClass").WithLocation(6, 28)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var semanticModel = comp.GetSemanticModel(tree);
+            var invocationNode = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var expressionNode = invocationNode.Expression;
+
+            var info = semanticModel.GetSymbolInfo(expressionNode);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.NotInvocable, info.CandidateReason);
+            Assert.Same(comp.GetTypeByMetadataName("OuterClass+InnerClass").GetPublicSymbol(), info.CandidateSymbols.Single());
         }
     }
 }

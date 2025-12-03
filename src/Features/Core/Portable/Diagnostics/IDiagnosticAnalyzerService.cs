@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal interface IDiagnosticAnalyzerService : IWorkspaceService
 {
     /// <summary>
-    /// Provides and caches analyzer information.
-    /// </summary>
-    DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
-
-    /// <summary>
     /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
     /// </summary>
     /// <remarks>
@@ -28,32 +22,49 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     void RequestDiagnosticRefresh();
 
     /// <summary>
-    /// Force analyzes the given project by running all applicable analyzers on the project.
+    /// Forces analyzers to run on the given project and return all diagnostics, regardless of current environment
+    /// settings (like 'only run analyzers on open files', etc.).  This is meant to be used by explicit invocations
+    /// of features like "Run Code Analysis".  Note: not all analyzers will necessarily run.  For example, analyzers
+    /// where all diagnostic descriptors are currently hidden will not run, as they would not produce any actual
+    /// diagnostics.
     /// </summary>
-    Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
+    Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Project project, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned
-    /// should be up-to-date with respect to the given solution. Note that for project case, this method returns
-    /// diagnostics from all project documents as well. Use <see cref="GetProjectDiagnosticsForIdsAsync"/> if you want
-    /// to fetch only project diagnostics without source locations.
+    /// Returns <see langword="true"/> if any of the given diagnostic IDs belong to an analyzer that is considered
+    /// 'deprioritized'.  Deprioritized analyzers are ones that are considered expensive, due to registering symbol-end
+    /// and semantic-model actions.  Because of their high cost, we want to avoid running them in the <see
+    /// cref="CodeActionRequestPriority.Default"/> priority case, and only run them in the <see
+    /// cref="CodeActionRequestPriority.Low"/> case.
+    /// </summary>
+    Task<bool> IsAnyDiagnosticIdDeprioritizedAsync(
+        Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets document diagnostics of the given diagnostic ids and/or analyzers from the given project.
+    /// All diagnostics returned should be up-to-date with respect to the given solution snapshot.
+    /// Use <see cref="GetProjectDiagnosticsForIdsAsync"/> if you want to fetch only project diagnostics
+    /// not associated ith a particular document.  Note that this operation can be quite expensive as it
+    /// will execute all the analyers fully on this project, including through compilation-end analyzers.
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
-    /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
+    /// <param name="documentIds">Optional documents to scope the returned diagnostics.  If <see langword="default"/>,
+    /// then diagnostics will be returned for <see cref="Project.DocumentIds"/> and <see cref="Project.AdditionalDocumentIds"/>.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
+    /// <param name="analyzerFilter">Which analyzers to run.</param>
     /// <param name="includeLocalDocumentDiagnostics">
     /// Indicates if local document diagnostics must be returned.
     /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
     /// and hence can be computed by analyzing a single file in isolation.
     /// </param>
-    /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned. Non-local diagnostics are the ones reported by
+    /// <remarks>
+    /// Non local document diagnostics will be returned. Non-local diagnostics are the ones reported by
     /// analyzers either at compilation end callback OR in a different file from which the callback was made. Entire
     /// project must be analyzed to get the complete set of non-local document diagnostics.
-    /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    /// </remarks>
+    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
+        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -63,28 +74,39 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
-    /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned.
-    /// Non-local diagnostics are the ones reported by analyzers either at compilation end callback.
-    /// Entire project must be analyzed to get the complete set of non-local diagnostics.
-    /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    /// <param name="analyzerFilter">Which analyzers to run.</param>
+    Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+        Project project, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
-    /// <para>
-    /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-    /// Predicate <paramref name="shouldIncludeDiagnostic"/> filters out analyzers from execution if 
-    /// none of its reported diagnostics should be included in the result.
-    /// </para>
+    /// <para/>
+    /// Non-local diagnostics for the requested document are not returned.  In other words, only the diagnostics
+    /// produced by running the requested filtered set of analyzers <em>only</em> on this document are returned here.
+    /// To get non-local diagnostics for a document, use <see cref="GetDiagnosticsForIdsAsync"/>.  Non-local diagnostics
+    /// will always be returned for the document in that case.
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-        TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        TextDocument document, TextSpan? range,
+        DiagnosticIdFilter diagnosticIdFilter,
+        CodeActionRequestPriority? priority,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
+
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
+    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Solution solution, ProjectId? projectId, CancellationToken cancellationToken);
+
+    /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
+    Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// For all analyzers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// Note: this does not include the "built in compiler analyzer".
+    /// </summary>
+    Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Solution solution, CancellationToken cancellationToken);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions
@@ -96,12 +118,12 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
     /// </para>
     /// </summary>
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-        TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
+    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        this IDiagnosticAnalyzerService service, TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
         => service.GetDiagnosticsForSpanAsync(
             document, range,
             diagnosticId: null,
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+            priority: null,
             diagnosticKind,
             cancellationToken);
 
@@ -115,12 +137,23 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     /// </summary>
     public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
         TextDocument document, TextSpan? range, string? diagnosticId,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
-        Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
-        return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-            priorityProvider, diagnosticKind, cancellationToken);
+        var filter = diagnosticId != null
+            ? DiagnosticIdFilter.Include([diagnosticId])
+            : DiagnosticIdFilter.All;
+        return service.GetDiagnosticsForSpanAsync(
+            document, range, filter, priority, diagnosticKind, cancellationToken);
     }
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Solution solution, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, projectId: null, cancellationToken);
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Project project, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(project.Solution, project.Id, cancellationToken);
+
 }

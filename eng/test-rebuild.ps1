@@ -34,7 +34,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog /p:RoslynCompilerType=Framework
     Test-LastExitCode
   }
 
@@ -69,14 +69,13 @@ try {
   " --exclude net9.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Extensions.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
-  " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
-  " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
 
   # Semantic Search reference assemblies can't be reconstructed from source.
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.CSharp.dll" +
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.VisualBasic.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.SemanticSearch.Extensions.dll" +
   " --exclude net8.0\GeneratedRefAssemblies\System.Collections.Immutable.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +

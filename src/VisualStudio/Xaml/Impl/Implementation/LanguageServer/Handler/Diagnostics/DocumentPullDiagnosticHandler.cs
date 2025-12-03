@@ -30,7 +30,7 @@ internal sealed class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHand
         => request.TextDocument;
 
     protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-        => new VSInternalDiagnosticReport { Diagnostics = diagnostics, ResultId = resultId };
+        => new() { Diagnostics = diagnostics, ResultId = resultId };
 
     protected override ImmutableArray<Document> GetDocuments(RequestContext context)
     {

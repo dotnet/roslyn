@@ -58,13 +58,13 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         /// A lock to guard updates to <see cref="_watchedFiles" />. Using a reader/writer lock since file change notifications can be pretty chatty
         /// and so we want to be able to process changes as fast as possible.
         /// </summary>
-        private readonly ReaderWriterLockSlim _watchedFilesLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _watchedFilesLock = new();
 
         /// <summary>
         /// The list of file paths we're watching manually that were outside the directories being watched. The count in this case counts
         /// the number of 
         /// </summary>
-        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(s_stringComparer);
+        private readonly Dictionary<string, int> _watchedFiles = new(s_stringComparer);
         private static readonly StringComparer s_stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
         private static readonly StringComparison s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 

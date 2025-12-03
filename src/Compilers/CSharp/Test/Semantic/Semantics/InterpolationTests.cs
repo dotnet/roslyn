@@ -6643,6 +6643,137 @@ literal:Literal");
 ");
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("in")]
+        public void PassAsRefWithoutKeyword_05_WithReorder(string refKind)
+        {
+            var code = $$"""
+                BadFunc(
+                    message: $"abc",
+                    value2: 0,
+                    value1: 1);
+ 
+                static void BadFunc(
+                    {{refKind}} InterpolatedStringHandler message,
+                    in int? value1,
+                    int? value2)
+                {
+                    System.Console.Write(value1);
+                    System.Console.Write(value2);
+                }
+ 
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public ref struct InterpolatedStringHandler
+                {
+                    public InterpolatedStringHandler(
+                        int literalLength,
+                        int formattedCount)
+                    {
+                    }
+ 
+                    public void AppendLiteral(string value)
+                    {
+                        System.Console.Write(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  3
+                  .locals init (int? V_0,
+                                InterpolatedStringHandler V_1,
+                                int? V_2)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  call       "InterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_1
+                  IL_000b:  ldstr      "abc"
+                  IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldc.i4.0
+                  IL_001a:  call       "int?..ctor(int)"
+                  IL_001f:  ldc.i4.1
+                  IL_0020:  newobj     "int?..ctor(int)"
+                  IL_0025:  stloc.2
+                  IL_0026:  ldloca.s   V_2
+                  IL_0028:  ldloc.0
+                  IL_0029:  call       "void Program.<<Main>$>g__BadFunc|0_0({{refKind}} InterpolatedStringHandler, in int?, int?)"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("in")]
+        public void PassAsRefWithoutKeyword_05_WithoutReorder(string refKind)
+        {
+            var code = $$"""
+                BadFunc(
+                    message: $"abc",
+                    value1: 1,
+                    value2: 0);
+ 
+                static void BadFunc(
+                    {{refKind}} InterpolatedStringHandler message,
+                    in int? value1,
+                    int? value2)
+                {
+                    System.Console.Write(value1);
+                    System.Console.Write(value2);
+                }
+ 
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public ref struct InterpolatedStringHandler
+                {
+                    public InterpolatedStringHandler(
+                        int literalLength,
+                        int formattedCount)
+                    {
+                    }
+ 
+                    public void AppendLiteral(string value)
+                    {
+                        System.Console.Write(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (InterpolatedStringHandler V_0,
+                                  int? V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  call       "InterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  ldstr      "abc"
+                  IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  newobj     "int?..ctor(int)"
+                  IL_001d:  stloc.1
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  newobj     "int?..ctor(int)"
+                  IL_0026:  call       "void Program.<<Main>$>g__BadFunc|0_0({{refKind}} InterpolatedStringHandler, in int?, int?)"
+                  IL_002b:  ret
+                }
+                """);
+        }
+
         [Theory]
         [CombinatorialData]
         public void RefOverloadResolution_Struct([CombinatorialValues("in", "ref")] string refKind, [CombinatorialValues(@"$""{1,2:f}Literal""", @"$""{1,2:f}"" + $""Literal""")] string expression)
@@ -14810,6 +14941,9 @@ public ref struct CustomHandler
 
             var expectedDiagnostics = new[]
             {
+                // (17,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<char>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return $"{s}";
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{s}").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(17, 18),
                 // (17,19): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return $"{s}";
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 19)
@@ -14969,6 +15103,9 @@ public ref struct S1
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
+                // (17,22): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<char>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{s}").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(17, 22),
                 // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
@@ -14983,10 +15120,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
                 // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
-                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
+                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20));
         }
 
         [Theory]
@@ -15170,6 +15304,9 @@ public ref struct S1
                 // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
+                // (15,22): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<char>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{s2}").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(15, 22),
                 // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
@@ -15188,10 +15325,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
                 // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
-                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20)
             );
         }
 
@@ -15228,6 +15362,9 @@ class Program
                 // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (17,9): error CS8350: This combination of arguments to 'Program.M(ref S, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M(ref s, $"{1}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M(ref s, $""{1}"")").WithArguments("Program.M(ref S, CustomHandler)", "handler").WithLocation(17, 9),
                 // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         M(ref s, $"{1}");
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
@@ -15404,10 +15541,8 @@ class Program
         }
 
         [WorkItem(63306, "https://github.com/dotnet/roslyn/issues/63306")]
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void RefEscape_13A(LanguageVersion languageVersion)
+        [Fact]
+        public void RefEscape_13A()
         {
             var code =
 @"using System.Runtime.CompilerServices;
@@ -15431,18 +15566,39 @@ class Program
     static CustomHandler F3()
     {
         int i = 3;
-        CustomHandler h3 = $""{i}""; // 3
-        return h3;
+        CustomHandler h3 = $""{i}"";
+        return h3; // 3
     }
     static CustomHandler F4()
     {
-        CustomHandler h4 = $""{4}""; // 4
-        return h4;
+        CustomHandler h4 = $""{4}"";
+        return h4; // 4
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/63306: Should report an error in each case.
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(
+                // (13,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return $"{i}"; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{i}").WithArguments("CustomHandler.AppendFormatted(in int)", "i").WithLocation(13, 18),
+                // (13,19): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return $"{i}"; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(13, 19),
+                // (17,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return $"{2}"; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{2}").WithArguments("CustomHandler.AppendFormatted(in int)", "i").WithLocation(17, 18),
+                // (17,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"{2}"; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(17, 19),
+                // (23,16): error CS8352: Cannot use variable 'h3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h3; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h3").WithArguments("h3").WithLocation(23, 16),
+                // (28,16): error CS8352: Cannot use variable 'h4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h4; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h4").WithArguments("h4").WithLocation(28, 16));
+
+            // The `in int` parameter cannot be captured in C# 11.
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular11, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics();
         }
 
@@ -15587,15 +15743,12 @@ class Program
                 // (11,24): error CS0631: ref and out are not valid in this context
                 //     public object this[ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler] => null;
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(11, 24),
+                // (18,13): error CS8350: This combination of arguments to 'R.this[ref R, CustomHandler]' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         _ = r[ref r, $"{1}"];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"r[ref r, $""{1}""]").WithArguments("R.this[ref R, CustomHandler]", "handler").WithLocation(18, 13),
                 // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         _ = r[ref r, $"{1}"];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(18, 19),
-                // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         _ = r[ref r, $"{1}"];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(18, 19),
-                // (18,22): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //         _ = r[ref r, $"{1}"];
-                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 22),
                 // (18,22): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
                 //         _ = r[ref r, $"{1}"];
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 22));
@@ -15632,6 +15785,9 @@ class Program
                 // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (18,15): error CS8350: This combination of arguments to 'R.R(ref R, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         R y = new R(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"new R(ref x, $""{1}"")").WithArguments("R.R(ref R, CustomHandler)", "handler").WithLocation(18, 15),
                 // (18,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         R y = new R(ref x, $"{1}");
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 25),
@@ -15705,9 +15861,17 @@ class Program
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/63306: Should report an error that a reference to y will escape F1() and F2().
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (14,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "{1}").WithLocation(14, 18),
+                // (14,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(int, in int)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{1}").WithArguments("CustomHandler.AppendFormatted(int, in int)", "y").WithLocation(14, 18),
+                // (19,16): error CS8352: Cannot use variable 'h2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h2").WithArguments("h2").WithLocation(19, 16));
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
@@ -15951,11 +16115,67 @@ class Program
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_06b()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static R M()
+                    {
+                        R r = default;
+                        Span<byte> span = stackalloc byte[42];
+                        return r
+                            .F($"{span}")
+                            .F($"{span}");
+                    }
+                }
+                ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                    public void AppendFormatted(Span<byte> span)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (9,16): error CS8350: This combination of arguments to 'R.F(CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         return r
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"r
+            .F($""{span}"")").WithArguments("R.F(CustomHandler)", "handler").WithLocation(9, 16),
                 // (9,16): error CS8347: Cannot use a result of 'R.F(CustomHandler)' in this context because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         return r
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"r
             .F($""{span}"")").WithArguments("R.F(CustomHandler)", "handler").WithLocation(9, 16),
+                // (10,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<byte>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{span}").WithArguments("CustomHandler.AppendFormatted(System.Span<byte>)", "span").WithLocation(10, 18),
+                // (10,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<byte>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{span}").WithArguments("CustomHandler.AppendFormatted(System.Span<byte>)", "span").WithLocation(10, 18),
+                // (10,19): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 19),
                 // (10,19): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
                 //             .F($"{span}")
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 19));
@@ -16084,6 +16304,9 @@ class Program
                 // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (26,27): error CS8350: This combination of arguments to 'Enumerable.Create(ref R, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"Enumerable.Create(ref r, $""{1}"")").WithArguments("Enumerable.Create(ref R, CustomHandler)", "handler").WithLocation(26, 27),
                 // (26,49): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(26, 49),
@@ -17489,7 +17712,7 @@ format:
   IL_0053:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
   IL_0058:  ldloc.0
   IL_0059:  stelem     ""CustomHandler""
-  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler[])""
+  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(params CustomHandler[])""
   IL_0063:  ret
 }
 ");

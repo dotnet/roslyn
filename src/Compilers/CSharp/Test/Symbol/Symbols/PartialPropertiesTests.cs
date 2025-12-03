@@ -333,7 +333,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P").WithArguments("C.P").WithLocation(3, 24),
                 // (3,28): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 //     public partial int P { get; }
-                Diagnostic(ErrorCode.ERR_MemberReserved, "get").WithArguments("get_P", "C").WithLocation(3, 28)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "get").WithArguments("get_P", "C").WithLocation(3, 28),
+                // (4,24): error CS0759: No defining declaration found for implementing declaration of partial method 'C.get_P()'
+                //     public partial int get_P() => 1;
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "get_P").WithArguments("C.get_P()").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void DuplicateDeclaration_07b()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int get_P() => 1;
+                    public partial int P { get; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS0759: No defining declaration found for implementing declaration of partial method 'C.get_P()'
+                //     public partial int get_P() => 1;
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "get_P").WithArguments("C.get_P()").WithLocation(3, 24),
+                // (4,24): error CS9248: Partial property 'C.P' must have an implementation part.
+                //     public partial int P { get; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P").WithArguments("C.P").WithLocation(4, 24),
+                // (4,28): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
+                //     public partial int P { get; }
+                Diagnostic(ErrorCode.ERR_MemberReserved, "get").WithArguments("get_P", "C").WithLocation(4, 28)
                 );
         }
 
@@ -5530,6 +5557,31 @@ public partial class C
     }
 } // end of class S1
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80509")]
+        public void CS8659_ReadonlyPartialPropertyWithSetter()
+        {
+            var source = """
+                using System;
+
+                var x = new X();
+                x.V = 9;
+                Console.WriteLine(x.V);
+
+                public partial struct X
+                {
+                    public readonly partial int V { get; set; }
+                    public readonly partial int V { get => field * 100; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,33): error CS8659: Auto-implemented property 'X.V' cannot be marked 'readonly' because it has a 'set' accessor.
+                //     public readonly partial int V { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "V").WithArguments("X.V").WithLocation(9, 33)
+                );
         }
     }
 }

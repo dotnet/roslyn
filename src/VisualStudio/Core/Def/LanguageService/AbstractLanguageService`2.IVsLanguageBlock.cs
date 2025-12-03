@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -29,7 +30,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         out string pbstrDescription,
         out int pfBlockAvailable)
     {
-        var snapshot = this.EditorAdaptersFactoryService.GetDataBuffer(pTextLines).CurrentSnapshot;
+        var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+        var snapshot = editorAdaptersFactoryService.GetDataBuffer(pTextLines).CurrentSnapshot;
         var position = snapshot?.TryGetPosition(iCurrentLine, iCurrentChar);
         if (position == null)
         {

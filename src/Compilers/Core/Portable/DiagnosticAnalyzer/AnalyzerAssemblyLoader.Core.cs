@@ -165,29 +165,10 @@ namespace Microsoft.CodeAnalysis
 
         private partial void DisposeWorker()
         {
-            var contexts = ArrayBuilder<DirectoryLoadContext>.GetInstance();
             lock (_guard)
             {
-                foreach (var (_, context) in _loadContextByDirectory)
-                    contexts.Add(context);
-
                 _loadContextByDirectory.Clear();
             }
-
-            foreach (var context in contexts)
-            {
-                try
-                {
-                    context.Unload();
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory, context.ToString());
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                {
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString(), context.ToString());
-                }
-            }
-
-            contexts.Free();
         }
 
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
@@ -196,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             private readonly AnalyzerAssemblyLoader _loader;
 
             public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader)
-                : base(isCollectible: true)
+                : base(isCollectible: false)
             {
                 Directory = directory;
                 _loader = loader;

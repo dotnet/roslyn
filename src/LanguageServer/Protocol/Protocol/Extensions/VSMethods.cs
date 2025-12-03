@@ -23,5 +23,5 @@ internal static class VSMethods
     /// <summary>
     /// Strongly typed request object for 'textDocument/_vs_getProjectContexts'.
     /// </summary>
-    public static readonly LspRequest<VSGetProjectContextsParams, VSProjectContextList> GetProjectContexts = new LspRequest<VSGetProjectContextsParams, VSProjectContextList>(GetProjectContextsName);
+    public static readonly LspRequest<VSGetProjectContextsParams, VSProjectContextList> GetProjectContexts = new(GetProjectContextsName);
 }

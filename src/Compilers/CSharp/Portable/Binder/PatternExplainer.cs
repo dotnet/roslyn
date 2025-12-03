@@ -110,63 +110,103 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void VisitPathsToNode(BoundDecisionDagNode rootNode, BoundDecisionDagNode targetNode, bool nullPaths,
             Func<ImmutableArray<BoundDecisionDagNode>, bool, bool> handler)
         {
+#nullable enable
             var pathBuilder = ArrayBuilder<BoundDecisionDagNode>.GetInstance();
+            var stack = ArrayBuilder<BoundDecisionDagNode?>.GetInstance();
             exploreToNode(rootNode, currentRequiresFalseWhenClause: false);
+            stack.Free();
             pathBuilder.Free();
             return;
 
             // Recursive exploration helper
             // Returns true to continue, false to stop
-            bool exploreToNode(BoundDecisionDagNode currentNode, bool currentRequiresFalseWhenClause)
+            bool exploreToNode(BoundDecisionDagNode? currentNode, bool currentRequiresFalseWhenClause)
             {
-                if (currentNode == targetNode)
+                if (currentNode is null)
                 {
-                    return handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause);
+                    return true;
                 }
 
-                pathBuilder.Push(currentNode);
+                int stackSize = stack.Count;
+                stack.Push(currentNode);
 
-                switch (currentNode)
+                do
                 {
-                    case null:
-                    case BoundLeafDecisionDagNode:
-                        break;
+                    currentNode = stack.Pop();
 
-                    case BoundTestDecisionDagNode test:
-                        bool skipWhenTrue = test.Test is BoundDagExplicitNullTest && !nullPaths;
-                        bool skipWhenFalse = test.Test is BoundDagNonNullTest && !nullPaths;
-
-                        if (!skipWhenTrue)
-                        {
-                            if (!exploreToNode(test.WhenTrue, currentRequiresFalseWhenClause))
-                                return false;
-                        }
-
-                        if (!skipWhenFalse)
-                        {
-                            if (!exploreToNode(test.WhenFalse, currentRequiresFalseWhenClause))
-                                return false;
-                        }
-
-                        break;
-
-                    case BoundEvaluationDecisionDagNode evaluation:
-                        if (!exploreToNode(evaluation.Next, currentRequiresFalseWhenClause))
-                            return false;
-
-                        break;
-
-                    case BoundWhenDecisionDagNode whenNode:
+                    if (currentNode is null)
+                    {
                         pathBuilder.Pop();
-                        return exploreToNode(whenNode.WhenFalse, currentRequiresFalseWhenClause: true);
+                        continue;
+                    }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(currentNode.Kind);
+                    if (currentNode == targetNode)
+                    {
+                        if (!handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause))
+                        {
+                            stack.Count = stackSize;
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+                    pathBuilder.Push(currentNode);
+
+                    switch (currentNode)
+                    {
+                        case BoundLeafDecisionDagNode:
+                            break;
+
+                        case BoundTestDecisionDagNode test:
+                            stack.Push(null); // marker to pop from pathBuilder
+
+                            bool skipWhenTrue = test.Test is BoundDagExplicitNullTest && !nullPaths;
+                            bool skipWhenFalse = test.Test is BoundDagNonNullTest && !nullPaths;
+
+                            if (!skipWhenFalse && test.WhenFalse is not null)
+                            {
+                                stack.Push(test.WhenFalse);
+                            }
+
+                            if (!skipWhenTrue && test.WhenTrue is not null)
+                            {
+                                stack.Push(test.WhenTrue);
+                            }
+
+                            continue;
+
+                        case BoundEvaluationDecisionDagNode evaluation:
+
+                            if (evaluation.Next is not null)
+                            {
+                                stack.Push(null); // marker to pop from pathBuilder
+                                stack.Push(evaluation.Next);
+                                continue;
+                            }
+                            break;
+
+                        case BoundWhenDecisionDagNode whenNode:
+                            pathBuilder.Pop();
+                            if (!exploreToNode(whenNode.WhenFalse, currentRequiresFalseWhenClause: true))
+                            {
+                                stack.Count = stackSize;
+                                return false;
+                            }
+
+                            continue;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(currentNode.Kind);
+                    }
+
+                    pathBuilder.Pop();
                 }
+                while (stack.Count > stackSize);
 
-                pathBuilder.Pop();
                 return true;
             }
+#nullable disable
         }
 
         /// <summary>

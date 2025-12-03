@@ -67,7 +67,7 @@ internal partial struct JsonParser
             var chars = numberToken.VirtualChars;
             var firstChar = chars[0];
 
-            var singleDigit = firstChar.IsDigit && chars.Length == 1;
+            var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
             if (singleDigit)
                 return null;
 
@@ -88,7 +88,7 @@ internal partial struct JsonParser
                 if (chars[1].Value is 'x' or 'X')
                 {
                     // Base 16.  Fortunately, we have helpers for this common case.
-                    if (!long.TryParse(chars.Skip("0x".Length).CreateString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _))
+                    if (!long.TryParse(chars["0x".Length..].CreateString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _))
                         return new EmbeddedDiagnostic(FeaturesResources.Invalid_number, GetSpan(chars));
                 }
                 else
@@ -123,7 +123,7 @@ internal partial struct JsonParser
                 if (c.Value is not (>= '0' and <= '7'))
                     return false;
 
-                var charValue = c.Value - '0';
+                var charValue = c - '0';
                 if (currentValue > MaxValue)
                     return false;
 
@@ -149,7 +149,7 @@ internal partial struct JsonParser
         {
             foreach (var vc in nameToken.VirtualChars)
             {
-                if (!vc.IsLetterOrDigit)
+                if (!char.IsLetterOrDigit(vc))
                     return false;
             }
 
@@ -199,6 +199,6 @@ internal partial struct JsonParser
         }
 
         private static bool IsLegalPropertyNameChar(VirtualChar ch)
-            => ch.IsLetterOrDigit || ch == '_' || ch == '$';
+            => char.IsLetterOrDigit(ch) || ch.Value is '_' or '$';
     }
 }

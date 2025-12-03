@@ -526,13 +526,17 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
+            var expected =
                 // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) += await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
-                );
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10);
+
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -569,15 +573,18 @@ class C
 
         return 1;
     }
-
 }";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
+            var expected =
                 // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
-               );
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10);
+
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -2290,16 +2297,20 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
-
-            comp.VerifyEmitDiagnostics(
+            var expected = new[] {
                 // (27,18): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         Test(ref b ? ref (await GetC(c1)).F : ref (await GetC(c2)).F, await GetC(new C()));
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref (await GetC(c1)).F : ref (await GetC(c2)).F").WithLocation(27, 18),
                 // (28,18): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         Test(ref b ? ref c1.F : ref c2.F, await GetC(new C()));
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref c1.F : ref c2.F").WithLocation(28, 18)
-                );
+            };
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

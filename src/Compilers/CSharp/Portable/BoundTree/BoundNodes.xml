@@ -30,7 +30,6 @@
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
   <ValueType Name="RefKind"/>
-  <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
@@ -109,7 +108,6 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--
@@ -210,7 +208,7 @@
   -->
 
   <!-- This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything. -->
-  <Node Name="BoundBadExpression" Base="BoundExpression">
+  <Node Name="BoundBadExpression" Base="BoundExpression" HasValidate="true">
     <!-- Categorizes the way in which "Symbols" is bad. -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     
@@ -304,16 +302,18 @@
     NOTE:
     * The node can only be a qualifier of a method or a property group access 
       as only those may require overload resolution.
-    * It is possible for a node of this type to appear in a tree where there
-      are no errors.  Consider (Color.M is Object).  M may be overloaded to
-      contain both static and instance methods.  In this case the expression is
-      always *false*, but the left-hand-side of the is operator is a method
-      group whose receiver is a BoundTypeOrValueExpression.
+    
+    * The Binder should make sure that such a node doesn't escape the binding
+      process, especially for success scenarios. The binder should resolve
+      the node in a most appropriate way, usually to a member access. Asserts
+      were added in some components to help detect a "leak". 
+      
     -->
-  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
+  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" HasValidate="true">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Data" Type="BoundTypeOrValueData"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
+    <Field Name="ValueSymbol" Type="Symbol" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
@@ -481,7 +481,7 @@
     <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
 
-  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -695,13 +695,19 @@
     <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
-  <Node Name="BoundAwaitableInfo" Base="BoundNode">
+  <Node Name="BoundAwaitableInfo" Base="BoundNode" HasValidate="true">
     <!-- Used to refer to the awaitable expression in GetAwaiter -->
     <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow" />
     <Field Name="IsDynamic" Type="bool"/>
     <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
     <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
     <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
+    <!-- Refers to the runtime async helper call we use for awaiting. Either this is an instance of a BoundCall of an AsyncHelpers.Await method, and 
+         GetAwaiter, IsCompleted, and GetResult are null, or this is an instance of a AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter BoundCall, and the other
+         fields are not null. -->
+    <Field Name="RuntimeAsyncAwaitCall" Type="BoundCall?" Null="allow"/>
+    <!-- Never null when RuntimeAsyncAwaitCall is not null -->
+    <Field Name="RuntimeAsyncAwaitCallPlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow"/>
   </Node>
 
   <Node Name="BoundAwaitExpression" Base="BoundExpression">
@@ -885,7 +891,7 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
 
-  <Node Name="BoundConversion" Base="BoundExpression">
+  <Node Name="BoundConversion" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     
@@ -1143,7 +1149,7 @@
     <Field Name="Flavor" Type="NoOpStatementFlavor"/>
   </Node>
 
-  <Node Name="BoundReturnStatement" Base="BoundStatement">
+  <Node Name="BoundReturnStatement" Base="BoundStatement" HasValidate="true">
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
     <!--
@@ -1278,7 +1284,6 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
@@ -1817,7 +1822,7 @@
     <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCall" Base="BoundExpression">
+  <Node Name="BoundCall" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -1833,7 +1838,17 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
+
+    <!--
+    Result kind for the invocation. Never LookupResultKind.MemberGroup or LookupResultKind.StaticInstanceMismatch.
+    If the value is something other than LookupResultKind.Viable, then the node represents a bad invocation,
+    the consistency among information stored in other properties is not guaranteed, and the Method property might
+    be set to an ErrorMethodSymbol. A special care should be taken when dealing with such nodes. It is recommended
+    to treat them similar to BoundBadExpressions nodes, unless there is a good reason to have more complicated
+    error recovery. 
+    -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
     <!--The set of method symbols from which this call's method was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best method.-->
@@ -2336,7 +2351,7 @@
   <Node Name="BoundTypeOrInstanceInitializers" Base="BoundStatementList">
   </Node>
 
-  <Node Name="BoundNameOfOperator" Base="BoundExpression">
+  <Node Name="BoundNameOfOperator" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Argument" Type="BoundExpression" Null="disallow"/>
@@ -2514,7 +2529,8 @@
            Left.InputType is the InputType 
            Right.InputType is the Left.NarrowedType 
   -->
-  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true">
+  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true" SkipInNullabilityRewriter="true">
+    <!-- When true, denotes an 'or' pattern. When false, denotes an 'and' pattern. -->
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>

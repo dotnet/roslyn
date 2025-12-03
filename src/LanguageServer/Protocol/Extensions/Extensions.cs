@@ -260,7 +260,7 @@ internal static partial class Extensions
     }
 
     public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
-        => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+        => new(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
 
     private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
     {
@@ -466,6 +466,8 @@ internal static partial class Extensions
             Glyph.TargetTypeMatch => (KnownImageIds.ImageCatalogGuid, KnownImageIds.MatchType),
 
             Glyph.TypeParameter => (KnownImageIds.ImageCatalogGuid, KnownImageIds.Type),
+
+            Glyph.Copilot => (KnownImageIds.ImageCatalogGuid, KnownImageIds.SparkleNoColor),
 
             _ => throw new ArgumentException($"Unknown glyph value: {glyph}", nameof(glyph)),
         };

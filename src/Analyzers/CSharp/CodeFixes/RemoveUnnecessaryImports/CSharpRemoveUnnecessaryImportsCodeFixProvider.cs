@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.FileHeader)]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConvertToProgramMain)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

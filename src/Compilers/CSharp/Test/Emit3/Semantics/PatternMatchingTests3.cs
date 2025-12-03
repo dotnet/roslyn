@@ -2364,9 +2364,7 @@ class C
 }";
             var expectedOutput = @"111121";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
-                );
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
             compVerifier.VerifyIL("C.M",
 @"{
   // Code size       45 (0x2d)
@@ -2422,9 +2420,7 @@ class C
 }";
             var expectedOutput = @"121212";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
-                );
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
             compVerifier.VerifyIL("C.M",
 @"{
   // Code size       30 (0x1e)
@@ -2999,45 +2995,48 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
-                // (6,9): error CS1525: Invalid expression term '=='
+                // (6,9): error CS9344: The '==' operator is not supported in a pattern.
                 //         == 0 => 1,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 9),
-                // (7,9): error CS1525: Invalid expression term '!='
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(6, 9),
+                // (6,12): error CS9135: A constant value of type 'uint' is expected
+                //         == 0 => 1,
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "0").WithArguments("uint").WithLocation(6, 12),
+                // (7,9): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //         != 2 => 2,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
-                );
+                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 9));
 
             VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
 ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
-  Value: 
+  Value:
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
   Arms(3):
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '== 0 => 1')
-        Pattern: 
-          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '== 0') (InputType: System.UInt32, NarrowedType: System.UInt32)
-            Value: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 0, IsImplicit) (Syntax: '0')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '0 => 1')
+        Pattern:
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '0') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value:
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, IsInvalid, IsImplicit) (Syntax: '0')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Value: 
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+        Value:
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '!= 2 => 2')
-        Pattern: 
-          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '!= 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
-            Value: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-        Value: 
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '        != 2 => 2')
+        Pattern:
+          INegatedPatternOperation (OperationKind.NegatedPattern, Type: null, IsInvalid) (Syntax: '        != 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Pattern:
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+                Value:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Value:
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 7')
-        Pattern: 
+        Pattern:
           IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.UInt32, NarrowedType: System.UInt32)
-        Value: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
-");
+        Value:
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')");
         }
 
         [Fact]
@@ -3364,9 +3363,7 @@ Base
 Base
 ";
             var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-            compilation.VerifyDiagnostics(
-                );
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4781,9 +4778,7 @@ enum LifeStage
 80 -> LateAdult
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-            compilation.VerifyDiagnostics(
-                );
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
             compVerifier.VerifyIL("C.LifeStageAtAge", @"
     {
       // Code size       88 (0x58)
@@ -7419,7 +7414,13 @@ class C
             compilation.VerifyDiagnostics(
                 // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //     int M((object?, bool, bool, bool) t) => t switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47),
+                // (11,18): hidden CS9271: The pattern is redundant.
+                //         ({ }, _, true, _) => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(11, 18),
+                // (12,10): hidden CS9271: The pattern is redundant.
+                //         (null, _, _, false) => 7,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(12, 10)
                 );
         }
 

@@ -106,7 +106,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ControlKeywordFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.Keyword_Control;
+        {
+            this.DisplayName = EditorFeaturesResources.Keyword_Control;
+            this.ForegroundColor = Color.FromRgb(0x8F, 0x08, 0xC4);
+        }
     }
     #endregion
     #region Operator - Overloaded
@@ -123,7 +126,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OperatorOverloadedFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
+        {
+            this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
+            this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1F);
+        }
     }
     #endregion
 
@@ -380,6 +386,63 @@ internal sealed class ClassificationTypeFormatDefinitions
         }
     }
     #endregion
+    #region User Types - Arrays
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ArrayName)]
+    [Name(ClassificationTypeNames.ArrayName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypeArraysFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypeArraysFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Arrays;
+        }
+    }
+    #endregion
+    #region User Types - Pointers
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PointerName)]
+    [Name(ClassificationTypeNames.PointerName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypePointersFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypePointersFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Pointers;
+        }
+    }
+    #endregion
+    #region User Types - Function Pointers
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FunctionPointerName)]
+    [Name(ClassificationTypeNames.FunctionPointerName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypeFunctionPointersFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypeFunctionPointersFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Function_Pointers;
+        }
+    }
+    #endregion
 
     #region User Members - Fields
     [Export(typeof(EditorFormatDefinition))]
@@ -446,7 +509,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersLocalNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Locals;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Locals;
+            this.ForegroundColor = Color.FromRgb(0x1F, 0x37, 0x7F);
+        }
     }
     #endregion
     #region User Members - Parameters
@@ -463,7 +529,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersParameterNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
+            this.ForegroundColor = Color.FromRgb(0x1F, 0x37, 0x7F);
+        }
     }
     #endregion
     #region User Members - Methods
@@ -480,7 +549,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersMethodNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Methods;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Methods;
+            this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1F);
+        }
     }
     #endregion
     #region User Members - Extension Methods
@@ -497,7 +569,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersExtensionMethodNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
+            this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1F);
+        }
     }
     #endregion
     #region User Members - Properties

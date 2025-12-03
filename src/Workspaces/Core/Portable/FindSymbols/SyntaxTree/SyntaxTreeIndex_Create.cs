@@ -61,7 +61,8 @@ internal sealed partial class SyntaxTreeIndex
             var containsUsingStatement = false;
             var containsQueryExpression = false;
             var containsThisConstructorInitializer = false;
-            var containsBaseConstructorInitializer = false;
+            var containsExplicitBaseConstructorInitializer = false;
+            var containsImplicitBaseConstructorInitializer = false;
             var containsElementAccess = false;
             var containsIndexerMemberCref = false;
             var containsDeconstruction = false;
@@ -109,6 +110,8 @@ internal sealed partial class SyntaxTreeIndex
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
                         containsPrimaryConstructorBaseType = containsPrimaryConstructorBaseType || syntaxFacts.IsPrimaryConstructorBaseType(node);
                         containsPartialClass = containsPartialClass || IsPartialClass(node);
+                        containsImplicitBaseConstructorInitializer = containsImplicitBaseConstructorInitializer ||
+                            (syntaxFacts.IsConstructorDeclaration(node) && syntaxFacts.HasImplicitBaseConstructorInitializer(node));
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
@@ -120,7 +123,7 @@ internal sealed partial class SyntaxTreeIndex
                         var token = (SyntaxToken)current;
 
                         containsThisConstructorInitializer = containsThisConstructorInitializer || syntaxFacts.IsThisConstructorInitializer(token);
-                        containsBaseConstructorInitializer = containsBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
+                        containsExplicitBaseConstructorInitializer = containsExplicitBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
                         containsGlobalKeyword = containsGlobalKeyword || syntaxFacts.IsGlobalNamespaceKeyword(token);
 
                         if (syntaxFacts.IsIdentifier(token))
@@ -190,7 +193,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsUsingStatement,
                     containsQueryExpression,
                     containsThisConstructorInitializer,
-                    containsBaseConstructorInitializer,
+                    containsExplicitBaseConstructorInitializer,
+                    containsImplicitBaseConstructorInitializer,
                     containsElementAccess,
                     containsIndexerMemberCref,
                     containsDeconstruction,

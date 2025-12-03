@@ -53,11 +53,7 @@ internal abstract partial class AbstractLegacyProject
 
     private static readonly char[] PathSeparatorCharacters = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
-    #region Mutable fields that should only be used from the UI thread
-
     private readonly SolutionEventsBatchScopeCreator _batchScopeCreator;
-
-    #endregion
 
     public AbstractLegacyProject(
         string projectSystemName,

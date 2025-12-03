@@ -32,14 +32,14 @@
         <target state="translated">Copilot pensando...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot">
-        <source>Describe with Copilot</source>
-        <target state="translated">Describir con Copilot</target>
+      <trans-unit id="Describe">
+        <source>Describe</source>
+        <target state="new">Describe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">La opción "Describir con Copilot" no está disponible porque su organización excluye el documento al que se hace referencia.</target>
+      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="new">'Describe' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -437,6 +437,11 @@
         <target state="translated">Usuarios miembros: propiedades</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Arrays">
+        <source>User Types - Arrays</source>
+        <target state="new">User Types - Arrays</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Tipos de usuario: clases</target>
@@ -452,9 +457,19 @@
         <target state="translated">Tipos de usuario: enumeraciones</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Function_Pointers">
+        <source>User Types - Function Pointers</source>
+        <target state="new">User Types - Function Pointers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Tipos de usuario: interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Pointers">
+        <source>User Types - Pointers</source>
+        <target state="new">User Types - Pointers</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
@@ -1059,8 +1074,8 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="translated">Cambiar firma</target>
-        <note />
+        <target state="needs-review-translation">Cambiar firma</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
@@ -1094,8 +1109,8 @@
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="translated">Cambiar firma:</target>
-        <note />
+        <target state="needs-review-translation">Cambiar firma:</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>

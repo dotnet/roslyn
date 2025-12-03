@@ -30,6 +30,16 @@ internal static partial class INamedTypeSymbolExtensions
         }
     }
 
+    public static IEnumerable<INamedTypeSymbol> GetContainingTypesAndThis(this INamedTypeSymbol? namedType)
+    {
+        var current = namedType;
+        while (current != null)
+        {
+            yield return current;
+            current = current.ContainingType;
+        }
+    }
+
     public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
     {
         var stack = GetContainmentStack(symbol);

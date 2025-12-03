@@ -73,7 +73,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         internal readonly CodeActionPriority? priority;
         internal readonly bool retainNonFixableDiagnostics;
         internal readonly bool includeDiagnosticsOutsideSelection;
-        internal readonly bool includeNonLocalDocumentDiagnostics;
         internal readonly string title;
         internal readonly bool treatPositionIndicatorsAsCode;
 
@@ -90,7 +89,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             string title = null,
             TestHost testHost = TestHost.OutOfProcess,
             string workspaceKind = null,
-            bool includeNonLocalDocumentDiagnostics = false,
             bool treatPositionIndicatorsAsCode = false)
         {
             this.parseOptions = parseOptions;
@@ -105,41 +103,37 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             this.title = title;
             this.testHost = testHost;
             this.workspaceKind = workspaceKind;
-            this.includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
             this.treatPositionIndicatorsAsCode = treatPositionIndicatorsAsCode;
         }
 
         public static readonly TestParameters Default = new(parseOptions: null);
 
         public TestParameters WithParseOptions(ParseOptions parseOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         internal TestParameters WithOptions(OptionsCollectionAlias options)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         internal TestParameters WithGlobalOptions(OptionsCollectionAlias globalOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithFixProviderData(object fixProviderData)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithIndex(int index)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithWorkspaceKind(string workspaceKind)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithIncludeNonLocalDocumentDiagnostics(bool includeNonLocalDocumentDiagnostics)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
     }
 
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
@@ -149,7 +143,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
     private const string AutoGeneratedAnalyzerConfigHeader = @"# auto-generated .editorconfig for code style options";
 
     protected internal abstract string GetLanguage();
-    protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
+    protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new(this.GetLanguage());
     protected abstract ParseOptions GetScriptOptions();
 
     private protected virtual IDocumentServiceProvider GetDocumentServiceProvider()
@@ -894,20 +888,18 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         await TestActionCountAsync(input, outputs.Length, parameters);
     }
 
-    protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
-        TTestWorkspace workspace,
-        out Document document,
-        out TextSpan span,
-        out string annotation)
+    protected static async Task<(Document document, TextSpan span, string annotation)> GetDocumentAndSelectSpanOrAnnotatedSpan(
+        TTestWorkspace workspace)
     {
-        annotation = null;
-        if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
-        {
-            document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
-        }
+        var tuple = await TryGetDocumentAndSelectSpan(workspace);
+        if (tuple.HasValue)
+            return (tuple.Value.document, tuple.Value.span, annotation: null);
+
+        var document = GetDocumentAndAnnotatedSpan(workspace, out var annotation, out var span);
+        return (document, span, annotation);
     }
 
-    private static bool TryGetDocumentAndSelectSpan(TTestWorkspace workspace, out Document document, out TextSpan span)
+    private static async Task<(Document document, TextSpan span)?> TryGetDocumentAndSelectSpan(TTestWorkspace workspace)
     {
         var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
         if (hostDocument == null)
@@ -916,26 +908,30 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             // there if so.
             hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
             if (hostDocument == null)
-            {
-                document = null;
-                span = default;
-                return false;
-            }
+                return null;
 
-            span = new TextSpan(hostDocument.CursorPosition.Value, 0);
-            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            return true;
+            var span = new TextSpan(hostDocument.CursorPosition.Value, 0);
+            var document = await workspace.CurrentSolution.GetDocumentAsync(hostDocument.Id, includeSourceGenerated: true);
+            return (document, span);
         }
-
-        span = hostDocument.SelectedSpans.Single();
-        document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        return true;
+        else
+        {
+            var span = hostDocument.SelectedSpans.Single();
+            var document = await workspace.CurrentSolution.GetDocumentAsync(hostDocument.Id, includeSourceGenerated: true);
+            return (document, span);
+        }
     }
 
     private static Document GetDocumentAndAnnotatedSpan(TTestWorkspace workspace, out string annotation, out TextSpan span)
     {
-        var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
-        var hostDocument = annotatedDocuments.Single();
+        // May have multiple annotated documents in the case of linked files.  Pick the first one in that case
+        var annotatedDocuments = workspace.Documents.WhereAsArray(d => d.AnnotatedSpans.Any());
+        if (annotatedDocuments.Length > 1)
+        {
+            Contract.ThrowIfFalse(annotatedDocuments.All(d => d.FilePath == annotatedDocuments[0].FilePath));
+        }
+
+        var hostDocument = annotatedDocuments.First();
         var annotatedSpan = hostDocument.AnnotatedSpans.Single();
         annotation = annotatedSpan.Key;
         span = annotatedSpan.Value.Single();

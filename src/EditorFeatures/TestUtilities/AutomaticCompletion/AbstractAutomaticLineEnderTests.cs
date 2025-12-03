@@ -27,13 +27,13 @@ public abstract class AbstractAutomaticLineEnderTests
 
     internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(EditorTestWorkspace workspace);
 
-    protected void Test(string expected, string markupCode, bool completionActive = false, bool assertNextHandlerInvoked = false)
+    protected void Test(string expected, string markupCode, bool assertNextHandlerInvoked = false)
     {
-        Test(expected, markupCode, useTabs: false, completionActive, assertNextHandlerInvoked);
-        Test(expected, markupCode, useTabs: true, completionActive, assertNextHandlerInvoked);
+        Test(expected, markupCode, useTabs: false, assertNextHandlerInvoked);
+        Test(expected, markupCode, useTabs: true, assertNextHandlerInvoked);
     }
 
-    private void Test(string expected, string markupCode, bool useTabs, bool completionActive = false, bool assertNextHandlerInvoked = false)
+    private void Test(string expected, string markupCode, bool useTabs, bool assertNextHandlerInvoked = false)
     {
         if (useTabs)
         {
@@ -48,7 +48,7 @@ public abstract class AbstractAutomaticLineEnderTests
         {
             // Run the test once for each input position. All marked positions in the input for a test are expected
             // to have the same result.
-            Test(expected, code, position, useTabs, completionActive, assertNextHandlerInvoked);
+            Test(expected, code, position, useTabs, assertNextHandlerInvoked);
         }
     }
 
@@ -63,9 +63,7 @@ public abstract class AbstractAutomaticLineEnderTests
         return string.Join("\n", lines);
     }
 
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45892
-    private void Test(string expected, string code, int position, bool useTabs, bool completionActive = false, bool assertNextHandlerInvoked = false)
-#pragma warning restore IDE0060 // Remove unused parameter
+    private void Test(string expected, string code, int position, bool useTabs, bool assertNextHandlerInvoked = false)
     {
         var markupCode = code[0..position] + "$$" + code[position..];
 

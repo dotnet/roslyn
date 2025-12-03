@@ -8,8 +8,10 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
@@ -1740,6 +1742,893 @@ class Test
             };
 
             CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
+
+            var comp = CreateCompilation(code);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //     public ref readonly int Method() => ref x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(5, 12)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_01()
+        {
+            var code = @"
+class C1
+{
+    private static int x = 0;
+    ref readonly int M() => ref x;
+
+    void TestMethod(int y)
+    {
+        var d = this.M;
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember("<>F{00000003}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+
+            comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //     ref readonly int M() => ref x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(5, 5),
+                // (9,17): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //         var d = this.M;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "this.M").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_02()
+        {
+            var code = @"
+class C1
+{
+    private static int x = 0;
+    ref int M() => ref x;
+
+    void TestMethod(int y)
+    {
+        var d = this.M;
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember("<>F{00000001}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_03()
+        {
+            var code = @"
+class C1
+{
+    private static int x = 0;
+    int M() => x;
+
+    void TestMethod(int y)
+    {
+        var d = this.M;
+    }
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            CompileAndVerify(comp, verify: Verification.Passes).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var thisDotM = GetSyntax<MemberAccessExpressionSyntax>(tree, "this.M");
+
+            AssertEx.Equal("System.Func<System.Int32>", model.GetTypeInfo(thisDotM).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_LocalFuction_01()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        ref readonly int local() => ref x;
+        var d = local;
+    }
+}";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<TestMethod>g__local|1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember("<>F{00000003}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single()).GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            AssertSingleInAttributeRequiredModifier(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.RefReadOnly, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+
+            comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //         ref readonly int local() => ref x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_LocalFuction_02()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        ref int local() => ref x;
+        var d = local;
+    }
+}";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<TestMethod>g__local|1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember("<>F{00000001}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single()).GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.Ref, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_LocalFuction_03()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        int local() => x;
+        var d = local;
+    }
+}";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<TestMethod>g__local|1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localFunc = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single()).GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.None, localFunc.RefKind);
+
+            AssertEx.Equal("System.Func<System.Int32>", model.GetTypeInfo(GetSyntax<IdentifierNameSyntax>(tree, "local")).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_LocalFuction_04()
+        {
+            var code = @"
+static class Test
+{
+    private static int x = 0;
+
+    extension(object o)
+    {
+        void TestMethod()
+        {
+            ref readonly int local() => ref x;
+            var d = local;
+        }
+    }
+}";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<TestMethod>g__local|2_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember("<>F{00000003}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single()).GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            AssertSingleInAttributeRequiredModifier(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.RefReadOnly, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_01()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        D d = () => ref x;
+    }
+}
+
+delegate ref readonly int D();
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            AssertSingleInAttributeRequiredModifier(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.RefReadOnly, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+
+            comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics(
+                // (12,10): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                // delegate ref readonly int D();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(12, 10)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_02()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        D d = () => ref x;
+    }
+}
+
+delegate ref int D();
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.Ref, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_03()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        D d = () => x;
+    }
+}
+
+delegate int D();
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.None, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_04()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        var d = ref readonly int () => ref x;
+    }
+}
+
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            AssertSingleInAttributeRequiredModifier(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.RefReadOnly, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+
+            comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics(
+                // (8,30): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //         var d = ref readonly int () => ref x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(8, 30)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_05()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        var d = ref int () => ref x;
+    }
+}
+
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.Invoke"); // Synthesized delegate method
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+
+                Assert.Null(module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.EndInvoke"));
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.Ref, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_06()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        var d = int () => x;
+    }
+}
+
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            LambdaExpressionSyntax lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var localFunc = model.GetSymbolInfo(lambda).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.None, localFunc.RefKind);
+
+            AssertEx.Equal("System.Func<System.Int32>", model.GetTypeInfo(lambda).ConvertedType.ToTestDisplayString());
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_07()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    static ref readonly int M() => ref x;
+
+    void TestMethod()
+    {
+        var d = () => ref M();
+    }
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.Ref, localFunc.RefKind);
+
+            comp.VerifyDiagnostics(
+                // (10,27): error CS8333: Cannot return method 'M' by writable reference because it is a readonly variable
+                //         var d = () => ref M();
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "M()").WithArguments("method", "M").WithLocation(10, 27)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_08()
+        {
+            var code = @"
+static class Test
+{
+    private static int x = 0;
+
+    extension(object o)
+    {
+        void TestMethod()
+        {
+            D d = () => ref x;
+        }
+    }
+}
+
+delegate ref readonly int D();
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__2_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            AssertSingleInAttributeRequiredModifier(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.RefReadOnly, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_09()
+        {
+            // delegate ref readonly NO_MODREQ(System.Runtime.InteropServices.InAttribute) int D();
+            var ilSrc = @"
+.class public auto ansi sealed D
+    extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            object 'object',
+            native int 'method'
+        ) runtime managed 
+    {
+    }
+
+    .method public hidebysig newslot virtual 
+        instance int32& Invoke () runtime managed 
+    {
+        .param [0]
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+                01 00 00 00
+            )
+    }
+}
+";
+
+            var code = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        D d = () =>
+        {
+            return ref x;
+        };
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL(code, ilSrc, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            Assert.True(comp.GetTypeByMetadataName("D").DelegateInvokeMethod.HasUnsupportedMetadata);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            Assert.Empty(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.Ref, localFunc.RefKind);
+
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0570: 'D.Invoke()' is not supported by the language
+                //         D d = () =>
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_Lambda_10()
+        {
+            var code1 = @"
+public delegate ref readonly int D();
+";
+
+            var comp1 = CreateCompilation(code1, options: TestOptions.DebugDll);
+
+            var code2 = @"
+class Test
+{
+    private static int x = 0;
+
+    void TestMethod()
+    {
+        D d = () => ref x;
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<TestMethod>b__1_0");
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var localFunc = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()).Symbol.GetSymbol<MethodSymbol>();
+
+            Assert.Empty(localFunc.ReturnTypeWithAnnotations.CustomModifiers);
+            AssertSingleInAttributeRequiredModifier(localFunc.RefCustomModifiers);
+            Assert.Equal(RefKind.RefReadOnly, localFunc.RefKind);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_BaseCallWrapper_01()
+        {
+            var code = @"
+class C1
+{
+    private static int x = 0;
+    protected virtual ref readonly int M() => ref x;
+}
+
+class C2 : C1
+{
+    void TestMethod(int y)
+    {
+        var d = () => base.M() + y;
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C2.<>n__0"); // base method call wrapper
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_BaseCallWrapper_02()
+        {
+            var code = @"
+class C1
+{
+    private static int x = 0;
+    protected virtual ref int M() => ref x;
+}
+
+class C2 : C1
+{
+    void TestMethod(int y)
+    {
+        var d = () => base.M() + y;
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C2.<>n__0"); // base method call wrapper
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttributeIsWrittenOnRefReadOnly_BaseCallWrapper_03()
+        {
+            var code = @"
+class C1
+{
+    private static int x = 0;
+    protected virtual int M() => x;
+}
+
+class C2 : C1
+{
+    void TestMethod(int y)
+    {
+        var d = () => base.M() + y;
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C2.<>n__0"); // base method call wrapper
+
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.Empty(method.RefCustomModifiers);
+                Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
+            };
+
+            var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: validator).VerifyDiagnostics();
         }
 
         [Fact]

@@ -67,7 +67,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
     }
 
-    private readonly struct SymbolResult<T>(string desiredName, TSimpleNameSyntax nameNode, T symbol, double weight) where T : ISymbol
+    private readonly struct SymbolResult<T>(string? desiredName, TSimpleNameSyntax nameNode, T symbol, double weight) where T : ISymbol
     {
         // The symbol that matched the string being searched for.
         public readonly T Symbol = symbol;
@@ -77,7 +77,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         public readonly double Weight = weight;
 
         // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
-        public readonly string DesiredName = desiredName;
+        public readonly string? DesiredName = desiredName;
 
         // The node to convert to the desired name
         public readonly TSimpleNameSyntax NameNode = nameNode;
@@ -85,7 +85,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         public SymbolResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
             => new(DesiredName, NameNode, symbol, Weight);
 
-        internal SymbolResult<T> WithDesiredName(string desiredName)
+        internal SymbolResult<T> WithDesiredName(string? desiredName)
             => new(desiredName, NameNode, Symbol, Weight);
     }
 

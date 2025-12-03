@@ -11,7 +11,7 @@ internal sealed class RenameFieldBackgroundAndBorderTag : TextMarkerTag
     // Only used for theming, does not need localized
     internal const string TagId = "RoslynRenameFieldBackgroundAndBorderTag";
 
-    public static readonly RenameFieldBackgroundAndBorderTag Instance = new RenameFieldBackgroundAndBorderTag();
+    public static readonly RenameFieldBackgroundAndBorderTag Instance = new();
 
     private RenameFieldBackgroundAndBorderTag()
         : base(TagId)

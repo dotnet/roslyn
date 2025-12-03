@@ -119,7 +119,7 @@ public static class BlindAggregatorFactory
 
             // Singleton instance of the VTable allocated in native memory. Since it's static, the
             // underlying native memory will be freed when finalizers run at shutdown.
-            private static readonly CoTaskMemPtr s_instance = new CoTaskMemPtr();
+            private static readonly CoTaskMemPtr s_instance = new();
 
             public static IntPtr AddressOfVTable { get { return s_instance.VTablePtr; } }
         }
@@ -128,13 +128,13 @@ public static class BlindAggregatorFactory
         private const int E_NOINTERFACE = unchecked((int)0x80004002);
 
         // 00000000-0000-0000-C000-000000000046
-        private static readonly Guid s_IUnknownInterfaceGuid = new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+        private static readonly Guid s_IUnknownInterfaceGuid = new(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
 
         // 00000003-0000-0000-C000-000000000046
-        private static readonly Guid s_IMarshalInterfaceGuid = new Guid(0x00000003, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+        private static readonly Guid s_IMarshalInterfaceGuid = new(0x00000003, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
 
         // CBD71F2C-6BC5-4932-B851-B93EB3151386
-        private static readonly Guid s_IComWrapperGuid = new Guid("CBD71F2C-6BC5-4932-B851-B93EB3151386");
+        private static readonly Guid s_IComWrapperGuid = new("CBD71F2C-6BC5-4932-B851-B93EB3151386");
 
         private static unsafe int QueryInterface(BlindAggregator* pThis, [In] ref Guid riid, out IntPtr pvObject)
         {

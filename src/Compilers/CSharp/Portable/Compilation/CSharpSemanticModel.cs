@@ -1661,6 +1661,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
+                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                Debug.Assert((options & LookupOptions.NamespaceAliasesOnly) == 0);
+                Debug.Assert((options & LookupOptions.LabelsOnly) == 0);
 
                 binder.LookupAllExtensions(lookupResult, name, options);
 
@@ -1677,8 +1680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(symbol.GetIsNewExtensionMember());
-                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, symbol, receiverType) is { } compatibleSubstitutedMember)
+                            Debug.Assert(symbol.IsExtensionBlockMember());
+                            if (SourceNamedTypeSymbol.ReduceExtensionMember(binder.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 results.Add(compatibleSubstitutedMember.GetPublicSymbol());
                             }
@@ -1913,43 +1916,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             OneOrMany<Symbol> symbols = GetSemanticSymbols(
                 boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
 
-            if (highestBoundNode is BoundExpression highestBoundExpr)
+            if (highestBoundNode is BoundBadExpression badExpression)
+            {
+                // Downgrade result kind if highest node is BoundBadExpression
+                LookupResultKind highestResultKind;
+                bool highestIsDynamic;
+                ImmutableArray<Symbol> unusedHighestMemberGroup;
+                OneOrMany<Symbol> highestSymbols = GetSemanticSymbols(
+                    badExpression, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
+
+                if (highestResultKind != LookupResultKind.Empty && highestResultKind < resultKind)
+                {
+                    resultKind = highestResultKind;
+                    isDynamic = highestIsDynamic;
+                }
+            }
+            else if (boundExpr is BoundMethodGroup &&
+                resultKind == LookupResultKind.OverloadResolutionFailure &&
+                highestBoundNode is BoundConversion { ConversionKind: ConversionKind.MethodGroup } boundConversion)
             {
                 LookupResultKind highestResultKind;
                 bool highestIsDynamic;
                 ImmutableArray<Symbol> unusedHighestMemberGroup;
                 OneOrMany<Symbol> highestSymbols = GetSemanticSymbols(
-                    highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
+                    boundConversion, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
 
-                if ((symbols.Count != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Count > 0)
+                if (highestSymbols.Count > 0)
                 {
                     symbols = highestSymbols;
                     resultKind = highestResultKind;
                     isDynamic = highestIsDynamic;
-                }
-                else if (highestResultKind != LookupResultKind.Empty && highestResultKind < resultKind)
-                {
-                    resultKind = highestResultKind;
-                    isDynamic = highestIsDynamic;
-                }
-                else if (highestBoundExpr.Kind == BoundKind.TypeOrValueExpression)
-                {
-                    symbols = highestSymbols;
-                    resultKind = highestResultKind;
-                    isDynamic = highestIsDynamic;
-                }
-                else if (highestBoundExpr.Kind == BoundKind.UnaryOperator)
-                {
-                    if (IsUserDefinedTrueOrFalse((BoundUnaryOperator)highestBoundExpr))
-                    {
-                        symbols = highestSymbols;
-                        resultKind = highestResultKind;
-                        isDynamic = highestIsDynamic;
-                    }
-                    else
-                    {
-                        Debug.Assert(ReferenceEquals(lowestBoundNode, highestBoundNode), "How is it that this operator has the same syntax node as its operand?");
-                    }
                 }
             }
 
@@ -2011,12 +2007,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(s);
             }
-        }
-
-        private static bool IsUserDefinedTrueOrFalse(BoundUnaryOperator @operator)
-        {
-            UnaryOperatorKind operatorKind = @operator.OperatorKind;
-            return operatorKind == UnaryOperatorKind.UserDefinedTrue || operatorKind == UnaryOperatorKind.UserDefinedFalse;
         }
 
         // Gets the semantic info from a specific bound node and a set of diagnostics
@@ -3434,10 +3424,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // If we're seeing a node of this kind, then we failed to resolve the member access
                         // as either a type or a property/field/event/local/parameter.  In such cases,
-                        // the second interpretation applies so just visit the node for that.
-                        BoundExpression valueExpression = ((BoundTypeOrValueExpression)boundNode).Data.ValueExpression;
-                        return GetSemanticSymbols(valueExpression, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
+                        // the second interpretation applies.
+                        Debug.Assert(boundNode is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
+                        symbols = OneOrMany.Create(((BoundTypeOrValueExpression)boundNode).ValueSymbol);
                     }
+                    break;
 
                 case BoundKind.Call:
                     {
@@ -3755,7 +3746,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    if (containingMember.IsStatic)
+                    if (containingMember.IsExtensionBlockMember())
+                    {
+                        resultKind = LookupResultKind.NotReferencable;
+                        thisParam = new ThisParameterSymbol(null, containingType);
+                    }
+                    else if (containingMember.IsStatic)
                     {
                         // in a static member
                         resultKind = LookupResultKind.StaticInstanceMismatch;
@@ -3859,12 +3855,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!isDynamic)
                 {
-                    GetSymbolsAndResultKind(binaryOperator, binaryOperator.Method, binaryOperator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
+                    GetSymbolsAndResultKind(binaryOperator, binaryOperator.BinaryOperatorMethod, binaryOperator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
                 }
             }
             else
             {
-                Debug.Assert((object)binaryOperator.Method == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
+                Debug.Assert((object)binaryOperator.BinaryOperatorMethod == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
 
                 if (!isDynamic &&
                     (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
@@ -4846,6 +4842,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node);
 
         /// <summary>
+        /// Gets await expression info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract AwaitExpressionInfo GetAwaitExpressionInfo(LocalDeclarationStatementSyntax node);
+
+        /// <summary>
+        /// Gets await expression info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract AwaitExpressionInfo GetAwaitExpressionInfo(UsingStatementSyntax node);
+
+        /// <summary>
         /// If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.
         /// </summary>
         /// <param name="node">Preprocessing symbol identifier node.</param>
@@ -4853,13 +4861,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
+            if (isPossiblePreprocessingSymbolReference(node))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
                 return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
             }
 
             return PreprocessingSymbolInfo.None;
+
+            bool isPossiblePreprocessingSymbolReference(IdentifierNameSyntax node)
+            {
+                var parentNode = node.Parent;
+                while (parentNode is not null)
+                {
+                    var kind = parentNode.Kind();
+                    switch (kind)
+                    {
+                        case SyntaxKind.IfDirectiveTrivia:
+                            {
+                                var parentIf = (IfDirectiveTriviaSyntax)parentNode;
+                                return parentIf.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                        case SyntaxKind.ElifDirectiveTrivia:
+                            {
+                                var parentElif = (ElifDirectiveTriviaSyntax)parentNode;
+                                return parentElif.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                    }
+
+                    if (SyntaxFacts.IsPreprocessorDirective(kind))
+                    {
+                        return false;
+                    }
+
+                    parentNode = parentNode.Parent;
+                }
+                return false;
+            }
         }
 
         /// <summary>

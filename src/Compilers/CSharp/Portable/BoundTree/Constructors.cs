@@ -132,13 +132,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder)
         {
             if (!originalMethods.IsEmpty)
+            {
                 resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+            }
+            else
+            {
+                Debug.Assert(method.OriginalDefinition is ErrorMethodSymbol);
+            }
 
+            Debug.Assert(resultKind is not LookupResultKind.Viable);
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 
             return new BoundCall(
                 syntax: node,
-                receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
+                receiverOpt: binder.AdjustBadExpressionChild(binder.BindToTypeForErrorRecovery(receiverOpt)),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: method,
                 arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),

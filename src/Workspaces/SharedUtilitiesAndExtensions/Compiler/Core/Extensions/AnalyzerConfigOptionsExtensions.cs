@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -12,10 +13,10 @@ namespace Microsoft.CodeAnalysis;
 internal static class AnalyzerConfigOptionsExtensions
 {
     public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
-        => TryGetEditorConfigOption<T>(analyzerConfigOptions, option, out var value) ? value! : defaultValue;
+        => TryGetEditorConfigOption<T>(analyzerConfigOptions, option, out var value) ? value : defaultValue;
 
     public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
-        => TryGetEditorConfigOption<CodeStyleOption2<T>>(analyzerConfigOptions, option, out var style) ? style!.Value : defaultValue;
+        => TryGetEditorConfigOption<CodeStyleOption2<T>>(analyzerConfigOptions, option, out var style) ? style.Value : defaultValue;
 
     public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, out T value)
     {
@@ -67,7 +68,7 @@ internal static class AnalyzerConfigOptionsExtensions
         const string AnalysisLevelKey = "build_property.EffectiveAnalysisLevelStyle";
 
         return analyzerConfigOptions.TryGetValue(AnalysisLevelKey, out var value)
-            && double.TryParse(value, out var version)
+            && double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var version)
             && version >= minAnalysisLevel;
     }
 }

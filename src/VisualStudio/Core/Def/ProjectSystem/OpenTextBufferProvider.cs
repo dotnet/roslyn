@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -62,9 +63,6 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
         _runningDocumentTable = new(() =>
         {
-            /* NOTE: REMOVE ONCE https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 IS FIXED */
-            _threadingContext.ThrowIfNotOnUIThread();
-
             // The running document table since 18.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
             // This is specifically guaranteed by the shell that those limited operations are safe and do not cause RPCs, and it's important we don't try to fetch the service
             // via a helper that will "helpfully" try to jump to the UI thread.
@@ -101,23 +99,14 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private async Task CheckForExistingOpenDocumentsAsync()
     {
-        /* 
-         * NOTE: UNCOMMENT ONCE https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 IS FIXED
-         *       AND REMOVE THE THREAD CHECK FROM THE INITIALIZATION OF _runningDocumentTable
+        // Yield the thread, so the calling constructor can proceed immediately
+        await Task.Yield().ConfigureAwait(false);
 
-         // Yield the thread, so the caller can proceed immediately.
-         await Task.Yield();
-
-         // Ensure we obtain the RDT before transitioning to the main thread
-         _ = _runningDocumentTable.Value;
-
-         */
-
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-        /* NOTE: REMOVE ONCE https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 IS FIXED */
-        // Temporarily ensure we obtain the RDT from the main thread
+        // Ensure we obtain the RDT before transitioning to the main thread
         _ = _runningDocumentTable.Value;
+
+        // Now switch to the main thread since document enumeration does require it
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         foreach (var (filePath, textBuffer, hierarchy) in EnumerateDocumentSet())
         {

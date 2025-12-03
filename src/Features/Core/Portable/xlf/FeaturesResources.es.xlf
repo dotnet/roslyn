@@ -885,6 +885,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Se encontró un solo ensamblado: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Generar operadores de comparación</target>
@@ -2575,11 +2580,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Para cambiar el nombre de una variable capturada, de "{0}" a "{1}" es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Todavía no se puede cambiar el nombre de miembros de tipo anónimo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Reemplazar "{0}" por "{1}"</target>
@@ -3613,6 +3613,11 @@ Si el especificador de formato "d" se usa sin otros especificadores de formato p
         <target state="translated">Incrustado</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
       </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="external">
         <source>external</source>
         <target state="translated">externo</target>
@@ -3930,11 +3935,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <target state="translated">Generar Equals y GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Generar "Equals(object)"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Generar "GetHashCode()"</target>
@@ -4145,8 +4145,8 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Cambiar firma...</target>
-        <note />
+        <target state="needs-review-translation">Cambiar firma...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

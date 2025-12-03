@@ -77,7 +77,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 return;
             }
 
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(buffer);
             var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
             // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
             // for the local navbar implementation.
@@ -155,8 +156,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 return;
             }
 
-            var navigationBarClient = new NavigationBarClient(dropdownManager, _codeWindow, _languageService.SystemServiceProvider, _languageService.Workspace);
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+            var navigationBarClient = new NavigationBarClient(dropdownManager, _codeWindow, _languageService.SystemServiceProvider, _languageService.Workspace.Value);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(buffer);
             var controllerFactoryService = _languageService.Package.ComponentModel.GetService<INavigationBarControllerFactoryService>();
             var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer!);
             var hr = dropdownManager.AddDropdownBar(cCombos: 3, pClient: navigationBarClient);

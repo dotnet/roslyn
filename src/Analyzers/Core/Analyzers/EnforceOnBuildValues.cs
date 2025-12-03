@@ -101,6 +101,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild UseSystemThreadingLock = /*IDE0330*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseUnboundGenericTypeInNameOf = /*IDE0340*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseImplicitlyTypedLambdaExpression = /*IDE0350*/ EnforceOnBuild.Recommended;
+    public const EnforceOnBuild SimplifyPropertyAccessor = /*IDE0360*/ EnforceOnBuild.Recommended;
 
     /* EnforceOnBuild.WhenExplicitlyEnabled */
     public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
@@ -126,6 +127,8 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild ConstructorInitializerPlacement = /*IDE2004*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild ConditionalExpressionPlacement = /*IDE2005*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild ArrowExpressionClausePlacement = /*IDE2006*/ EnforceOnBuild.WhenExplicitlyEnabled;
+    public const EnforceOnBuild RemoveUnnecessaryNullableWarningSuppression = /*IDE0370*/ EnforceOnBuild.WhenExplicitlyEnabled;
+    public const EnforceOnBuild RemoveUnnecessaryUnsafeModifier = /*IDE0380*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
     public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;
@@ -139,7 +142,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild PreferBuiltInOrFrameworkType = /*IDE0049*/ EnforceOnBuild.Never;
     public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Never;
     public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
-    public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
+    public const EnforceOnBuild RemoveUnnecessaryPragmaSuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
     public const EnforceOnBuild CopilotImplementNotImplementedException = /*IDE3000*/ EnforceOnBuild.Never; // IDE-only analyzer.
 
     // Pure IDE feature for lighting up editor features.  Do not enforce on build.

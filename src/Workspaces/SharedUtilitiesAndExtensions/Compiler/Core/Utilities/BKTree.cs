@@ -44,7 +44,7 @@ internal readonly partial struct BKTree
     /// create slices, and they need to work on top of an ArraySlice (which needs a char[]).  The edit distance code
     /// also wants to work on top of raw char[]s (both for speed, and so it can pool arrays to prevent lots of
     /// garbage).  Because of that we just keep this as a char[].
-    /// </summary> 
+    /// </summary>
     private readonly char[] _concatenatedLowerCaseWords;
     private readonly ImmutableArray<Node> _nodes;
     private readonly ImmutableArray<Edge> _edges;
@@ -71,7 +71,7 @@ internal readonly partial struct BKTree
         if (_nodes.Length == 0)
             return;
 
-        Span<char> lowerCaseCharacters = value.Length < 512
+        var lowerCaseCharacters = value.Length < 512
             ? stackalloc char[value.Length]
             : new char[value.Length];
 
@@ -104,7 +104,7 @@ internal readonly partial struct BKTree
         }
 
         // We may need to compute the real edit distance (ignoring any thresholds) in the case
-        // where edges exist as we need that edit distance to appropriately determine which edges to walk 
+        // where edges exist as we need that edit distance to appropriately determine which edges to walk
         // in the tree.
         var characterSpan = currentNode.WordSpan;
 

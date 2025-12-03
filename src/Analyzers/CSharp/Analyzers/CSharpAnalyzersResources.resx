@@ -431,7 +431,13 @@
   <data name="Use_unbound_generic_type" xml:space="preserve">
     <value>Use unbound generic type</value>
   </data>
-  <data name="Implement_with_Copilot" xml:space="preserve">
-    <value>Implement with Copilot</value>
+  <data name="Implement" xml:space="preserve">
+    <value>Implement</value>
+  </data>
+  <data name="Simplify_property_accessor" xml:space="preserve">
+    <value>Simplify property accessor</value>
+  </data>
+  <data name="Property_accessor_can_be_simplified" xml:space="preserve">
+    <value>Property accessor can be simplified</value>
   </data>
 </root>

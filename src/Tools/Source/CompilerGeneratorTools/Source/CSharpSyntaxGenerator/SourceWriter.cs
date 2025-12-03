@@ -846,8 +846,21 @@ namespace CSharpSyntaxGenerator
                 WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
+
+                bool hasValidate = HasValidate(node);
+                if (hasValidate)
+                {
+                    WriteLine("Validate();");
+                }
+
                 CloseBlock();
                 WriteLine();
+
+                if (hasValidate)
+                {
+                    WriteLine("private partial void Validate();");
+                    WriteLine();
+                }
 
                 // property accessors
                 for (int i = 0, n = nodeFields.Count; i < n; i++)
@@ -1017,6 +1030,11 @@ namespace CSharpSyntaxGenerator
 
                 CloseBlock();
             }
+        }
+
+        private static bool HasValidate(TreeType node)
+        {
+            return node.HasValidate != null && string.Compare(node.HasValidate, "true", ignoreCase: true) == 0;
         }
 
         private string GetRedFieldType(Field field)

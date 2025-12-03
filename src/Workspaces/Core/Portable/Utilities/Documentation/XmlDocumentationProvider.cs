@@ -11,7 +11,6 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Xml;
-using System.Xml.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -55,13 +54,6 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
         return new FileBasedXmlDocumentationProvider(xmlDocCommentFilePath);
     }
 
-    private XDocument GetXDocument(CancellationToken cancellationToken)
-    {
-        using var stream = GetSourceStream(cancellationToken);
-        using var xmlReader = XmlReader.Create(stream, s_xmlSettings);
-        return XDocument.Load(xmlReader);
-    }
-
     protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
     {
         if (_docComments == null)
@@ -70,16 +62,26 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
             {
                 try
                 {
-                    var comments = new Dictionary<string, string>();
-
-                    var doc = GetXDocument(cancellationToken);
-                    foreach (var e in doc.Descendants("member"))
+                    using (var stream = GetSourceStream(cancellationToken))
+                    using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
                     {
-                        if (e.Attribute("name") != null)
-                            comments[e.Attribute("name").Value] = e.ToString();
-                    }
+                        var comments = new Dictionary<string, string>();
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.Name == "member")
+                            {
+                                var name = xmlReader.GetAttribute("name");
+                                if (name != null)
+                                {
+                                    // Read the entire <member> element as a string
+                                    var memberXml = xmlReader.ReadOuterXml();
+                                    comments[name] = memberXml;
+                                }
+                            }
+                        }
 
-                    _docComments = comments;
+                        _docComments = comments;
+                    }
                 }
                 catch (Exception)
                 {

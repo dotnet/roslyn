@@ -1722,6 +1722,7 @@ class C
             // - [ ] replace all references to C# "Next" (such as `TestOptions.RegularNext` or `LanguageVersionFacts.CSharpNext`) with the new version and fix failing tests
             // - [ ] update _MaxAvailableLangVersion cap (a relevant test should break when new version is introduced)
             // - [ ] update the "UpgradeProject" codefixer
+            // - [ ] test VS insertion and deal with breaking changes. (note: the runtime repo uses "preview" so breaks are resolved sooner)
             //
             // Other repos also need updates:
             // - [ ] email release management to add to the release notes. See csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493
@@ -5790,6 +5791,10 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName);
 
+            parsedArgs = DefaultParse(new[] { "/CodePage:1252", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal("Western European (Windows)", parsedArgs.Encoding.EncodingName);
+
             //  error
             parsedArgs = DefaultParse(new[] { "/codepage:0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.FTL_BadCodepage).WithArguments("0"));
@@ -7049,19 +7054,6 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
         {
             // open paren, followed by either <developer build> or 8 hex, followed by close paren
             return Regex.Replace(s, "(\\((<developer build>|[a-fA-F0-9]{8})\\))", "(HASH)");
-        }
-
-        [Fact]
-        public void ExtractShortCommitHash()
-        {
-            Assert.Null(CommonCompiler.ExtractShortCommitHash(null));
-            Assert.Equal("", CommonCompiler.ExtractShortCommitHash(""));
-            Assert.Equal("<", CommonCompiler.ExtractShortCommitHash("<"));
-            Assert.Equal("<developer build>", CommonCompiler.ExtractShortCommitHash("<developer build>"));
-            Assert.Equal("1", CommonCompiler.ExtractShortCommitHash("1"));
-            Assert.Equal("1234567", CommonCompiler.ExtractShortCommitHash("1234567"));
-            Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("12345678"));
-            Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("123456789"));
         }
 
         private void CheckOutputFileName(string source1, string source2, string inputName1, string inputName2, string[] commandLineArguments, string expectedOutputName)
@@ -8716,9 +8708,7 @@ static void Main() { }
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
 class Program
 {
-#pragma warning disable 1998
         public static void Main() { }
-#pragma warning restore 1998
 } ").Path;
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 

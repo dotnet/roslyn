@@ -4,6 +4,7 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/*
     - features/*
     - demos/*
@@ -20,6 +21,7 @@ pr:
     include:
     - main
     - main-vs-deps
+    - community
     - release/*
     - features/*
     - demos/*

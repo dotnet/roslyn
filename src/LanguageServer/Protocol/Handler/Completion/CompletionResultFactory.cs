@@ -73,10 +73,11 @@ internal static class CompletionResultFactory
 
         var defaultSpan = list.Span;
         var typedText = documentText.GetSubText(defaultSpan).ToString();
-        foreach (var item in list.ItemsList)
+        for (var i = 0; i < list.ItemsList.Count; i++)
         {
+            var item = list.ItemsList[i];
             item.Span = defaultSpan; // item.Span will be used to generate change, adjust it if needed
-            lspCompletionItems.Add(await CreateLSPCompletionItemAsync(item, typedText).ConfigureAwait(false));
+            lspCompletionItems.Add(await CreateLSPCompletionItemAsync(item, typedText, i).ConfigureAwait(false));
         }
 
         var completionList = new LSP.VSInternalCompletionList
@@ -113,7 +114,7 @@ internal static class CompletionResultFactory
             ? new LSP.OptimizedVSCompletionList(completionList)
             : completionList;
 
-        async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(CompletionItem item, string typedText)
+        async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(CompletionItem item, string typedText, int index)
         {
             // Defer to host to create the actual completion item (including potential subclasses),
             // and add any custom information.
@@ -136,7 +137,17 @@ internal static class CompletionResultFactory
             lspItem.Data = completionItemResolveData;
 
             if (!lspItem.Label.Equals(item.SortText, StringComparison.Ordinal))
+            {
                 lspItem.SortText = item.SortText;
+            }
+
+            if (!capabilityHelper.SupportVSInternalClientCapabilities)
+            {
+                // VSCode doesn't handle casing very well, but we do, and we already sorted the list
+                // Add sort text to ensure that items are sorted by their position in the list.
+                // The max length of the list is 1000 items, so we only need 4 characters to represent the index.
+                lspItem.SortText = $"{index:D4}{lspItem.SortText}";
+            }
 
             if (!lspItem.Label.Equals(item.FilterText, StringComparison.Ordinal))
                 lspItem.FilterText = item.FilterText;

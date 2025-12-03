@@ -10,13 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract class AbstractObjectInitializerCompletionProvider : LSPCompletionProvider
 {
-    protected abstract Tuple<ITypeSymbol, Location>? GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+    protected abstract (ITypeSymbol type, Location location, bool isObjectInitializer)? GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
     protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
     protected abstract string EscapeIdentifier(ISymbol symbol);
 
@@ -27,7 +26,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         var cancellationToken = context.CancellationToken;
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-        if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
+        if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation, isObjectInitializer))
             return;
 
         if (type is ITypeParameterSymbol typeParameterSymbol)
@@ -64,7 +63,9 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
             // We'll hard select the first required member to make it a bit easier to type out an object initializer
             // with a bunch of members.
-            if (firstUninitializedRequiredMember && uninitializedMember.IsRequired())
+            if (firstUninitializedRequiredMember &&
+                isObjectInitializer &&
+                uninitializedMember.IsRequired())
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect);
                 firstUninitializedRequiredMember = false;
@@ -76,7 +77,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
                 insertionText: null,
                 symbols: [uninitializedMember],
                 contextPosition: initializerLocation.SourceSpan.Start,
-                inlineDescription: uninitializedMember.IsRequired() ? FeaturesResources.Required : null,
+                inlineDescription: isObjectInitializer && uninitializedMember.IsRequired() ? FeaturesResources.Required : null,
                 rules: rules));
         }
     }
@@ -93,7 +94,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         if (!fieldOrProperty.IsStatic &&
             !fieldOrProperty.IsImplicitlyDeclared &&
             fieldOrProperty.CanBeReferencedByName &&
-            fieldOrProperty.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
+            fieldOrProperty is IFieldSymbol or IPropertySymbol &&
             fieldOrProperty.IsAccessibleWithin(containingType))
         {
             if (fieldOrProperty.IsWriteableFieldOrProperty() ||

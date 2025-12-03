@@ -203,12 +203,12 @@ internal sealed partial class SolutionExplorerInProcess
         return references;
     }
 
-    public async Task<string[]> GetProjectReferencesAsync(string projectName, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<string>> GetProjectReferencesAsync(string projectName, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var project = await GetProjectAsync(projectName, cancellationToken);
-        var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
+        var references = ((VSProject)project.Object).References.Cast<Reference>().SelectAsArray(x => x.SourceProject != null, x => x.Name);
         return references;
     }
 

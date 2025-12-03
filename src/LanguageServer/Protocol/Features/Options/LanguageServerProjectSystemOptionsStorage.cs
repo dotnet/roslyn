@@ -13,15 +13,15 @@ internal static class LanguageServerProjectSystemOptionsStorage
     /// <summary>
     /// A folder to log binlogs to when running design-time builds.
     /// </summary>
-    public static readonly Option2<string?> BinaryLogPath = new Option2<string?>("dotnet_binary_log_path", defaultValue: null, s_optionGroup);
+    public static readonly Option2<string?> BinaryLogPath = new("dotnet_binary_log_path", defaultValue: null, s_optionGroup);
 
     /// <summary>
     /// Whether or not automatic nuget restore is enabled.
     /// </summary>
-    public static readonly Option2<bool> EnableAutomaticRestore = new Option2<bool>("dotnet_enable_automatic_restore", defaultValue: true, s_optionGroup);
+    public static readonly Option2<bool> EnableAutomaticRestore = new("dotnet_enable_automatic_restore", defaultValue: true, s_optionGroup);
 
     /// <summary>
     /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience.
     /// </summary>
-    public static readonly Option2<bool> EnableFileBasedPrograms = new Option2<bool>("dotnet_enable_file_based_programs", defaultValue: true, s_optionGroup);
+    public static readonly Option2<bool> EnableFileBasedPrograms = new("dotnet_enable_file_based_programs", defaultValue: true, s_optionGroup);
 }

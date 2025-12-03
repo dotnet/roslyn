@@ -98,7 +98,7 @@ internal sealed partial class SymbolSearchUpdateEngine
     {
         private readonly SymbolSearchUpdateEngine _service = service;
         private readonly string _source = source;
-        private readonly DirectoryInfo _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+        private readonly DirectoryInfo _cacheDirectoryInfo = new(Path.Combine(
                 localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabaseTextFileFormatVersion}"))));
 
         /// <summary>
@@ -383,7 +383,7 @@ internal sealed partial class SymbolSearchUpdateEngine
         }
 
         private static FileInfo GetBinaryFileInfo(FileInfo databaseFileInfo)
-            => new FileInfo(Path.ChangeExtension(databaseFileInfo.FullName, ".bin"));
+            => new(Path.ChangeExtension(databaseFileInfo.FullName, ".bin"));
 
         private async Task<TimeSpan> PatchLocalDatabaseAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
         {

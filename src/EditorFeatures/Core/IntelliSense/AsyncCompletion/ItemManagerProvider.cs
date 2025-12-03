@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ItemManagerProvider(RecentItemsManager recentItemsManager, EditorOptionsService editorOptionsService) : IAsyncCompletionItemManagerProvider
 {
-    private readonly ItemManager _instance = new ItemManager(recentItemsManager, editorOptionsService);
+    private readonly ItemManager _instance = new(recentItemsManager, editorOptionsService);
 
     public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
     {

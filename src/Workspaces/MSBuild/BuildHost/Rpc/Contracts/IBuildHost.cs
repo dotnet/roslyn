@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,12 @@ internal interface IBuildHost
     /// This may return true even if the project or solution require a newer version of MSBuild.
     /// </remarks>
     bool HasUsableMSBuild(string projectOrSolutionFilePath);
+
+    /// <summary>
+    /// Called once on a new process to configure some global state. This is used for these rather than passing through command line strings, since these contain data that might
+    /// contain paths (which can have escaping issues) or could be quite large (which could run into length limits).
+    /// </summary>
+    void ConfigureGlobalState(ImmutableDictionary<string, string> globalProperties, string? binlogPath);
 
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 

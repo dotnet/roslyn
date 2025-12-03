@@ -68,7 +68,7 @@ internal sealed partial class SolutionState
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
     // Mapping from file path to the set of documents that are related to it.
-    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new ConcurrentDictionary<string, ImmutableArray<DocumentId>>(FilePathComparer);
+    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,

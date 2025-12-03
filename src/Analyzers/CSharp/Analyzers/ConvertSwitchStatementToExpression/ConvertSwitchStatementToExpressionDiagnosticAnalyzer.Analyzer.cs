@@ -162,8 +162,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
             // Then we can't convert into a single arm.
             foreach (var label in labels)
             {
-                if (label is CasePatternSwitchLabelSyntax casePattern &&
-                    casePattern.WhenClause != null)
+                if (label is CasePatternSwitchLabelSyntax { WhenClause: not null })
                 {
                     return false;
                 }

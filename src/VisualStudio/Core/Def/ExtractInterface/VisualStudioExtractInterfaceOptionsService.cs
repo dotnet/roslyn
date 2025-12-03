@@ -74,7 +74,7 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(
 
         if (result.HasValue && result.Value)
         {
-            var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
+            var includedMembers = viewModel.MemberContainers.SelectAsArray(c => c.IsChecked, c => c.Symbol);
 
             return new ExtractInterfaceOptionsResult(
                 isCancelled: false,

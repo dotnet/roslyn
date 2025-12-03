@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -127,8 +126,24 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         }
 
         // ([...]) -> [...]
-        if (expression.IsKind(SyntaxKind.CollectionExpression))
-            return true;
+        if (expression is CollectionExpressionSyntax collectionExpression)
+        {
+            // For back compat, the language disallows a few forms of casting an collection expression.
+            // For example: `(A)[1, 2, 3]`.  This is because this form already has an interpretation as 
+            // indexing into a parenthesized expression.  Check for these cases and only allow if it is
+            // totally safe.  For example `(List<int>)[1, 2, 3]` is still safe as that was not a legal
+            // expression in the past.
+            //
+            // Note: because `(T)[]` is never legal (an empty indexer is not legal), that form is always
+            // considered a collection expression, regardless of what T is.
+            if (collectionExpression.Elements.Count == 0)
+                return true;
+
+            return parentExpression is not CastExpressionSyntax
+            {
+                Type: IdentifierNameSyntax or QualifiedNameSyntax { Right: IdentifierNameSyntax }
+            };
+        }
 
         // int Prop => (x); -> int Prop => x;
         if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
@@ -242,6 +257,16 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (expression.IsKind(SyntaxKind.ThisExpression))
             return true;
 
+        // x is > (-1)  ->  x is > -1
+        //
+        // Note: the general case of removing parens from a prefix unary expression in a normal expression is handled as
+        // the last step of this algorithm below.  This is only the pattern case.
+        if (expression is PrefixUnaryExpressionSyntax prefixUnary &&
+            parentExpression is null)
+        {
+            return true;
+        }
+
         // x ?? (throw ...) -> x ?? throw ...
         if (expression.IsKind(SyntaxKind.ThrowExpression) &&
             nodeParent is BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) binary &&
@@ -264,15 +289,12 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
         {
-            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can the conditional access
-            // become a conditional expression.
-            for (var current = expression; current != null; current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax)
-            {
-                if (current is ConditionalAccessExpressionSyntax)
-                    return false;
-            }
-
-            return true;
+            // Subtle case: `when (a || x?[0]):` cannot have parentheses removed because it would become
+            // `when a || x?[0]:` which the parser interprets as `when a || x ? [0] :` (a ternary expression)
+            // instead of the intended conditional access `x?[0]` followed by the `:` from when clause syntax.
+            // To avoid this, we check if removing parentheses would put a conditional access at the end of the
+            // expression (on the rightmost path), immediately before the `:`.
+            return !ContainsConditionalAccessOnRightmostPath(expression);
         }
 
         // #if (x)   ->   #if x
@@ -319,6 +341,22 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // - If the parent is not an expression, do not remove parentheses
         // - Otherwise, parentheses may be removed if doing so does not change operator associations.
         return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
+
+        static bool ContainsConditionalAccessOnRightmostPath(ExpressionSyntax expr)
+        {
+            // Walk down the rightmost path of the expression tree
+            for (var current = expr; current != null;)
+            {
+                if (current is ConditionalAccessExpressionSyntax)
+                    return true;
+
+                current = current is BinaryExpressionSyntax binaryExpression
+                    ? binaryExpression.Right
+                    : current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
+            }
+
+            return false;
+        }
     }
 
     private static bool RemovalWouldChangeConstantReferenceToTypeReference(

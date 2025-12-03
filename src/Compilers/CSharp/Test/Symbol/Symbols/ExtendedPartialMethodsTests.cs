@@ -1256,10 +1256,7 @@ partial class C
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (5,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async partial void M1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(5, 24));
+            comp.VerifyDiagnostics();
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
@@ -1280,10 +1277,7 @@ partial class C
 }
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (7,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     private async partial Task M1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(7, 32));
+            comp.VerifyDiagnostics();
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
@@ -1312,10 +1306,7 @@ partial class C
 }
 ";
             var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, expectedOutput: "1");
-            verifier.VerifyDiagnostics(
-                // (7,31): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     private static async Task CompletedTask() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "CompletedTask").WithLocation(7, 31));
+            verifier.VerifyDiagnostics();
 
             var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
@@ -1753,8 +1744,7 @@ partial interface I
 }
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2755,10 +2745,7 @@ public partial class C
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 options: TestOptions.DebugExe,
                 expectedOutput: "1");
-            verifier.VerifyDiagnostics(
-                // (8,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static partial async Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(8, 38));
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2804,10 +2791,7 @@ public partial class C
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 options: TestOptions.DebugExe,
                 expectedOutput: "1");
-            verifier.VerifyDiagnostics(
-                // (8,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static partial async Task<int> Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(8, 43));
+            verifier.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

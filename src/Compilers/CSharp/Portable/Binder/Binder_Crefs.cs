@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -224,12 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
 
-            if (containerOpt is not NamedTypeSymbol namedContainer)
-            {
-                ambiguityWinner = null;
-                return ImmutableArray<Symbol>.Empty;
-            }
-
             int arity = 0;
             TypeArgumentListSyntax? typeArgumentListSyntax = null;
             CrefParameterListSyntax? parameters = null;
@@ -256,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeArgumentListSyntax? extensionTypeArguments = syntax.TypeArgumentList;
             int extensionArity = extensionTypeArguments?.Arguments.Count ?? 0;
-            ImmutableArray<Symbol> sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(namedContainer, memberName, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
+            ImmutableArray<Symbol> sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(containerOpt, memberName, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
 
             if (sortedSymbols.IsDefaultOrEmpty)
             {
@@ -264,11 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return [];
             }
 
-            Debug.Assert(sortedSymbols.All(s => s.GetIsNewExtensionMember()));
+            Debug.Assert(sortedSymbols.All(s => s.IsExtensionBlockMember()));
 
             return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
 
-            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamedTypeSymbol container, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
+            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamespaceOrTypeSymbol? containerOpt, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
             {
                 Debug.Assert(name is not null);
 
@@ -295,9 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
 
-                foreach (var nested in container.GetTypeMembers())
+                foreach (var nested in candidateTypes(containerOpt))
                 {
-                    if (!nested.IsExtension || nested.Arity != extensionArity || nested.ExtensionParameter is null)
+                    if (!nested.IsExtension
+                        || nested.Arity != extensionArity
+                        || nested.ExtensionParameter is null
+                        || nested is not { ContainingType: { ContainingType: null } }) // only consider extension blocks in top-level types
                     {
                         continue;
                     }
@@ -343,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (result.Kind == LookupResultKind.Viable)
                         {
+                            Debug.Assert(result.Symbol is not null);
                             sortedSymbolsBuilder ??= ArrayBuilder<Symbol>.GetInstance();
                             sortedSymbolsBuilder.Add(result.Symbol);
                         }
@@ -364,6 +363,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return sortedSymbolsBuilder.ToImmutableAndFree();
+
+                ImmutableArray<NamedTypeSymbol> candidateTypes(NamespaceOrTypeSymbol? containerOpt)
+                {
+                    if (containerOpt is NamedTypeSymbol namedType)
+                    {
+                        return namedType.GetTypeMembers("");
+                    }
+
+                    NamedTypeSymbol? containingType = ContainingType;
+                    if (containingType is null)
+                    {
+                        return [];
+                    }
+
+                    NamedTypeSymbol? enclosingType = containingType.IsExtension ? containingType.ContainingType : containingType;
+                    return enclosingType?.GetTypeMembers("") ?? [];
+                }
             }
         }
 
@@ -892,7 +908,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CrefSyntax crefSyntax = GetRootCrefSyntax(memberSyntax);
                     int otherIndex = symbolIndex == 0 ? 1 : 0;
-                    diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(), symbol, symbols[otherIndex]);
+                    diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(),
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                        new FormattedSymbol(symbols[otherIndex], SymbolDisplayFormat.CSharpErrorMessageFormat));
 
                     ambiguityWinner = ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, symbol);
                     return symbols.SelectAsArray(sym => ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, sym));

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((bit & _completeParts) != 0)
                 {
                     if (any) result.Append(", ");
-                    result.Append(i);
+                    result.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     any = true;
                 }
             }

@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsExtensionParameter(this ParameterSymbol parameter)
         {
-            return parameter.ContainingSymbol is TypeSymbol { IsExtension: true };
+            return parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
 
         internal static bool IsExtensionParameterImplementation(this ParameterSymbol parameter)

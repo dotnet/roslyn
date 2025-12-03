@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -60,6 +59,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteCodeLensReferencesService), null),
         (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
         (typeof(IRemoteCopilotChangeAnalysisService), null),
+        (typeof(IRemoteCopilotProposalAdjusterService), null),
         (typeof(IRemoteDependentTypeFinderService), null),
         (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
         (typeof(IRemoteDiagnosticAnalyzerService), null),
@@ -67,7 +67,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
         (typeof(IRemoteEncapsulateFieldService), null),
         (typeof(IRemoteExtensionMessageHandlerService), null),
-        (typeof(IRemoteExtensionMethodImportCompletionService), null),
+        (typeof(IRemoteExtensionMemberImportCompletionService), null),
         (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
         (typeof(IRemoteFullyQualifyService), null),
         (typeof(IRemoteInheritanceMarginService), null),
@@ -78,7 +78,6 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteNavigationBarItemService), null),
         (typeof(IRemoteProcessTelemetryService), null),
         (typeof(IRemoteInitializationService), null),
-        (typeof(IRemoteRelatedDocumentsService), typeof(IRemoteRelatedDocumentsService.ICallback)),
         (typeof(IRemoteRenamerService), null),
         (typeof(IRemoteSemanticClassificationService), null),
         (typeof(IRemoteSemanticSearchService), typeof(IRemoteSemanticSearchService.ICallback)),

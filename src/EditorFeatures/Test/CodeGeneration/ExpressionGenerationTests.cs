@@ -265,7 +265,7 @@ public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
                 f.IdentifierName("E"),
                 f.IdentifierName("T"),
                 f.IdentifierName("F")),
-            cs: "(E) ? (T) : (F)",
+            cs: "E ? T : F",
             csSimple: "E ? T : F",
             vb: "If(E, T, F)",
             vbSimple: "If(E, T, F)");
@@ -412,9 +412,9 @@ public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
             f => f.IsTypeExpression(
                 f.IdentifierName("a"),
                 CreateClass("SomeType")),
-            cs: "(a) is SomeType",
+            cs: "a is SomeType",
             csSimple: "a is SomeType",
-            vb: "TypeOf (a) Is SomeType",
+            vb: "TypeOf a Is SomeType",
             vbSimple: "TypeOf a Is SomeType");
 
     [Fact]
@@ -423,7 +423,7 @@ public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
             f => f.TryCastExpression(
                 f.IdentifierName("a"),
                 CreateClass("SomeType")),
-            cs: "(a) as SomeType",
+            cs: "a as SomeType",
             csSimple: "a as SomeType",
             vb: "TryCast(a, SomeType)",
             vbSimple: "TryCast(a, SomeType)");
@@ -433,9 +433,9 @@ public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
         => Test(
             f => f.LogicalNotExpression(
                 f.IdentifierName("a")),
-            cs: "!(a)",
+            cs: "!a",
             csSimple: "!a",
-            vb: "Not (a)",
+            vb: "Not a",
             vbSimple: "Not a");
 
     [Fact]
@@ -444,7 +444,7 @@ public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
             f => f.CastExpression(
                 CreateClass("SomeType"),
                 f.IdentifierName("a")),
-            cs: "(SomeType)(a)",
+            cs: "(SomeType)a",
             csSimple: "(SomeType)a",
             vb: "DirectCast(a, SomeType)",
             vbSimple: "DirectCast(a, SomeType)");
@@ -454,8 +454,8 @@ public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
         => Test(
             f => f.NegateExpression(
                 f.IdentifierName("a")),
-            cs: "-(a)",
+            cs: "-a",
             csSimple: "-a",
-            vb: "-(a)",
+            vb: "-a",
             vbSimple: "-a");
 }

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
@@ -58,7 +57,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
 
         // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
         // three line alternative over just ""
-        if (characters.IsEmpty)
+        if (characters.IsEmpty())
             return false;
 
         var canBeSingleLine = CanBeSingleLine(characters);
@@ -91,7 +90,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             // Offer this, but let the user know that this will change runtime semantics.
             canBeMultiLineWithoutLeadingWhiteSpaces = token.IsVerbatimStringLiteral() &&
                 (HasLeadingWhitespace(characters) || HasTrailingWhitespace(characters)) &&
-                CleanupWhitespace(characters).Length > 0;
+                CleanupWhitespace(characters).Count > 0;
         }
 
         // If we have escaped quotes in the string, then this is a good option to bubble up as something to convert
@@ -142,7 +141,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         CancellationToken cancellationToken)
     {
         var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
+        Contract.ThrowIfTrue(characters.IsDefaultOrEmpty());
 
         if ((kind & ConvertToRawKind.SingleLine) == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
@@ -187,7 +186,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             builder.Append('"', quoteDelimiterCount);
 
             foreach (var ch in characters)
-                ch.AppendTo(builder);
+                builder.Append(ch);
 
             builder.Append('"', quoteDelimiterCount);
 
@@ -202,8 +201,9 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         SyntaxToken ConvertToMultiLineRawIndentedString(string indentation)
         {
             // If the user asked to remove whitespace then do so now.
-            if ((kind & ConvertToRawKind.MultiLineWithoutLeadingWhitespace) == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
-                characters = CleanupWhitespace(characters);
+            var characterList = (kind & ConvertToRawKind.MultiLineWithoutLeadingWhitespace) == ConvertToRawKind.MultiLineWithoutLeadingWhitespace
+                ? CleanupWhitespace(characters)
+                : ToSegmentedList(characters);
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = GetLongestQuoteSequence(characters);
@@ -215,12 +215,12 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             builder.Append(formattingOptions.NewLine);
 
             var atStartOfLine = true;
-            for (int i = 0, n = characters.Length; i < n; i++)
+            for (int i = 0, n = characterList.Count; i < n; i++)
             {
-                var ch = characters[i];
+                var ch = characterList[i];
                 if (IsCSharpNewLine(ch))
                 {
-                    ch.AppendTo(builder);
+                    builder.Append(ch);
                     atStartOfLine = true;
                     continue;
                 }
@@ -231,7 +231,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
                     atStartOfLine = false;
                 }
 
-                ch.AppendTo(builder);
+                builder.Append(ch);
             }
 
             builder.Append(formattingOptions.NewLine);
@@ -242,12 +242,21 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
                 token.LeadingTrivia,
                 SyntaxKind.MultiLineRawStringLiteralToken,
                 builder.ToString(),
-                characters.CreateString(),
+                characterList.CreateString(),
                 token.TrailingTrivia);
         }
     }
 
-    private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
+    private static ImmutableSegmentedList<VirtualChar> ToSegmentedList(VirtualCharSequence characters)
+    {
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+        foreach (var ch in characters)
+            result.Add(ch);
+
+        return result.ToImmutable();
+    }
+
+    private static ImmutableSegmentedList<VirtualChar> CleanupWhitespace(VirtualCharSequence characters)
     {
         using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
 
@@ -262,7 +271,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             lines.RemoveAt(lines.Count - 1);
 
         if (lines.Count == 0)
-            return VirtualCharSequence.Empty;
+            return ImmutableSegmentedList<VirtualChar>.Empty;
 
         // Use the remaining lines to figure out what common whitespace we have.
         var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
@@ -279,7 +288,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             else
             {
                 // Normal line.  Skip the common whitespace.
-                AddRange(result, line.Skip(commonWhitespacePrefix));
+                AddRange(result, line[commonWhitespacePrefix..]);
             }
         }
 
@@ -287,7 +296,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
             result.RemoveAt(result.Count - 1);
 
-        return VirtualCharSequence.Create(result.ToImmutable());
+        return result.ToImmutable();
     }
 
     private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
@@ -302,7 +311,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
 
         for (var i = 1; i < lines.Count; i++)
         {
-            if (commonLeadingWhitespace.IsEmpty)
+            if (commonLeadingWhitespace.IsEmpty())
                 return 0;
 
             var currentLine = lines[i];
@@ -322,10 +331,10 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
 
         var current = 0;
-        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
+        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Value == leadingWhitespace2[current].Value)
             current++;
 
-        return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
+        return leadingWhitespace1[0..current];
     }
 
     private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
@@ -334,7 +343,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         while (current < line.Length && IsCSharpWhitespace(line[current]))
             current++;
 
-        return line.GetSubSequence(TextSpan.FromBounds(0, current));
+        return line[0..current];
     }
 
     private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
@@ -356,7 +365,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         if (end != characters.Length)
             end += IsCarriageReturnNewLine(characters, end) ? 2 : 1;
 
-        var result = characters.GetSubSequence(TextSpan.FromBounds(index, end));
+        var result = characters[index..end];
         index = end;
         return result;
     }

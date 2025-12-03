@@ -764,12 +764,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             ElseIf renamedSymbol.Kind = SymbolKind.Method Then
                 conflicts.AddRange(
-                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IMethodSymbol), trimOptionalParameters:=True) _
+                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IMethodSymbol), trimOptionalParameters:=True, distinguishRefKind:=False) _
                         .Select(Function(loc) reverseMappedLocations(loc)))
 
             ElseIf renamedSymbol.Kind = SymbolKind.Property Then
                 conflicts.AddRange(
-                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IPropertySymbol), trimOptionalParameters:=True) _
+                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IPropertySymbol), trimOptionalParameters:=True, distinguishRefKind:=False) _
                         .Select(Function(loc) reverseMappedLocations(loc)))
                 AddConflictingParametersOfProperties(
                     referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),

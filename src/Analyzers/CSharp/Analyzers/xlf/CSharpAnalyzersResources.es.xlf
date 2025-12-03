@@ -82,9 +82,9 @@
         <target state="translated">Las instrucciones incrustadas deben estar en su propia línea</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_with_Copilot">
-        <source>Implement with Copilot</source>
-        <target state="new">Implement with Copilot</target>
+      <trans-unit id="Implement">
+        <source>Implement</source>
+        <target state="new">Implement</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -177,6 +177,11 @@
         <target state="translated">Preferir comprobación "null' sobre comprobación de tipo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_accessor_can_be_simplified">
+        <source>Property accessor can be simplified</source>
+        <target state="new">Property accessor can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
         <target state="translated">El patrón de propiedad puede ser simplificado</target>
@@ -220,6 +225,11 @@
       <trans-unit id="Simplify_delegate_invocation">
         <source>Simplify delegate invocation</source>
         <target state="translated">Simplificar la invocación del delegado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_accessor">
+        <source>Simplify property accessor</source>
+        <target state="new">Simplify property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">

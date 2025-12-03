@@ -273,7 +273,21 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void RemoveAll(Predicate<T> match)
         {
-            _builder.RemoveAll(match);
+            var i = 0;
+            for (var j = 0; j < _builder.Count; j++)
+            {
+                if (!match(_builder[j]))
+                {
+                    if (i != j)
+                    {
+                        _builder[i] = _builder[j];
+                    }
+
+                    i++;
+                }
+            }
+
+            Clip(i);
         }
 
         public void RemoveAll<TArg>(Func<T, TArg, bool> match, TArg arg)

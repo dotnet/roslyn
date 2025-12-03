@@ -324,6 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public static bool IsValidInOrRefReadonlyExtensionParameterType(this TypeSymbol type)
+        {
+            return type is { IsValueType: true, TypeKind: not TypeKind.TypeParameter };
+        }
+
         public static bool IsInterfaceType(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
@@ -673,6 +678,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return type.FindTypeLessVisibleThan(sym, ref useSiteInfo) is null;
+        }
+
+        public static TypeSymbol? FindTypeLessVisibleThan(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             var visitTypeData = s_visitTypeDataPool.Allocate();
 
             try
@@ -685,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             canDigThroughNullable: true); // System.Nullable is public
 
                 useSiteInfo = visitTypeData.UseSiteInfo;
-                return result is null;
+                return result;
             }
             finally
             {
@@ -1205,16 +1215,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, TypeParameterSymbol?, bool, bool> s_containsTypeParameterPredicate =
             (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && (parameter is null || TypeSymbol.Equals(type, parameter, TypeCompareKind.ConsiderEverything2));
 
-        public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
+        public static bool ContainsTypeParameter(this TypeSymbol type, Symbol typeParameterContainer)
         {
-            RoslynDebug.Assert((object)parameterContainer != null);
+            RoslynDebug.Assert((object)typeParameterContainer != null);
 
-            var result = type.VisitType(s_isTypeParameterWithSpecificContainerPredicate, parameterContainer);
+            var result = type.VisitType(s_isTypeParameterWithSpecificContainerPredicate, typeParameterContainer);
             return result is object;
         }
 
         private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
-             (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
+             (type, typeParameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)typeParameterContainer;
 
         public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
         {

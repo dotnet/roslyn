@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal static class ProjectDependencyHelper
 {
-    internal const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
-
     internal static bool NeedsRestore(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
     {
         if (previousProjectFileInfo is null)
@@ -121,20 +119,24 @@ internal static class ProjectDependencyHelper
         }
     }
 
-    internal static async Task RestoreProjectsAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    internal static async Task RestoreProjectsAsync(ImmutableArray<string> projectPaths, bool enableProgressReporting, DotnetCliHelper dotnetCliHelper, ILogger logger, CancellationToken cancellationToken)
     {
         if (projectPaths.IsEmpty)
             return;
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
 
-        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
+        var workDoneProgressManager = LanguageServerHost.Instance.GetRequiredLspService<WorkDoneProgressManager>();
 
-        // Ensure we only pass unique paths back to be restored.
-        var unresolvedParams = new UnresolvedDependenciesParams([.. projectPaths.Distinct()]);
-        await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
+        try
+        {
+            await RestoreHandler.RestoreAsync(projectPaths, workDoneProgressManager, dotnetCliHelper, logger, enableProgressReporting, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Restore was cancelled.  This is not a failure, it just leaves the project unrestored or partially restored (same as if the user cancelled a CLI restore).
+            // We don't want this exception to bubble up to the project load queue however as it may need to additional work after this call.
+            logger.LogWarning("Project restore was canceled.");
+        }
     }
-
-    private sealed record UnresolvedDependenciesParams(
-        [property: JsonPropertyName("projectFilePaths")] string[] ProjectFilePaths);
 }

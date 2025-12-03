@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 public sealed class CodeClass : AbstractCodeType, EnvDTE.CodeClass, EnvDTE80.CodeClass2, ICodeClassBase
 {
     private static readonly SymbolDisplayFormat s_BaseNameFormat =
-        new SymbolDisplayFormat(
+        new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,

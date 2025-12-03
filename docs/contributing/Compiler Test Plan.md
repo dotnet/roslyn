@@ -9,7 +9,7 @@ This document provides guidance for thinking about language interactions and tes
 - BCL (including mono) and other customer impact
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
-- Public interface of compiler APIs (including semantic model APIs listed below):
+- Public compiler APIs (including semantic model and other APIs listed below):
     - GetDeclaredSymbol 
     - GetEnclosingSymbol 
     - GetSymbolInfo 
@@ -28,13 +28,23 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
     - GetOperation (`IOperation`)
-    - GetCFG (`ControlFlowGraph`)
+    - GetCFG (`ControlFlowGraph`), including a scenario with some nested conditional
+    - DocumentationCommentId APIs
 - VB/F# interop
 - C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
 - LangVersion
+- IL verification (file issue on `runtime` repo as needed and track [here](https://github.com/dotnet/roslyn/issues/22872))
+
+- Does the feature use cryptographic hashes in any way? (examples: metadata names of file-local types, extension types, assembly strong naming, PDB document table, etc.)
+    - Consider using non-cryptographic hash such as `XxHash128` instead.
+    - If you must use a cryptographic hash in the feature implementation, then use `SourceHashAlgorithms.Default`, and not any specific hash.
+    - A cryptographic hash must never be included in a public API name. Taking a change to the default crypto algorithm would then change public API surface, which would be enormously breaking.
+        - **DO NOT** allow using the value of a crypto hash in a field, method or type name
+        - **DO** allow using the value of a crypto hash in attribute or field values
+    - Any time the compiler reads in metadata containing crypto hashes, even if it's an attribute value, ensure the crypto hash algorithm name is included in the metadata (e.g. prefixing it to the hash value), so that it can be changed over time and the compiler can continue to read both metadata using both the old and new algorithms.
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
@@ -129,6 +139,7 @@ This document provides guidance for thinking about language interactions and tes
 - COM interop
 - modopt and modreq
 - CompilerFeatureRequiredAttribute
+- CompilerLoweringPreserveAttribute
 - ref assemblies
 - extern alias
 - UnmanagedCallersOnly

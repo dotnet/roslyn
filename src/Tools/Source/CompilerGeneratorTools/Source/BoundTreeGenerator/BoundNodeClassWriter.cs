@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace BoundTreeGenerator
 {
-    internal enum TargetLanguage
+    public enum TargetLanguage
     {
         VB,
         CSharp
