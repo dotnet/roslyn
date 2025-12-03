@@ -302,7 +302,7 @@
       were added in some components to help detect a "leak". 
       
     -->
-  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" HasValidate="true" DoesNotSurvive="LocalRewriting">
+  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Binder" Type="Binder" Null="disallow"/>
