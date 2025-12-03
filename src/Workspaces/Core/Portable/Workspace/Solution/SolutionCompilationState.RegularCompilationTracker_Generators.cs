@@ -106,6 +106,7 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
+            var projectId = this.ProjectState.Id;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
@@ -115,13 +116,13 @@ internal sealed partial class SolutionCompilationState
             // single connection, and keep this solution instance alive (and synced) on both sides of the connection
             // throughout the calls.
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
-            using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            using var _ = await RemoteKeepAliveSession.CreateAsync(
+                compilationState, projectId, cancellationToken).ConfigureAwait(false);
 
             // First, grab the info from our external host about the generated documents it has for this project.  Note:
             // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
             // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
             // any overlaid 'frozen' source generated documents.
-            var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,

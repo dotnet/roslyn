@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -18,15 +19,21 @@ internal interface IRemoteKeepAliveService
     /// same <see cref="Solution"/> snapshot alive on the OOP side, computed attached values (like <see
     /// cref="Compilation"/>s) will stay alive as well.
     /// </summary>
-    ValueTask KeepAliveAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
+    /// <param name="sessionId">Id identifying this session.  Used with <see cref="WaitForSessionIdAsync"/> so that
+    /// execution on the host side can proceed only once the proper snapshot is actually pinned on the OOP side.</param>
+    ValueTask KeepAliveAsync(Checksum solutionChecksum, int sessionId, CancellationToken cancellationToken);
+
+    ValueTask WaitForSessionIdAsync(int sessionId, CancellationToken cancellationToken);
 }
 
 internal sealed class RemoteKeepAliveSession : IDisposable
 {
+    private static int s_sessionId = 1;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     private RemoteKeepAliveSession(
         SolutionCompilationState compilationState,
+        ProjectId? projectId,
         RemoteHostClient? client)
     {
         if (client is null)
@@ -38,6 +45,42 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             compilationState,
             (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
             _cancellationTokenSource.Token).AsTask();
+    }
+
+    private static async Task<RemoteKeepAliveSession> StartSessionAsync(
+        SolutionCompilationState compilationState,
+        ProjectId? projectId,
+        RemoteHostClient? client,
+        CancellationToken callerCancellationToken)
+    {
+        var nextSessionId = Interlocked.Increment(ref s_sessionId);
+        var cancellationTokenSource = new CancellationTokenSource();
+
+        if (client is null)
+            return new RemoteKeepAliveSession();
+
+        // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
+        // the cancellation token triggers.  Note: we pass the cancellationTokenSource.Token in here.  We want
+        // disposing the returned RemoteKeepAliveSession to be the thing that cancels this work.
+        _ = client.TryInvokeAsync<IRemoteKeepAliveService>(
+            compilationState,
+            projectId,
+            (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, nextSessionId, cancellationToken),
+            cancellationTokenSource.Token).AsTask();
+
+        // Now, actually make a call over to OOP to ensure the session is started.  This way the caller won't proceed
+        // until the actual solution (or project-scope) is actually pinned in OOP.  Note: we pass the caller
+        // cancellation token in here (though we ensure we do not actually throw) so that if the caller decides they
+        // don't need to proceed, we can bail quickly, without waiting for the solution to sync and for us to wait on
+        // that completing.
+        var waitForSessionTask = client.TryInvokeAsync<IRemoteKeepAliveService>(
+            compilationState,
+            projectId,
+            (service, _, cancellationToken) => service.WaitForSessionIdAsync(nextSessionId, cancellationToken),
+            callerCancellationToken);
+        await waitForSessionTask.NoThrowAwaitableInternal();
+
+        return new RemoteKeepAliveSession(cancellationTokenSource);
     }
 
     private RemoteKeepAliveSession(SolutionCompilationState compilationState, IAsynchronousOperationListener listener)
@@ -106,13 +149,23 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     /// to rebuild any compilations they've already built due to the solution going away and then coming back.
     /// </summary>
     public static Task<RemoteKeepAliveSession> CreateAsync(Solution solution, CancellationToken cancellationToken)
-        => CreateAsync(solution.CompilationState, cancellationToken);
+        => CreateAsync(solution, projectId: null, cancellationToken);
+
+    /// <inheritdoc cref="CreateAsync(Solution, CancellationToken)"/>
+    public static Task<RemoteKeepAliveSession> CreateAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
+        => CreateAsync(solution.CompilationState, projectId, cancellationToken);
+
+    /// <inheritdoc cref="CreateAsync(Solution, CancellationToken)"/>
+    public static Task<RemoteKeepAliveSession> CreateAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        => CreateAsync(compilationState, projectId: null, cancellationToken);
 
     /// <inheritdoc cref="CreateAsync(Solution, CancellationToken)"/>
     public static async Task<RemoteKeepAliveSession> CreateAsync(
-        SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        SolutionCompilationState compilationState, ProjectId? projectId, CancellationToken cancellationToken)
     {
-        var client = await RemoteHostClient.TryGetClientAsync(compilationState.Services, cancellationToken).ConfigureAwait(false);
-        return new RemoteKeepAliveSession(compilationState, client);
+        var client = await RemoteHostClient.TryGetClientAsync(
+            compilationState.Services, cancellationToken).ConfigureAwait(false);
+
+        return await RemoteKeepAliveSession.StartSessionAsync(compilationState, projectId, client, cancellationToken).ConfigureAwait(false);
     }
 }

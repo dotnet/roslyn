@@ -105,17 +105,20 @@ internal abstract class RemoteHostClient : IDisposable
         CancellationToken cancellationToken)
         where TService : class
     {
-        return TryInvokeAsync(solution.CompilationState, invocation, cancellationToken);
+        return TryInvokeAsync(solution.CompilationState, projectId: null, invocation, cancellationToken);
     }
 
     public async ValueTask<bool> TryInvokeAsync<TService>(
         SolutionCompilationState compilationState,
+        ProjectId? projectId,
         Func<TService, Checksum, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken)
         where TService : class
     {
         using var connection = CreateConnection<TService>(callbackTarget: null);
-        return await connection.TryInvokeAsync(compilationState, invocation, cancellationToken).ConfigureAwait(false);
+        return projectId is null
+            ? await connection.TryInvokeAsync(compilationState, invocation, cancellationToken).ConfigureAwait(false)
+            : await connection.TryInvokeAsync(compilationState, projectId, invocation, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
