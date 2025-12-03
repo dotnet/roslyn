@@ -632,6 +632,11 @@
         <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве шаблона. Используйте другой литерал (например, "0" или "null") по мере необходимости. Чтобы задать полное совпадение, используйте шаблон отмены "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeforePropertyPattern">
+        <source>A variable designator must come after a property pattern.</source>
+        <target state="new">A variable designator must come after a property pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">Переменная не может быть объявлена в шаблоне "not" или "or".</target>
@@ -702,6 +707,11 @@
         <target state="translated">Не удается создать обновление;  {0} '{1}' отсутствует.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Точки входа приложения не могут иметь атрибут "UnmanagedCallersOnly".</target>
@@ -710,6 +720,11 @@
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
         <target state="translated">Свойство контракта на равенство записей "{0}" должно иметь метод доступа get.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
+        <source>The '==' operator is not supported in a pattern.</source>
+        <target state="new">The '==' operator is not supported in a pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
@@ -1110,6 +1125,11 @@
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
         <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
+        <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
+        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">

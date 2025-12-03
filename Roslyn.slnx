@@ -108,6 +108,7 @@
     <Project Path="src/Compilers/CSharp/Test/Semantic/Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Symbol/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Syntax/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.csproj" />
+    <Project Path="src/Compilers/CSharp/Test/CSharp15/Microsoft.CodeAnalysis.CSharp.CSharp15.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/WinRT/Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.csproj" />
     <Project Path="src/Compilers/Test/Utilities/CSharp/Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
   </Folder>

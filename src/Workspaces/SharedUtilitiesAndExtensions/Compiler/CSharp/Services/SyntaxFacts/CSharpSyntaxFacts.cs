@@ -1203,9 +1203,11 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     public bool IsTypeDeclaration(SyntaxNode node)
         => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
-    public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
-        => statement is ExpressionStatementSyntax exprStatement &&
-           exprStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
+    public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? node)
+        => node is ExpressionStatementSyntax { Expression: (kind: SyntaxKind.SimpleAssignmentExpression) };
+
+    public bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? node)
+        => node is ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax };
 
     public void GetPartsOfAssignmentStatement(
         SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
@@ -1228,10 +1230,6 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         operatorToken = assignment.OperatorToken;
         right = assignment.Right;
     }
-
-    // C# does not have assignment statements.
-    public bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? node)
-        => false;
 
     public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
         => ((SimpleNameSyntax)node).Identifier;
