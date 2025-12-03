@@ -1,2 +1,5 @@
+Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs = Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, string? trackingName = null) -> void
+Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps, string? baseDirectory) -> void
+Microsoft.CodeAnalysis.GeneratorDriverOptions.TrackingName.get -> string?
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?

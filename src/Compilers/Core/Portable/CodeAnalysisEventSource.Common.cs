@@ -37,21 +37,23 @@ namespace Microsoft.CodeAnalysis
         internal void StartSingleGeneratorRunTime(string generatorName, string assemblyPath, string id) => WriteEvent(3, generatorName, assemblyPath, id);
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
-        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
+        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string trackingName, string assemblyPath, long elapsedTicks, string id)
         {
             if (IsEnabled())
             {
                 fixed (char* generatorNameBytes = generatorName)
+                fixed (char* trackingNameBytes = trackingName)
                 fixed (char* assemblyPathBytes = assemblyPath)
                 fixed (char* idBytes = id)
                 {
-                    Span<EventData> data = stackalloc EventData[]
-                    {
+                    Span<EventData> data =
+                    [
                         GetEventDataForString(generatorName, generatorNameBytes),
+                        GetEventDataForString(trackingName, trackingNameBytes),
                         GetEventDataForString(assemblyPath, assemblyPathBytes),
                         GetEventDataForInt64(&elapsedTicks),
                         GetEventDataForString(id, idBytes),
-                    };
+                    ];
 
                     fixed (EventSource.EventData* dataPtr = data)
                     {
@@ -184,6 +186,19 @@ namespace Microsoft.CodeAnalysis
 
         [Event(20, Message = "Project '{0}' created with file path '{1}'", Level = EventLevel.Informational)]
         internal void ProjectCreated(string projectSystemName, string? filePath) => WriteEvent(20, projectSystemName, filePath ?? string.Empty);
+
+        [Event(21)]
+        internal void GeneratorDriverCreated(string trackingName, string stacktrace) => WriteEvent(21, trackingName, stacktrace);
+
+        [Event(22)]
+        internal void GeneratorDriverUsedFromCache(string trackingName) => WriteEvent(22, trackingName);
+
+        [Event(23)]
+        internal void GeneratorDriverCacheCreated(string projectName, string stacktrace) => WriteEvent(23, projectName, stacktrace);
+
+        [Event(24)]
+        internal void SyncProjectInfo(int count, string infos) => WriteEvent(24, count, infos);
+
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {

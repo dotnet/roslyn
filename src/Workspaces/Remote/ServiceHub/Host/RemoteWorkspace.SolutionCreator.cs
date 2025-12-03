@@ -281,6 +281,8 @@ internal partial class RemoteWorkspace
                 }
             }
 
+            CodeAnalysisEventSource.Log.SyncProjectInfo(projectInfos.Count, string.Join(", ", projectInfos.Select(pi => $"{pi.Name} ({pi.Id})")));
+
             // Add solutions in bulk.  Avoiding intermediary forking of it.
             solution = solution.AddProjects(projectInfos);
 
