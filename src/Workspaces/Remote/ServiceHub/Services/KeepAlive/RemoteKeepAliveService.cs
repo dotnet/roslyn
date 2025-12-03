@@ -17,19 +17,19 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
             => new RemoteKeepAliveService(arguments);
     }
 
-    private readonly ConcurrentDictionary<int, TaskCompletionSource<bool>> _sessionIdToCompletionSource = new();
+    private readonly ConcurrentDictionary<long, TaskCompletionSource<bool>> _sessionIdToCompletionSource = new();
 
     public RemoteKeepAliveService(in ServiceConstructionArguments arguments)
         : base(arguments)
     {
     }
 
-    private TaskCompletionSource<bool> GetSessionCompletionSource(int sessionId)
+    private TaskCompletionSource<bool> GetSessionCompletionSource(long sessionId)
         => _sessionIdToCompletionSource.GetOrAdd(sessionId, static _ => new());
 
     public async ValueTask KeepAliveAsync(
         Checksum solutionChecksum,
-        int sessionId,
+        long sessionId,
         CancellationToken cancellationToken)
     {
         // Ensure we have a completion source for this sessionId.  Note: we are potentially racing with
@@ -67,7 +67,7 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
         }
     }
 
-    public async ValueTask WaitForSessionIdAsync(int sessionId, CancellationToken cancellationToken)
+    public async ValueTask WaitForSessionIdAsync(long sessionId, CancellationToken cancellationToken)
     {
         // Ensure we have a completion source for this sessionId.  Note: we are potentially racing with KeepAliveAsync
         // on the host side, so it's possible that it will beat us to creating the entry in this dictionary.  That's

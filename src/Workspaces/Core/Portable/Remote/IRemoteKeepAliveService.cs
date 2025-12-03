@@ -21,20 +21,30 @@ internal interface IRemoteKeepAliveService
     /// </summary>
     /// <param name="sessionId">Id identifying this session.  Used with <see cref="WaitForSessionIdAsync"/> so that
     /// execution on the host side can proceed only once the proper snapshot is actually pinned on the OOP side.</param>
-    ValueTask KeepAliveAsync(Checksum solutionChecksum, int sessionId, CancellationToken cancellationToken);
+    ValueTask KeepAliveAsync(Checksum solutionChecksum, long sessionId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Waits for the session identified by <paramref name="sessionId"/> to be fully hydrated and pinned in the OOP
     /// process.
     /// </summary>
-    ValueTask WaitForSessionIdAsync(int sessionId, CancellationToken cancellationToken);
+    ValueTask WaitForSessionIdAsync(long sessionId, CancellationToken cancellationToken);
 }
 
 internal sealed class RemoteKeepAliveSession : IDisposable
 {
-    private static int s_sessionId = 1;
+    private static long s_sessionId = 1;
 
-    private int SessionId { get; } = Interlocked.Increment(ref s_sessionId);
+    /// <summary>
+    /// A unique identifier for this session.  Used to allow us to kick off the work to sync a solution over, then
+    /// wait for that work to complete, while the syncing task stays alive on the OOP side.
+    /// </summary>
+    private long SessionId { get; } = Interlocked.Increment(ref s_sessionId);
+
+    /// <summary>
+    /// Cancellation token used for keeping the keep-alive work alive.  We make a call over to oop, which syncs a
+    /// solution/project-cone and then waits on this cancellation token.  So cancelling this is what actually allows the
+    /// oop side to return and let go of the pinned solution/project-cone.
+    /// </summary>
     private CancellationTokenSource KeepAliveTokenSource { get; } = new();
 
     private RemoteKeepAliveSession()
