@@ -927,11 +927,11 @@ System.Double
     } 
 
     .method public hidebysig newslot virtual 
-            instance float64[1...,...] CSharp15() cil managed
+            instance float64[1...,...] Test15() cil managed
     {
       // Code size       11 (0xb)
       .maxstack  4
-      IL_0000:  ldstr      ""CSharp15""
+      IL_0000:  ldstr      ""Test15""
       IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
       IL_0007:  ldnull
       IL_000a:  ret
@@ -983,7 +983,7 @@ System.Double
         a = t.Test12();
         a = t.Test13();
         a = t.Test14();
-        a = t.CSharp15();
+        a = t.Test15();
         a = t.Test16();
 
         t = new C();
@@ -1001,7 +1001,7 @@ System.Double
         a = t.Test12();
         a = t.Test13();
         a = t.Test14();
-        a = t.CSharp15();
+        a = t.Test15();
         a = t.Test16();
     }
 
@@ -1075,7 +1075,7 @@ System.Double
         System.Console.WriteLine(""Overridden 14"");
         return null;
     }
-    public override double[,] CSharp15()
+    public override double[,] Test15()
     {
         System.Console.WriteLine(""Overridden 15"");
         return null;
@@ -1188,7 +1188,7 @@ System.Double
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("CSharp15").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
@@ -1224,7 +1224,7 @@ Test11
 Test12
 Test13
 Test14
-CSharp15
+Test15
 Test16
 Overridden 1
 Overridden 2
@@ -1404,11 +1404,11 @@ Overridden 16
     } 
 
     .method public hidebysig newslot virtual 
-            instance void CSharp15(float64[1...,...] x) cil managed
+            instance void Test15(float64[1...,...] x) cil managed
     {
       // Code size       11 (0xb)
       .maxstack  4
-      IL_0000:  ldstr      ""CSharp15""
+      IL_0000:  ldstr      ""Test15""
       IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
       IL_000a:  ret
     } 
@@ -1447,7 +1447,7 @@ Overridden 16
         t.Test12(a);
         t.Test13(a);
         t.Test14(a);
-        t.CSharp15(a);
+        t.Test15(a);
         t.Test16(a);
 
         t = new C();
@@ -1465,7 +1465,7 @@ Overridden 16
         t.Test12(a);
         t.Test13(a);
         t.Test14(a);
-        t.CSharp15(a);
+        t.Test15(a);
         t.Test16(a);
     }
 
@@ -1525,7 +1525,7 @@ Overridden 16
     {
         System.Console.WriteLine(""Overridden 14"");
     }
-    public override void CSharp15(double[,] x)
+    public override void Test15(double[,] x)
     {
         System.Console.WriteLine(""Overridden 15"");
     }
@@ -1551,7 +1551,7 @@ Test11
 Test12
 Test13
 Test14
-CSharp15
+Test15
 Test16
 Overridden 1
 Overridden 2

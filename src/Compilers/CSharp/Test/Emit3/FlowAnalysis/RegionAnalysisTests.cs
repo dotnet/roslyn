@@ -6524,7 +6524,7 @@ class Program
         }
 
         [Fact, WorkItem(15640, "https://github.com/dotnet/roslyn/issues/15640")]
-        public void CSharp15640()
+        public void Test15640()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 using System;

@@ -971,7 +971,7 @@ public interface ITest14
 
 [ComImport()]
 [Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58266"")]
-public interface ICSharp15 : ITest14
+public interface ITest15 : ITest14
 {
 }
 
@@ -1120,7 +1120,7 @@ class UsePia3 : ITest13
     }
 }
 
-interface IUsePia4 : ICSharp15, ITest16, ITest18, ITest19
+interface IUsePia4 : ITest15, ITest16, ITest18, ITest19
 {
 }
 
