@@ -51,13 +51,14 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     {
         var nextSessionId = Interlocked.Increment(ref s_sessionId);
         var keepAliveCancellationTokenSource = new CancellationTokenSource();
+        var session = new RemoteKeepAliveSession(keepAliveCancellationTokenSource);
 
         // If we have no client, we just return a no-op session.  That's fine. This is the case when we're not running
         // anything in OOP, and so there's nothing to keep alive.  The caller will be holding onto the
         // solution/project-cone snapshot themselves, and so all the oop calls they make to it will just operate
         // directly on that shared instance.
         if (client is null)
-            return new RemoteKeepAliveSession(keepAliveCancellationTokenSource);
+            return session;
 
         // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until the
         // cancellation token triggers.  Note: we pass the keepAliveCancellationTokenSource.Token in here.  We want
@@ -77,16 +78,18 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                 (service, _, cancellationToken) => service.WaitForSessionIdAsync(nextSessionId, cancellationToken),
                 callerCancellationToken).ConfigureAwait(false);
         }
-        // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we cancel the keep-alive
-        // session itself, and bubble the exception outwards to the caller to handle as they see fit.
-        catch when (CancelKeepAliveSession(keepAliveCancellationTokenSource))
+        // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the keep-alive
+        // session itself (which is critical for ensuring that we either stop syncing the solution/project-cone over, or
+        // that we allow it to be released on the oop side), and bubble the exception outwards to the caller to handle
+        // as they see fit.
+        catch when (DisposeKeepAliveSession(session))
         {
             throw ExceptionUtilities.Unreachable();
         }
 
         // Succeeded in syncing the solution/project-cone over and waiting for the OOP side to pin it.  Return the
         // session to the caller so that it can let go of the pinned data on the OOP side once it no longer needs it.
-        return new RemoteKeepAliveSession(keepAliveCancellationTokenSource);
+        return session;
 
         static async Task InvokeKeepAliveAsync(
             SolutionCompilationState compilationState,
@@ -105,10 +108,9 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                keepAliveCancellationToken).ConfigureAwait(false);
         }
 
-        static bool CancelKeepAliveSession(CancellationTokenSource keepAliveCancellationTokenSource)
+        static bool DisposeKeepAliveSession(RemoteKeepAliveSession session)
         {
-            keepAliveCancellationTokenSource.Cancel();
-            keepAliveCancellationTokenSource.Dispose();
+            session.Dispose();
             return false;
         }
     }
