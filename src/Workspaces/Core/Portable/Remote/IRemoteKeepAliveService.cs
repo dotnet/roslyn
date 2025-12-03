@@ -52,6 +52,10 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         var nextSessionId = Interlocked.Increment(ref s_sessionId);
         var keepAliveCancellationTokenSource = new CancellationTokenSource();
 
+        // If we have no client, we just return a no-op session.  That's fine. This is the case when we're not running
+        // anything in OOP, and so there's nothing to keep alive.  The caller will be holding onto the
+        // solution/project-cone snapshot themselves, and so all the oop calls they make to it will just operate
+        // directly on that shared instance.
         if (client is null)
             return new RemoteKeepAliveSession(keepAliveCancellationTokenSource);
 
