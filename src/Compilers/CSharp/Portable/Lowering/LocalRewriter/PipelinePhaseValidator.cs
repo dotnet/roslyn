@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed partial class PipelinePhaseValidator
 {
+    private PipelinePhaseValidator()
+    {
+        throw new NotSupportedException();
+    }
+
     [Conditional("DEBUG")]
     public static void AssertAfterInitialBinding(BoundNode node)
     {
@@ -49,12 +54,9 @@ internal enum PipelinePhase
     LocalRewriting,
     ClosureConversion,
     StateMachineRewriting,
-    None
+    All
 }
 
-/// <summary>
-/// Note: do not use a static/singleton instance of this type, as it holds state.
-/// </summary>
 internal sealed partial class PipelinePhaseValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 {
     private readonly PipelinePhase _completedPhase;

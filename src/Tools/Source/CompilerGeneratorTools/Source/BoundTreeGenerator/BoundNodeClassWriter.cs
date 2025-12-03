@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -1388,7 +1387,7 @@ namespace BoundTreeGenerator
                     WriteLine($"BoundKind.{StripBound(node.Name)} => PipelinePhase.{doesNotSurvive},");
                 }
             }
-            WriteLine("_ => PipelinePhase.None");
+            WriteLine("_ => PipelinePhase.All");
             Outdent();
             WriteLine("}};");
             Unbrace();

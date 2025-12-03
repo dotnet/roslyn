@@ -17330,7 +17330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.InterpolatedStringHandlerPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.InterpolatedStringArgumentPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.DeconstructionVariablePendingInference => PipelinePhase.LocalRewriting,
-                _ => PipelinePhase.None
+                _ => PipelinePhase.All
             };
         }
     }
