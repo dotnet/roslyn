@@ -6,6 +6,7 @@ on:
 
 permissions:
   pull-requests: write
+  id-token: write  # Required to fetch an OIDC token for Azure authentication
 
 jobs:
   validate-and-trigger:
@@ -61,7 +62,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '❌ You do not have permission to trigger this workflow. You must have write access to the repository and be a member of the Microsoft organization.'
+              body: 'You do not have permission to trigger this workflow. You must have write access to the repository and be a member of the Microsoft organization.'
             });
 
       - name: Exit if unauthorized
@@ -84,12 +85,22 @@ jobs:
             core.setOutput('repo', pr.head.repo.full_name);
             console.log(`PR #${context.issue.number}: ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha})`);
 
-      - name: Azure Login with Service Principal
+      - name: Azure Login with OpenID Connect
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Determine validation type
+        id: validation-type
         run: |
-          az login --service-principal \
-            --username ${{ secrets.AZURE_CLIENT_ID }} \
-            --password ${{ secrets.AZURE_CLIENT_SECRET }} \
-            --tenant ${{ secrets.AZURE_TENANT_ID }}
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          if echo "$COMMENT_BODY" | grep -q "/dart"; then
+            echo "type=dart" >> $GITHUB_OUTPUT
+          elif echo "$COMMENT_BODY" | grep -q "/pr-val"; then
+            echo "type=pr-val" >> $GITHUB_OUTPUT
+          fi
 
       - name: Trigger Azure DevOps Pipeline
         id: trigger-pipeline
@@ -102,13 +113,11 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $AZDO_TOKEN" \
             -d '{
-              "resources": {
-                "repositories": {
-                  "self": {
-                    "refName": "refs/heads/${{ steps.pr-details.outputs.ref }}",
-                    "version": "${{ steps.pr-details.outputs.sha }}"
-                  }
-                }
+              "templateParameters": {
+                "PRNumber": "${{ github.event.issue.number }}",
+                "CommitSHA": "${{ steps.pr-details.outputs.sha }}",
+                "SourceBranch": "${{ steps.pr-details.outputs.ref }}",
+                "ValidationType": "${{ steps.validation-type.outputs.type }}"
               }
             }' \
             "${{ secrets.AZDO_ORGANIZATION_URL }}/${{ secrets.AZDO_PROJECT }}/_apis/pipelines/${{ secrets.AZDO_PIPELINE_ID }}/runs?api-version=7.0")
@@ -137,7 +146,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `✅ Azure DevOps pipeline **dotnet-roslyn-internal-validation-test** has been triggered by @${context.actor}\n\n🔗 [View Pipeline Run](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\nBuild ID: ${{ steps.trigger-pipeline.outputs.build-id }}`
+              body: `Azure DevOps pipeline triggered by @${context.actor}\n\n [View Pipeline Run](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\n**Parameters:**\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.pr-details.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\``
             });
 
       - name: Comment on failure
@@ -149,5 +158,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '❌ Failed to trigger the Azure DevOps pipeline. Please check the workflow logs for details.'
+              body: 'Failed to trigger the Azure DevOps pipeline. Please check the workflow logs for details.'
             });
