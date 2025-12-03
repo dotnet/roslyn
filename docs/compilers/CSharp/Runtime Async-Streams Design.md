@@ -10,7 +10,7 @@ In short, the compiler generates a state machine similar to async-streams, that 
 The states corresponding to `yield` suspensions match those of existing async-streams.
 No state is created for `await` expressions, which are lowered to a runtime call instead.
 
-See [async-streams.md](/docs/features/async-streams.md) and [Runtime Async Design.md](Runtime Async Design.md) for more background information.
+See [async-streams.md](/docs/features/async-streams.md) and [Runtime Async Design.md](Runtime%20Async%20Design.md) for more background information.
 
 ## Structure
 
