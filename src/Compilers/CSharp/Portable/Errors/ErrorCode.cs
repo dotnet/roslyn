@@ -1639,7 +1639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
         WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
-        // available 8525-8596
+        ERR_DesignatorBeforePropertyPattern = 8525,
+        // available 8526-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
