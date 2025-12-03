@@ -89,12 +89,6 @@ internal sealed partial class EventHookupSessionManager(
 
             _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
 
-            // Dismiss and suppress gray text proposals for the duration of the event hookup session.
-            _suggestionBlocker?.DisposeAsync().ConfigureAwait(false);
-            _suggestionBlocker = await SuggestionServiceBase.Value.DismissAndBlockProposalsAsync(analyzedSession.TextView,
-                ReasonForDismiss.DismissedAfterBufferChange, cancellationToken)
-                .ConfigureAwait(false);
-
             // For test purposes only!
             TEST_MostRecentToolTipContent = content;
 
@@ -104,6 +98,12 @@ internal sealed partial class EventHookupSessionManager(
 
             analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
             CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
+
+            // Dismiss and suppress gray text proposals for the duration of the event hookup session.
+            _suggestionBlocker?.DisposeAsync().ConfigureAwait(true);
+            _suggestionBlocker = await SuggestionServiceBase.Value.DismissAndBlockProposalsAsync(
+                analyzedSession.TextView, ReasonForDismiss.DismissedAfterBufferChange, cancellationToken)
+                .ConfigureAwait(true);
         }
     }
 
