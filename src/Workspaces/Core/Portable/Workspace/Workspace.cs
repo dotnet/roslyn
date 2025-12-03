@@ -266,7 +266,7 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = data.transformation(oldSolution);
 
-                newSolution = data.@this.InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
+                newSolution = InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
 
                 // Attempt to unify the syntax trees in the new solution.
                 return UnifyLinkedDocumentContents(oldSolution, newSolution);
@@ -428,7 +428,10 @@ public abstract partial class Workspace : IDisposable
     /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
     /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
     /// </summary>
-    private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+    private static Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+        => newSolution.WithFallbackAnalyzerOptions(ComputeFinalFallbackAnalyzerOptions(oldSolution, newSolution));
+
+    internal static ImmutableDictionary<string, StructuredAnalyzerConfigOptions> ComputeFinalFallbackAnalyzerOptions(Solution oldSolution, Solution newSolution)
     {
         var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
 
@@ -456,11 +459,11 @@ public abstract partial class Workspace : IDisposable
                 continue;
             }
 
-            var provider = Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            var provider = oldSolution.Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
             newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
         }
 
-        return newSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
+        return newFallbackOptions;
     }
 
     /// <summary>

@@ -312,6 +312,14 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
             // We have to discover .editorconfig files ourselves to ensure that code style rules are followed.
             // Normally the project system would tell us about these.
             projectToAddTo = AddEditorConfigFiles(projectToAddTo, Path.GetDirectoryName(filePath));
+
+            // Because we're adding the initial project to the solution, we need to ensure that this solution snapshot
+            // has the right fallback analyzer options.  This normally happens in Workspace.SetCurrentSolutionAsync as
+            // it mutates.  But that has never happened so far, so we have to simulate that manually here.  This ensures
+            // we pick up the right host/vs options which is needed in order to run the code cleanup pass below.
+            solution = solution.WithFallbackAnalyzerOptions(Workspace.ComputeFinalFallbackAnalyzerOptions(solution, projectToAddTo.Solution));
+
+            projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
         }
 
         // We need to ensure that decisions made during new document formatting are based on the right language
