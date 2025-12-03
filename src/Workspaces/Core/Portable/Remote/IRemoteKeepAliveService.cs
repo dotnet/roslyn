@@ -33,11 +33,12 @@ internal interface IRemoteKeepAliveService
 internal sealed class RemoteKeepAliveSession : IDisposable
 {
     private static int s_sessionId = 1;
-    private readonly CancellationTokenSource _cancellationTokenSource;
 
-    private RemoteKeepAliveSession(CancellationTokenSource cancellationTokenSource)
+    private int SessionId { get; } = Interlocked.Increment(ref s_sessionId);
+    private CancellationTokenSource KeepAliveTokenSource { get; } = new();
+
+    private RemoteKeepAliveSession()
     {
-        _cancellationTokenSource = cancellationTokenSource;
     }
 
     /// <summary>
@@ -49,9 +50,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         RemoteHostClient? client,
         CancellationToken callerCancellationToken)
     {
-        var nextSessionId = Interlocked.Increment(ref s_sessionId);
-        var keepAliveCancellationTokenSource = new CancellationTokenSource();
-        var session = new RemoteKeepAliveSession(keepAliveCancellationTokenSource);
+        var session = new RemoteKeepAliveSession();
 
         // If we have no client, we just return a no-op session.  That's fine. This is the case when we're not running
         // anything in OOP, and so there's nothing to keep alive.  The caller will be holding onto the
@@ -64,7 +63,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         // cancellation token triggers.  Note: we pass the keepAliveCancellationTokenSource.Token in here.  We want
         // disposing the returned RemoteKeepAliveSession to be the thing that cancels this work.
         _ = InvokeKeepAliveAsync(
-            compilationState, projectId, client, nextSessionId, keepAliveCancellationTokenSource.Token);
+            compilationState, projectId, client, session);
 
         // Now, actually make a call over to OOP to ensure the session is started.  This way the caller won't proceed
         // until the actual solution (or project-scope) is actually pinned in OOP.  Note: we pass the caller
@@ -75,7 +74,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             await client.TryInvokeAsync<IRemoteKeepAliveService>(
                 compilationState,
                 projectId,
-                (service, _, cancellationToken) => service.WaitForSessionIdAsync(nextSessionId, cancellationToken),
+                (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
                 callerCancellationToken).ConfigureAwait(false);
         }
         // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the keep-alive
@@ -95,17 +94,18 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             SolutionCompilationState compilationState,
             ProjectId? projectId,
             RemoteHostClient client,
-            int nextSessionId,
-            CancellationToken keepAliveCancellationToken)
+            RemoteKeepAliveSession session)
         {
             // Ensure we yield the current thread, allowing StartSessionAsync to then kick off the call to
             // WaitForSessionIdAsync
             await Task.Yield().ConfigureAwait(false);
+
+            var sessionId = session.SessionId;
             await client.TryInvokeAsync<IRemoteKeepAliveService>(
                compilationState,
                projectId,
-               (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, nextSessionId, cancellationToken),
-               keepAliveCancellationToken).ConfigureAwait(false);
+               (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
+               session.KeepAliveTokenSource.Token).ConfigureAwait(false);
         }
 
         static bool DisposeKeepAliveSession(RemoteKeepAliveSession session)
@@ -117,9 +117,10 @@ internal sealed class RemoteKeepAliveSession : IDisposable
 
     private RemoteKeepAliveSession(SolutionCompilationState compilationState, IAsynchronousOperationListener listener)
     {
-        var nextSessionId = Interlocked.Increment(ref s_sessionId);
-        _cancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = _cancellationTokenSource.Token;
+        // This is the entry-point for KeepAliveSession when created synchronously.  In this case, we are documented as
+        // just being a best-effort helper for keeping the solution/project-cone alive in OOP.  We do not guarantee that
+        // when this returns that the session is fully established in OOP.  Instead, we just kick off the work to do so,
+        // and return immediately.
         var token = listener.BeginAsyncOperation(nameof(RemoteKeepAliveSession));
 
         var task = CreateClientAndKeepAliveAsync();
@@ -129,16 +130,19 @@ internal sealed class RemoteKeepAliveSession : IDisposable
 
         async Task CreateClientAndKeepAliveAsync()
         {
+            var cancellationToken = this.KeepAliveTokenSource.Token;
             var client = await RemoteHostClient.TryGetClientAsync(compilationState.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
                 return;
 
-            // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
-            // the cancellation token triggers.
+            // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until the
+            // cancellation token triggers.  Nor do we call WaitForSessionIdAsync either.  This is all just best-effort,
+            // to be used by sync clients that can't await the full establishment of the session.
+            var sessionId = this.SessionId;
             _ = client.TryInvokeAsync<IRemoteKeepAliveService>(
                 compilationState,
                 projectId: null,
-                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, nextSessionId, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
                 cancellationToken).AsTask();
         }
     }
@@ -154,8 +158,8 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _cancellationTokenSource.Cancel();
-        _cancellationTokenSource.Dispose();
+        this.KeepAliveTokenSource.Cancel();
+        this.KeepAliveTokenSource.Dispose();
     }
 
     /// <summary>
