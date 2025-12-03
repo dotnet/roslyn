@@ -193,10 +193,11 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     /// to rebuild any compilations they've already built due to the solution going away and then coming back.
     /// </summary>
     /// <remarks>
-    /// Subsequent calls to oop made while this session is alive must pass the same data with the remove invocation
-    /// calls.  In other words, if this session was created for a specific project, all subsequent calls must be for
-    /// that same project instance.  If a session were created for a solution, but a later call was made for a
-    /// project-cone, it would not see the solution pinned by this session.
+    /// Subsequent calls to oop made while this session is alive must pass the same pinning data with the remote
+    /// invocation calls.  In other words, if this session was created for a specific solution/project-cone, all
+    /// subsequent calls must be for that same solution/project-cone.  If a session were created for a solution, but a
+    /// later call was made for a project-cone (or vice versa), it would not see the same pinned instance of this
+    /// session.
     /// </remarks>
     public static Task<RemoteKeepAliveSession> CreateAsync(Solution solution, CancellationToken cancellationToken)
         => CreateAsync(solution, projectId: null, cancellationToken);
