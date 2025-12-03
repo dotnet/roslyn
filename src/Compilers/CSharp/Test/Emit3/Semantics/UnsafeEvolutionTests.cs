@@ -2,27 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
-    private static void VerifyMemorySafetyRulesAttribute(ModuleSymbol module, bool includesAttributeDefinition, bool includesAttributeUse, bool publicDefinition)
+    private static void VerifyMemorySafetyRulesAttribute(
+        ModuleSymbol module,
+        bool includesAttributeDefinition,
+        bool includesAttributeUse,
+        bool publicDefinition,
+        bool customAttributeDefinition = false)
     {
-        const string name = "MemorySafetyRulesAttribute";
-        const string fullName = $"System.Runtime.CompilerServices.{name}";
-        var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(fullName);
-        var attribute = module.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == name);
+        const string Name = "MemorySafetyRulesAttribute";
+        const string FullName = $"System.Runtime.CompilerServices.{Name}";
+        var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
+        var attribute = module.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
 
         if (includesAttributeDefinition)
         {
             Assert.NotNull(type);
+
+            if (!customAttributeDefinition)
+            {
+                var attributeAttributes = type.GetAttributes()
+                    .Select(a => a.AttributeClass.ToTestDisplayString())
+                    .OrderBy(StringComparer.Ordinal);
+                Assert.Equal(
+                    [
+                        "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                        "System.AttributeUsageAttribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                    ],
+                    attributeAttributes);
+            }
         }
         else
         {
@@ -45,11 +64,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Assert.Equal(type, attribute.AttributeClass);
             Assert.Equal([2], attribute.ConstructorArguments.Select(a => a.Value));
             Assert.Equal([], attribute.NamedArguments);
-
-            var otherModuleAttributes = module.GetAttributes()
-                .Except([attribute])
-                .Select(a => a.AttributeClass.ToTestDisplayString());
-            Assert.Equal(["System.Runtime.CompilerServices.RefSafetyRulesAttribute"], otherModuleAttributes);
         }
         else
         {
@@ -74,6 +88,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics()
             .GetImageReference();
 
+        // Compilation has no members => attribute not synthesized.
         CompileAndVerify("", [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
             symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false))
@@ -113,6 +128,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void RulesAttribute_NotSynthesized()
     {
+        // Compilation has no members => attribute not synthesized.
         var source = """
             [assembly: System.Reflection.AssemblyDescriptionAttribute(null)]
             """;
@@ -206,12 +222,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true, customAttributeDefinition: true))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: true, customAttributeDefinition: true))
             .VerifyDiagnostics();
     }
 
@@ -219,7 +235,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void RulesAttribute_FromMetadata(bool useCompilationReference)
     {
         var comp = CreateCompilation(MemorySafetyRulesAttributeDefinition);
-        CompileAndVerify(comp, symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
+        CompileAndVerify(comp, symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true, customAttributeDefinition: true));
         var ref1 = AsReference(comp, useCompilationReference);
 
         var source = """

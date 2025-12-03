@@ -10,6 +10,21 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
+// PROTOTYPE: Confirm the attribute shape in BCL API review.
+/// <summary>
+/// <code>
+/// namespace System.Runtime.CompilerServices
+/// {
+///     [CompilerGenerated, Microsoft.CodeAnalysis.Embedded]
+///     [AttributeUsage(AttributeTargets.Module, AllowMultiple = false, Inherited = false)]
+///     public sealed class MemorySafetyRulesAttribute : Attribute
+///     {
+///         public readonly int Version;
+///         public MemorySafetyRulesAttribute(int version) { Version = version; }
+///     }
+/// }
+/// </code>
+/// </summary>
 internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
 {
     private readonly ImmutableArray<FieldSymbol> _fields;
@@ -38,7 +53,12 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
         [
             new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
                 containingType: this,
-                getParameters: m => [SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(int32Type), 0, RefKind.None)],
+                getParameters: m => [SynthesizedParameterSymbol.Create(
+                    container: m,
+                    type: TypeWithAnnotations.Create(int32Type),
+                    ordinal: 0,
+                    refKind: RefKind.None,
+                    name: "version")],
                 getConstructorBody: GenerateConstructorBody),
         ];
     }
