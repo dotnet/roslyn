@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 [Name(PredefinedCommandHandlerNames.DocumentationComments)]
 [Order(After = PredefinedCommandHandlerNames.Rename)]
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
+[Order(After = "InlineTypeCharHandler")]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DocumentationCommentCommandHandler(

@@ -117,15 +117,25 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        // Ensure the character is actually typed in the editor
-        nextHandler();
-
-        if (args.TypedChar != TriggerCharacter)
-            return;
-
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
+        {
+            nextHandler();
             return;
+        }
+
+        if (args.TypedChar != TriggerCharacter)
+        {
+            nextHandler();
+            return;
+        }
+
+        // Start the suggestion session BEFORE nextHandler() to claim exclusive control
+        _generateDocumentationCommentManager.StartSuggestionSession(
+            args.SubjectBuffer, args.TextView, CancellationToken.None);
+
+        // Ensure the character is actually typed in the editor
+        nextHandler();
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }

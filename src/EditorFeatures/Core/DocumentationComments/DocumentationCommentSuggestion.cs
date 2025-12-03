@@ -56,32 +56,15 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
 
     public override Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
     {
-        if (reason.HasFlag(ReasonForUpdate.Diverged))
+        // Now that we start the Suggestion Session earlier, we will get buffer changes when the '/' is inserted and the
+        // shell of the documentation comment. In that case, we need to make sure we have actually have a proposal to display.
+        if (originalProposal is not null && reason.HasFlag(ReasonForUpdate.Diverged))
         {
             Logger.Log(FunctionId.Copilot_Generate_Documentation_Diverged, logLevel: LogLevel.Information);
             return session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel);
         }
 
         return Task.CompletedTask;
-    }
-
-    public async Task StartSuggestionSessionWithProposalAsync(
-        Func<CancellationToken, Task<ProposalBase?>> generateProposal, CancellationToken cancellationToken)
-    {
-        var sessionStarted = await StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-        if (!sessionStarted)
-        {
-            return;
-        }
-
-        var proposal = await generateProposal(cancellationToken).ConfigureAwait(false);
-        if (proposal is null)
-        {
-            await DismissSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        await TryDisplayDocumentationSuggestionAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -91,7 +74,7 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
     /// <returns>If true, user will see the thinking state as long as the Suggestion Session is active and replace with grey text if a call to DisplayProposal succeeds.
     /// If unable to retrieve the session, the caller should bail out.
     /// </returns>
-    private async Task<bool> StartSuggestionSessionAsync(CancellationToken cancellationToken)
+    public async Task<bool> StartSuggestionSessionAsync(CancellationToken cancellationToken)
     {
         _suggestionSession = await RunWithEnqueueActionAsync(
             "StartWork",
@@ -108,6 +91,27 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
     }
 
     /// <summary>
+    /// Continues an already-started suggestion session with a proposal.
+    /// </summary>
+    public async Task ContinueSuggestionSessionWithProposalAsync(
+        Func<CancellationToken, Task<ProposalBase?>> generateProposal, CancellationToken cancellationToken)
+    {
+        if (_suggestionSession is null)
+        {
+            return;
+        }
+
+        var proposal = await generateProposal(cancellationToken).ConfigureAwait(false);
+        if (proposal is null)
+        {
+            await DismissSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        await TryDisplayDocumentationSuggestionAsync(proposal, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// This is where we actually try to display the grey-text from the proposal
     /// we created.
     /// </summary>
@@ -119,7 +123,12 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
                 "DisplayProposal",
                 async () =>
                 {
-                    await _suggestionSession!.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
+                    if (_suggestionSession is null)
+                    {
+                        return false;
+                    }
+
+                    await _suggestionSession.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
@@ -137,7 +146,7 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
     /// Needs to dispose of the IntelliCodeCompletionsDisposable so we no longer have exclusive right to
     /// display any grey text.
     /// </summary>
-    private async Task DismissSuggestionSessionAsync(CancellationToken cancellationToken)
+    public async Task DismissSuggestionSessionAsync(CancellationToken cancellationToken)
     {
         await RunWithEnqueueActionAsync<bool>(
             "DismissSuggestionSession",
