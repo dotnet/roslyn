@@ -108,6 +108,10 @@ internal abstract class RemoteHostClient : IDisposable
         return TryInvokeAsync(solution.CompilationState, projectId: null, invocation, cancellationToken);
     }
 
+    /// <param name="projectId">If <see langword="null"/> the entire solution snapshot represented by <paramref
+    /// name="compilationState"/> will be synchronized with the OOP side.  If not <see langword="null"/> only the
+    /// project-cone represented by that id will be synchronized over.</param>
+    /// <returns></returns>
     public async ValueTask<bool> TryInvokeAsync<TService>(
         SolutionCompilationState compilationState,
         ProjectId? projectId,
