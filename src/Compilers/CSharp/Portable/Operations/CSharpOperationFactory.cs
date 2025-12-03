@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private static bool CanDeriveObjectCreationExpressionArguments(BoundObjectCreationExpression boundObjectCreationExpression)
-            => boundObjectCreationExpression.ResultKind != LookupResultKind.OverloadResolutionFailure && boundObjectCreationExpression.Constructor.OriginalDefinition is not ErrorMethodSymbol;
+            => boundObjectCreationExpression is { ResultKind: not LookupResultKind.OverloadResolutionFailure, Constructor.OriginalDefinition: not ErrorMethodSymbol };
 
         private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
