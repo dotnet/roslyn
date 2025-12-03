@@ -55,14 +55,14 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
             ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator? slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocator,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics,
             FieldSymbol currentField,
             FieldSymbol disposeModeField,
             FieldSymbol? combinedTokensField)
             : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, nonReusableFieldsForCleanup,
-                  synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                  synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocator, nextFreeHoistedLocalSlot, diagnostics)
         {
             _currentField = currentField;
             _disposeModeField = disposeModeField;
@@ -70,7 +70,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
 
             _currentDisposalLabel = F.GenerateLabel("topLevelDisposeLabel");
             _iteratorStateAllocator = new ResumableStateMachineStateAllocator(
-                slotAllocatorOpt,
+                slotAllocator,
                 firstState: StateMachineState.FirstResumableAsyncIteratorState,
                 increasing: false);
         }
@@ -241,7 +241,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
 
         private BoundStatement GenerateConditionalJumpToCurrentDisposalLabel()
         {
-            Debug.Assert(_currentDisposalLabel is object);
+            Debug.Assert(_currentDisposalLabel is not null);
             return F.If(
                 // if (disposeMode)
                 F.InstanceField(_disposeModeField),
@@ -251,7 +251,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
 
         private BoundStatement AppendConditionalJumpToCurrentDisposalLabel(BoundStatement node)
         {
-            Debug.Assert(_currentDisposalLabel is object);
+            Debug.Assert(_currentDisposalLabel is not null);
             // Append:
             //  if (disposeMode) goto currentDisposalLabel;
 
@@ -276,7 +276,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
         }
 
         protected override StateMachineState FirstIncreasingResumableState
-                => StateMachineState.FirstResumableIteratorState;
+            => StateMachineState.FirstResumableIteratorState;
 
         protected override HotReloadExceptionCode EncMissingStateErrorCode
             => HotReloadExceptionCode.CannotResumeSuspendedAsyncMethod; // PROTOTYPE revisit for EnC support
@@ -324,7 +324,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
             blockBuilder.Add(GenerateSetBothStates(StateMachineState.NotStartedOrRunningState));
 
             // if (disposeMode) goto currentDisposalLabel;
-            Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
+            Debug.Assert(_currentDisposalLabel is not null); // no yield return allowed inside a finally
             blockBuilder.Add(GenerateConditionalJumpToCurrentDisposalLabel());
 
             blockBuilder.Add(F.HiddenSequencePoint());
@@ -340,7 +340,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
             blockBuilder.Add(SetDisposeMode());
 
             // goto currentDisposalLabel;
-            Debug.Assert(_currentDisposalLabel is object);
+            Debug.Assert(_currentDisposalLabel is not null);
             blockBuilder.Add(F.Goto(_currentDisposalLabel));
 
             return F.Block(blockBuilder.ToImmutableAndFree());
@@ -357,12 +357,12 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
         {
             var savedDisposalLabel = _currentDisposalLabel;
             LabelSymbol? afterFinally = null;
-            if (node.FinallyBlockOpt is object)
+            if (node.FinallyBlockOpt is not null)
             {
                 afterFinally = F.GenerateLabel("afterFinally");
                 _currentDisposalLabel = afterFinally;
             }
-            else if (node.FinallyLabelOpt is object)
+            else if (node.FinallyLabelOpt is not null)
             {
                 _currentDisposalLabel = node.FinallyLabelOpt;
             }
@@ -379,7 +379,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
 
             _currentDisposalLabel = savedDisposalLabel;
 
-            if (node.FinallyBlockOpt != null && _currentDisposalLabel is object)
+            if (node.FinallyBlockOpt != null && _currentDisposalLabel is not null)
             {
                 // Append:
                 //  if (disposeMode) goto currentDisposalLabel;
@@ -409,7 +409,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
 
             BoundStatement result = VisitFinally(extractedFinally.FinallyBlock);
 
-            if (_currentDisposalLabel is object)
+            if (_currentDisposalLabel is not null)
             {
                 result = AppendConditionalJumpToCurrentDisposalLabel(result);
             }

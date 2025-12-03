@@ -49,12 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out AsyncStateMachine? stateMachineType)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
-
-            if (!method.IsAsync)
-            {
-                stateMachineType = null;
-                return bodyWithAwaitLifted;
-            }
+            Debug.Assert(method.IsAsync);
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             // For async-iterators, we also need to generate a class.

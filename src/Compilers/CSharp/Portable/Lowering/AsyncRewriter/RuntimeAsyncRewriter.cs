@@ -19,10 +19,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         TypeCompilationState compilationState,
         BindingDiagnosticBag diagnostics)
     {
-        if (!method.IsAsync)
-        {
-            return node;
-        }
+        Debug.Assert(method.IsAsync);
 
         var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(compilationState.Compilation, method, node, isRuntimeAsync: true, diagnostics.DiagnosticBag);
         var hoistedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -70,16 +67,18 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
     }
 
+    /// <summary>
+    /// When lowering an async-iterator method with runtime async codegen, we first produce a state machine MoveNextAsync method,
+    /// which deals with hoisting of variables and ref locals, but leaves await lowering to a subsequent phase.
+    /// This method performs the actual lowering of the await expressions.
+    /// </summary>
     public static BoundStatement RewriteWithoutHoisting(
         BoundStatement node,
         MethodSymbol method,
         TypeCompilationState compilationState,
         BindingDiagnosticBag diagnostics)
     {
-        if (!method.IsAsync)
-        {
-            return node;
-        }
+        Debug.Assert(method is SynthesizedStateMachineMoveNextMethod { RuntimeAsync: true, IsAsync: true });
 
         OrderedSet<Symbol> variablesToHoist = new OrderedSet<Symbol>();
         var hoistedLocals = ArrayBuilder<LocalSymbol>.GetInstance();

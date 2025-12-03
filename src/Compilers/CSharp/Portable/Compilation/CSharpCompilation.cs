@@ -356,17 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
 
-            if (!method.IsAsyncReturningIAsyncEnumerable(this) && !method.IsAsyncReturningIAsyncEnumerator(this))
+            if (!IsValidRuntimeAsyncIteratorReturnType(method.ReturnType.OriginalDefinition) && !IsValidRuntimeAsyncReturnType(method.ReturnType.OriginalDefinition))
             {
-                var methodReturn = method.ReturnType.OriginalDefinition;
-                if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
-                        InternalSpecialType.System_Threading_Tasks_Task or
-                        InternalSpecialType.System_Threading_Tasks_Task_T or
-                        InternalSpecialType.System_Threading_Tasks_ValueTask or
-                        InternalSpecialType.System_Threading_Tasks_ValueTask_T))
-                {
-                    return false;
-                }
+                return false;
             }
 
             return symbol switch
@@ -375,6 +367,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
                 _ => Feature("runtime-async") == "on"
             };
+        }
+
+        /// <summary>
+        /// A method may only be emitted with the `async` runtime flag if its return type is one of the supported types.
+        /// </summary>
+        internal static bool IsValidRuntimeAsyncReturnType(TypeSymbol type)
+        {
+            Debug.Assert(type.IsDefinition);
+
+            return ((InternalSpecialType)type.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task
+                or InternalSpecialType.System_Threading_Tasks_Task_T
+                or InternalSpecialType.System_Threading_Tasks_ValueTask
+                or InternalSpecialType.System_Threading_Tasks_ValueTask_T;
+        }
+
+        internal bool IsValidRuntimeAsyncIteratorReturnType(TypeSymbol type)
+        {
+            Debug.Assert(type.IsDefinition);
+
+            return isValidRuntimeAsyncEnumerable(type)
+                || isValidRuntimeAsyncEnumerator(type);
+
+            bool isValidRuntimeAsyncEnumerable(TypeSymbol type)
+            {
+                NamedTypeSymbol iAsyncEnumerable = GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                if (iAsyncEnumerable.IsErrorType() || !object.ReferenceEquals(type, iAsyncEnumerable))
+                {
+                    return false;
+                }
+
+                var getAsyncEnumerator = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator);
+                if (getAsyncEnumerator is null || !iAsyncEnumerable.GetMembers(WellKnownMemberNames.GetAsyncEnumeratorMethodName).Contains(getAsyncEnumerator))
+                {
+                    return false;
+                }
+
+                NamedTypeSymbol iAsyncEnumerator = GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+                if (iAsyncEnumerator.IsErrorType() || !object.ReferenceEquals(getAsyncEnumerator.ReturnType.OriginalDefinition, iAsyncEnumerator))
+                {
+                    return false;
+                }
+
+                return isValidRuntimeAsyncEnumerator(iAsyncEnumerator);
+            }
+
+            bool isValidRuntimeAsyncEnumerator(TypeSymbol type)
+            {
+                NamedTypeSymbol iAsyncEnumerator = GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+                if (iAsyncEnumerator.IsErrorType() || !object.ReferenceEquals(type, iAsyncEnumerator))
+                {
+                    return false;
+                }
+
+                NamedTypeSymbol iAsyncDisposable = GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+                if (!iAsyncEnumerator.InterfacesNoUseSiteDiagnostics().Contains(iAsyncDisposable))
+                {
+                    return false;
+                }
+
+                var disposeAsync = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync);
+                if (disposeAsync is null || !iAsyncDisposable.GetMembers(WellKnownMemberNames.DisposeAsyncMethodName).Contains(disposeAsync))
+                {
+                    return false;
+                }
+
+                if (!IsValidRuntimeAsyncReturnType(disposeAsync.ReturnType))
+                {
+                    return false;
+                }
+
+                var moveNextAsync = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync);
+                if (moveNextAsync is null || !iAsyncEnumerator.GetMembers(WellKnownMemberNames.MoveNextAsyncMethodName).Contains(moveNextAsync))
+                {
+                    return false;
+                }
+
+                if (!IsValidRuntimeAsyncReturnType(moveNextAsync.ReturnType.OriginalDefinition))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>

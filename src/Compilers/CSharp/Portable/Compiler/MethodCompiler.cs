@@ -846,6 +846,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // "MoveNextAsync" is a runtime-async method, but it has already been lowered
                 Debug.Assert(method.Name is WellKnownMemberNames.MoveNextAsyncMethodName);
+                Debug.Assert((method.ImplementationAttributes & System.Reflection.MethodImplAttributes.Async) != 0);
+
                 stateMachine = null;
                 return body;
             }
@@ -861,30 +863,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return loweredBody;
             }
 
-            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+            if (method.IsAsync)
             {
-                if (method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation)
-                    || method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation))
+                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                 {
-                    RuntimeAsyncIteratorStateMachine? runtimeAsyncIteratorStateMachine;
-                    loweredBody = RuntimeAsyncIteratorRewriter.Rewrite(loweredBody, method,
-                        methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod,
-                        out runtimeAsyncIteratorStateMachine);
+                    if (method.DeclaringCompilation.IsValidRuntimeAsyncIteratorReturnType(method.ReturnType.OriginalDefinition))
+                    {
+                        RuntimeAsyncIteratorStateMachine? runtimeAsyncIteratorStateMachine;
+                        loweredBody = RuntimeAsyncIteratorRewriter.Rewrite(loweredBody, method,
+                            methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod,
+                            out runtimeAsyncIteratorStateMachine);
 
-                    Debug.Assert(runtimeAsyncIteratorStateMachine is not null);
-                    stateMachine = runtimeAsyncIteratorStateMachine;
+                        Debug.Assert(runtimeAsyncIteratorStateMachine is not null);
+                        stateMachine = runtimeAsyncIteratorStateMachine;
+                    }
+                    else
+                    {
+                        loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                    }
                 }
                 else
                 {
-                    loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                    AsyncStateMachine? asyncStateMachine;
+                    loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                    Debug.Assert((object?)iteratorStateMachine == null || (object?)asyncStateMachine == null);
+                    stateMachine = stateMachine ?? asyncStateMachine;
                 }
-            }
-            else
-            {
-                AsyncStateMachine? asyncStateMachine;
-                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
-                Debug.Assert((object?)iteratorStateMachine == null || (object?)asyncStateMachine == null);
-                stateMachine = stateMachine ?? asyncStateMachine;
             }
 
             return loweredBody;

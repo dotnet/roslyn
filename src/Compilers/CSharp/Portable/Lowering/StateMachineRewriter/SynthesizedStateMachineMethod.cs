@@ -64,14 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<CSharpAttributeData> _attributes;
 
         // Indicates that the method body follows runtime-async conventions and should be emitted with MethodImplAttributes.Async flag
-        private readonly bool _runtimeAsync;
+        internal readonly bool RuntimeAsync;
 
         public SynthesizedStateMachineMoveNextMethod(MethodSymbol interfaceMethod, StateMachineTypeSymbol stateMachineType, bool runtimeAsync)
             : base(interfaceMethod.Name, interfaceMethod, stateMachineType, null, generateDebugInfo: true, hasMethodBodyDependency: true)
         {
             // PROTOTYPE consider reverting to only use "MoveNext" name, as it is expected by various tools that are aware of state machines (EnC, symbols)
             Debug.Assert(interfaceMethod.Name is WellKnownMemberNames.MoveNextMethodName or WellKnownMemberNames.MoveNextAsyncMethodName);
-            _runtimeAsync = runtimeAsync;
+            Debug.Assert(!runtimeAsync || CSharpCompilation.IsValidRuntimeAsyncReturnType(ReturnType.OriginalDefinition));
+
+            RuntimeAsync = runtimeAsync;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
@@ -108,14 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _attributes;
         }
 
-        public override bool IsAsync => _runtimeAsync;
+        public override bool IsAsync => RuntimeAsync;
 
         internal override MethodImplAttributes ImplementationAttributes
         {
             get
             {
                 MethodImplAttributes result = default;
-                if (_runtimeAsync)
+                if (RuntimeAsync)
                 {
                     result |= MethodImplAttributes.Async;
                 }
@@ -143,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool runtimeAsync)
             : base(name, interfaceMethod, stateMachineType, associatedProperty, generateDebugInfo: false, hasMethodBodyDependency: hasMethodBodyDependency)
         {
+            Debug.Assert(!runtimeAsync || CSharpCompilation.IsValidRuntimeAsyncReturnType(ReturnType.OriginalDefinition));
             _runtimeAsync = runtimeAsync;
         }
 

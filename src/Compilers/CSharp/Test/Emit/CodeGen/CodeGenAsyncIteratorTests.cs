@@ -15842,5 +15842,375 @@ class D : System.IDisposable
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Skipped)
                 .VerifyDiagnostics();
         }
+
+        [Fact]
+        public void SpecialType_01()
+        {
+            string corlibSrc = """
+namespace System
+{
+    public class Object { }
+    public struct Byte { }
+    public struct Int16 { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct IntPtr { }
+    public class Delegate { }
+    public class String 
+    {
+        public int Length => throw null;
+    }
+    public class MulticastDelegate { }
+    public class Exception
+    {
+        public Exception() { }
+        public Exception(string s) { }
+    }
+    public class NotSupportedException : Exception { }
+    public class Type { }
+    public class ValueType { }
+    public class Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public struct Void { }
+    public delegate void Action();
+    public delegate T Action<T>();
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+
+    public static class Environment
+    {
+        public static int CurrentManagedThreadId => throw null;
+    }
+}
+
+namespace System.Threading
+{
+    public struct CancellationToken 
+    {
+        public bool Equals(CancellationToken other) => throw null;
+    }
+
+    public class CancellationTokenSource : IDisposable
+    {
+        public static CancellationTokenSource CreateLinkedTokenSource(CancellationToken token1, CancellationToken token2) => throw null;
+        public CancellationToken Token => throw null;
+        public void Dispose() => throw null;
+    }
+
+    public class Thread
+    {
+        public int ManagedThreadId => throw null;
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    public class Task
+    {
+        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null;
+    }
+
+    public class Task<T>
+    {
+        public System.Runtime.CompilerServices.TaskAwaiter<T> GetAwaiter() => throw null;
+    }
+
+    public struct ValueTask
+    {
+        public ValueTask(System.Threading.Tasks.Sources.IValueTaskSource source, short token) => throw null;
+        public System.Runtime.CompilerServices.ValueTaskAwaiter GetAwaiter() => throw null;
+    }
+
+    public struct ValueTask<T>
+    {
+        public ValueTask(Task<T> task) => throw null;
+        public ValueTask(T result) => throw null;
+        public ValueTask(System.Threading.Tasks.Sources.IValueTaskSource<T> source, short token) => throw null;
+        public Runtime.CompilerServices.ValueTaskAwaiter<T> GetAwaiter() => throw null;
+    }
+}
+
+namespace System.Threading.Tasks.Sources
+{
+    public interface IValueTaskSource
+    {
+        ValueTaskSourceStatus GetStatus(short token);
+        void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags);
+        void GetResult(short token);
+    }
+
+    public interface IValueTaskSource<out TResult>
+    {
+        ValueTaskSourceStatus GetStatus(short token);
+        void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags);
+        TResult GetResult(short token);
+    }
+
+    public enum ValueTaskSourceOnCompletedFlags { }
+
+    public enum ValueTaskSourceStatus { }
+
+    public struct ManualResetValueTaskSourceCore<TResult>
+    {
+        public TResult GetResult(short token) => throw null;
+        public ValueTaskSourceStatus GetStatus(short token) => throw null;
+        public short Version => throw null;
+        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags) => throw null;
+        public void Reset() => throw null;
+        public void SetResult(TResult result) => throw null;
+        public void SetException(Exception error) => throw null;
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public interface INotifyCompletion { }
+    public interface ICriticalNotifyCompletion : INotifyCompletion { }
+
+    public struct TaskAwaiter : ICriticalNotifyCompletion
+    {
+        public bool IsCompleted => false;
+        public void GetResult() { }
+    }
+
+    public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+    {
+        public bool IsCompleted => false;
+        public TResult GetResult() => default;
+    }
+
+    public struct ValueTaskAwaiter : ICriticalNotifyCompletion
+    {
+        public bool IsCompleted => false;
+        public void GetResult() { }
+    }
+
+    public struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion
+    {
+        public bool IsCompleted => false;
+        public TResult GetResult() => default;
+    }
+
+    public interface IAsyncStateMachine
+    {
+        void MoveNext();
+        void SetStateMachine(IAsyncStateMachine stateMachine);
+    }
+
+    public struct AsyncIteratorMethodBuilder
+    {
+        public static AsyncIteratorMethodBuilder Create() => throw null;
+
+        public void MoveNext<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine => throw null;
+
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IAsyncStateMachine 
+            => throw null;
+
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IAsyncStateMachine
+            => throw null;
+
+        public void Complete() => throw null;
+    }
+
+    public static class AsyncHelpers
+    {
+        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+            => throw null;
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+            => throw null;
+
+        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+    }
+}
+""";
+            var corlibComp = CreateEmptyCompilation(corlibSrc, assemblyName: "corlib");
+            corlibComp.VerifyDiagnostics();
+            var corlibRef = corlibComp.ToMetadataReference();
+
+            string source = """
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 0;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        public System.Collections.Generic.IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+""";
+
+            // 1. only ValueTask/ValueTask<T> from corlib are present
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
+
+            CompileAndVerify(comp, symbolValidator: validateAsyncFlagSet, verify: Verification.Skipped).VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+
+            // 2. DisposeAsync uses custom ValueTask
+            source = """
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 0;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        public System.Collections.Generic.IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    public struct ValueTask
+    {
+        public ValueTask(System.Threading.Tasks.Sources.IValueTaskSource source, short token) => throw null;
+        public System.Runtime.CompilerServices.ValueTaskAwaiter GetAwaiter() => throw null;
+    }
+}
+""";
+
+            comp = CreateEmptyCompilation((source, "program"), references: [corlibRef], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
+
+            CompileAndVerify(comp, symbolValidator: validateAsyncFlagUnset, verify: Verification.Skipped).VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // program(27,32): warning CS0436: The type 'ValueTask' in 'program' conflicts with the imported type 'ValueTask' in 'corlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'program'.
+                //         System.Threading.Tasks.ValueTask DisposeAsync();
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ValueTask").WithArguments("program", "System.Threading.Tasks.ValueTask", "corlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Threading.Tasks.ValueTask").WithLocation(27, 32));
+
+            // 3. MoveNextAsync uses custom ValueTask<T>
+            source = """
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 0;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        public System.Collections.Generic.IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    public struct ValueTask<T>
+    {
+        public ValueTask(Task<T> task) => throw null;
+        public ValueTask(T result) => throw null;
+        public ValueTask(System.Threading.Tasks.Sources.IValueTaskSource<T> source, short token) => throw null;
+        public Runtime.CompilerServices.ValueTaskAwaiter<T> GetAwaiter() => throw null;
+    }
+}
+""";
+
+            comp = CreateEmptyCompilation((source, "program"), references: [corlibRef], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
+
+            CompileAndVerify(comp, symbolValidator: validateAsyncFlagUnset, verify: Verification.Skipped).VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // program(18,32): warning CS0436: The type 'ValueTask<T>' in 'program' conflicts with the imported type 'ValueTask<T>' in 'corlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'program'.
+                //         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ValueTask<bool>").WithArguments("program", "System.Threading.Tasks.ValueTask<T>", "corlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Threading.Tasks.ValueTask<T>").WithLocation(18, 32));
+
+            static void validateAsyncFlagSet(ModuleSymbol module)
+            {
+                var moveNextAsync = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<M>d__0")
+                    .GetMembers()
+                    .OfType<MethodSymbol>()
+                    .Single(m => m.Name == "MoveNextAsync");
+
+                Assert.True((moveNextAsync.ImplementationAttributes & MethodImplAttributes.Async) != 0);
+            }
+
+            static void validateAsyncFlagUnset(ModuleSymbol module)
+            {
+                var moveNextAsync = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<M>d__0")
+                    .GetMembers()
+                    .OfType<MethodSymbol>()
+                    .Single(m => m.Name == "System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync");
+
+                Assert.True((moveNextAsync.ImplementationAttributes & MethodImplAttributes.Async) == 0);
+            }
+        }
     }
 }

@@ -4,13 +4,13 @@
 
 Async methods that return `IAsyncEnumerable<T>` or `IAsyncEnumerator<T>` are transformed by the compiler into state machines.
 States are created for each `await` and `yield`.
-Runtime-async support was added in .NET 10 as a preview feature and reduces the overhead of async methods by letting the runtime handling `await` suspensions.
-The following design describes how the compiler generates code for async-stream methods when targeting a runtime that supports runtime async.
+Runtime-async support was added in .NET 10 as a preview feature and reduces the overhead of async methods by letting the runtime handle `await` suspensions.
+The following design describes how the compiler generates code for async-stream methods when targeting a runtime that supports runtime async and the feature is enabled.
 In short, the compiler generates a state machine similar to async-streams, that implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
 The states corresponding to `yield` suspensions match those of existing async-streams.
 No state is created for `await` expressions, which are lowered to a runtime call instead.
 
-See `docs/features/async-streams.md` and `Runtime Async Design.md` for more background information.
+See [async-streams.md](/docs/features/async-streams.md) and [Runtime Async Design.md](Runtime Async Design.md) for more background information.
 
 ## Structure
 
@@ -99,7 +99,7 @@ class C
 
                 1__state = temp1 = -1;
                 Write("1");
-                runtime-await Task.Yield(); // `runtime-await` will be lowered to a call to runtime helper method
+                runtime-await Task.Yield(); // `runtime-await` will be lowered further, including a call to runtime helper method
                 Write("2");
 
                 {
@@ -174,7 +174,8 @@ The state machine class contains fields for:
 
 The constructor of the state machine class has the signature `.ctor(int state)`.
 Its body is:
-```
+
+```csharp
 {
     this.state = state;
     this.initialThreadId = {managedThreadId};
@@ -192,8 +193,9 @@ where `Y` is the yield type of the async iterator.
 The `GetAsyncEnumerator` method either returns the current instance if it can be reused,
 or creates a new instance of the state machine class.
 
-Assuming that the unspeakble state machine class is named `Unspeakable`, `GetAsyncEnumerator` is emitted as:
-```
+Assuming that the unspeakable state machine class is named `Unspeakable`, `GetAsyncEnumerator` is emitted as:
+
+```csharp
 {
     Unspeakable result;
     if (__state == FinishedState && __initialThreadId == Environment.CurrentManagedThreadId)
@@ -222,7 +224,8 @@ The signature of this method is `ValueTask IAsyncDisposable.DisposeAsync()`.
 This method is emitted with the `async` runtime modifier, so it need only `return;`.
 
 Its body is:
-```
+
+```csharp
 {
     if (__state >= NotStartedStateMachine)
     {
@@ -257,14 +260,12 @@ A number of techniques from existing async-streams lowering are reused here (PRO
 - dispatching out of try/catch
 - replacing cancellation token parameter with one from combined tokens when `[EnumeratorCancellation]` is used
 
-PROTOTYPE do we still need spilling for `await` expressions?
-
 #### Lowering of `yield return`
 
 `yield return` is disallowed in finally, in try with catch and in catch.  
 `yield return` is lowered as a suspension of the state machine (essentially `__current = ...; return true;` with a way of resuming execution after the return):
 
-```
+```csharp
 // a `yield return 42;` in user code becomes:
 __state = stateForThisYieldReturn;
 __current = 42;
@@ -280,7 +281,7 @@ if (__disposeMode) /* jump to enclosing finally or exit */
 `yield break` is disallowed in finally.  
 When a `yield break;` is reached, the relevant `finally` blocks should get executed immediately.
 
-```
+```csharp
 // a `yield break;` in user code becomes:
 disposeMode = true;
 /* jump to enclosing finally or exit */

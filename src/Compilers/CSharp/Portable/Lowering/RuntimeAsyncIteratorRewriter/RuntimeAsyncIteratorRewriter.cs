@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp;
 ///   - <see cref="GenerateIAsyncEnumeratorImplementation_Current"/>
 ///   - <see cref="GenerateIAsyncDisposable_DisposeAsync"/>
 /// before returning the body for the kickoff method (<see cref="StateMachineRewriter.GenerateKickoffMethodBody"/>).
-/// 
-/// The state machines uses the same states as regular async-iterator methods, with the exception of `await` states
+///
+/// The state machine uses the same states as regular async-iterator methods, with the exception of `await` states
 /// which are no longer needed (handled by the runtime directly).
 /// </summary>
 internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewriter
 {
     // true if the iterator implements IAsyncEnumerable<T>,
-    // false if it implements IAsyncEnumerator<T>
+    // false if it only implements IAsyncEnumerator<T>
     private readonly bool _isEnumerable;
 
     private FieldSymbol? _currentField; // stores the current/yielded value
@@ -70,13 +70,10 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
         Debug.Assert(compilationState.ModuleBuilderOpt != null);
         Debug.Assert(method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation)
             || method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
+        Debug.Assert(method.IsAsync);
 
         TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;
-        if (elementType.IsDefault)
-        {
-            stateMachineType = null;
-            return bodyWithAwaitLifted;
-        }
+        Debug.Assert(!elementType.IsDefault);
 
         bool isEnumerable = method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation);
         stateMachineType = new RuntimeAsyncIteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, isEnumerable: isEnumerable, elementType);
@@ -173,10 +170,8 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
             EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, bag);
 
             EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
-            EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue, bag);
-            EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask__ctor, bag);
 
-            ensureSpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T_FromValueTaskT, bag);
+            ensureSpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T, bag);
 
             Symbol ensureSpecialMember(SpecialMember member, BindingDiagnosticBag bag)
             {
@@ -298,7 +293,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
 
         // Add IAsyncEnumerator<...>.MoveNextAsync() as a runtime-async method.
         MethodSymbol IAsyncEnumeratorOfElementType_MoveNextAsync = GetMoveNextAsyncMethod();
-        SynthesizedImplementationMethod moveNextAsyncMethod = OpenMoveNextMethodImplementation(IAsyncEnumeratorOfElementType_MoveNextAsync, runtimeAsync: true);
+        OpenMoveNextMethodImplementation(IAsyncEnumeratorOfElementType_MoveNextAsync, runtimeAsync: true);
 
         var rewritter = new MoveNextAsyncRewriter(
              F,
@@ -333,6 +328,8 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
         var IAsyncEnumerator = IAsyncEnumerator_MoveNextAsync.ContainingType;
         var IAsyncEnumeratorOfElementType = IAsyncEnumerator.Construct(_currentField.Type);
         MethodSymbol IAsyncEnumeratorOfElementType_MoveNextAsync = IAsyncEnumerator_MoveNextAsync.AsMember(IAsyncEnumeratorOfElementType);
+
+        Debug.Assert(IAsyncEnumeratorOfElementType_MoveNextAsync.ReturnType.OriginalDefinition.ExtendedSpecialType == InternalSpecialType.System_Threading_Tasks_ValueTask_T);
         return IAsyncEnumeratorOfElementType_MoveNextAsync;
     }
 
@@ -367,6 +364,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
         Debug.Assert(stateField is not null);
         Debug.Assert(_disposeModeField is not null);
         MethodSymbol IAsyncDisposable_DisposeAsync = F.WellKnownMethod(WellKnownMember.System_IAsyncDisposable__DisposeAsync);
+        Debug.Assert(IAsyncDisposable_DisposeAsync.ReturnType.OriginalDefinition.ExtendedSpecialType == InternalSpecialType.System_Threading_Tasks_ValueTask);
 
         // The implementation doesn't depend on the method body of the iterator method.
         OpenMethodImplementation(IAsyncDisposable_DisposeAsync, hasMethodBodyDependency: false, isRuntimeAsync: true);
@@ -390,7 +388,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
         // AsyncHelpers.Await(MoveNextAsync());
         MethodSymbol IAsyncEnumeratorOfElementType_MoveNextAsync = GetMoveNextAsyncMethod();
         NamedTypeSymbol boolType = F.SpecialType(SpecialType.System_Boolean);
-        var awaitMethod = ((MethodSymbol)F.Compilation.GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T_FromValueTaskT))
+        var awaitMethod = ((MethodSymbol)F.Compilation.GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T))
             .Construct(boolType);
 
         BoundCall awaitMoveNextAsync = F.Call(
