@@ -529,7 +529,7 @@ public partial class Solution
     /// present in the <paramref name="oldSolution"/>, those languages will be added to <see
     /// cref="FallbackAnalyzerOptions"/>.
     /// </summary>
-    internal Solution EnsureCorrectFallbackAnalyzerOptions(Solution oldSolution)
+    internal Solution WithFallbackAnalyzerOptionValuesFromHost(Solution oldSolution)
     {
         var newFallbackOptions = this.FallbackAnalyzerOptions;
 

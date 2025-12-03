@@ -318,7 +318,7 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
             // it mutates.  But that may never have happened so far (especially if the user has just opened VS and is
             // making a fresh solution/project), so we have to simulate that manually here.  This ensures we pick up the
             // right host/vs options which is needed in order to run the code cleanup pass below.
-            solution = projectToAddTo.Solution.EnsureCorrectFallbackAnalyzerOptions(oldSolution: solution);
+            solution = projectToAddTo.Solution.WithFallbackAnalyzerOptionValuesFromHost(oldSolution: solution);
             projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
         }
 

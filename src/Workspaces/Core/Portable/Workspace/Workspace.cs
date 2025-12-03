@@ -428,7 +428,7 @@ public abstract partial class Workspace : IDisposable
         // of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
         // </summary>
         static Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
-            => newSolution.EnsureCorrectFallbackAnalyzerOptions(oldSolution);
+            => newSolution.WithFallbackAnalyzerOptionValuesFromHost(oldSolution);
     }
 
     /// <summary>
