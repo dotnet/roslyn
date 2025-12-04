@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -226,6 +227,9 @@ start:
         {
             get { return true; }
         }
+
+        public override bool IsAsync => false;
+        internal override MethodImplAttributes ImplementationAttributes => default;
 
         /// <summary>
         /// Given a SynthesizedExplicitImplementationMethod (effectively a tuple (interface method, implementing method, implementing type)),

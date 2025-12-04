@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 interfacePropertyGetter,
                 stateMachineType,
                 associatedProperty: this,
-                hasMethodBodyDependency: false);
+                hasMethodBodyDependency: false,
+                runtimeAsync: false);
         }
 
         public override string Name

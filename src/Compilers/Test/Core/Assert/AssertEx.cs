@@ -706,9 +706,9 @@ namespace Roslyn.Test.Utilities
 
             message.AppendLine("Expected:");
             message.AppendLine(expectedString);
-            if (expected.Count() > 10)
+            if (expected.Count() is > 10 and var count)
             {
-                message.AppendLine("... truncated ...");
+                message.AppendLine($"... truncated {count - 10} lines ...");
             }
 
             message.AppendLine("Actual:");

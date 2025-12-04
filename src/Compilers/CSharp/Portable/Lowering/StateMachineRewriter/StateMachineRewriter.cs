@@ -345,15 +345,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected SynthesizedImplementationMethod OpenMethodImplementation(
             MethodSymbol methodToImplement,
             string methodName = null,
-            bool hasMethodBodyDependency = false)
+            bool hasMethodBodyDependency = false,
+            bool isRuntimeAsync = false)
         {
-            var result = new SynthesizedStateMachineDebuggerHiddenMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, hasMethodBodyDependency);
+            var result = new SynthesizedStateMachineDebuggerHiddenMethod(
+                methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, hasMethodBodyDependency, isRuntimeAsync);
+
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result.GetCciAdapter());
             F.CurrentFunction = result;
             return result;
         }
 
-        protected MethodSymbol OpenPropertyImplementation(MethodSymbol getterToImplement)
+        internal MethodSymbol OpenPropertyImplementation(MethodSymbol getterToImplement)
         {
             var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentType);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop.GetCciAdapter());
@@ -365,9 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return getter;
         }
 
-        protected SynthesizedImplementationMethod OpenMoveNextMethodImplementation(MethodSymbol methodToImplement)
+        protected SynthesizedImplementationMethod OpenMoveNextMethodImplementation(MethodSymbol methodToImplement, bool runtimeAsync = false)
         {
-            var result = new SynthesizedStateMachineMoveNextMethod(methodToImplement, (StateMachineTypeSymbol)F.CurrentType);
+            var result = new SynthesizedStateMachineMoveNextMethod(methodToImplement, (StateMachineTypeSymbol)F.CurrentType, runtimeAsync);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result.GetCciAdapter());
             F.CurrentFunction = result;
             return result;
@@ -531,6 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (object)F.WellKnownMember(WellKnownMember.System_Threading_Thread__ManagedThreadId, isOptional: true) != null ||
                 (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null;
+        }
+
+        protected Symbol EnsureWellKnownMember(WellKnownMember member, BindingDiagnosticBag bag)
+        {
+            return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
     }
 }
