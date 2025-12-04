@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
@@ -21,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function RemoveAndReAddInSameBatchWorksCorrectly() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
                 Const analyzerPath = "Z:\TestAnalyzer.dll"
 
                 project.AddAnalyzerReference(analyzerPath)
@@ -43,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function LoadDiagnosticsRemovedOnAnalyzerReferenceRemoval(removeInBatch As Boolean) As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
                 Dim analyzerPath = "Z:\TestAnalyzer" + Guid.NewGuid().ToString() + ".dll"
 
                 project.AddAnalyzerReference(analyzerPath)
@@ -63,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function LoadDiagnosticsRemovedOnProjectRemoval(removeInBatch As Boolean) As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
                 Dim analyzerPath = "Z:\TestAnalyzer" + Guid.NewGuid().ToString() + ".dll"
 
                 project.AddAnalyzerReference(analyzerPath)
@@ -82,7 +83,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function LoadDiagnosticsStayIfRemoveAndAddInBatch() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
                 Dim analyzerPath = "Z:\TestAnalyzer" + Guid.NewGuid().ToString() + ".dll"
 
                 project.AddAnalyzerReference(analyzerPath)
@@ -112,7 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 }
 
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' add Razor source generator and a couple more other analyzer files:
                 Dim path1 = Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.NET.Sdk.Razor.SourceGenerators.dll")
@@ -128,7 +129,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function CodeStyleAnalyzers_CSharp_FromSdk_AreIgnored() As Task
             Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' Ensure HasSdkCodeStyleAnalyzers is proper.
                 Assert.False(project.HasSdkCodeStyleAnalyzers)
@@ -169,7 +170,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function CodeStyleAnalyzers_VisualBasic_FromSdk_AreIgnored() As Task
             Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.VisualBasic, CancellationToken.None)
+                    "Project", LanguageNames.VisualBasic, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' Ensure HasSdkCodeStyleAnalyzers is proper.
                 Assert.False(project.HasSdkCodeStyleAnalyzers)
@@ -209,7 +210,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function RedirectedAnalyzers_CSharp() As Task
             Using environment = New TestEnvironment(GetType(Redirector))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                    "Project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 ' Add analyzers
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "analyzers", "Microsoft.CodeAnalysis.NetAnalyzers.dll"))
