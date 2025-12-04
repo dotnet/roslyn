@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
 // PROTOTYPE: Confirm the attribute shape in BCL API review.
+// PROTOTYPE: Use a property instead of a field (like SynthesizedEmbeddedExtensionMarkerAttributeSymbol).
 /// <summary>
 /// <code>
 /// namespace System.Runtime.CompilerServices

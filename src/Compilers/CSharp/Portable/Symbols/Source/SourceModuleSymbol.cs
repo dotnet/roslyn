@@ -253,20 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
                             }
 
-                            if (UseUpdatedMemorySafetyRules)
-                            {
-                                var needsDiagnostics = DeclaringCompilation.Options.OutputKind == OutputKind.NetModule;
-
-                                if (needsDiagnostics)
-                                {
-                                    diagnostics ??= BindingDiagnosticBag.GetInstance();
-                                }
-
-                                DeclaringCompilation.EnsureMemorySafetyRulesAttributeExists(
-                                    needsDiagnostics ? diagnostics : null,
-                                    Location.None,
-                                    modifyCompilation: true);
-                            }
+                            AddMemorySafetyRulesAttributeIfNeeded(ref diagnostics);
 
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
@@ -320,6 +307,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
+            }
+        }
+
+        private void AddMemorySafetyRulesAttributeIfNeeded(ref BindingDiagnosticBag? diagnostics)
+        {
+            if (UseUpdatedMemorySafetyRules)
+            {
+                var needsDiagnostics = DeclaringCompilation.Options.OutputKind == OutputKind.NetModule;
+
+                if (needsDiagnostics)
+                {
+                    diagnostics ??= BindingDiagnosticBag.GetInstance();
+                }
+
+                DeclaringCompilation.EnsureMemorySafetyRulesAttributeExists(
+                    needsDiagnostics ? diagnostics : null,
+                    Location.None,
+                    modifyCompilation: true);
             }
         }
 
