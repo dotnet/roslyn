@@ -11962,6 +11962,7 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,11): error CS1503: Argument 1: cannot convert from 'string[]' to 'char'
+                //         M(arr, "test");
                 Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(7, 11));
         }
 
@@ -11981,8 +11982,10 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'char'
+                //         M(1, 2);
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "char").WithLocation(7, 11),
                 // (7,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         M(1, 2);
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(7, 14));
         }
 
@@ -12002,7 +12005,8 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,11): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "\"wrong\"").WithArguments("1", "string", "int").WithLocation(7, 11));
+                //         M("wrong", "test");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""wrong""").WithArguments("1", "string", "int").WithLocation(7, 11));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
@@ -12021,6 +12025,7 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         A(1, "test");
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(7, 11));
         }
     }
