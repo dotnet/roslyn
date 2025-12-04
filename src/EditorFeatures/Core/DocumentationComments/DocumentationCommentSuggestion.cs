@@ -98,7 +98,12 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
     {
         if (_suggestionSession is null)
         {
-            return;
+            // If for some reason the session did not start, try to start it now. If that fails, we cannot continue.
+            var tryStartNewSession = await StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
+            if (!tryStartNewSession)
+            {
+                return;
+            }
         }
 
         var proposal = await generateProposal(cancellationToken).ConfigureAwait(false);
