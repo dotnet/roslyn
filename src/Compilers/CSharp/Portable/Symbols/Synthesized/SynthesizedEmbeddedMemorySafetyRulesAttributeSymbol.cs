@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
 // PROTOTYPE: Confirm the attribute shape in BCL API review.
-// PROTOTYPE: Use a property instead of a field (like SynthesizedEmbeddedExtensionMarkerAttributeSymbol).
 /// <summary>
 /// <code>
 /// namespace System.Runtime.CompilerServices
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 ///     [AttributeUsage(AttributeTargets.Module, AllowMultiple = false, Inherited = false)]
 ///     public sealed class MemorySafetyRulesAttribute : Attribute
 ///     {
-///         public readonly int Version;
+///         public int Version { get; }
 ///         public MemorySafetyRulesAttribute(int version) { Version = version; }
 ///     }
 /// }
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
 {
     private readonly ImmutableArray<FieldSymbol> _fields;
+    private readonly ImmutableArray<PropertySymbol> _properties;
     private readonly ImmutableArray<MethodSymbol> _constructors;
 
     public SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol(
@@ -39,15 +39,21 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
         TypeSymbol int32Type)
         : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
     {
-        _fields =
+        const string PropertyName = "Version";
+
+        var field = new SynthesizedFieldSymbol(
+            containingType: this,
+            type: int32Type,
+            name: GeneratedNames.MakeBackingFieldName(PropertyName),
+            accessibility: DeclarationModifiers.Private,
+            isReadOnly: true,
+            isStatic: false);
+
+        _fields = [field];
+
+        _properties =
         [
-            new SynthesizedFieldSymbol(
-                containingType: this,
-                type: int32Type,
-                name: "Version",
-                accessibility: DeclarationModifiers.Public,
-                isReadOnly: true,
-                isStatic: false),
+            new SynthesizedPropertySymbol(PropertyName, field),
         ];
 
         _constructors =
@@ -81,4 +87,15 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
                     factory.Field(factory.This(), _fields.Single()),
                     factory.Parameter(parameters.Single()))));
     }
+
+    public override ImmutableArray<Symbol> GetMembers()
+        => [.. _fields, .. _properties, .. _properties.Select(p => p.GetMethod), .. _constructors];
+
+    public override ImmutableArray<Symbol> GetMembers(string name)
+    {
+        return GetMembers().WhereAsArray(static (s, name) => s.Name == name, name);
+    }
+
+    public override IEnumerable<string> MemberNames
+        => [.. _fields.Select(f => f.Name), .. _properties.Select(p => p.Name), .. _constructors.Select(c => c.Name)];
 }
