@@ -15,6 +15,7 @@ jobs:
       github.event.issue.pull_request &&
       (contains(github.event.comment.body, '/dart') || contains(github.event.comment.body, '/pr-val'))
     runs-on: ubuntu-latest
+    environment: pr_val
 
     steps:
       - name: Check if user has write access
