@@ -68,8 +68,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
         out RuntimeAsyncIteratorStateMachine? stateMachineType)
     {
         Debug.Assert(compilationState.ModuleBuilderOpt != null);
-        Debug.Assert(method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation)
-            || method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
+        Debug.Assert(method.DeclaringCompilation.IsValidRuntimeAsyncIteratorReturnType(method.ReturnType));
         Debug.Assert(method.IsAsync);
 
         TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;

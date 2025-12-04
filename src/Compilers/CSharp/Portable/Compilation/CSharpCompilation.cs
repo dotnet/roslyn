@@ -356,7 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
 
-            if (!IsValidRuntimeAsyncIteratorReturnType(method.ReturnType.OriginalDefinition) && !IsValidRuntimeAsyncReturnType(method.ReturnType.OriginalDefinition))
+            TypeSymbol returnType = method.ReturnType;
+            if (!IsValidRuntimeAsyncIteratorReturnType(returnType) && !IsValidRuntimeAsyncReturnType(returnType))
             {
                 return false;
             }
@@ -374,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool IsValidRuntimeAsyncReturnType(TypeSymbol type)
         {
-            Debug.Assert(type.IsDefinition);
+            type = type.OriginalDefinition;
 
             return ((InternalSpecialType)type.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task
                 or InternalSpecialType.System_Threading_Tasks_Task_T
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsValidRuntimeAsyncIteratorReturnType(TypeSymbol type)
         {
-            Debug.Assert(type.IsDefinition);
+            type = type.OriginalDefinition;
 
             return isValidRuntimeAsyncEnumerable(type)
                 || isValidRuntimeAsyncEnumerator(type);

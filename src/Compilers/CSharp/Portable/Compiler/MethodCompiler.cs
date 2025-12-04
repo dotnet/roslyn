@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                 {
-                    if (method.DeclaringCompilation.IsValidRuntimeAsyncIteratorReturnType(method.ReturnType.OriginalDefinition))
+                    if (method.DeclaringCompilation.IsValidRuntimeAsyncIteratorReturnType(method.ReturnType))
                     {
                         RuntimeAsyncIteratorStateMachine? runtimeAsyncIteratorStateMachine;
                         loweredBody = RuntimeAsyncIteratorRewriter.Rewrite(loweredBody, method,
