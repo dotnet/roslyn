@@ -3956,7 +3956,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol? ConstructMethod { get; }
         /// <summary>
         /// Arguments passed to to <see cref="ConstructMethod" />, if present. Arguments are in evaluation order. This can
-        /// be an empty array. Will never be <c>default</c>.  If the arguments successfully bound, these will all be
+        /// be an empty array. Will never be <see langword="default" />.  If the arguments successfully bound, these will all be
         /// <see cref="IArgumentOperation" />; otherwise, they can be any operation.
         /// </summary>
         /// <remarks>
