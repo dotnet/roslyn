@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed partial class SynthesizedEmbeddedExtensionMarkerAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
+    internal sealed class SynthesizedEmbeddedExtensionMarkerAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
         private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly SynthesizedFieldSymbol _nameField;
