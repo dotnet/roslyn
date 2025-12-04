@@ -124,8 +124,13 @@ internal static class InlineArrayHelpers
                             tElementType = type;
                             arrayLength = length;
                         }
+
+                        break;
                     }
                 }
+
+                // There should only be one field matching this type if it is indeed a fixed buffer - in any case, don't bother checking more fields
+                break;
             }
         }
 
