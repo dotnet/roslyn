@@ -135,6 +135,7 @@
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.Drawing.Common"/>
       <_Dependency Remove="System.Formats.Nrbf" />
+      <_Dependency Remove="System.IO.Hashing"/>
       <_Dependency Remove="System.IO.Packaging"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Memory"/>
