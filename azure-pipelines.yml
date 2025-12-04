@@ -491,6 +491,13 @@ stages:
           custom: 'run'
           arguments: '--file $(Build.SourcesDirectory)/eng/generate-compiler-code.cs -- -test -configuration Release'
 
+      - task: DotNetCoreCLI@2
+        displayName: Verify Synchronized Sources
+        inputs:
+          command: 'custom'
+          custom: 'run'
+          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs'
+
       - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))

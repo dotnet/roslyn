@@ -271,30 +271,26 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         else
         {
             BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
-            var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+            var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
                 Methods.TextDocumentDiagnosticName,
                 CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, category, progress),
                 CancellationToken.None).ConfigureAwait(false);
             if (useProgress)
             {
-                Assert.Null(diagnostics);
+                Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
+                Assert.Empty(diagnostics.First.Items);
                 AssertEx.NotNull(progress);
                 diagnostics = progress.Value.GetValues()!.Single().First;
             }
 
-            if (diagnostics == null)
-            {
-                // The public LSP spec returns null when no diagnostics are available for a document wheres VS returns an empty array.
-                return [];
-            }
-            else if (diagnostics.Value.Value is UnchangedDocumentDiagnosticReport)
+            if (diagnostics.Value is UnchangedDocumentDiagnosticReport)
             {
                 // The public LSP spec returns different types when unchanged in contrast to VS which just returns null diagnostic array.
-                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.Second.ResultId!, null)];
+                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Second.ResultId!, null)];
             }
             else
             {
-                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items)];
+                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.First.ResultId!, diagnostics.First.Items)];
             }
         }
 
