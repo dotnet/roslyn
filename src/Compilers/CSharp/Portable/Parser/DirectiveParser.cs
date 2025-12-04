@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
         {
-            if (lexer.Options.Kind != SourceCodeKind.Script && !lexer.Options.FileBasedProgram)
+            if (lexer.Options.Kind != SourceCodeKind.Script && !lexer.Options.AllowIgnoredDirectives)
             {
                 exclamation = this.AddError(exclamation, ErrorCode.ERR_PPShebangInProjectBasedProgram);
             }
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (isActive)
             {
-                if (!lexer.Options.FileBasedProgram)
+                if (!lexer.Options.AllowIgnoredDirectives)
                 {
                     colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
                 }
