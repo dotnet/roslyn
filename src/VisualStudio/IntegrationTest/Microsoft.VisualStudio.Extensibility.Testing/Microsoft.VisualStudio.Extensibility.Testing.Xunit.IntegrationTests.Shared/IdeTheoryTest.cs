@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
     using System.Windows;
     using global::Xunit;
 
-    public class IdeTheoryTest : AbstractIdeIntegrationTest
+    public class IdeTheoryTest : AbstractIdeTest
     {
         [IdeTheory]
         [InlineData(0)]

@@ -253,6 +253,11 @@ namespace Xunit.Harness
 
         private void StartRemoteIntegrationService(DTE dte)
         {
+            var dd = dte.Commands.Item(WellKnownCommandNames.IntegrationTestServiceStart);
+            var x1 = dd.IsAvailable;
+            var x2 = dd.Name;
+            var x3 = dd.ID;
+            var x4 = dd.Guid;
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
             if (dte.Commands.Item(WellKnownCommandNames.IntegrationTestServiceStart).IsAvailable)
             {

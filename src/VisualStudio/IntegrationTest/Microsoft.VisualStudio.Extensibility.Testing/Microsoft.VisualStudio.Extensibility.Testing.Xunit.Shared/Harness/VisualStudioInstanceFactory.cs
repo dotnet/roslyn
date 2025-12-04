@@ -36,6 +36,7 @@ namespace Xunit.Harness
 
         public VisualStudioInstanceFactory(bool leaveRunning = false)
         {
+            Debug.WriteLine($"Initialize");
             if (Process.GetCurrentProcess().ProcessName != "devenv")
             {
                 AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;

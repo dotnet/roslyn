@@ -64,4 +64,17 @@
     <PackageReference Include="UIAComWrapper" />
     <PackageReference Include="xunit.extensibility.core" />
   </ItemGroup>
+  
+  <!--
+    Since we have a project reference to the xunit integration test framework we need to add the right assembly attribute
+    as the nuget package targets are not applied to project references.
+    See also https://github.com/dotnet/msbuild/issues/5797
+  -->
+  <ItemGroup>
+    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
+      <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
+      <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

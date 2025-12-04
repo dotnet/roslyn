@@ -65,6 +65,8 @@ namespace Xunit.InProcess
             {
                 var dte = GetDTE();
 
+                var aa1 = dte.ActiveWindow;
+                var s = aa1.Caption;
                 nint activeWindow = dte.ActiveWindow.HWnd;
                 var activeVisualStudioWindow = (HWND)activeWindow;
                 Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");

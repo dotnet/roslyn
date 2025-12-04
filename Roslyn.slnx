@@ -368,7 +368,7 @@
     <Project Path="src/VisualStudio/IntegrationTest/Microsoft.VisualStudio.Extensibility.Testing/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj" />
     <Project Path="src/VisualStudio/IntegrationTest/Microsoft.VisualStudio.Extensibility.Testing/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.shproj" Id="d7647395-129b-4f45-8c78-10e6f92fc8ad" />
     <Project Path="src/VisualStudio/IntegrationTest/Microsoft.VisualStudio.Extensibility.Testing/Microsoft.VisualStudio.Extensibility.Testing.Xunit/Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
-    <Project Path="src/VisualStudio/IntegrationTest/Microsoft.VisualStudio.Extensibility.Testing/Microsoft.VisualStudio.IntegrationTestService.Dev17/Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj" />
+    <Project Path="src/VisualStudio/IntegrationTest/Microsoft.VisualStudio.Extensibility.Testing/Microsoft.VisualStudio.IntegrationTestService.Dev18/Microsoft.VisualStudio.IntegrationTestService.Dev18.csproj" />
     <Project Path="src/VisualStudio/IntegrationTest/Microsoft.VisualStudio.Extensibility.Testing/Microsoft.VisualStudio.IntegrationTestService.Shared/Microsoft.VisualStudio.IntegrationTestService.Shared.shproj" Id="629938e1-1c2c-4f01-8038-90a34a940ac8" />
     <Project Path="src/VisualStudio/IntegrationTest/New.IntegrationTests/Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj">
       <BuildDependency Project="src/VisualStudio/Setup/Roslyn.VisualStudio.Setup.csproj" />

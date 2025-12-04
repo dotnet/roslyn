@@ -4,17 +4,18 @@
 namespace Microsoft.VisualStudio.IntegrationTestService
 {
     using System;
+    using System.Diagnostics;
     using System.Runtime.InteropServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Shell;
 
-    [Guid("78D5A8B5-1634-434B-802D-E3E4A46B1AA6")]
-    [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 1)]
-    public sealed class IntegrationTestServicePackage : Package
+    [Guid("78d5a8b5-1634-434b-802d-e3e4a46b1aa6")]
+    public sealed class IntegrationTestServicePackage : AsyncPackage
     {
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             IntegrationTestServiceCommands.Initialize(this);
         }
     }

@@ -209,7 +209,7 @@
       "src\\VisualStudio\\IntegrationTest\\New.IntegrationTests\\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj",
       "src\\VisualStudio\\IntegrationTest\\TestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.csproj",
       "src\\VisualStudio\\IntegrationTest\\Microsoft.VisualStudio.Extensibility.Testing\\Microsoft.VisualStudio.IntegrationTestService.Shared\\Microsoft.VisualStudio.IntegrationTestService.Shared.shproj",
-      "src\\VisualStudio\\IntegrationTest\\Microsoft.VisualStudio.Extensibility.Testing\\Microsoft.VisualStudio.IntegrationTestService.Dev17\\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj",
+      "src\\VisualStudio\\IntegrationTest\\Microsoft.VisualStudio.Extensibility.Testing\\Microsoft.VisualStudio.IntegrationTestService.Dev18\\Microsoft.VisualStudio.IntegrationTestService.Dev18.csproj",
       "src\\VisualStudio\\IntegrationTest\\Microsoft.VisualStudio.Extensibility.Testing\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.shproj",
       "src\\VisualStudio\\IntegrationTest\\Microsoft.VisualStudio.Extensibility.Testing\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.shproj",
       "src\\VisualStudio\\IntegrationTest\\Microsoft.VisualStudio.Extensibility.Testing\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj",

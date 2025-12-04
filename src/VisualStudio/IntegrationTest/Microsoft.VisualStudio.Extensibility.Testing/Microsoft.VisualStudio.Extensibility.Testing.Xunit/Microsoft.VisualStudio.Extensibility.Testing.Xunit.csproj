@@ -30,12 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev17\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev18\Microsoft.VisualStudio.IntegrationTestService.Dev18.csproj" Private="false" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Embedded assemblies -->
-    <EmbeddedResource Include="$(ArtifactsDir)\bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
+    <EmbeddedResource Include="$(ArtifactsDir)\bin\Microsoft.VisualStudio.IntegrationTestService.Dev18\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
     <!-- Embedded extensions -->
     <EmbeddedResource Include="$(ArtifactsDir)\VSSetup\$(Configuration)\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />

@@ -33,7 +33,6 @@
 
   <Target Name="UpdateContentPaths" AfterTargets="ResolveProjectReferences">
     <ItemGroup>
-      <Content Include="@(LegacyContent)" Link="Legacy\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
       <Content Include="@(CurrentContent)" Link="Current\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>

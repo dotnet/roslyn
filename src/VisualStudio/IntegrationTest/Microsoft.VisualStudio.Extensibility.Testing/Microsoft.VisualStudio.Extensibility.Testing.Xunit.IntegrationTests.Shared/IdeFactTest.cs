@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
     using _DTE = EnvDTE._DTE;
     using DTE = EnvDTE.DTE;
 
-    public class IdeFactTest : AbstractIdeIntegrationTest
+    public class IdeFactTest : AbstractIdeTest
     {
         [IdeFact]
         public async Task TestOpenAndCloseIDE()
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             Assert.NotNull(JoinableTaskContext);
         }
 
-        [IdeFact(MinVersion = VisualStudioVersion.VS2013)]
+        [IdeFact(MinVersion = VisualStudioVersion.VS18)]
         public async Task TestJoinableTaskFactoryObtainedFromEnvironment()
         {
             var taskSchedulerServiceObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsTaskSchedulerService, IVsTaskSchedulerService>(HangMitigatingCancellationToken);
