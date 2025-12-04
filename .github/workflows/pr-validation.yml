@@ -114,6 +114,13 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $AZDO_TOKEN" \
             -d '{
+            "resources": {
+                "repositories": {
+                  "self": {
+                    "refName": "refs/heads/dev/ankitakhera/pipeline_to_redirect_to_validation"
+                  }
+                }
+              },
               "templateParameters": {
                 "PRNumber": "${{ github.event.issue.number }}",
                 "CommitSHA": "${{ steps.pr-details.outputs.sha }}",
