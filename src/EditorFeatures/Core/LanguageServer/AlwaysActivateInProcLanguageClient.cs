@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
@@ -40,11 +41,13 @@ internal sealed class AlwaysActivateInProcLanguageClient(
     IThreadingContext threadingContext,
     ExportProvider exportProvider,
     IDiagnosticSourceManager diagnosticSourceManager,
-    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics,
+    [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
 {
     private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
     private readonly IDiagnosticSourceManager _diagnosticSourceManager = diagnosticSourceManager;
     private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics = buildOnlyDiagnostics;
+    private readonly IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> _renameListeners = renameListeners;
 
     protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
@@ -126,6 +129,33 @@ internal sealed class AlwaysActivateInProcLanguageClient(
             WorkDoneProgress = true,
         };
         serverCapabilities.ImplementationProvider = true;
+
+        if (clientCapabilities.Workspace?.FileOperations?.WillRename ?? false)
+        {
+            // Register for file rename notifications based on the registered rename listeners.
+            using var _ = PooledObjects.ArrayBuilder<FileOperationFilter>.GetInstance(out var filters);
+            foreach (var listener in _renameListeners)
+            {
+                filters.Add(new FileOperationFilter
+                {
+                    Pattern = new FileOperationPattern { Glob = listener.Metadata.Glob }
+                });
+            }
+
+            if (filters.Count > 0)
+            {
+                serverCapabilities.Workspace = new WorkspaceServerCapabilities
+                {
+                    FileOperations = new WorkspaceFileOperationsServerCapabilities()
+                    {
+                        WillRename = new FileOperationRegistrationOptions()
+                        {
+                            Filters = filters.ToArray()
+                        }
+                    }
+                };
+            }
+        }
 
         return serverCapabilities;
     }
