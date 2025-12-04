@@ -162,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
+    internal partial class BoundCollectionBuilderElementsPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
+    }
+
     internal partial class BoundInterpolatedStringHandlerPlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false;

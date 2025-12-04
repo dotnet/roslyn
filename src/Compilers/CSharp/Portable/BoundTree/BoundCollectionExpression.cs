@@ -10,6 +10,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
+            var collectionCreation = this.CollectionCreation;
+            while (collectionCreation is BoundConversion conversion)
+                collectionCreation = conversion.Operand;
+
+            Debug.Assert(collectionCreation
+                            is null
+                            or BoundObjectCreationExpression
+                            or BoundCall
+                            or BoundNewT
+                            or BoundBadExpression);
+
+            if (collectionCreation is BoundCall boundCall)
+            {
+                Debug.Assert(
+                    boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeHolder] &&
+                    placeHolder == this.CollectionBuilderElementsPlaceholder);
+            }
+
             if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
                 Debug.Assert(this.CollectionCreation is not null);

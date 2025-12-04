@@ -3669,7 +3669,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICollectionExpressionOperation" Base="IOperation"  HasType="true">
+  <Node Name="ICollectionExpressionOperation" Base="IOperation" HasType="true" ChildrenOrder="ConstructArguments,Elements">
     <Comments>
       <summary>
         Represents a collection expression.
@@ -3695,6 +3695,23 @@
           <item>Otherwise, the method is the collection type constructor.</item>
           </list>
         </summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstructArguments" Type="ImmutableArray&lt;IOperation&gt;">
+      <Comments>
+        <summary>
+          Arguments passed to to <see cref="ConstructMethod"/>, if present. Arguments are in evaluation order. This can
+          be an empty array. Will never be <see langword="default" />.  If the arguments successfully bound, these will all be
+          <see cref="IArgumentOperation"/>; otherwise, they can be any operation.
+        </summary>
+        <remarks>
+          If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
+          Default values are supplied for optional arguments missing in source. <para/>
+          If this is a collection builder method, this will include all arguments to the method,
+          except for the final <c>ReadOnlySpan</c> argument that receives the collection elements.
+          That final argument will be represented by an <see cref="ICollectionExpressionElementsPlaceholderOperation"/>.
+          The actual elements passed to the creation method are contained in <see cref="Elements"/>.
+        </remarks>
       </Comments>
     </Property>
     <Property Name="Elements" Type="ImmutableArray&lt;IOperation&gt;">
@@ -3742,5 +3759,16 @@
         </summary>
       </Comments>
     </Property>
+  </Node>
+  <Node Name="ICollectionExpressionElementsPlaceholderOperation" Base="IOperation" HasType="true">
+    <Comments>
+      <summary>
+        Represents the elements of a collection expression as they are passed to some construction method
+        specified by a <c>[CollectionBuilder]</c> attribute.  This is distinct from <see cref="ICollectionExpressionOperation.Elements"/>
+        which contains the elements as they appear in source.  This will appear in <see cref="ICollectionExpressionOperation.ConstructArguments"/>
+        when the construction method is a collection builder method, representing the final <c>ReadOnlySpan</c> passed to that
+        construction method containing the fully evaluated elements of the collection expression.
+      </summary>
+    </Comments>
   </Node>
 </Tree>
