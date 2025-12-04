@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // var stateMachineLocal = new IteratorImplementationClass(N)
             // where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            var initialState = _isEnumerable ? StateMachineState.FinishedState : StateMachineState.InitialIteratorState;
+            var initialState = _isEnumerable ? StateMachineState.InitialEnumerableState : StateMachineState.InitialIteratorState;
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal),
