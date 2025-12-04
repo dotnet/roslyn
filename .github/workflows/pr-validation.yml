@@ -3,9 +3,6 @@ name: PR Validation
 on:
   issue_comment:
     types: [created]
-  push:
-    branches:
-      - dev/ankitakhera/test_gh_workflow
 
 permissions:
   pull-requests: write
