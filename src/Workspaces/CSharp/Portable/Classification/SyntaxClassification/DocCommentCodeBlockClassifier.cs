@@ -41,12 +41,13 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         if (syntax is not XmlElementSyntax xmlElement)
             return;
 
-        var (isCSharp, isCSharpTest) = ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement);
-        if (!isCSharp && !isCSharpTest)
+        var language = ClassificationHelpers.GetCodeBlockLanguage(xmlElement);
+
+        if (language is not ("c#" or "c#-test" or "regex" or "json"))
             return;
 
         // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
-        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, result, isTest: isCSharpTest, cancellationToken))
+        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, result, language, cancellationToken))
             return;
 
         // Normal syntactic classifier will have classified everything but the xml text tokens.  Recurse ourselves to
@@ -101,7 +102,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         TextSpan textSpan,
         SemanticModel semanticModel,
         SegmentedList<ClassifiedSpan> result,
-        bool isTest,
+        string language,
         CancellationToken cancellationToken)
     {
         // Extract the code content from the XML element
@@ -113,7 +114,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
 
         // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
         // Otherwise, process the code as-is.
-        var (virtualCharsWithoutMarkup, markdownSpans) = isTest
+        var (virtualCharsWithoutMarkup, markdownSpans) = language is "c#-test"
             ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
             : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
 

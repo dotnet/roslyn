@@ -19,7 +19,7 @@ using static VirtualCharUtilities;
 
 [ExportEmbeddedLanguageClassifier(
     PredefinedEmbeddedLanguageNames.CSharpTest, [LanguageNames.CSharp], supportsUnannotatedAPIs: false,
-    PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
+    PredefinedEmbeddedLanguageNames.CSharpTest, LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguageClassifier

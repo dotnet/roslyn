@@ -121,19 +121,26 @@ internal abstract class AbstractEmbeddedLanguageClassificationService :
         {
             if (token.Span.IntersectsWith(_textSpan) && _owner.SyntaxTokenKinds.Contains(token.RawKind))
             {
-                var context = new EmbeddedLanguageClassificationContext(
-                    _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
-
-                var classifiers = _owner.GetServices(_semanticModel, token, _cancellationToken);
+                var (classifiers, identifier) = _owner.GetServices(_semanticModel, token, _cancellationToken);
                 foreach (var classifier in classifiers)
                 {
                     // If this classifier added values then need to check the other ones.
+                    var context = new EmbeddedLanguageClassificationContext(
+                        _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService,
+                        languageIdentifier: identifier, _result, _cancellationToken);
+
                     if (TryClassify(classifier.Value, context))
                         return;
                 }
 
                 // If not other classifier classified this, then give the fallback classifier a chance to classify basic language escapes.
-                TryClassify(_owner._fallbackClassifier, context);
+                {
+                    var context = new EmbeddedLanguageClassificationContext(
+                        _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService,
+                        languageIdentifier: null, _result, _cancellationToken);
+
+                    TryClassify(_owner._fallbackClassifier, context);
+                }
             }
         }
 
