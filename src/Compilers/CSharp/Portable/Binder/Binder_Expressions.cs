@@ -7715,6 +7715,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (!hasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+            {
+                Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
+                hasErrors = true;
+            }
+
             return new BoundDynamicMemberAccess(
                 syntax: node,
                 receiver: boundLeft,

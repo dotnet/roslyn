@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1343,6 +1344,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Binds the <see cref="TypeSyntax"/> nodes in <paramref name="typeArguments"/> from some <see
+        /// cref="GenericNameSyntax.TypeArgumentList"/> and returns the actual types referenced.  In the case of a <see
+        /// cref="OmittedTypeArgumentSyntax"/> a <see cref="UnboundArgumentErrorTypeSymbol.Instance"/> will be returned
+        /// as the type.  No diagnostics are issued in that case.  Callers must check for omitted type arguments and
+        /// issue a diagnostic if in a context where they are not allowed.  For example, an omitted type argument is
+        /// allowed in <c><![CDATA[typeof(List<>)]]></c> or <c><![CDATA[nameof(List<>)]]></c> (the latter in C# 14 and
+        /// above).  However they are not allowed in a regular type reference, or invocation (like
+        /// <c><![CDATA[x.M<>()]]></c>)
+        /// </summary>
         private ImmutableArray<TypeWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(typeArguments.Count > 0);
