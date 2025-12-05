@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -82,11 +81,13 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
 
     private void GenerateConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
     {
+        Debug.Assert(_fields.Length == 1);
+        Debug.Assert(parameters.Length == 1);
         statements.Add(
             factory.ExpressionStatement(
                 factory.AssignmentExpression(
-                    factory.Field(factory.This(), _fields.Single()),
-                    factory.Parameter(parameters.Single()))));
+                    factory.Field(factory.This(), _fields[0]),
+                    factory.Parameter(parameters[0]))));
     }
 
     private ArrayBuilder<T> GetMemberBuilder<T>(Func<Symbol, T> selector)
