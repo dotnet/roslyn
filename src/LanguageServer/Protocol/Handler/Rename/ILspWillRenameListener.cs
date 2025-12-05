@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Allows listening for workspace/didRenameFiles notifications.
 /// </summary>
 /// <remarks>
-/// Although the registration for didRename allows specifying a document selector, and that registration is passed
+/// Although the registration for willRename allows specifying a document selector, and that registration is passed
 /// along to the client, the LSP server itself does not filter notifications based on that selector. It is up to the
 /// the listener to determine if it cares about the rename notification or not. If any listener returns an edit, no
 /// further listeners are called.
