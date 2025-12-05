@@ -117,14 +117,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        // Don't execute in cloud environment, as we let LSP handle that
-        if (args.SubjectBuffer.IsInLspEditorContext())
+        if (args.TypedChar != TriggerCharacter)
         {
             nextHandler();
             return;
         }
 
-        if (args.TypedChar != TriggerCharacter)
+        // Don't execute in cloud environment, as we let LSP handle that
+        if (args.SubjectBuffer.IsInLspEditorContext())
         {
             nextHandler();
             return;
