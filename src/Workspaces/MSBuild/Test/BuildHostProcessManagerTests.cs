@@ -63,14 +63,10 @@ public sealed class BuildHostProcessManagerTests
         const string PipeName = "TestPipe";
 
         var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
+        var args = processStartInfo.Arguments.Split(' ');
 
-#if NET
-        var binlogIndex = processStartInfo.ArgumentList.IndexOf("--pipe");
-        Assert.True(binlogIndex >= 0);
-        Assert.Equal(PipeName, processStartInfo.ArgumentList[binlogIndex + 1]);
-#else
-        Assert.Contains($"--pipe {PipeName}", processStartInfo.Arguments);
-#endif
+        AssertEx.AreEqual(PipeName, args[^2]);
+        AssertEx.AreEqual(System.Globalization.CultureInfo.CurrentUICulture.Name, args[^1]);
     }
 
     [Theory]
@@ -80,16 +76,12 @@ public sealed class BuildHostProcessManagerTests
     [UseCulture("de-DE", "de-DE")]
     internal void ProcessStartInfo_PassesLocale(BuildHostProcessKind buildHostKind)
     {
-        const string Locale = "de-DE";
+        const string PipeName = "TestPipe";
 
-        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "", dotnetPath: null);
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
+        var args = processStartInfo.Arguments.Split(' ');
 
-#if NET
-        var localeIndex = processStartInfo.ArgumentList.IndexOf("--locale");
-        Assert.True(localeIndex >= 0);
-        Assert.Equal(Locale, processStartInfo.ArgumentList[localeIndex + 1]);
-#else
-        Assert.Contains($"--locale {Locale}", processStartInfo.Arguments);
-#endif
+        AssertEx.AreEqual(PipeName, args[^2]);
+        AssertEx.AreEqual("de-DE", args[^1]);
     }
 }
