@@ -17,6 +17,11 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
             => new RemoteKeepAliveService(arguments);
     }
 
+    /// <summary>
+    /// Mapping from sessionId to the completion source that will be used to signal when that session's solution
+    /// snapshot is fully hydrated on the OOP (this) side.  The `bool` result of the TaskCompletionSource is unused, and
+    /// is only there because TaskCompletionSource requires some type on netstandard2.0.
+    /// </summary>
     private readonly ConcurrentDictionary<long, TaskCompletionSource<bool>> _sessionIdToCompletionSource = new();
 
     public RemoteKeepAliveService(in ServiceConstructionArguments arguments)
