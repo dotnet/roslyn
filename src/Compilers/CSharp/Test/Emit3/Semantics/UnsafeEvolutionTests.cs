@@ -277,6 +277,54 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
     }
 
+    [Theory, CombinatorialData]
+    public void RulesAttribute_FromMetadata_Multiple_AndCorLib(bool useCompilationReference)
+    {
+        var corlibSource = """
+            namespace System
+            {
+                public class Object;
+                public class ValueType;
+                public class Attribute;
+                public struct Void;
+                public struct Int32;
+                public struct Boolean;
+                public class AttributeUsageAttribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets t) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public class Enum;
+                public enum AttributeTargets;
+            }
+            """;
+
+        var corlib = CreateEmptyCompilation([corlibSource, MemorySafetyRulesAttributeDefinition]).VerifyDiagnostics();
+        var corlibRef = AsReference(corlib, useCompilationReference);
+
+        var comp1 = CreateEmptyCompilation(MemorySafetyRulesAttributeDefinition, [corlibRef]).VerifyDiagnostics();
+        var ref1 = AsReference(comp1, useCompilationReference);
+
+        var comp2 = CreateEmptyCompilation(MemorySafetyRulesAttributeDefinition, [corlibRef]).VerifyDiagnostics();
+        var ref2 = AsReference(comp2, useCompilationReference);
+
+        var source = """
+            class C;
+            """;
+
+        // Using the attribute from corlib even if there are ambiguous definitions in other references.
+        var verifier = CompileAndVerify(CreateEmptyCompilation(source, [ref1, ref2, corlibRef],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, isSynthesized: false));
+
+        verifier.Diagnostics.WhereAsArray(d => d.Code != (int)ErrorCode.WRN_NoRuntimeMetadataVersion).Verify();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        Assert.Same(comp.Assembly.CorLibrary, comp.GetReferencedAssemblySymbol(corlibRef));
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
