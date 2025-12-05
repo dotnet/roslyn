@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 
@@ -46,11 +47,6 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     /// oop side to return and let go of the pinned solution/project-cone.
     /// </summary>
     private CancellationTokenSource KeepAliveTokenSource { get; } = new();
-
-    /// Whether or not the session has been disposed.  We only dispose once.  That way we don't have to worry about
-    /// calling <see cref="CancellationTokenSource.Cancel"/> on a disposed source (which can throw).
-    /// </summary>
-    private bool _isDisposed;
 
     private RemoteKeepAliveSession()
     {
@@ -133,18 +129,19 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                    (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
                    session.KeepAliveTokenSource.Token).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
                 // If *anything* goes wrong here, we need to make sure we dispose the session fully.  Otherwise, we risk
-                // the call to WaitForSessionIdAsync making its way to OOP and never returning.  Note: this would happen
-                // in a catastrophic failure scenario (like something going totally wrong with our host/oop connection).
-                // However, we don't want to exacerbate things by causing whatever is creating the keep alive session to
-                // entirely hang waiting.
+                // the call to WaitForSessionIdAsync making its way to OOP and never returning.
+                //
+                // Note: this would happen in a catastrophic failure scenario (like something going totally wrong with
+                // our host/oop connection). However, we don't want to exacerbate things by causing whatever is creating
+                // the keep alive session to entirely hang waiting. This is why we always report an error here as it
+                // indicates something has gone very wrong.
                 //
                 // This works because Dispose here will cancel the KeepAliveTokenSource, which is mixed into the call to
                 // WaitForSessionIdAsync as well.
                 session.Dispose();
-                throw;
             }
         }
     }
@@ -193,15 +190,11 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     {
         GC.SuppressFinalize(this);
 
-        lock (this)
-        {
-            if (_isDisposed)
-                return;
-
-            _isDisposed = true;
-            this.KeepAliveTokenSource.Cancel();
-            this.KeepAliveTokenSource.Dispose();
-        }
+        // Note: we are intentionally not calling .Dispose on the token source here.  Disposal is only needed if we're
+        // not canceling, and our contract is to always cancel the token.
+        //
+        // Contract call in the finalizer above will catch any cases where we forget to Dispose a session properly.
+        this.KeepAliveTokenSource.Cancel();
     }
 
     /// <summary>
