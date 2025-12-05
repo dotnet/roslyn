@@ -45,9 +45,15 @@
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <!--
+      Since System.Text.Json is part of the .NET BCL we do not want to add
+      it as a package reference. Doing so will pin the version to what we use
+      in our build instead of allowing it to use the version from the .NET Runtime
+      we are running against.
+    -->
+    <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\*.cs" Link="InternalUtilities\%(FileName).cs" />
