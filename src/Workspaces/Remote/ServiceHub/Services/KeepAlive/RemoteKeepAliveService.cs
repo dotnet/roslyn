@@ -55,7 +55,7 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
                 // to be collected if not needed anymore.
                 //
                 // This was provided by stoub as an idiomatic way to wait indefinitely until a cancellation token triggers.
-                await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
             }, cancellationToken).ConfigureAwait(false);
         }
         finally
