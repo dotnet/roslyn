@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -12,6 +15,549 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Unsafe)]
 public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
+    private static void VerifyMemorySafetyRulesAttribute(
+        ModuleSymbol module,
+        bool includesAttributeDefinition,
+        bool includesAttributeUse,
+        bool? isSynthesized = null)
+    {
+        const string Name = "MemorySafetyRulesAttribute";
+        const string FullName = $"System.Runtime.CompilerServices.{Name}";
+        var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
+        var attribute = module.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
+
+        if (includesAttributeDefinition)
+        {
+            Assert.NotNull(type);
+
+            Assert.NotNull(isSynthesized);
+            if (isSynthesized.Value)
+            {
+                var attributeAttributes = type.GetAttributes()
+                    .Select(a => a.AttributeClass.ToTestDisplayString())
+                    .OrderBy(StringComparer.Ordinal);
+                Assert.Equal(
+                    [
+                        "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                        "System.AttributeUsageAttribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                    ],
+                    attributeAttributes);
+            }
+        }
+        else
+        {
+            Assert.Null(type);
+            if (includesAttributeUse)
+            {
+                Assert.NotNull(attribute);
+                type = attribute.AttributeClass;
+            }
+        }
+
+        if (type is { })
+        {
+            Assert.NotNull(isSynthesized);
+            Assert.Equal(isSynthesized.Value ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
+        }
+        else
+        {
+            Assert.Null(isSynthesized);
+        }
+
+        if (includesAttributeUse)
+        {
+            Assert.NotNull(attribute);
+            Assert.Equal(type, attribute.AttributeClass);
+            Assert.Equal([2], attribute.ConstructorArguments.Select(a => a.Value));
+            Assert.Equal([], attribute.NamedArguments);
+        }
+        else
+        {
+            Assert.Null(attribute);
+        }
+    }
+
+    [Fact]
+    public void RulesAttribute_Synthesized()
+    {
+        var source = """
+            class C;
+            """;
+
+        CompileAndVerify(source,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            .VerifyDiagnostics();
+
+        var ref1 = CompileAndVerify(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            .VerifyDiagnostics()
+            .GetImageReference();
+
+        CompileAndVerify("", [ref1],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseModule,
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(1, 1));
+
+        // Script compilation.
+        source = "System.Console.WriteLine();";
+
+        CompileAndVerify(source,
+            parseOptions: TestOptions.Script,
+            options: TestOptions.ReleaseModule,
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Script,
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(1, 1));
+
+        // No types and members in the compilation, but the attribute is still synthesized if updated rules are enabled.
+        source = """
+            [assembly: System.Reflection.AssemblyDescriptionAttribute(null)]
+            """;
+
+        CompileAndVerify(source,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(1, 1));
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesAttribute_TypeForwardedTo(
+        bool updatedRulesA,
+        bool updatedRulesB,
+        bool useCompilationReference)
+    {
+        var sourceA = """
+            public class A { }
+            """;
+        var comp = CreateCompilation(sourceA, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesA));
+        var refA = AsReference(comp, useCompilationReference);
+        Assert.Equal(updatedRulesA, comp.SourceModule.UseUpdatedMemorySafetyRules);
+        CompileAndVerify(comp,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: updatedRulesA, includesAttributeUse: updatedRulesA, isSynthesized: updatedRulesA ? true : null))
+            .VerifyDiagnostics();
+
+        var sourceB = """
+            using System.Runtime.CompilerServices;
+            [assembly: TypeForwardedTo(typeof(A))]
+            """;
+        comp = CreateCompilation(sourceB, [refA], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesB));
+        Assert.Equal(updatedRulesB, comp.SourceModule.UseUpdatedMemorySafetyRules);
+        CompileAndVerify(comp, symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: updatedRulesB, includesAttributeUse: updatedRulesB, isSynthesized: updatedRulesB ? true : null));
+    }
+
+    [Fact]
+    public void RulesAttribute_Reflection()
+    {
+        var sourceA = """
+            using System;
+            using System.Linq;
+            public class A
+            {
+                public static int GetAttributeValue(Type type)
+                {
+                    var module = type.Assembly.Modules.Single();
+                    var attribute = module.GetCustomAttributes(false).Single(a => a.GetType().Name == "MemorySafetyRulesAttribute");
+                    var prop = attribute.GetType().GetProperty("Version");
+                    return (int)prop.GetValue(attribute);
+                }
+            }
+            """;
+        var refA = CreateCompilation(sourceA,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var sourceB = """
+            using System;
+            class B : A
+            {
+                static void Main()
+                {
+                    Console.Write(GetAttributeValue(typeof(A)));
+                    Console.Write(" ");
+                    Console.Write(GetAttributeValue(typeof(B)));
+                }
+            }
+            """;
+        CompileAndVerify(sourceB, [refA],
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "2 2")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RulesAttribute_FromSource()
+    {
+        var source = """
+            class C;
+            """;
+
+        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, isSynthesized: false))
+            .VerifyDiagnostics();
+
+        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: false))
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesAttribute_FromMetadata(bool useCompilationReference)
+    {
+        var comp = CreateCompilation(MemorySafetyRulesAttributeDefinition);
+        CompileAndVerify(comp,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, isSynthesized: false))
+            .VerifyDiagnostics();
+        var ref1 = AsReference(comp, useCompilationReference);
+
+        var source = """
+            class C;
+            """;
+
+        CompileAndVerify(source, [ref1],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, isSynthesized: false))
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesAttribute_FromMetadata_Multiple(bool useCompilationReference)
+    {
+        var comp1 = CreateCompilation(MemorySafetyRulesAttributeDefinition).VerifyDiagnostics();
+        var ref1 = AsReference(comp1, useCompilationReference);
+
+        var comp2 = CreateCompilation(MemorySafetyRulesAttributeDefinition).VerifyDiagnostics();
+        var ref2 = AsReference(comp2, useCompilationReference);
+
+        var source = """
+            class C;
+            """;
+
+        // Ambiguous attribute definitions from references => synthesize our own.
+        CompileAndVerify(source, [ref1, ref2],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            .VerifyDiagnostics();
+
+        // Also defined in source.
+        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition], [ref1, ref2],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: false))
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesAttribute_FromMetadata_Multiple_AndCorLib(bool useCompilationReference)
+    {
+        var corlibSource = """
+            namespace System
+            {
+                public class Object;
+                public class ValueType;
+                public class Attribute;
+                public struct Void;
+                public struct Int32;
+                public struct Boolean;
+                public class AttributeUsageAttribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets t) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public class Enum;
+                public enum AttributeTargets;
+            }
+            """;
+
+        var corlib = CreateEmptyCompilation([corlibSource, MemorySafetyRulesAttributeDefinition]).VerifyDiagnostics();
+        var corlibRef = AsReference(corlib, useCompilationReference);
+
+        var comp1 = CreateEmptyCompilation(MemorySafetyRulesAttributeDefinition, [corlibRef]).VerifyDiagnostics();
+        var ref1 = AsReference(comp1, useCompilationReference);
+
+        var comp2 = CreateEmptyCompilation(MemorySafetyRulesAttributeDefinition, [corlibRef]).VerifyDiagnostics();
+        var ref2 = AsReference(comp2, useCompilationReference);
+
+        var source = """
+            class C;
+            """;
+
+        // Using the attribute from corlib even if there are ambiguous definitions in other references.
+        var verifier = CompileAndVerify(CreateEmptyCompilation(source, [ref1, ref2, corlibRef],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, isSynthesized: false));
+
+        verifier.Diagnostics.WhereAsArray(d => d.Code != (int)ErrorCode.WRN_NoRuntimeMetadataVersion).Verify();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        Assert.Same(comp.Assembly.CorLibrary, comp.GetReferencedAssemblySymbol(corlibRef));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(1)]
+    [InlineData(2, true)]
+    [InlineData(3)]
+    [InlineData(int.MinValue)]
+    [InlineData(int.MaxValue)]
+    public void RulesAttribute_FromMetadata_Version(int version, bool correctVersion = false)
+    {
+        var sourceA = $$"""
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{version}}) }
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+                .field public int32 Version
+            }
+            .class public A
+            {
+                .method public static void M() { ldnull throw }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var sourceB = """
+            class B
+            {
+                void M() => A.M();
+            }
+            """;
+        var comp = CreateCompilation(sourceB, [refA]);
+        if (correctVersion)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (3,17): error CS9103: 'A.M()' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+                //     void M() => A.M();
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(3, 17));
+        }
+
+        var method = comp.GetMember<MethodSymbol>("B.M");
+        Assert.False(method.ContainingModule.UseUpdatedMemorySafetyRules);
+
+        // 'A.M' not used => no error.
+        CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [InlineData(2, 0, true)]
+    [InlineData(0, 2, false)]
+    public void RulesAttribute_FromMetadata_Version_Multiple(int version1, int version2, bool correctVersion)
+    {
+        var sourceA = $$"""
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{version1}}) }
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{version2}}) }
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+                .field public int32 Version
+            }
+            .class public A
+            {
+                .method public static void M() { ldnull throw }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var a = CreateCompilation("", [refA]).GetReferencedAssemblySymbol(refA);
+        Assert.Equal(correctVersion, a.Modules.Single().UseUpdatedMemorySafetyRules);
+
+        var sourceB = """
+            class B
+            {
+                void M() => A.M();
+            }
+            """;
+        var comp = CreateCompilation(sourceB, [refA]);
+        if (correctVersion)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (3,17): error CS9103: 'A.M()' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+                //     void M() => A.M();
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(3, 17));
+        }
+
+        var method = comp.GetMember<MethodSymbol>("B.M");
+        Assert.False(method.ContainingModule.UseUpdatedMemorySafetyRules);
+
+        // 'A.M' not used => no error.
+        CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RulesAttribute_FromMetadata_UnrecognizedConstructor_NoArguments()
+    {
+        // [module: MemorySafetyRules()]
+        var sourceA = """
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor() = ( 01 00 00 00 ) 
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+            }
+            .class public A
+            {
+                .method public static void M() { ldnull throw }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var sourceB = """
+            class B
+            {
+                void M() => A.M();
+            }
+            """;
+        var comp = CreateCompilation(sourceB, [refA]);
+        comp.VerifyDiagnostics(
+            // (3,17): error CS9103: 'A.M()' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+            //     void M() => A.M();
+            Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(3, 17));
+
+        var method = comp.GetMember<MethodSymbol>("B.M");
+        Assert.False(method.ContainingModule.UseUpdatedMemorySafetyRules);
+
+        // 'A.M' not used => no error.
+        CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RulesAttribute_FromMetadata_UnrecognizedConstructor_StringArgument()
+    {
+        // [module: MemorySafetyRules("2")]
+        var sourceA = """
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(string) = {string('2')}
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(string version) cil managed { ret }
+            }
+            .class public A
+            {
+                .method public static void M() { ldnull throw }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var sourceB = """
+            class B
+            {
+                void M() => A.M();
+            }
+            """;
+        var comp = CreateCompilation(sourceB, [refA]);
+        comp.VerifyDiagnostics(
+            // (3,17): error CS9103: 'A.M()' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+            //     void M() => A.M();
+            Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(3, 17));
+
+        var method = comp.GetMember<MethodSymbol>("B.M");
+        Assert.False(method.ContainingModule.UseUpdatedMemorySafetyRules);
+
+        // 'A.M' not used => no error.
+        CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RulesAttribute_MissingConstructor()
+    {
+        var source1 = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class MemorySafetyRulesAttribute : Attribute { }
+            }
+            """;
+        var source2 = """
+            class C;
+            """;
+
+        CreateCompilation([source1, source2]).VerifyEmitDiagnostics();
+
+        CreateCompilation([source1, source2],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .VerifyEmitDiagnostics(
+            // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute..ctor'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute", ".ctor").WithLocation(1, 1));
+
+        CreateCompilation([source1, source2],
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute..ctor'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute", ".ctor").WithLocation(1, 1));
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesAttribute_ReferencedInSource(
+        bool updatedRules,
+        bool useCompilationReference)
+    {
+        var comp = CreateCompilation(MemorySafetyRulesAttributeDefinition).VerifyDiagnostics();
+        var ref1 = AsReference(comp, useCompilationReference);
+
+        var source = """
+            using System.Runtime.CompilerServices;
+            [assembly: MemorySafetyRules(2)]
+            [module: MemorySafetyRules(2)]
+            """;
+
+        comp = CreateCompilation(source, [ref1], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        comp.VerifyDiagnostics(
+            // (3,10): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // [module: MemorySafetyRules(2)]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(3, 10));
+    }
+
     [Theory, CombinatorialData]
     public void Pointer_Variable_SafeContext(bool allowUnsafe)
     {

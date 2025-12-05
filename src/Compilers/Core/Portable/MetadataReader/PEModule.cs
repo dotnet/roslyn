@@ -1180,6 +1180,23 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal bool HasMemorySafetyRulesAttribute(EntityHandle token, out int version, out bool foundAttributeType)
+        {
+            AttributeInfo info = FindTargetAttribute(MetadataReader, token, AttributeDescription.MemorySafetyRulesAttribute, out foundAttributeType);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    version = value;
+                    return true;
+                }
+            }
+
+            version = 0;
+            return false;
+        }
+
         internal bool HasInlineArrayAttribute(TypeDefinitionHandle token, out int length)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.InlineArrayAttribute);
