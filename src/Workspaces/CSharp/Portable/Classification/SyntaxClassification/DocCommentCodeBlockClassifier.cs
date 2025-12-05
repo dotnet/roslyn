@@ -42,12 +42,18 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
             return;
 
         var language = ClassificationHelpers.GetCodeBlockLanguage(xmlElement);
+        var comparer = StringComparer.OrdinalIgnoreCase;
 
-        if (language is not ("c#" or "c#-test" or "regex" or "json"))
+        if (!comparer.Equals(LanguageNames.CSharp, language) &&
+            !comparer.Equals(PredefinedEmbeddedLanguageNames.CSharpTest, language) &&
+            !comparer.Equals(PredefinedEmbeddedLanguageNames.Regex, language) &&
+            !comparer.Equals(PredefinedEmbeddedLanguageNames.Json, language))
+        {
             return;
+        }
 
         // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
-        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, result, language, cancellationToken))
+        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, options, result, language, cancellationToken))
             return;
 
         // Normal syntactic classifier will have classified everything but the xml text tokens.  Recurse ourselves to
@@ -101,6 +107,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         XmlElementSyntax xmlElement,
         TextSpan textSpan,
         SemanticModel semanticModel,
+        ClassificationOptions options,
         SegmentedList<ClassifiedSpan> result,
         string language,
         CancellationToken cancellationToken)
@@ -112,28 +119,49 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         if (virtualCharsBuilder.Count == 0)
             return false;
 
-        // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
-        // Otherwise, process the code as-is.
-        var (virtualCharsWithoutMarkup, markdownSpans) = language is "c#-test"
-            ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
-            : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
+        var comparer = StringComparer.OrdinalIgnoreCase;
+        if (comparer.Equals(LanguageNames.CSharp, language) ||
+            comparer.Equals(PredefinedEmbeddedLanguageNames.CSharpTest, language))
+        {
+            // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
+            // Otherwise, process the C# code as-is.
+            var (virtualCharsWithoutMarkup, markdownSpans) = language is "c#-test"
+                ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
+                : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
 
-        // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
-        foreach (var span in markdownSpans)
-            result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span));
+            // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
+            foreach (var span in markdownSpans)
+                result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span));
 
-        // Next, fill in everything with the "TestCode" classification.  This will ensure it gets the right background
-        // highlighting, making it easier to distinguish for normal C# code. 
-        AddTestCodeBackgroundClassification(result, virtualCharsBuilder);
+            // Next, fill in everything with the "TestCode" classification.  This will ensure it gets the right background
+            // highlighting, making it easier to distinguish for normal C# code. 
+            AddTestCodeBackgroundClassification(result, virtualCharsBuilder);
 
-        var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
-            _solutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+            var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
+                _solutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
 
-        CSharpTestEmbeddedLanguageUtilities.AddClassifications(
-            virtualCharsWithoutMarkup,
-            classifiedSpans,
-            static (result, classificationType, span) => result.Add(new(classificationType, span)),
-            result);
+            CSharpTestEmbeddedLanguageUtilities.AddClassifications(
+                virtualCharsWithoutMarkup,
+                classifiedSpans,
+                static (result, classificationType, span) => result.Add(new(classificationType, span)),
+                result);
+        }
+        else if (comparer.Equals(language, PredefinedEmbeddedLanguageNames.Regex))
+        {
+            if (!options.ColorizeRegexPatterns)
+                return false;
+
+            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+        }
+        else if (comparer.Equals(language, PredefinedEmbeddedLanguageNames.Json))
+        {
+            if (!options.ColorizeJsonPatterns)
+                return false;
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(language);
+        }
 
         return true;
     }

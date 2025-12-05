@@ -576,7 +576,7 @@ internal static class ClassificationHelpers
             {
                 if (attribute is XmlTextAttributeSyntax { Name.LocalName.Text: "lang" } textAttribute)
                 {
-                    var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text)).ToLower();
+                    var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text));
                     return langValue;
                 }
             }

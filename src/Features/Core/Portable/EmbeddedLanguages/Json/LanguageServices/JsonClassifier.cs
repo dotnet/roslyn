@@ -25,15 +25,11 @@ using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
     PredefinedEmbeddedLanguageNames.Json,
     [LanguageNames.CSharp, LanguageNames.VisualBasic],
     supportsUnannotatedAPIs: true, "Json"), Shared]
-internal sealed class JsonClassifier : IEmbeddedLanguageClassifier
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class JsonClassifier() : IEmbeddedLanguageClassifier
 {
     private static readonly ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public JsonClassifier()
-    {
-    }
 
     public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
     {

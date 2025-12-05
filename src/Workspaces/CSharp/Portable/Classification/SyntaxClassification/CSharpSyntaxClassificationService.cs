@@ -16,27 +16,24 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
-[ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Export, Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpSyntaxClassificationServiceFactory() : ILanguageServiceFactory
+internal abstract class AbstractCSharpSyntaxClassificationServiceFactory() : ILanguageServiceFactory
 {
-    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        => new CSharpSyntaxClassificationService(languageServices.LanguageServices.SolutionServices);
+    protected virtual ImmutableArray<ISyntaxClassifier> GetAdditionalClassifiers(SolutionServices solutionServices)
+        => [];
 
-    private sealed class CSharpSyntaxClassificationService(SolutionServices solutionServices)
-        : AbstractSyntaxClassificationService
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => new CSharpSyntaxClassificationService(this.GetAdditionalClassifiers(languageServices.LanguageServices.SolutionServices));
+
+    private sealed class CSharpSyntaxClassificationService(ImmutableArray<ISyntaxClassifier> additionalClassifiers) : AbstractSyntaxClassificationService
     {
-        private readonly ImmutableArray<ISyntaxClassifier> _defaultClassifiers =
-            [
-                new NameSyntaxClassifier(),
-                new OperatorOverloadSyntaxClassifier(),
-                new SyntaxTokenClassifier(),
-                new UsingDirectiveSyntaxClassifier(),
-                new DiscardSyntaxClassifier(),
-                new FunctionPointerUnmanagedCallingConventionClassifier(),
-                new DocCommentCodeBlockClassifier(solutionServices),
-            ];
+        private readonly ImmutableArray<ISyntaxClassifier> _defaultClassifiers = [
+            new NameSyntaxClassifier(),
+            new OperatorOverloadSyntaxClassifier(),
+            new SyntaxTokenClassifier(),
+            new UsingDirectiveSyntaxClassifier(),
+            new DiscardSyntaxClassifier(),
+            new FunctionPointerUnmanagedCallingConventionClassifier(),
+            .. additionalClassifiers];
 
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
             => _defaultClassifiers;
@@ -47,9 +44,7 @@ internal sealed class CSharpSyntaxClassificationServiceFactory() : ILanguageServ
         public override void AddSyntacticClassifications(SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             foreach (var textSpan in textSpans)
-            {
                 Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
-            }
         }
 
         public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
@@ -59,3 +54,8 @@ internal sealed class CSharpSyntaxClassificationServiceFactory() : ILanguageServ
             => ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier);
     }
 }
+
+[ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DefaultCSharpSyntaxClassificationServiceFactory() : AbstractCSharpSyntaxClassificationServiceFactory;
