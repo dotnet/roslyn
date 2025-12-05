@@ -496,6 +496,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
 
     [Theory, CombinatorialData]
     public Task TestRegularEmbeddedCSharp(TestHost testHost)
+        // This validates that $$ is treated as C#, and not as test markup.
         => TestEmbeddedCSharpAsync(""""
             class D
             {
@@ -508,5 +509,18 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             TestCode(" "),
             Class("D"),
             Punctuation.OpenCurly,
+            TestCode("    "),
+            Keyword("private"),
+            TestCode(" "),
+            Keyword("string"),
+            TestCode(" "),
+            Field("s"),
+            TestCode(" "),
+            Operators.Equals,
+            TestCode(" "),
+            String("$$\"\"\""),
+            String(" "),
+            String("\"\"\""),
+            Punctuation.Semicolon,
             Punctuation.CloseCurly);
 }
