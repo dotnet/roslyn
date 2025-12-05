@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -88,14 +89,44 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
                     factory.Parameter(parameters.Single()))));
     }
 
+    private ArrayBuilder<T> GetMemberBuilder<T>(Func<Symbol, T> selector)
+    {
+        var builder = ArrayBuilder<T>.GetInstance(
+            _fields.Length + _properties.Length * 2 + _constructors.Length);
+
+        builder.AddRange(_fields, selector);
+
+        builder.AddRange(_properties, selector);
+
+        foreach (var property in _properties)
+        {
+            Debug.Assert(property.GetMethod is not null);
+            Debug.Assert(property.SetMethod is null);
+            builder.Add(selector(property.GetMethod));
+        }
+
+        builder.AddRange(_constructors, selector);
+
+        return builder;
+    }
+
     public override ImmutableArray<Symbol> GetMembers()
-        => [.. _fields, .. _properties, .. _properties.Select(p => p.GetMethod), .. _constructors];
+    {
+        return GetMemberBuilder(static s => s).ToImmutableAndFree();
+    }
 
     public override ImmutableArray<Symbol> GetMembers(string name)
     {
-        return GetMembers().WhereAsArray(static (s, name) => s.Name == name, name);
+        var builder = GetMemberBuilder(static s => s);
+        builder.RemoveAll(static (s, name) => s.Name != name, name);
+        return builder.ToImmutableAndFree();
     }
 
     public override IEnumerable<string> MemberNames
-        => [.. _fields.Select(f => f.Name), .. _properties.Select(p => p.Name), .. _constructors.Select(c => c.Name)];
+    {
+        get
+        {
+            return GetMemberBuilder(static s => s.Name).ToImmutableAndFree();
+        }
+    }
 }
