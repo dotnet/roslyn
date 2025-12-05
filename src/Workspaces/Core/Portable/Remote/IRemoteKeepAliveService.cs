@@ -153,12 +153,22 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                     (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
                     linkedTokenSource.Token).ConfigureAwait(false);
             }
+            catch (OperationCanceledException) when (callerCancellationToken.IsCancellationRequested)
+            {
+                // Cancellation token where will be the linked token.  Ensure we throw the caller's token here abiding
+                // by the contract of how cancellation tokens and OperationCanceledExceptions is supposed to work.
+                callerCancellationToken.ThrowIfCancellationRequested();
+            }
             catch
             {
-                // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the
-                // keep-alive session itself (which is critical for ensuring that we either stop syncing the
-                // solution/project-cone over, and that we allow it to be released on the oop side), and bubble the
-                // exception outwards to the caller to handle as they see fit.
+                // In the event of some other fault calling WaitForSessionIdAsync, we Dispose the keep-alive session
+                // itself (which is critical for ensuring that we either stop syncing the solution/project-cone over,
+                // and that we allow it to be released on the oop side), and bubble the exception outwards to the caller
+                // to handle as they see fit.
+                //
+                // Note: this is also the case if KeepAliveTokenSource was our linked token that caused us to bail out.
+                // In that case that means that InvokeKeepAliveAsync failed, disposed the session, and wants us to not
+                // hang forever calling over to OOP.
                 session.Dispose();
                 throw;
             }
