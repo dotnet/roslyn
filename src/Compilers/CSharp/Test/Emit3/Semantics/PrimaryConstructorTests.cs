@@ -5429,7 +5429,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(literal.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(literal.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle2(SyntaxNodeAnalysisContext context)
@@ -5447,7 +5447,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle3(SyntaxNodeAnalysisContext context)
@@ -5465,7 +5465,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle4(SyntaxNodeAnalysisContext context)
@@ -5494,7 +5494,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(record.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(record.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle7(SyntaxNodeAnalysisContext context)

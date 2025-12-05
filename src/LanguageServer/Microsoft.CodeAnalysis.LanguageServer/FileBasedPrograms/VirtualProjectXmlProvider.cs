@@ -12,8 +12,11 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -115,6 +118,21 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
             if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
                 return true;
         }
+
+        return false;
+    }
+
+    internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
+            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        {
+            return false;
+        }
+
+        var root = await tree.GetRootAsync(cancellationToken);
+        if (root is CompilationUnitSyntax compilationUnit)
+            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
 
         return false;
     }
