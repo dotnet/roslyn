@@ -41,17 +41,12 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         if (syntax is not XmlElementSyntax xmlElement)
             return;
 
-        var language = ClassificationHelpers.GetCodeBlockLanguage(xmlElement);
-        var comparer = StringComparer.OrdinalIgnoreCase;
-
-        if (!comparer.Equals(LanguageNames.CSharp, language) &&
-            !comparer.Equals(PredefinedEmbeddedLanguageNames.CSharpTest, language))
-        {
+        var (isCSharp, isCSharpTest) = ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement);
+        if (!isCSharp && !isCSharpTest)
             return;
-        }
 
         // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
-        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, result, language, cancellationToken))
+        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, result, isTest: isCSharpTest, cancellationToken))
             return;
 
         // Normal syntactic classifier will have classified everything but the xml text tokens.  Recurse ourselves to
@@ -106,7 +101,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         TextSpan textSpan,
         SemanticModel semanticModel,
         SegmentedList<ClassifiedSpan> result,
-        string language,
+        bool isTest,
         CancellationToken cancellationToken)
     {
         // Extract the code content from the XML element
@@ -117,8 +112,8 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
             return false;
 
         // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
-        // Otherwise, process the C# code as-is.
-        var (virtualCharsWithoutMarkup, markdownSpans) = StringComparer.OrdinalIgnoreCase.Equals(language, PredefinedEmbeddedLanguageNames.CSharpTest)
+        // Otherwise, process the code as-is.
+        var (virtualCharsWithoutMarkup, markdownSpans) = isTest
             ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
             : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
 
