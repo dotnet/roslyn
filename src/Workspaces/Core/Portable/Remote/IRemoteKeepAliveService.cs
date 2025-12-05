@@ -159,6 +159,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                 // The linked token was canceled, but the caller's token is the one that requested cancellation.
                 // Rethrow with the caller's token to maintain proper cancellation semantics (the exception's
                 // CancellationToken property should match what the caller passed in).
+                session.Dispose();
                 callerCancellationToken.ThrowIfCancellationRequested();
             }
             catch
