@@ -154,20 +154,21 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                     (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
                     linkedTokenSource.Token).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (callerCancellationToken.IsCancellationRequested)
-            {
-                // The linked token was canceled, but the caller's token is the one that requested cancellation.
-                // Rethrow with the caller's token to maintain proper cancellation semantics (the exception's
-                // CancellationToken property should match what the caller passed in).
-                session.Dispose();
-                callerCancellationToken.ThrowIfCancellationRequested();
-            }
             catch
             {
-                // Any other failure (including cancellation from KeepAliveTokenSource due to InvokeKeepAliveAsync
-                // failing) means we can't establish the session. Dispose to ensure cleanup, then propagate the
-                // exception so the caller knows the session wasn't established.
+                // Any failure means we can't establish the session. The three lines below handle all cases:
+                //
+                // 1. Dispose(): Always clean up. The caller won't receive the session, so we must release it.
+                //    This also cancels KeepAliveTokenSource, which unblocks InvokeKeepAliveAsync if it's still running.
+                //
+                // 2. ThrowIfCancellationRequested(): If the caller's token caused the cancellation, rethrow with
+                //    that token to maintain proper cancellation semantics (the exception's CancellationToken
+                //    property should match what the caller passed in). This is a no-op if the caller didn't cancel.
+                //
+                // 3. throw: For all other failures (e.g., KeepAliveTokenSource canceled due to InvokeKeepAliveAsync
+                //    failing, or a non-cancellation exception), propagate the original exception.
                 session.Dispose();
+                callerCancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
         }
