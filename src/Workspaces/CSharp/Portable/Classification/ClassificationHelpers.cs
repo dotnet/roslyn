@@ -568,7 +568,7 @@ internal static class ClassificationHelpers
     /// <summary>
     /// Determines if the given XML element is a code block with C# language attribute.
     /// </summary>
-    public static string? GetCodeBlockLanguage(XmlElementSyntax node)
+    public static (bool isCSharp, bool isCSharpTest) IsCodeBlockWithCSharpLang(XmlElementSyntax node)
     {
         if (node.StartTag.Name.LocalName.Text == DocumentationCommentXmlNames.CodeElementName)
         {
@@ -576,12 +576,12 @@ internal static class ClassificationHelpers
             {
                 if (attribute is XmlTextAttributeSyntax { Name.LocalName.Text: "lang" } textAttribute)
                 {
-                    var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text));
-                    return langValue;
+                    var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text)).ToLower();
+                    return (langValue is "c#", langValue is "c#-test");
                 }
             }
         }
 
-        return null;
+        return default;
     }
 }
