@@ -71,40 +71,16 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             return session;
 
         // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until the
-        // cancellation token triggers.  Note: we pass the KeepAliveTokenSource.Token in here.  We want
-        // disposing the returned RemoteKeepAliveSession to be the thing that cancels this work.
-        _ = InvokeKeepAliveAsync(
-            compilationState, projectId, client, session);
+        // cancellation token triggers.  Note: we intentionally do not pass 'callerCancellationToken' here. Instead,
+        // method will pass the KeepAliveTokenSource.Token in this call.  We want disposing the returned
+        // RemoteKeepAliveSession to be the thing that cancels this work.
+        _ = InvokeKeepAliveAsync(compilationState, projectId, client, session);
 
         // Now, actually make a call over to OOP to ensure the session is started.  This way the caller won't proceed
         // until the actual solution (or project-scope) is actually pinned in OOP.  Note: we pass the caller
         // cancellation token in here so that if the caller decides they don't need to proceed, we can bail quickly,
         // without waiting for the solution to sync and for us to wait on that completing.
-        try
-        {
-            // Subtle, but critical for correctness.  We make a linked token that combines the caller's cancellation
-            // token and the session's KeepAliveTokenSource.Token.  This way, if either the caller cancels (they don't
-            // need the session to be established), or if the session itself is disposed (which can happen if we fail to
-            // even call KeepAliveAsync), we can bail out of this WaitForSessionIdAsync.
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                session.KeepAliveTokenSource.Token,
-                callerCancellationToken);
-
-            await client.TryInvokeAsync<IRemoteKeepAliveService>(
-                compilationState,
-                projectId,
-                (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
-                linkedTokenSource.Token).ConfigureAwait(false);
-        }
-        catch
-        {
-            // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the
-            // keep-alive session itself (which is critical for ensuring that we either stop syncing the
-            // solution/project-cone over, or that we allow it to be released on the oop side), and bubble the exception
-            // outwards to the caller to handle as they see fit.
-            session.Dispose();
-            throw;
-        }
+        await WaitForSessionIdAsync(compilationState, projectId, client, session, callerCancellationToken).ConfigureAwait(false);
 
         // Succeeded in syncing the solution/project-cone over and waiting for the OOP side to pin it.  Return the
         // session to the caller so that it can let go of the pinned data on the OOP side once it no longer needs it.
@@ -131,8 +107,9 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
-                // If *anything* goes wrong here, we need to make sure we dispose the session fully.  Otherwise, we risk
-                // the call to WaitForSessionIdAsync making its way to OOP and never returning.
+                // If *anything* (other than cancellation) goes wrong here, we need to make sure we dispose the session
+                // fully.  Otherwise, we risk the call to WaitForSessionIdAsync making its way to OOP and never
+                // returning.
                 //
                 // Note: this would happen in a catastrophic failure scenario (like something going totally wrong with
                 // our host/oop connection). However, we don't want to exacerbate things by causing whatever is creating
@@ -141,7 +118,49 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                 //
                 // This works because Dispose here will cancel the KeepAliveTokenSource, which is mixed into the call to
                 // WaitForSessionIdAsync as well.
+                //
+                // It is *fine* to get a cancellation exception here.  That's the *expected* scenario when we properly
+                // return this KeepAliveSession to the caller, who then cleanly Disposes of us.  This will cancel
+                // 'KeepAliveTokenSource', which is exactly what will cause the KeepAliveAsync to actually return.
                 session.Dispose();
+
+                // Note: we are intentionally not bubbling this exception out.  This was a fire-and-forget call.  So the
+                // result is entirely unobserved.  We will have already reported non-cancellation errors in the
+                // FatalError.ReportAndCatchUnlessCanceled call above.  There's nothing more to be done here.
+            }
+        }
+
+        static async Task WaitForSessionIdAsync(
+            SolutionCompilationState compilationState,
+            ProjectId? projectId,
+            RemoteHostClient client,
+            RemoteKeepAliveSession session,
+            CancellationToken callerCancellationToken)
+        {
+            try
+            {
+                // Subtle, but critical for correctness.  We make a linked token that combines the caller's cancellation
+                // token and the session's KeepAliveTokenSource.Token.  This way, if either the caller cancels (they don't
+                // need the session to be established), or if the session itself is disposed (which can happen if we fail
+                // inside InvokeKeepAliveAsync), we can bail out of this WaitForSessionIdAsync.
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    session.KeepAliveTokenSource.Token,
+                    callerCancellationToken);
+
+                await client.TryInvokeAsync<IRemoteKeepAliveService>(
+                    compilationState,
+                    projectId,
+                    (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
+                    linkedTokenSource.Token).ConfigureAwait(false);
+            }
+            catch
+            {
+                // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the
+                // keep-alive session itself (which is critical for ensuring that we either stop syncing the
+                // solution/project-cone over, and that we allow it to be released on the oop side), and bubble the
+                // exception outwards to the caller to handle as they see fit.
+                session.Dispose();
+                throw;
             }
         }
     }
