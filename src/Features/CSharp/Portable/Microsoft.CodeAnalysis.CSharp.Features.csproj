@@ -60,7 +60,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />
-    <EmbeddedResource Update="SyncedSource\FileBasedPrograms\FileBasedProgramsResources.resx" GenerateSource="true" Namespace="Microsoft.DotNet.FileBasedPrograms" />
+    <EmbeddedResource
+      Update="SyncedSource\FileBasedPrograms\FileBasedProgramsResources.resx"
+      GenerateSource="true"
+      Namespace="Microsoft.DotNet.FileBasedPrograms" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -71,10 +74,10 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Used by `/eng/ensure-sources-synced.cs` to sync sources between the source package and this project's folder `SyncedSource/FileBasedPrograms`. -->
-    <PackageDownload Include="Microsoft.DotNet.FileBasedPrograms" Version="[$(MicrosoftDotNetFileBasedProgramsPackageVersion)]" Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Classification\" />
+    <PackageDownload
+      Include="Microsoft.DotNet.FileBasedPrograms"
+      Version="[$(MicrosoftDotNetFileBasedProgramsPackageVersion)]"
+      Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>
