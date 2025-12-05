@@ -117,17 +117,46 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        // Ensure the character is actually typed in the editor
-        nextHandler();
-
         if (args.TypedChar != TriggerCharacter)
+        {
+            nextHandler();
             return;
+        }
 
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
+        {
+            nextHandler();
             return;
+        }
+
+        // Start the suggestion session BEFORE nextHandler() to claim exclusive control
+        // but only if we are at the third trigger character that would make a documentation comment.
+        if (WillGenerateDocumentationComment(args.SubjectBuffer, args.TextView))
+        {
+            _generateDocumentationCommentManager.StartSuggestionSession(
+                args.SubjectBuffer, args.TextView, CancellationToken.None);
+        }
+
+        // Ensure the character is actually typed in the editor
+        nextHandler();
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
+    }
+
+    private bool WillGenerateDocumentationComment(ITextBuffer subjectBuffer, ITextView textView)
+    {
+        var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
+        if (caretPosition < 0)
+            return false;
+
+        var snapshot = subjectBuffer.CurrentSnapshot;
+        var text = snapshot.AsText();
+
+        if (!DocumentationCommentSnippetHelpers.WillBeAtEndOfDocCommentTriviaOnBlankLine(text, caretPosition, TriggerCharacter))
+            return false;
+
+        return true;
     }
 
     public CommandState GetCommandState(ReturnKeyCommandArgs args)
