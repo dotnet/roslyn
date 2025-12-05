@@ -70,7 +70,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             return session;
 
         // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until the
-        // cancellation token triggers.  Note: we pass the keepAliveCancellationTokenSource.Token in here.  We want
+        // cancellation token triggers.  Note: we pass the KeepAliveTokenSource.Token in here.  We want
         // disposing the returned RemoteKeepAliveSession to be the thing that cancels this work.
         _ = InvokeKeepAliveAsync(
             compilationState, projectId, client, session);
