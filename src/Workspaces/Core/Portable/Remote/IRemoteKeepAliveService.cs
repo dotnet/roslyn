@@ -14,19 +14,22 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal interface IRemoteKeepAliveService
 {
     /// <summary>
-    /// Keeps alive this solution in the OOP process until the cancellation token is triggered.  Used so that long
-    /// running features (like 'inline rename' or 'lightbulbs') we can call into oop several times, with the same
-    /// snapshot, knowing that things will stay hydrated and alive on the OOP side.  Importantly, by keeping the
-    /// same <see cref="Solution"/> snapshot alive on the OOP side, computed attached values (like <see
-    /// cref="Compilation"/>s) will stay alive as well.
+    /// Keeps the solution identified by <paramref name="solutionChecksum"/> alive in the OOP process until <paramref
+    /// name="cancellationToken"/> is triggered. This enables long-running features (like inline rename or lightbulbs)
+    /// to make multiple OOP calls against the same snapshot, ensuring that computed values (like <see
+    /// cref="Compilation"/>s) remain cached rather than being rebuilt on each call.
     /// </summary>
-    /// <param name="sessionId">Id identifying this session.  Used with <see cref="WaitForSessionIdAsync"/> so that
-    /// execution on the host side can proceed only once the proper snapshot is actually pinned on the OOP side.</param>
+    /// <param name="solutionChecksum">Checksum identifying the solution to pin.</param>
+    /// <param name="sessionId">Unique identifier for this session. The host uses this with <see
+    /// cref="WaitForSessionIdAsync"/> to block until the solution is actually pinned before proceeding with
+    /// dependent work.</param>
+    /// <param name="cancellationToken">Cancellation of this token releases the pinned solution.</param>
     ValueTask KeepAliveAsync(Checksum solutionChecksum, long sessionId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Waits for the session identified by <paramref name="sessionId"/> to be fully hydrated and pinned in the OOP
-    /// process.
+    /// Blocks until the session identified by <paramref name="sessionId"/> has fully synced and pinned its solution
+    /// in the OOP process. This ensures the host doesn't proceed with OOP calls until the solution is guaranteed to
+    /// be available.
     /// </summary>
     ValueTask WaitForSessionIdAsync(long sessionId, CancellationToken cancellationToken);
 }
@@ -36,15 +39,15 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     private static long s_sessionId = 1;
 
     /// <summary>
-    /// A unique identifier for this session.  Used to allow us to kick off the work to sync a solution over, then
-    /// wait for that work to complete, while the syncing task stays alive on the OOP side.
+    /// Unique identifier for this session. Used to coordinate between <see cref="IRemoteKeepAliveService.KeepAliveAsync"/>
+    /// (which syncs and pins the solution) and <see cref="IRemoteKeepAliveService.WaitForSessionIdAsync"/> (which blocks
+    /// until pinning completes).
     /// </summary>
     private long SessionId { get; } = Interlocked.Increment(ref s_sessionId);
 
     /// <summary>
-    /// Cancellation token used for keeping the keep-alive work alive.  We make a call over to oop, which syncs a
-    /// solution/project-cone and then waits on this cancellation token.  So cancelling this is what actually allows the
-    /// oop side to return and let go of the pinned solution/project-cone.
+    /// Controls the lifetime of the OOP-side pinning. The <see cref="IRemoteKeepAliveService.KeepAliveAsync"/> call
+    /// blocks on this token; canceling it allows that call to return, releasing the pinned solution.
     /// </summary>
     private CancellationTokenSource KeepAliveTokenSource { get; } = new();
 
@@ -53,8 +56,19 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     }
 
     /// <summary>
-    /// Initializes a session, returning it once the session is fully established on the OOP side.
+    /// Creates and fully establishes a keep-alive session. Returns only after the solution is confirmed to be
+    /// pinned on the OOP side.
     /// </summary>
+    /// <remarks>
+    /// <para>This method coordinates two concurrent OOP calls:</para>
+    /// <list type="number">
+    /// <item><see cref="IRemoteKeepAliveService.KeepAliveAsync"/>: Syncs the solution to OOP, then blocks until
+    /// <see cref="KeepAliveTokenSource"/> is canceled. This call is fire-and-forget from the host's perspective.</item>
+    /// <item><see cref="IRemoteKeepAliveService.WaitForSessionIdAsync"/>: Blocks until KeepAliveAsync has completed
+    /// syncing. This call is awaited, ensuring the solution is pinned before returning to the caller.</item>
+    /// </list>
+    /// <para>The two calls share <see cref="SessionId"/> so the OOP side can correlate them.</para>
+    /// </remarks>
     private static async Task<RemoteKeepAliveSession> StartSessionAsync(
         SolutionCompilationState compilationState,
         ProjectId? projectId,
@@ -63,27 +77,23 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     {
         var session = new RemoteKeepAliveSession();
 
-        // If we have no client, we just return a no-op session.  That's fine. This is the case when we're not running
-        // anything in OOP, and so there's nothing to keep alive.  The caller will be holding onto the
-        // solution/project-cone snapshot themselves, and so all the oop calls they make to it will just operate
-        // directly on that shared instance.
+        // When running in-process (no OOP client), return immediately. The caller holds the solution snapshot
+        // directly, so no pinning is needed.
         if (client is null)
             return session;
 
-        // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until the
-        // cancellation token triggers.  Note: we intentionally do not pass 'callerCancellationToken' here. Instead,
-        // method will pass the KeepAliveTokenSource.Token in this call.  We want disposing the returned
-        // RemoteKeepAliveSession to be the thing that cancels this work.
+        // Fire-and-forget: Start syncing and pinning the solution on the OOP side. This call will block on the OOP
+        // side until KeepAliveTokenSource is canceled (i.e., when this session is Disposed).
+        //
+        // Important: We pass KeepAliveTokenSource.Token (not callerCancellationToken) because:
+        // - The keep-alive must persist beyond this method, for the lifetime of the session
+        // - Disposing the session is what should cancel this work, not the caller's token
         _ = InvokeKeepAliveAsync(compilationState, projectId, client, session);
 
-        // Now, actually make a call over to OOP to ensure the session is started.  This way the caller won't proceed
-        // until the actual solution (or project-scope) is actually pinned in OOP.  Note: we pass the caller
-        // cancellation token in here so that if the caller decides they don't need to proceed, we can bail quickly,
-        // without waiting for the solution to sync and for us to wait on that completing.
+        // Block until the OOP side confirms the solution is pinned. This uses callerCancellationToken so the caller
+        // can abandon the wait if they no longer need the session.
         await WaitForSessionIdAsync(compilationState, projectId, client, session, callerCancellationToken).ConfigureAwait(false);
 
-        // Succeeded in syncing the solution/project-cone over and waiting for the OOP side to pin it.  Return the
-        // session to the caller so that it can let go of the pinned data on the OOP side once it no longer needs it.
         return session;
 
         static async Task InvokeKeepAliveAsync(
@@ -94,8 +104,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         {
             try
             {
-                // Ensure we yield the current thread, allowing StartSessionAsync to then kick off the call to
-                // WaitForSessionIdAsync
+                // Yield to allow StartSessionAsync to proceed to WaitForSessionIdAsync concurrently.
                 await Task.Yield().ConfigureAwait(false);
 
                 var sessionId = session.SessionId;
@@ -107,26 +116,16 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
-                // If *anything* (other than cancellation) goes wrong here, we need to make sure we dispose the session
-                // fully.  Otherwise, we risk the call to WaitForSessionIdAsync making its way to OOP and never
-                // returning.
+                // Non-cancellation exceptions indicate a catastrophic failure (e.g., broken OOP connection).
+                // We must dispose the session to:
+                // 1. Cancel KeepAliveTokenSource, which is linked into WaitForSessionIdAsync's token
+                // 2. Unblock WaitForSessionIdAsync so it doesn't hang forever
                 //
-                // Note: this would happen in a catastrophic failure scenario (like something going totally wrong with
-                // our host/oop connection). However, we don't want to exacerbate things by causing whatever is creating
-                // the keep alive session to entirely hang waiting. This is why we always report an error here as it
-                // indicates something has gone very wrong.
-                //
-                // This works because Dispose here will cancel the KeepAliveTokenSource, which is mixed into the call to
-                // WaitForSessionIdAsync as well.
-                //
-                // It is *fine* to get a cancellation exception here.  That's the *expected* scenario when we properly
-                // return this KeepAliveSession to the caller, who then cleanly Disposes of us.  This will cancel
-                // 'KeepAliveTokenSource', which is exactly what will cause the KeepAliveAsync to actually return.
+                // Cancellation exceptions are expected and normal - they occur when the session is properly
+                // disposed, which cancels KeepAliveTokenSource and allows KeepAliveAsync to return.
                 session.Dispose();
 
-                // Note: we are intentionally not bubbling this exception out.  This was a fire-and-forget call.  So the
-                // result is entirely unobserved.  We will have already reported non-cancellation errors in the
-                // FatalError.ReportAndCatchUnlessCanceled call above.  There's nothing more to be done here.
+                // Don't rethrow: this is fire-and-forget. Errors were already reported via FatalError above.
             }
         }
 
@@ -139,10 +138,12 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         {
             try
             {
-                // Subtle, but critical for correctness.  We make a linked token that combines the caller's cancellation
-                // token and the session's KeepAliveTokenSource.Token.  This way, if either the caller cancels (they don't
-                // need the session to be established), or if the session itself is disposed (which can happen if we fail
-                // inside InvokeKeepAliveAsync), we can bail out of this WaitForSessionIdAsync.
+                // Link both cancellation sources so this call aborts if either:
+                // - The caller cancels (they no longer need the session)
+                // - InvokeKeepAliveAsync fails and disposes the session (which cancels KeepAliveTokenSource)
+                //
+                // Without the link to KeepAliveTokenSource, a failure in InvokeKeepAliveAsync would leave this
+                // call hanging indefinitely since the OOP side would never signal completion.
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                     session.KeepAliveTokenSource.Token,
                     callerCancellationToken);
@@ -155,32 +156,33 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             }
             catch (OperationCanceledException) when (callerCancellationToken.IsCancellationRequested)
             {
-                // Cancellation token where will be the linked token.  Ensure we throw the caller's token here abiding
-                // by the contract of how cancellation tokens and OperationCanceledExceptions is supposed to work.
+                // The linked token was canceled, but the caller's token is the one that requested cancellation.
+                // Rethrow with the caller's token to maintain proper cancellation semantics (the exception's
+                // CancellationToken property should match what the caller passed in).
                 callerCancellationToken.ThrowIfCancellationRequested();
             }
             catch
             {
-                // In the event of some other fault calling WaitForSessionIdAsync, we Dispose the keep-alive session
-                // itself (which is critical for ensuring that we either stop syncing the solution/project-cone over,
-                // and that we allow it to be released on the oop side), and bubble the exception outwards to the caller
-                // to handle as they see fit.
-                //
-                // Note: this is also the case if KeepAliveTokenSource was our linked token that caused us to bail out.
-                // In that case that means that InvokeKeepAliveAsync failed, disposed the session, and wants us to not
-                // hang forever calling over to OOP.
+                // Any other failure (including cancellation from KeepAliveTokenSource due to InvokeKeepAliveAsync
+                // failing) means we can't establish the session. Dispose to ensure cleanup, then propagate the
+                // exception so the caller knows the session wasn't established.
                 session.Dispose();
                 throw;
             }
         }
     }
 
+    /// <summary>
+    /// Constructor for synchronous, best-effort session creation. Does not wait for the session to be established.
+    /// </summary>
     private RemoteKeepAliveSession(SolutionCompilationState compilationState, IAsynchronousOperationListener listener)
     {
-        // This is the entry-point for KeepAliveSession when created synchronously.  In this case, we are documented as
-        // just being a best-effort helper for keeping the solution/project-cone alive in OOP.  We do not guarantee that
-        // when this returns that the session is fully established in OOP.  Instead, we just kick off the work to do so,
-        // and return immediately.
+        // Unlike the async entry-point, this constructor returns immediately without waiting for the solution to
+        // be pinned on the OOP side. This is acceptable for scenarios where:
+        // - The caller cannot await (e.g., in a constructor)
+        // - Best-effort pinning is sufficient (subsequent OOP calls will still work, just potentially slower)
+        //
+        // Track the async work so test infrastructure can detect outstanding operations.
         var token = listener.BeginAsyncOperation(nameof(RemoteKeepAliveSession));
 
         var task = CreateClientAndKeepAliveAsync();
@@ -195,9 +197,8 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             if (client is null)
                 return;
 
-            // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until the
-            // cancellation token triggers.  Nor do we call WaitForSessionIdAsync either.  This is all just best-effort,
-            // to be used by sync clients that can't await the full establishment of the session.
+            // Fire-and-forget: Start the keep-alive without waiting for confirmation. Unlike StartSessionAsync,
+            // we don't call WaitForSessionIdAsync because this is a best-effort, non-blocking path.
             var sessionId = this.SessionId;
             _ = client.TryInvokeAsync<IRemoteKeepAliveService>(
                 compilationState,
@@ -219,49 +220,34 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     {
         GC.SuppressFinalize(this);
 
-        // Note: we are intentionally not calling .Dispose on the token source here.  Disposal is only needed if we're
-        // not canceling, and our contract is to always cancel the token.
-        //
-        // Contract call in the finalizer above will catch any cases where we forget to Dispose a session properly.
+        // Cancel rather than dispose the token source. CancellationTokenSource.Dispose() is only necessary when
+        // not canceling (to clean up internal wait handles), but we always cancel. The finalizer's Contract.Fail
+        // will catch any cases where Dispose is forgotten.
         this.KeepAliveTokenSource.Cancel();
     }
 
     /// <summary>
-    /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
-    /// cref="IDisposable.Dispose"/> is called on it.  By pinning the solution we ensure that all calls to OOP for the
-    /// same solution during the life of this session do not need to resync the solution.  Nor do they then need to
-    /// rebuild any compilations they've already built due to the solution going away and then coming back.
+    /// Creates a best-effort keep-alive session synchronously. Returns immediately without waiting for the session
+    /// to be established on the OOP side.
     /// </summary>
     /// <remarks>
-    /// The <paramref name="listener"/> is not strictly necessary for this type.  This class functions just as an
-    /// optimization to hold onto data so it isn't resync'ed or recomputed.  However, we still want to let the system
-    /// know when unobserved async work is kicked off in case we have any tooling that keep track of this for any reason
-    /// (for example for tracking down problems in testing scenarios).
-    /// </remarks>
-    /// <remarks>
-    /// This synchronous entry-point should be used only in contexts where using the async <see
-    /// cref="CreateAsync(Solution, CancellationToken)"/> is not possible (for example, in a constructor). Unlike the
-    /// async entry-points, this method does not guarantee that the session has been fully established on the OOP side
-    /// when it returns.  Instead, it just kicks off the work in a best-effort fashion.  This does mean that it's
-    /// possible for subsequent calls from the host to OOP to see different solutions on the OOP side (though this is
-    /// unlikely).  For clients that require that all subsequent OOP calls see the same solution, the async entry-points
-    /// must be used.
+    /// <para>Use this overload only when async code is not possible (e.g., in constructors). For guaranteed session
+    /// establishment, use <see cref="CreateAsync(Solution, CancellationToken)"/> instead.</para>
+    /// <para>Because this method doesn't wait for establishment, subsequent OOP calls may not benefit from the
+    /// pinned solution if they race ahead of the keep-alive setup. In practice this is rare, but callers requiring
+    /// guaranteed consistency must use the async overloads.</para>
+    /// <para>The <paramref name="listener"/> is used to track the async keep-alive work for testing infrastructure.</para>
     /// </remarks>
     public static RemoteKeepAliveSession Create(Solution solution, IAsynchronousOperationListener listener)
         => new(solution.CompilationState, listener);
 
     /// <summary>
-    /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
-    /// cref="IDisposable.Dispose"/> is called on it.  By pinning the solution we ensure that all calls to OOP for
-    /// the same solution during the life of this session do not need to resync the solution.  Nor do they then need
-    /// to rebuild any compilations they've already built due to the solution going away and then coming back.
+    /// Creates a keep-alive session, returning only after the session is fully established on the OOP side.
     /// </summary>
     /// <remarks>
-    /// Subsequent calls to oop made while this session is alive must pass the same pinning data with the remote
-    /// invocation calls.  In other words, if this session was created for a specific solution/project-cone, all
-    /// subsequent calls must be for that same solution/project-cone.  If a session were created for a solution, but a
-    /// later call was made for a project-cone (or vice versa), it would not see the same pinned instance of this
-    /// session.
+    /// All subsequent OOP calls made while this session is alive will see the same pinned solution instance,
+    /// provided they pass matching solution/project-cone data. Mismatched calls (e.g., session created for full
+    /// solution but call made for project-cone) will not benefit from the pinning.
     /// </remarks>
     public static Task<RemoteKeepAliveSession> CreateAsync(Solution solution, CancellationToken cancellationToken)
         => CreateAsync(solution, projectId: null, cancellationToken);
