@@ -632,6 +632,11 @@
         <target state="translated">Un littéral par défaut 'default' est non valide en tant que modèle. Utilisez un autre littéral (par exemple, '0' ou 'null') selon le cas. Pour correspondre à tout, utilisez un modèle d'abandon '_'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeforePropertyPattern">
+        <source>A variable designator must come after a property pattern.</source>
+        <target state="new">A variable designator must come after a property pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">Une variable ne peut pas être déclarée dans un modèle 'not' ou 'or'.</target>
@@ -700,6 +705,11 @@
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot emit update; {0} '{1}' is missing.</source>
         <target state="translated">Impossible d’émettre la mise à jour ;  {0} '{1}' est manquant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">

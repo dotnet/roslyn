@@ -1639,7 +1639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
         WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
-        // available 8525-8596
+        ERR_DesignatorBeforePropertyPattern = 8525,
+        // available 8526-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -2443,9 +2444,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
         ERR_EqualityOperatorInPatternNotSupported = 9344,
         ERR_InequalityOperatorInPatternNotSupported = 9345,
+        ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
 
-        ERR_StructLayoutAndExtendedLayout = 9346,
-        ERR_InvalidExtendedLayoutAttribute = 9347,
+        ERR_StructLayoutAndExtendedLayout = 9347,
+        ERR_InvalidExtendedLayoutAttribute = 9348,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

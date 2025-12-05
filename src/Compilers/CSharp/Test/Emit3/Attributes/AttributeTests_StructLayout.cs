@@ -927,10 +927,10 @@ partial struct C
                 references: [MinimalCoreLibBuilder.Create(ExtendedLayoutAttribute, StructLayoutAttributes).ToMetadataReference()],
                 targetFramework: TargetFramework.Empty)
             .VerifyDiagnostics(
-                // (5,8): error CS9346: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // (5,8): error CS9347: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
                 // struct C
                 Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "C").WithLocation(5, 8),
-                // (12,8): error CS9346: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // (12,8): error CS9347: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
                 // struct D
                 Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "D").WithLocation(12, 8),
                 // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
@@ -1070,7 +1070,7 @@ partial struct C
                 """;
 
             CreateCompilation([source, ExtendedLayoutAttribute]).VerifyDiagnostics(
-                // (2,2): error CS9347: The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.
+                // (2,2): error CS9348: The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.
                 // [ExtendedLayout(ExtendedLayoutKind.CStruct)]
                 Diagnostic(ErrorCode.ERR_InvalidExtendedLayoutAttribute, "ExtendedLayout").WithLocation(2, 2));
         }

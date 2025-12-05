@@ -4937,6 +4937,9 @@
   <data name="ERR_UnsupportedEvent1" xml:space="preserve">
     <value>'{0}' is an unsupported event.</value>
   </data>
+  <data name="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime" xml:space="preserve">
+    <value>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</value>
+  </data>
   <data name="PropertiesCanNotHaveTypeArguments" xml:space="preserve">
     <value>Properties can not have type arguments</value>
   </data>

@@ -1558,10 +1558,10 @@ namespace Microsoft.CodeAnalysis
                                     switch (namedArgValues.nameValuePair.Key)
                                     {
                                         case "AllowMultiple":
-                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal;
                                             break;
                                         case "Inherited":
-                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal;
                                             break;
                                     }
                                 }

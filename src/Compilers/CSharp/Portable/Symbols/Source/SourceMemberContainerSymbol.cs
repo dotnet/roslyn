@@ -3535,7 +3535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddDeclarationDiagnostics(diagnostics);
                 diagnostics.Free();
 
-                return declaredMembersAndInitializers!;
+                return declaredMembersAndInitializers;
             }
 
             // Builds explicitly declared members (as opposed to synthesized members).
