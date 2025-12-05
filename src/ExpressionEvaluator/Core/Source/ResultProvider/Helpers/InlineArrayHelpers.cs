@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using BindingFlags = Microsoft.VisualStudio.Debugger.Metadata.BindingFlags;
-using CustomAttributeData = Microsoft.VisualStudio.Debugger.Metadata.CustomAttributeData;
 using FieldInfo = Microsoft.VisualStudio.Debugger.Metadata.FieldInfo;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
@@ -16,26 +14,25 @@ internal static class InlineArrayHelpers
     private const string InlineArrayAttributeName = "System.Runtime.CompilerServices.InlineArrayAttribute";
     private const string FixedBufferAttributeName = "System.Runtime.CompilerServices.FixedBufferAttribute";
 
-    public static bool TryGetInlineArrayInfo(Type t, out int arrayLength, [NotNullWhen(true)] out Type? tElementType)
+    public static bool TryGetInlineArrayInfo(Type type, out int arrayLength, [NotNullWhen(true)] out Type? elementType)
     {
         arrayLength = -1;
-        tElementType = null;
+        elementType = null;
 
-        if (!t.IsValueType)
+        if (!type.IsValueType)
         {
             return false;
         }
 
-        IList<CustomAttributeData> customAttributes = t.GetCustomAttributesData();
-        foreach (var attribute in customAttributes)
+        foreach (var attribute in type.GetCustomAttributesData())
         {
             if (InlineArrayAttributeName.Equals(attribute.Constructor?.DeclaringType?.FullName))
             {
                 var ctorParams = attribute.Constructor.GetParameters();
                 if (ctorParams.Length == 1 && ctorParams[0].ParameterType.IsInt32() &&
-                    attribute.ConstructorArguments.Count == 1 && attribute.ConstructorArguments[0].Value is int length)
+                    attribute.ConstructorArguments.Count == 1 && attribute.ConstructorArguments[0].Value is int ctorLengthArg)
                 {
-                    arrayLength = length;
+                    arrayLength = ctorLengthArg;
                 }
             }
         }
@@ -46,10 +43,10 @@ internal static class InlineArrayHelpers
             return false;
         }
 
-        FieldInfo[] fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         if (fields.Length == 1)
         {
-            tElementType = fields[0].FieldType;
+            elementType = fields[0].FieldType;
         }
         else
         {
@@ -60,10 +57,10 @@ internal static class InlineArrayHelpers
         return true;
     }
 
-    public static bool TryGetFixedBufferInfo(Type t, out int arrayLength, [NotNullWhen(true)] out Type? tElementType)
+    public static bool TryGetFixedBufferInfo(Type type, out int arrayLength, [NotNullWhen(true)] out Type? elementType)
     {
         arrayLength = -1;
-        tElementType = null;
+        elementType = null;
 
         // Fixed buffer types are compiler-generated and are nested within the struct that contains the fixed buffer field.
         // They are structurally identical to [InlineArray] structs in that they have 1 field defined in metadata which is repeated `arrayLength` times.
@@ -92,12 +89,12 @@ internal static class InlineArrayHelpers
         // }
 
         // Filter out shapes we know can't be fixed buffer types
-        if (!t.IsValueType || !t.IsLayoutSequential || t.IsGenericType)
+        if (!type.IsValueType || !type.IsLayoutSequential || type.IsGenericType)
         {
             return false;
         }
 
-        if (!t.IsNested || t.DeclaringType is not Type enclosingType)
+        if (!type.IsNested || type.DeclaringType is not Type enclosingType)
         {
             return false;
         }
@@ -106,10 +103,9 @@ internal static class InlineArrayHelpers
         foreach (FieldInfo field in fields)
         {
             // Match the field whose type is the fixed buffer type and is decorated with [FixedBuffer(Type, int)]
-            if (field.FieldType.Equals(t))
+            if (field.FieldType.Equals(type))
             {
-                IList<CustomAttributeData> customAttributes = field.GetCustomAttributesData();
-                foreach (var attribute in customAttributes)
+                foreach (var attribute in field.GetCustomAttributesData())
                 {
                     if (FixedBufferAttributeName.Equals(attribute.Constructor?.DeclaringType?.FullName))
                     {
@@ -118,11 +114,11 @@ internal static class InlineArrayHelpers
                             ctorParams[0].ParameterType.IsReflectionType() &&
                             ctorParams[1].ParameterType.IsInt32() &&
                             attribute.ConstructorArguments.Count == 2 &&
-                            attribute.ConstructorArguments[0].Value is Type type &&
-                            attribute.ConstructorArguments[1].Value is int length)
+                            attribute.ConstructorArguments[0].Value is Type ctorElementTypeArg &&
+                            attribute.ConstructorArguments[1].Value is int ctorLengthArg)
                         {
-                            tElementType = type;
-                            arrayLength = length;
+                            elementType = ctorElementTypeArg;
+                            arrayLength = ctorLengthArg;
                         }
 
                         break;
@@ -134,6 +130,6 @@ internal static class InlineArrayHelpers
             }
         }
 
-        return arrayLength > 0 && tElementType is not null;
+        return arrayLength > 0 && elementType is not null;
     }
 }
