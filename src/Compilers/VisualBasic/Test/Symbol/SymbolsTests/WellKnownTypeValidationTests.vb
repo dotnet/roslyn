@@ -591,8 +591,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
-                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
                          WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
                          WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
                         ' Not available on all platforms.
@@ -694,8 +693,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
-                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
                          WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
                          WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
                         ' Not available on all platforms.
