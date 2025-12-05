@@ -44,7 +44,6 @@ internal sealed partial class RemoteKeepAliveService : BrokeredServiceBase, IRem
         var completionSource = GetSessionCompletionSource(sessionId);
         try
         {
-
             // First get the solution, ensuring that it is currently pinned.
             await RunServiceAsync(solutionChecksum, async solution =>
             {
