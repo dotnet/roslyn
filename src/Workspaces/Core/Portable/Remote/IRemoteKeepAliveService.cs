@@ -87,13 +87,14 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                 (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
                 callerCancellationToken).ConfigureAwait(false);
         }
-        // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the keep-alive
-        // session itself (which is critical for ensuring that we either stop syncing the solution/project-cone over, or
-        // that we allow it to be released on the oop side), and bubble the exception outwards to the caller to handle
-        // as they see fit.
-        catch when (DisposeKeepAliveSession(session))
+        catch
         {
-            throw ExceptionUtilities.Unreachable();
+            // In the event of cancellation (or some other fault calling WaitForSessionIdAsync), we Dispose the
+            // keep-alive session itself (which is critical for ensuring that we either stop syncing the
+            // solution/project-cone over, or that we allow it to be released on the oop side), and bubble the exception
+            // outwards to the caller to handle as they see fit.
+            session.Dispose();
+            throw;
         }
 
         // Succeeded in syncing the solution/project-cone over and waiting for the OOP side to pin it.  Return the
@@ -116,12 +117,6 @@ internal sealed class RemoteKeepAliveSession : IDisposable
                projectId,
                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
                session.KeepAliveTokenSource.Token).ConfigureAwait(false);
-        }
-
-        static bool DisposeKeepAliveSession(RemoteKeepAliveSession session)
-        {
-            session.Dispose();
-            return false;
         }
     }
 
