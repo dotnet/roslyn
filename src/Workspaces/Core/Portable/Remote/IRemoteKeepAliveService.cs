@@ -47,6 +47,11 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     /// </summary>
     private CancellationTokenSource KeepAliveTokenSource { get; } = new();
 
+    /// Whether or not the session has been disposed.  We only dispose once.  That way we don't have to worry about
+    /// calling <see cref="CancellationTokenSource.Cancel"/> on a disposed source (which can throw).
+    /// </summary>
+    private bool _isDisposed;
+
     private RemoteKeepAliveSession()
     {
     }
@@ -81,11 +86,19 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         // without waiting for the solution to sync and for us to wait on that completing.
         try
         {
+            // Subtle, but critical for correctness.  We make a linked token that combines the caller's cancellation
+            // token and the session's KeepAliveTokenSource.Token.  This way, if either the caller cancels (they don't
+            // need the session to be established), or if the session itself is disposed (which can happen if we fail to
+            // even call KeepAliveAsync), we can bail out of this WaitForSessionIdAsync.
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                session.KeepAliveTokenSource.Token,
+                callerCancellationToken);
+
             await client.TryInvokeAsync<IRemoteKeepAliveService>(
                 compilationState,
                 projectId,
                 (service, _, cancellationToken) => service.WaitForSessionIdAsync(session.SessionId, cancellationToken),
-                callerCancellationToken).ConfigureAwait(false);
+                linkedTokenSource.Token).ConfigureAwait(false);
         }
         catch
         {
@@ -107,16 +120,32 @@ internal sealed class RemoteKeepAliveSession : IDisposable
             RemoteHostClient client,
             RemoteKeepAliveSession session)
         {
-            // Ensure we yield the current thread, allowing StartSessionAsync to then kick off the call to
-            // WaitForSessionIdAsync
-            await Task.Yield().ConfigureAwait(false);
+            try
+            {
+                // Ensure we yield the current thread, allowing StartSessionAsync to then kick off the call to
+                // WaitForSessionIdAsync
+                await Task.Yield().ConfigureAwait(false);
 
-            var sessionId = session.SessionId;
-            await client.TryInvokeAsync<IRemoteKeepAliveService>(
-               compilationState,
-               projectId,
-               (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
-               session.KeepAliveTokenSource.Token).ConfigureAwait(false);
+                var sessionId = session.SessionId;
+                await client.TryInvokeAsync<IRemoteKeepAliveService>(
+                   compilationState,
+                   projectId,
+                   (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
+                   session.KeepAliveTokenSource.Token).ConfigureAwait(false);
+            }
+            catch
+            {
+                // If *anything* goes wrong here, we need to make sure we dispose the session fully.  Otherwise, we risk
+                // the call to WaitForSessionIdAsync making its way to OOP and never returning.  Note: this would happen
+                // in a catastrophic failure scenario (like something going totally wrong with our host/oop connection).
+                // However, we don't want to exacerbate things by causing whatever is creating the keep alive session to
+                // entirely hang waiting.
+                //
+                // This works because Dispose here will cancel the KeepAliveTokenSource, which is mixed into the call to
+                // WaitForSessionIdAsync as well.
+                session.Dispose();
+                throw;
+            }
         }
     }
 
@@ -163,8 +192,16 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        this.KeepAliveTokenSource.Cancel();
-        this.KeepAliveTokenSource.Dispose();
+
+        lock (this)
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            this.KeepAliveTokenSource.Cancel();
+            this.KeepAliveTokenSource.Dispose();
+        }
     }
 
     /// <summary>
