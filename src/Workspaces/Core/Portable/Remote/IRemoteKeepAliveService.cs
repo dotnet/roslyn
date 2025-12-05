@@ -201,12 +201,18 @@ internal sealed class RemoteKeepAliveSession : IDisposable
 
             // Fire-and-forget: Start the keep-alive without waiting for confirmation. Unlike StartSessionAsync,
             // we don't call WaitForSessionIdAsync because this is a best-effort, non-blocking path.
-            var sessionId = this.SessionId;
-            _ = client.TryInvokeAsync<IRemoteKeepAliveService>(
-                compilationState,
-                projectId: null,
-                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
-                cancellationToken).AsTask();
+            try
+            {
+                var sessionId = this.SessionId;
+                await client.TryInvokeAsync<IRemoteKeepAliveService>(
+                    compilationState,
+                    projectId: null,
+                    (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, sessionId, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+            {
+            }
         }
     }
 
