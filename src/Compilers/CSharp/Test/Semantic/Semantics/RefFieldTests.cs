@@ -22156,6 +22156,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (1,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // ref struct R
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "R").WithLocation(1, 12),
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
@@ -22168,16 +22171,18 @@ public ref struct R
                 // (3,16): warning CS0169: The field 'R.R' is never used
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
+                // (3,18): error CS1003: Syntax error, '=' expected
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "M").WithLocation(3, 18),
-                // (3,18): error CS1520: Method must have a return type
+                Diagnostic(ErrorCode.ERR_SyntaxError, "M").WithArguments("=").WithLocation(3, 18),
+                // (3,18): error CS8172: Cannot initialize a by-reference variable with a value
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 18),
-                // (3,18): error CS8958: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "M() => throw null").WithLocation(3, 18),
+                // (3,18): error CS0246: The type or namespace name 'M' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "M").WithLocation(3, 18)
-                );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M").WithArguments("M").WithLocation(3, 18),
+                // (3,18): error CS1510: A ref or out value must be an assignable variable
+                //     ref scoped R M() => throw null;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "M() => throw null").WithLocation(3, 18));
 
             source = @"
 delegate void M(ref scoped R parameter);
