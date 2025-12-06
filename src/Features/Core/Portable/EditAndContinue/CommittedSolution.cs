@@ -421,6 +421,32 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
             {
                 return sourceText;
             }
+            else
+            {
+                // The comment above says that we must use the encoding from the IDE.
+                // However, the problem is that LSP protocol does not provide us encoding information,
+                // and we receive the content as string, not as byte[].
+                // There's a stale https://github.com/dotnet/roslyn/issues/63583 about it.
+
+                // Here we get 'encoding' from sourceText.Encoding, 
+                // that is always created in DidOpenHandler with System.Text.Encoding.UTF8 (with BOM enabled)
+                // So by default it always calculates the checksum as BOM is present,
+                // and if the file is saved without BOM, it will not match the baseline checksum in PDB.
+                // In case if the current file is saved without BOM, it will cause the whole project marked is stale.
+                // This is a workaround to handle this specific scenario.
+                if (encoding?.GetPreamble().Length > 0)
+                {
+                    log.Write($"Checksum differs for source file '{sourceFilePath}', trying without preamble", LogMessageSeverity.Warning);
+                    // Try again without BOM
+                    fileStream.Seek(0, SeekOrigin.Begin);
+                    sourceText = SourceText.From(fileStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), checksumAlgorithm);
+
+                    if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
+                    {
+                        return sourceText;
+                    }
+                }
+            }
 
             log.Write($"Checksum differs for source file '{sourceFilePath}'", LogMessageSeverity.Warning);
 
