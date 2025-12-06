@@ -12028,5 +12028,52 @@ class B : A
                 //         A(1, "test");
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(7, 11));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81572")]
+        public void OverloadResolutionDueToDuplicateSignaturesShouldReturnMatchingSignaturesFirst()
+        {
+            var source = """
+                static class Extension1
+                {
+                    public static void Goo(this string s) { }
+                    public static void Goo(this string s, string t) { }
+                }
+                
+                static class Extension2
+                {
+                    public static void Goo(this string s) { }
+                    public static void Goo(this string s, string t) { }
+                }
+
+                class Program
+                {
+                    static void Test(string s)
+                    {
+                        s.Goo("test");
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (17,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extension1.Goo(string, string)' and 'Extension2.Goo(string, string)'
+                //         s.Goo("test");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Extension1.Goo(string, string)", "Extension2.Goo(string, string)").WithLocation(17, 11));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var invocation = tree.FindNodeOrTokenByKind(SyntaxKind.InvocationExpression);
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(invocation.AsNode());
+
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(4, symbolInfo.CandidateSymbols.Length);
+
+            // First two methods should actually be those that could be applicable. The last two are those in the
+            // overload resolution list, but aren't actually applicable.  This way the IDE can just take the first and
+            // have it be more reasonable to use for dealing with the overload resolution problem than the others.
+            Assert.Equal("string.Goo(string)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            Assert.Equal("string.Goo(string)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+            Assert.Equal("string.Goo()", symbolInfo.CandidateSymbols[2].ToDisplayString());
+            Assert.Equal("string.Goo()", symbolInfo.CandidateSymbols[3].ToDisplayString());
+        }
     }
 }
