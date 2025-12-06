@@ -12029,7 +12029,7 @@ class B : A
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(7, 11));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")]
         public void OverloadResolutionDueToDuplicateSignaturesShouldReturnMatchingSignaturesFirst()
         {
             var source = """
