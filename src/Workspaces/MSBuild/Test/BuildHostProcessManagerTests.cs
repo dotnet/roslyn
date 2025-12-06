@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -63,9 +64,12 @@ public sealed class BuildHostProcessManagerTests
         const string PipeName = "TestPipe";
 
         var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
-
+#if NET
+        var args = processStartInfo.ArgumentList;
+#else
         var args = processStartInfo.Arguments.Split(' ');
-        Assert.True(args.Length >= 2, $"Expected at least 2 args: '{processStartInfo.Arguments}'");
+#endif
+        Assert.True(args.Count() >= 2, $"Expected at least 2 args: '{string.Join(",", args)}'");
 
         Assert.Equal(PipeName, args[^2]);
         Assert.Equal(System.Globalization.CultureInfo.CurrentUICulture.Name, args[^1]);
@@ -81,9 +85,12 @@ public sealed class BuildHostProcessManagerTests
         const string PipeName = "TestPipe";
 
         var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
-
+#if NET
+        var args = processStartInfo.ArgumentList;
+#else
         var args = processStartInfo.Arguments.Split(' ');
-        Assert.True(args.Length >= 2, $"Expected at least 2 args: '{processStartInfo.Arguments}'");
+#endif
+        Assert.True(args.Count() >= 2, $"Expected at least 2 args: '{string.Join(",", args)}'");
 
         Assert.Equal(PipeName, args[^2]);
         Assert.Equal("de-DE", args[^1]);
