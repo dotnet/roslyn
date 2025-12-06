@@ -484,7 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray.Create(toString, index);
             }
 
-            return ImmutableArray.Create(_factory.Convert(parameter.Type, value), index);
+            Conversion c = _factory.ClassifyEmitConversion(value, parameter.Type);
+            Debug.Assert(c.IsNumeric || c.IsReference || c.IsIdentity || c.IsPointer || c.IsBoxing || c.IsEnumeration);
+            return ImmutableArray.Create(_factory.Convert(parameter.Type, value, c), index);
         }
 
         private BoundExpression VariableRead(Symbol localOrParameterSymbol)

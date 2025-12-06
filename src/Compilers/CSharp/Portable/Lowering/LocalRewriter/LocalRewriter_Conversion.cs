@@ -630,7 +630,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             MethodSymbol method = methodDefinition.AsMember(destinationType);
 
-                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            TypeSymbol parameterType = method.ParameterTypesWithAnnotations[0].Type;
+                            Debug.Assert(parameterType.IsSZArray());
+                            Debug.Assert(rewrittenOperand.Type?.IsSZArray() == true);
+                            Conversion c = _factory.ClassifyEmitConversion(rewrittenOperand, parameterType);
+                            Debug.Assert(c.IsImplicit || conversion.IsExplicit);
+                            Debug.Assert(c.IsReference || c.IsIdentity);
+                            rewrittenOperand = _factory.Convert(parameterType, rewrittenOperand, c);
 
                             if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(destinationType))
                             {
@@ -653,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             MethodSymbol implicitOperator = implicitOperatorDefinition.AsMember((NamedTypeSymbol)sourceType);
 
-                            rewrittenOperand = _factory.Convert(implicitOperator.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            Debug.Assert(implicitOperator.ParameterTypesWithAnnotations[0].Type.Equals(rewrittenOperand.Type, TypeCompareKind.AllIgnoreOptions));
                             rewrittenOperand = _factory.Call(null, implicitOperator, rewrittenOperand);
 
                             if (Binder.NeedsSpanCastUp(sourceType, destinationType))
@@ -687,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeWithAnnotations sourceElementType = ((NamedTypeSymbol)sourceType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                             MethodSymbol method = methodDefinition.AsMember(destinationType).Construct([sourceElementType]);
 
-                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            Debug.Assert(method.ParameterTypesWithAnnotations[0].Type.Equals(rewrittenOperand.Type, TypeCompareKind.AllIgnoreOptions));
                             return _factory.Call(null, method, rewrittenOperand);
                         }
 
@@ -702,7 +708,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 throw ExceptionUtilities.Unreachable();
                             }
 
-                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            Debug.Assert(method.Parameters[0].Type.IsStringType());
+                            Debug.Assert(rewrittenOperand.Type?.IsStringType() == true);
                             return _factory.Call(null, method, rewrittenOperand);
                         }
 
@@ -835,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private BoundExpression MakeConversionNode(
+        internal BoundExpression MakeConversionNode(
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,

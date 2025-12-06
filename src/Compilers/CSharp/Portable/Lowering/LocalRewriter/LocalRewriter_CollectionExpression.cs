@@ -510,7 +510,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayOrList = CreateAndPopulateList(node, elementType, elements);
             }
 
-            return _factory.Convert(collectionType, arrayOrList);
+            Conversion c = _factory.ClassifyEmitConversion(arrayOrList, collectionType);
+            Debug.Assert(c.IsImplicit);
+            Debug.Assert(c.IsReference || c.IsIdentity);
+            return _factory.Convert(collectionType, arrayOrList, c);
 
             BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
             {

@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConversion(BoundConversion conversion)
         {
+            AssertIsEmitConversionKind(conversion.ConversionKind);
+
             switch (conversion.ConversionKind)
             {
                 case ConversionKind.Identity:
@@ -176,6 +178,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ExplicitNullable:
                 default:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        internal static void AssertIsEmitConversionKind(ConversionKind conversionKind)
+        {
+            switch (conversionKind)
+            {
+                case ConversionKind.Identity:
+                case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ExplicitNumeric:
+                case ConversionKind.ImplicitReference:
+                case ConversionKind.Boxing:
+                case ConversionKind.ExplicitReference:
+                case ConversionKind.Unboxing:
+                case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.ExplicitEnumeration:
+                case ConversionKind.ImplicitPointerToVoid:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ImplicitPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
+                case ConversionKind.PinnedObjectToPointer:
+                case ConversionKind.ImplicitNullToPointer:
+                    break;
+                default:
+                    ExceptionUtilities.UnexpectedValue(conversionKind);
+                    break;
             }
         }
 
