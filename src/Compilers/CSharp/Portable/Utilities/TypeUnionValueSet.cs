@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Node root,
             ConversionsBase conversions)
         {
+            Debug.Assert(!typesInUnion.IsEmpty);
             Debug.Assert(!typesInUnion.Any(t => t.IsNullableType()));
             Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
             _typesInUnion = typesInUnion;
