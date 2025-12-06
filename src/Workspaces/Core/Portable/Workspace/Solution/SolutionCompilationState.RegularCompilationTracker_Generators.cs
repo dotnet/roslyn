@@ -291,12 +291,19 @@ internal sealed partial class SolutionCompilationState
 
             if (generatorDriver == null)
             {
-                generatorDriver = await compilationState.GeneratorDriverCache.CreateAndRunGeneratorDriverAsync(this.ProjectState, compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken).ConfigureAwait(false);
+                generatorDriver = await this.ProjectState.GeneratorDriverCache.CreateAndRunGeneratorDriverAsync(this.ProjectState, compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken);
             }
+
+            // Since this is our most recent run, we'll update our cache with this one. This has two benefits:
+            //
+            // 1. If some other fork of this Solution needs a GeneratorDriver created, it'll have one that's probably more update to date.
+            //    This is obviously speculative -- if it's a really old Solution fork it might not help, but can't hurt for the more common cases.
+            // 2. It ensures that we're not holding an old GeneratorDriver alive, which itself may hold onto state that's no longer applicable.
+            this.ProjectState.GeneratorDriverCache.UpdateCacheWithForGeneratorDriver(generatorDriver);
 
             CheckGeneratorDriver(generatorDriver, this.ProjectState);
 
