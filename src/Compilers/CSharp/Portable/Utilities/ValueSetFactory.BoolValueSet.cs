@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private sealed class BoolValueSet : IValueSet<bool>
+        private sealed class BoolValueSet : IConstantValueSet<bool>
         {
             private readonly bool _hasFalse, _hasTrue;
 
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.IsEmpty => !_hasFalse && !_hasTrue;
+            bool IConstantValueSet.IsEmpty => !_hasFalse && !_hasTrue;
 
-            ConstantValue IValueSet.Sample => ConstantValue.Create(_hasTrue ? true : _hasFalse ? false : throw new ArgumentException());
+            ConstantValue IConstantValueSet.Sample => ConstantValue.Create(_hasTrue ? true : _hasFalse ? false : throw new ArgumentException());
 
             public bool Any(BinaryOperatorKind relation, bool value)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.BooleanValue);
+            bool IConstantValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.BooleanValue);
 
             public bool All(BinaryOperatorKind relation, bool value)
             {
@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, value.BooleanValue);
+            bool IConstantValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, value.BooleanValue);
 
-            public IValueSet<bool> Complement() => Create(!_hasFalse, !_hasTrue);
+            public IConstantValueSet<bool> Complement() => Create(!_hasFalse, !_hasTrue);
 
             IValueSet IValueSet.Complement() => this.Complement();
 
-            public IValueSet<bool> Intersect(IValueSet<bool> other)
+            public IConstantValueSet<bool> Intersect(IConstantValueSet<bool> other)
             {
                 if (this == other)
                     return this;
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Create(hasFalse: this._hasFalse & o._hasFalse, hasTrue: this._hasTrue & o._hasTrue);
             }
 
-            public IValueSet Intersect(IValueSet other) => this.Intersect((IValueSet<bool>)other);
+            public IValueSet Intersect(IValueSet other) => this.Intersect((IConstantValueSet<bool>)other);
 
-            public IValueSet<bool> Union(IValueSet<bool> other)
+            public IConstantValueSet<bool> Union(IConstantValueSet<bool> other)
             {
                 if (this == other)
                     return this;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Create(hasFalse: this._hasFalse | o._hasFalse, hasTrue: this._hasTrue | o._hasTrue);
             }
 
-            IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<bool>)other);
+            IValueSet IValueSet.Union(IValueSet other) => this.Union((IConstantValueSet<bool>)other);
 
             // Since we cache all distinct boolean value sets, we can use reference equality.
             public override bool Equals(object? obj) => this == obj;

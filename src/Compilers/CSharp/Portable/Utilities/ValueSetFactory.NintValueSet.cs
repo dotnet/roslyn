@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private sealed class NintValueSet : IValueSet<int>, IValueSet
+        private sealed class NintValueSet : IConstantValueSet<int>, IValueSet
         {
             public static readonly NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int>.AllValues(IntTC.DefaultInstance), hasLarge: true);
 
             public static readonly NintValueSet NoValues = new NintValueSet(hasSmall: false, values: NumericValueSet<int>.NoValues(IntTC.DefaultInstance), hasLarge: false);
 
-            private readonly IValueSet<int> _values;
+            private readonly IConstantValueSet<int> _values;
 
             /// <summary>
             /// A value of type nint may, in a 64-bit runtime, take on values less than <see cref="System.Int32.MinValue"/>.
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly bool _hasLarge;
 
-            internal NintValueSet(bool hasSmall, IValueSet<int> values, bool hasLarge)
+            internal NintValueSet(bool hasSmall, IConstantValueSet<int> values, bool hasLarge)
             {
                 _hasSmall = hasSmall;
                 _values = values;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsEmpty => !_hasSmall && !_hasLarge && _values.IsEmpty;
 
-            ConstantValue? IValueSet.Sample
+            ConstantValue? IConstantValueSet.Sample
             {
                 get
                 {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.All(relation, value);
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || All(relation, value.Int32Value);
+            bool IConstantValueSet.All(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || All(relation, value.Int32Value);
 
             public bool Any(BinaryOperatorKind relation, int value)
             {
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.Any(relation, value);
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.Int32Value);
+            bool IConstantValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.Int32Value);
 
-            public IValueSet<int> Complement()
+            public IConstantValueSet<int> Complement()
             {
                 return new NintValueSet(
                     hasSmall: !this._hasSmall,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Complement() => this.Complement();
 
-            public IValueSet<int> Intersect(IValueSet<int> o)
+            public IConstantValueSet<int> Intersect(IConstantValueSet<int> o)
             {
                 var other = (NintValueSet)o;
                 return new NintValueSet(
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((NintValueSet)other);
 
-            public IValueSet<int> Union(IValueSet<int> o)
+            public IConstantValueSet<int> Union(IConstantValueSet<int> o)
             {
                 var other = (NintValueSet)o;
                 return new NintValueSet(

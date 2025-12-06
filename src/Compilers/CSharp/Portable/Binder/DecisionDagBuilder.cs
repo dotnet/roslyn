@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// affect code semantics but it results in a better code generation.
         /// </summary>
         private readonly bool _forLowering;
+        private bool _suitableForLowering = true;
 
         private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool forLowering, BindingDiagnosticBag diagnostics)
         {
@@ -417,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
         {
+            // PROTOTYPE: Will this always do the right thing for IUnion.Value?
             while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.ContainingType))
             {
                 input = source.Input;
@@ -768,12 +770,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
             var fac = ValueSetFactory.ForInput(output);
-            var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
+            IConstantValueSet? values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
             {
                 tests.Add(Tests.False.Instance);
             }
-            else if (values?.Complement().IsEmpty != true)
+            else if (((IConstantValueSet?)values?.Complement())?.IsEmpty != true)
             {
                 tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, output, rel.HasErrors)));
             }
@@ -810,7 +812,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+            Debug.Assert(_suitableForLowering || !_forLowering);
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode, _suitableForLowering);
 
             // Now go and clean up all the dag states we created
             foreach (var kvp in uniqueState)
@@ -982,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Select the next test to do at this state, and compute successor states
-                    switch (state.SelectedTest = state.ComputeSelectedTest())
+                    switch (state.SelectedTest = state.ComputeSelectedTest(_forLowering, ref _suitableForLowering))
                     {
                         case BoundDagAssignmentEvaluation e when state.RemainingValues.TryGetValue(e.Input, out IValueSet? currentValues):
                             Debug.Assert(e.Input.IsEquivalentTo(e.Target));
@@ -1178,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             whenFalse = AsFrozen(whenFalseBuilder);
         }
 
-        private static (
+        private (
             ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             bool truePossible,
@@ -1190,10 +1193,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (test)
             {
                 case BoundDagEvaluation _:
-                case BoundDagExplicitNullTest _:
-                case BoundDagNonNullTest _:
-                case BoundDagTypeTest _:
                     return (values, values, true, true);
+                case BoundDagExplicitNullTest nullTest:
+                    return resultForNullTest(nullTest);
+                case BoundDagNonNullTest nonNullTest:
+                    return resultForNonNullTest(nonNullTest);
+                case BoundDagTypeTest typeTest:
+                    return resultForTypeTest(typeTest);
                 case BoundDagValueTest t:
                     return resultForRelation(BinaryOperatorKind.Equal, t.Value);
                 case BoundDagRelationalTest t:
@@ -1210,22 +1216,101 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultForRelation(BinaryOperatorKind relation, ConstantValue value)
             {
                 var input = test.Input;
-                IValueSetFactory? valueFac = ValueSetFactory.ForInput(input);
+                IConstantValueSetFactory? valueFac = ValueSetFactory.ForInput(input);
                 if (valueFac == null || value.IsBad)
                 {
                     // If it is a type we don't track yet, assume all values are possible
                     return (values, values, true, true);
                 }
-                IValueSet fromTestPassing = valueFac.Related(relation.Operator(), value);
-                IValueSet fromTestFailing = fromTestPassing.Complement();
+                var fromTestPassing = valueFac.Related(relation.Operator(), value);
+                (var whenTrueValues, var whenFalseValues, fromTestPassing, var fromTestFailing) = splitValues(values, input, fromTestPassing);
+                return (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty, !fromTestFailing.IsEmpty);
+            }
+
+            static (
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+            TValueSet fromTestPassing,
+            TValueSet fromTestFailing)
+            splitValues<TValueSet>(ImmutableDictionary<BoundDagTemp, IValueSet> values, BoundDagTemp input, TValueSet fromTestPassing) where TValueSet : IValueSet
+            {
+                var fromTestFailing = (TValueSet)fromTestPassing.Complement();
                 if (values.TryGetValue(input, out IValueSet? tempValuesBeforeTest))
                 {
-                    fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
-                    fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
+                    fromTestPassing = (TValueSet)fromTestPassing.Intersect(tempValuesBeforeTest);
+                    fromTestFailing = (TValueSet)fromTestFailing.Intersect(tempValuesBeforeTest);
                 }
                 var whenTrueValues = values.SetItem(input, fromTestPassing);
                 var whenFalseValues = values.SetItem(input, fromTestFailing);
-                return (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty, !fromTestFailing.IsEmpty);
+                return (whenTrueValues, whenFalseValues, fromTestPassing, fromTestFailing);
+            }
+
+            (
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+            bool truePossible,
+            bool falsePossible)
+            resultForTypeTest(BoundDagTypeTest typeTest)
+            {
+                if (!_forLowering && ValueSetFactory.TypeUnionValueSetFactoryForInput(typeTest.Input) is { } factory)
+                {
+                    var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                    var fromTestPassing = factory.FromTypeMatch(typeTest.Type, _conversions, ref useSiteInfo);
+                    if (!fromTestPassing.IsEmpty(ref useSiteInfo)) // Otherwise we must have reported ERR_PatternWrongType during binding, let's avoid cascading errors
+                    {
+                        (var whenTrueValues, var whenFalseValues, fromTestPassing, var fromTestFailing) = splitValues(values, typeTest.Input, fromTestPassing);
+                        var result = (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty(ref useSiteInfo), !fromTestFailing.IsEmpty(ref useSiteInfo));
+                        _diagnostics.Add(typeTest.Syntax, useSiteInfo);
+                        _suitableForLowering = false;
+                        return result;
+                    }
+
+                    _diagnostics.Add(typeTest.Syntax, useSiteInfo);
+                }
+
+                return (values, values, true, true);
+            }
+
+            (
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+            bool truePossible,
+            bool falsePossible)
+            resultForNonNullTest(BoundDagNonNullTest nonNullTest)
+            {
+                if (!_forLowering && ValueSetFactory.TypeUnionValueSetFactoryForInput(nonNullTest.Input) is { } factory)
+                {
+                    var fromTestPassing = factory.FromNonNullMatch(_conversions);
+                    var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                    (var whenTrueValues, var whenFalseValues, fromTestPassing, var fromTestFailing) = splitValues(values, nonNullTest.Input, fromTestPassing);
+                    var result = (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty(ref useSiteInfo), !fromTestFailing.IsEmpty(ref useSiteInfo));
+                    _diagnostics.Add(nonNullTest.Syntax, useSiteInfo);
+                    _suitableForLowering = false;
+                    return result;
+                }
+
+                return (values, values, true, true);
+            }
+
+            (
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+            bool truePossible,
+            bool falsePossible)
+            resultForNullTest(BoundDagExplicitNullTest nullTest)
+            {
+                if (!_forLowering && ValueSetFactory.TypeUnionValueSetFactoryForInput(nullTest.Input) is { } factory)
+                {
+                    var fromTestPassing = factory.FromNullMatch(_conversions);
+                    var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                    (var whenTrueValues, var whenFalseValues, fromTestPassing, var fromTestFailing) = splitValues(values, nullTest.Input, fromTestPassing);
+                    var result = (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty(ref useSiteInfo), !fromTestFailing.IsEmpty(ref useSiteInfo));
+                    _diagnostics.Add(nullTest.Syntax, useSiteInfo);
+                    _suitableForLowering = false;
+                    return result;
+                }
+
+                return (values, values, true, true);
             }
         }
 
@@ -1355,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTypeTest t2:
                             {
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-                                ConstantValue? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
+                                ConstantValue? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(_conversions, t1.Type, t2.Type, ref useSiteInfo);
                                 if (matches == ConstantValue.False)
                                 {
                                     // If T1 could never be T2
@@ -1371,19 +1456,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
                                 matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteInfo, out _);
-                                _diagnostics.Add(syntax, useSiteInfo);
+
                                 if (matches == ConstantValue.True)
                                 {
                                     // If T2: T1
                                     // !(v is T1) --> !(v is T2)
                                     falseTestPermitsTrueOther = false;
                                 }
+                                else if (!_forLowering && whenFalseValues is TypeUnionValueSet whenFalseUnionSet &&
+                                        whenFalseUnionSet.TypeMatchesAllValuesIfAny(t2.Type, ref useSiteInfo))
+                                {
+                                    // We don't know for sure that test for T2 is going to match, but if it fails,
+                                    // that means that some previous test must match and we simply cannot get to this test.
+                                    // In other words, this test is either unreachable or it will succeed.
+                                    // Either way, for the purposes of exhaustiveness check, default branch won't be taken on this path,
+                                    // and we record this fact below by setting 'falseTestImpliesTrueOther' to true.
+                                    falseTestImpliesTrueOther = true;
+                                    _suitableForLowering = false;
+                                }
+
+                                _diagnostics.Add(syntax, useSiteInfo);
                             }
                             break;
                         case BoundDagExplicitNullTest _:
-                            foundExplicitNullTest = true;
-                            // v is T --> !(v == null)
-                            trueTestPermitsTrueOther = false;
+                            {
+                                foundExplicitNullTest = true;
+                                // v is T --> !(v == null)
+                                trueTestPermitsTrueOther = false;
+                            }
                             break;
                     }
                     break;
@@ -1421,10 +1521,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // We check test.Equals(other) to handle "bad" constant values
                                 bool sameTest = test.Equals(other);
-                                trueTestPermitsTrueOther = whenTrueValues?.Any(relation, value) ?? true;
-                                trueTestImpliesTrueOther = sameTest || trueTestPermitsTrueOther && (whenTrueValues?.All(relation, value) ?? false);
-                                falseTestPermitsTrueOther = !sameTest && (whenFalseValues?.Any(relation, value) ?? true);
-                                falseTestImpliesTrueOther = falseTestPermitsTrueOther && (whenFalseValues?.All(relation, value) ?? false);
+                                trueTestPermitsTrueOther = ((IConstantValueSet?)whenTrueValues)?.Any(relation, value) ?? true;
+                                trueTestImpliesTrueOther = sameTest || trueTestPermitsTrueOther && (((IConstantValueSet?)whenTrueValues)?.All(relation, value) ?? false);
+                                falseTestPermitsTrueOther = !sameTest && (((IConstantValueSet?)whenFalseValues)?.Any(relation, value) ?? true);
+                                falseTestImpliesTrueOther = falseTestPermitsTrueOther && (((IConstantValueSet?)whenFalseValues)?.All(relation, value) ?? false);
                             }
                     }
                     break;
@@ -1536,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (s1Index < 0 != s2Index < 0)
                             {
                                 Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
-                                var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
+                                var lengthValues = (IConstantValueSet<int>)state.RemainingValues[s1LengthTemp];
                                 // We do not expect an empty set here because an indexer evaluation is always preceded by
                                 // a length test of which an impossible match would have made the rest of the tests unreachable.
                                 Debug.Assert(!lengthValues.IsEmpty);
@@ -1553,6 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
+                                    _suitableForLowering = false;
                                     continue;
                                 }
                             }
@@ -1589,12 +1690,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
         /// See, for example, https://github.com/dotnet/roslyn/issues/35661
         /// </summary>
-        private ConstantValue? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+        internal static ConstantValue? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+            ConversionsBase conversions,
             TypeSymbol expressionType,
             TypeSymbol patternType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            ConstantValue result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
+            ConstantValue result = Binder.ExpressionOfTypeMatchesPatternType(conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
             return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
                 ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
                 : result;
@@ -1972,9 +2074,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// heuristic we can change to adjust the quality of the generated decision automaton.
             /// See https://www.cs.tufts.edu/~nr/cs257/archive/norman-ramsey/match.pdf for some ideas.
             /// </summary>
-            internal BoundDagTest ComputeSelectedTest()
+            internal BoundDagTest ComputeSelectedTest(bool forLowering, ref bool suitableForLowering)
             {
-                return Cases[0].RemainingTests.ComputeSelectedTest();
+                return Cases[0].RemainingTests.ComputeSelectedTest(forLowering, ref suitableForLowering);
             }
 
             internal void UpdateRemainingValues(ImmutableDictionary<BoundDagTemp, IValueSet> newRemainingValues)
@@ -2126,7 +2228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenTrue,
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
-            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
+            public virtual BoundDagTest ComputeSelectedTest(bool forLowering, ref bool suitableForLowering) => throw ExceptionUtilities.Unreachable();
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
             /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
@@ -2258,7 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : AndSequence.Create(OrSequence.Create(Not.Create(relationCondition), relationEffect), other);
                     }
                 }
-                public override BoundDagTest ComputeSelectedTest() => this.Test;
+                public override BoundDagTest ComputeSelectedTest(bool forLowering, ref bool suitableForLowering) => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
                 public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
@@ -2305,11 +2407,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     static Tests? knownResult(BinaryOperatorKind relation, ConstantValue constant, int offset)
                     {
                         var fac = ValueSetFactory.ForLength;
-                        var possibleValues = fac.Related(BinaryOperatorKind.LessThanOrEqual, int.MaxValue - offset);
-                        var lengthValues = fac.Related(relation, constant);
-                        if (lengthValues.Intersect(possibleValues).IsEmpty)
+                        IConstantValueSet possibleValues = fac.Related(BinaryOperatorKind.LessThanOrEqual, int.MaxValue - offset);
+                        IConstantValueSet lengthValues = fac.Related(relation, constant);
+                        if (((IConstantValueSet)lengthValues.Intersect(possibleValues)).IsEmpty)
                             return False.Instance;
-                        if (lengthValues.Complement().Intersect(possibleValues).IsEmpty)
+                        if (((IConstantValueSet)lengthValues.Complement().Intersect(possibleValues)).IsEmpty)
                             return True.Instance;
                         return null;
                     }
@@ -2351,7 +2453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => Create(Negated.RemoveEvaluation(e));
                 public override Tests RewriteNestedLengthTests() => Create(Negated.RewriteNestedLengthTests());
-                public override BoundDagTest ComputeSelectedTest() => Negated.ComputeSelectedTest();
+                public override BoundDagTest ComputeSelectedTest(bool forLowering, ref bool suitableForLowering) => Negated.ComputeSelectedTest(forLowering, ref suitableForLowering);
                 public override string Dump(Func<BoundDagTest, string> dump) => $"Not ({Negated.Dump(dump)})";
                 public override void Filter(
                     DecisionDagBuilder builder,
@@ -2692,14 +2794,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public sealed override BoundDagTest ComputeSelectedTest()
+                public sealed override BoundDagTest ComputeSelectedTest(bool forLowering, ref bool suitableForLowering)
                 {
                     Tests firstTest;
                     var current = this;
 
                     while (true)
                     {
-                        if (current.ComputeSelectedTestEasyOut() is { } easy)
+                        if (current.ComputeSelectedTestEasyOut(forLowering, ref suitableForLowering) is { } easy)
                         {
                             return easy;
                         }
@@ -2714,10 +2816,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         current = sequence;
                     }
 
-                    return firstTest.ComputeSelectedTest();
+                    return firstTest.ComputeSelectedTest(forLowering, ref suitableForLowering);
                 }
 
-                protected virtual BoundDagTest? ComputeSelectedTestEasyOut() => null;
+                protected virtual BoundDagTest? ComputeSelectedTestEasyOut(bool forLowering, ref bool suitableForLowering) => null;
             }
 
             /// <summary>
@@ -2767,12 +2869,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
-                protected override BoundDagTest? ComputeSelectedTestEasyOut()
+                protected override BoundDagTest? ComputeSelectedTestEasyOut(bool forLowering, ref bool suitableForLowering)
                 {
                     // Our simple heuristic is to perform the first test of the
                     // first possible matched case, with two exceptions.
 
                     if (RemainingTests[0] is One { Test: { Kind: BoundKind.DagNonNullTest } planA })
+                    {
+                        BoundDagTest? easyOutForLowering = tryGetEasyOut(planA);
+
+                        if (easyOutForLowering is not null)
+                        {
+                            if (easyOutForLowering != (object)planA && !forLowering && ValueSetFactory.TypeUnionValueSetFactoryForInput(planA.Input) is not null)
+                            {
+                                // We need a test about `null` present in the Dag to properly handle exhaustiveness
+                                // analysis for 'null' values when we are matching for a union of types.
+                                // We don't know if an explicit test about 'null' is coming and haven't yet matched
+                                // against 'null', otherwise the test would be filtered out.
+                                // Therefore, we prefer selecting this test.
+
+                                suitableForLowering = false;
+                                return planA;
+                            }
+
+                            return easyOutForLowering;
+                        }
+                    }
+
+                    return null;
+
+                    BoundDagTest? tryGetEasyOut(BoundDagTest planA)
                     {
                         switch (RemainingTests[1])
                         {
@@ -2789,9 +2915,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case One { Test: { Kind: BoundKind.DagValueTest } planB2 }:
                                 return (planA.Input == planB2.Input) ? planB2 : planA;
                         }
-                    }
 
-                    return null;
+                        return null;
+                    }
                 }
                 public override string Dump(Func<BoundDagTest, string> dump)
                 {
