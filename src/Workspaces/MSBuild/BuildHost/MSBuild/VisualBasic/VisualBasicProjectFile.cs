@@ -8,12 +8,10 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class VisualBasicProjectFile : ProjectFile
+internal sealed class VisualBasicProjectFile(MSB.Evaluation.Project? loadedProject) : ProjectFile(loadedProject)
 {
-    public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project? loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
-        : base(loader, loadedProject, buildManager, log)
-    {
-    }
+    public override string Language
+        => LanguageNames.VisualBasic;
 
     protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.VbcCommandLineArgs);

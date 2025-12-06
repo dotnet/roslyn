@@ -8,12 +8,10 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class CSharpProjectFile : ProjectFile
+internal sealed class CSharpProjectFile(MSB.Evaluation.Project? project) : ProjectFile(project)
 {
-    public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
-        : base(loader, project, buildManager, log)
-    {
-    }
+    public override string Language
+        => LanguageNames.CSharp;
 
     protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.CscCommandLineArgs);

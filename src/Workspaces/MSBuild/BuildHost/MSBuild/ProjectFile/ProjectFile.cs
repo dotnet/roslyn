@@ -14,29 +14,29 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal abstract class ProjectFile : IProjectFile
+internal abstract class ProjectFile
 {
-    private readonly ProjectFileLoader _loader;
     private readonly MSB.Evaluation.Project? _loadedProject;
-    private readonly ProjectBuildManager _buildManager;
     private readonly string _projectDirectory;
 
-    public DiagnosticLog Log { get; }
     public virtual string FilePath => _loadedProject?.FullPath ?? string.Empty;
-    public string Language => _loader.Language;
 
-    protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project? loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
+    protected ProjectFile(MSB.Evaluation.Project? loadedProject)
     {
-        _loader = loader;
         _loadedProject = loadedProject;
-        _buildManager = buildManager;
         var directory = loadedProject?.DirectoryPath ?? string.Empty;
         _projectDirectory = PathUtilities.EnsureTrailingSeparator(directory);
-        Log = log;
     }
 
-    public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => [.. Log];
+    public static ProjectFile Create(MSB.Evaluation.Project? project, string languageName)
+        => languageName switch
+        {
+            LanguageNames.CSharp => new CSharpProjectFile(project),
+            LanguageNames.VisualBasic => new VisualBasicProjectFile(project),
+            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
+        };
 
+    public abstract string Language { get; }
     protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
     protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
@@ -45,14 +45,14 @@ internal abstract class ProjectFile : IProjectFile
     /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
     /// each target framework.
     /// </summary>
-    public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
+    public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(ProjectBuildManager buildManager, DiagnosticLog log, CancellationToken cancellationToken)
     {
         if (_loadedProject is null)
         {
             return [ProjectFileInfo.CreateEmpty(Language, filePath: null)];
         }
 
-        var projectInstances = await _buildManager.BuildProjectInstancesAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
+        var projectInstances = await buildManager.BuildProjectInstancesAsync(_loadedProject, log, cancellationToken).ConfigureAwait(false);
         return projectInstances.SelectAsArray(CreateProjectFileInfo);
     }
 
