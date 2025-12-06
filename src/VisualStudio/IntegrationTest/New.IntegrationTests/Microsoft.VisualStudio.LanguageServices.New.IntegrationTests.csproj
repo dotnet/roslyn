@@ -48,16 +48,33 @@
     <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
     <ProjectReference Include="..\..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      SetTargetFramework="TargetFramework=netstandard2.0"
+                      SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
     <ProjectReference Include="..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="InputSimulatorPlus" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Styles" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
     <PackageReference Include="xunit.extensibility.core" />
   </ItemGroup>
+  
+  <!--
+    Since we have a project reference to the xunit integration test framework we need to add the right assembly attribute
+    as the nuget package targets are not applied to project references.
+    See also https://github.com/dotnet/msbuild/issues/5797
+  -->
+  <ItemGroup>
+    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
+      <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
+      <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>
