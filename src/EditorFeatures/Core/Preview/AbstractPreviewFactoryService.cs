@@ -89,12 +89,33 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
                 var oldProject = projectChanges.OldProject;
                 var newProject = projectChanges.NewProject;
 
+                using var _ = PooledObjects.PooledHashSet<DocumentId>.GetInstance(out var seenDocuments);
+
                 // Exclude changes to unchangeable documents if they will be ignored when applied to workspace.
                 foreach (var documentId in projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, ignoreUnchangeableDocuments))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    seenDocuments.Add(documentId);
                     previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
                         await CreateChangedDocumentPreviewViewAsync(oldSolution.GetRequiredDocument(documentId), newSolution.GetRequiredDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
+                }
+
+                // Now add items for the non-text-changed documents if we can.
+                foreach (var documentId in projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: false, ignoreUnchangeableDocuments: false))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (seenDocuments.Contains(documentId))
+                        continue;
+
+                    var oldDocument = oldSolution.GetRequiredDocument(documentId);
+                    var newDocument = newSolution.GetRequiredDocument(documentId);
+
+                    if (oldDocument.Name != newDocument.Name)
+                    {
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.Rename_0_to_1_colon, oldDocument.Name, newDocument.Name)));
+                    }
                 }
 
                 foreach (var documentId in projectChanges.GetAddedDocuments())
