@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 return new CustomAttributeTypedArgument(argumentType, lmrValue);
             }
-            else if (argumentType.IsReflectionType())
+            else if (argumentType.IsSystemType())
             {
                 // LMR converts all Type attribute values to LMR type values - this mock should too
                 return new CustomAttributeTypedArgument(argumentType, new TypeImpl((System.Type)a.Value));

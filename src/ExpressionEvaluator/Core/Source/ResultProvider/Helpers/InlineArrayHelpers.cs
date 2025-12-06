@@ -29,8 +29,8 @@ internal static class InlineArrayHelpers
             if (InlineArrayAttributeName.Equals(attribute.Constructor?.DeclaringType?.FullName))
             {
                 var ctorParams = attribute.Constructor.GetParameters();
-                if (ctorParams.Length == 1 && ctorParams[0].ParameterType.IsInt32() &&
-                    attribute.ConstructorArguments.Count == 1 && attribute.ConstructorArguments[0].Value is int ctorLengthArg)
+                if (ctorParams is [{ ParameterType: Type ctorParam1Type }] && ctorParam1Type.IsInt32() &&
+                    attribute.ConstructorArguments is [{ Value: int ctorLengthArg }])
                 {
                     arrayLength = ctorLengthArg;
                 }
@@ -110,12 +110,9 @@ internal static class InlineArrayHelpers
                     if (FixedBufferAttributeName.Equals(attribute.Constructor?.DeclaringType?.FullName))
                     {
                         var ctorParams = attribute.Constructor.GetParameters();
-                        if (ctorParams.Length == 2 &&
-                            ctorParams[0].ParameterType.IsReflectionType() &&
-                            ctorParams[1].ParameterType.IsInt32() &&
-                            attribute.ConstructorArguments.Count == 2 &&
-                            attribute.ConstructorArguments[0].Value is Type ctorElementTypeArg &&
-                            attribute.ConstructorArguments[1].Value is int ctorLengthArg)
+                        if (ctorParams is [{ ParameterType: Type ctorParam1Type }, { ParameterType: Type ctorParam2Type }] &&
+                            ctorParam1Type.IsSystemType() && ctorParam2Type.IsInt32() &&
+                            attribute.ConstructorArguments is [{ Value: Type ctorElementTypeArg }, { Value: int ctorLengthArg }])
                         {
                             elementType = ctorElementTypeArg;
                             arrayLength = ctorLengthArg;
