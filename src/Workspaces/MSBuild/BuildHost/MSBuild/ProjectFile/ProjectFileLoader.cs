@@ -17,6 +17,14 @@ internal abstract class ProjectFileLoader
 
     protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log);
 
+    public static ProjectFileLoader GetLoader(string languageName)
+        => languageName switch
+        {
+            LanguageNames.CSharp => CSharpProjectFileLoader.Instance,
+            LanguageNames.VisualBasic => VisualBasicProjectFileLoader.Instance,
+            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
+        };
+
     public async Task<ProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
     {
         if (path == null)

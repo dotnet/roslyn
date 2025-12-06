@@ -8,14 +8,14 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed partial class VisualBasicProjectFileLoader : ProjectFileLoader
 {
-    public override string Language => LanguageNames.VisualBasic;
+    public static readonly VisualBasicProjectFileLoader Instance = new();
 
     internal VisualBasicProjectFileLoader()
     {
     }
 
+    public override string Language => LanguageNames.VisualBasic;
+
     protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
-    {
-        return new VisualBasicProjectFile(this, project, buildManager, log);
-    }
+        => new VisualBasicProjectFile(this, project, buildManager, log);
 }

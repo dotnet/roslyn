@@ -271,7 +271,51 @@ internal sealed class ProjectBuildManager
         BatchBuildStarted = false;
     }
 
-    public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
+    public async Task<ImmutableArray<MSB.Execution.ProjectInstance>> BuildProjectInstancesAsync(
+        MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
+    {
+        var targetFrameworkValue = project.GetPropertyValue(PropertyNames.TargetFramework);
+        var targetFrameworksValue = project.GetPropertyValue(PropertyNames.TargetFrameworks);
+
+        if (!RoslynString.IsNullOrEmpty(targetFrameworkValue) || RoslynString.IsNullOrEmpty(targetFrameworksValue))
+        {
+            return [await BuildProjectInstanceAsync(project, log, cancellationToken).ConfigureAwait(false)];
+        }
+
+        // This project has a <TargetFrameworks> property, but does not specify a <TargetFramework>.
+        // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
+        // each value, and build the project.
+
+        var targetFrameworks = targetFrameworksValue.Split(';');
+
+        if (!project.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
+            initialGlobalTargetFrameworkValue = null;
+
+        var results = new FixedSizeArrayBuilder<MSB.Execution.ProjectInstance>(targetFrameworks.Length);
+        foreach (var targetFramework in targetFrameworks)
+        {
+            project.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
+            project.ReevaluateIfNecessary();
+
+            var projectInstance = await BuildProjectInstanceAsync(project, log, cancellationToken).ConfigureAwait(false);
+            results.Add(projectInstance);
+        }
+
+        if (initialGlobalTargetFrameworkValue is null)
+        {
+            project.RemoveGlobalProperty(PropertyNames.TargetFramework);
+        }
+        else
+        {
+            project.SetGlobalProperty(PropertyNames.TargetFramework, initialGlobalTargetFrameworkValue);
+        }
+
+        project.ReevaluateIfNecessary();
+
+        return results.MoveToImmutable();
+    }
+
+    private Task<MSB.Execution.ProjectInstance> BuildProjectInstanceAsync(
         MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
     {
         Debug.Assert(BatchBuildStarted);
@@ -279,10 +323,10 @@ internal sealed class ProjectBuildManager
         var requiredTargets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
         var optionalTargets = new[] { TargetNames.DesignTimeMarkupCompilation };
 
-        return BuildProjectAsync(project, requiredTargets, optionalTargets, log, cancellationToken);
+        return BuildProjectInstanceAsync(project, requiredTargets, optionalTargets, log, cancellationToken);
     }
 
-    private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
+    private async Task<MSB.Execution.ProjectInstance> BuildProjectInstanceAsync(
         MSB.Evaluation.Project project, string[] requiredTargets, string[] optionalTargets, DiagnosticLog log, CancellationToken cancellationToken)
     {
         // create a project instance to be executed by build engine.

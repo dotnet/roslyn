@@ -8,14 +8,14 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed partial class CSharpProjectFileLoader : ProjectFileLoader
 {
-    public CSharpProjectFileLoader()
+    public static readonly CSharpProjectFileLoader Instance = new();
+
+    private CSharpProjectFileLoader()
     {
     }
 
     public override string Language => LanguageNames.CSharp;
 
     protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
-    {
-        return new CSharpProjectFile(this, project, buildManager, log);
-    }
+        => new CSharpProjectFile(this, project, buildManager, log);
 }

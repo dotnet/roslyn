@@ -198,15 +198,8 @@ internal sealed class BuildHost : IBuildHost
     {
         CreateBuildManager();
 
-        ProjectFileLoader projectLoader = languageName switch
-        {
-            LanguageNames.CSharp => new CSharpProjectFileLoader(),
-            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
-            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
-        };
-
         _logger.LogInformation($"Loading {projectFilePath}");
-        var projectFile = await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false);
+        var projectFile = await ProjectFileLoader.GetLoader(languageName).LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false);
         return _server.AddTarget(projectFile);
     }
 
@@ -218,15 +211,8 @@ internal sealed class BuildHost : IBuildHost
     {
         CreateBuildManager();
 
-        ProjectFileLoader projectLoader = languageName switch
-        {
-            LanguageNames.CSharp => new CSharpProjectFileLoader(),
-            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
-            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
-        };
-
         _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
-        var projectFile = projectLoader.LoadProject(projectFilePath, projectContent, _buildManager);
+        var projectFile = ProjectFileLoader.GetLoader(languageName).LoadProject(projectFilePath, projectContent, _buildManager);
         return _server.AddTarget(projectFile);
     }
 

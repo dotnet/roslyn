@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Evaluation;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -50,70 +49,14 @@ internal abstract class ProjectFile : IProjectFile
     {
         if (_loadedProject is null)
         {
-            return [ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath)];
+            return [ProjectFileInfo.CreateEmpty(Language, filePath: null)];
         }
 
-        var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
-        var targetFrameworksValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFrameworks);
-
-        if (RoslynString.IsNullOrEmpty(targetFrameworkValue) && !RoslynString.IsNullOrEmpty(targetFrameworksValue))
-        {
-            // This project has a <TargetFrameworks> property, but does not specify a <TargetFramework>.
-            // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
-            // each value, and build the project.
-
-            var targetFrameworks = targetFrameworksValue.Split(';');
-
-            if (!_loadedProject.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
-                initialGlobalTargetFrameworkValue = null;
-
-            var results = new FixedSizeArrayBuilder<ProjectFileInfo>(targetFrameworks.Length);
-            foreach (var targetFramework in targetFrameworks)
-            {
-                _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
-                _loadedProject.ReevaluateIfNecessary();
-
-                var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-
-                results.Add(projectFileInfo);
-            }
-
-            if (initialGlobalTargetFrameworkValue is null)
-            {
-                _loadedProject.RemoveGlobalProperty(PropertyNames.TargetFramework);
-            }
-            else
-            {
-                _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, initialGlobalTargetFrameworkValue);
-            }
-
-            _loadedProject.ReevaluateIfNecessary();
-
-            return results.MoveToImmutable();
-        }
-        else
-        {
-            var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-            projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-            return [projectFileInfo];
-        }
+        var projectInstances = await _buildManager.BuildProjectInstancesAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
+        return projectInstances.SelectAsArray(CreateProjectFileInfo);
     }
 
-    private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
-    {
-        if (_loadedProject is null)
-        {
-            return ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-        }
-
-        var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
-
-        return project != null
-            ? CreateProjectFileInfo(project)
-            : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath);
-    }
-
-    private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
+    public ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
     {
         var commandLineArgs = GetCommandLineArgs(project);
 
@@ -200,7 +143,7 @@ internal abstract class ProjectFile : IProjectFile
             FileGlobs = fileGlobs
         };
 
-        static FileGlobs GetFileGlobs(GlobResult g)
+        static FileGlobs GetFileGlobs(MSB.Evaluation.GlobResult g)
         {
             return new FileGlobs(
                 Includes: [.. g.IncludeGlobs.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
