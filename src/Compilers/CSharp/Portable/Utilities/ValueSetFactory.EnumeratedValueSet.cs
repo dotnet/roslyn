@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// relational operators for it; such a set can be formed only by including explicitly mentioned
         /// members (or the inverse, excluding them, by complementing the set).
         /// </summary>
-        private sealed class EnumeratedValueSet<T> : IValueSet<T>
+        private sealed class EnumeratedValueSet<T> : IConstantValueSet<T>
             where T : notnull
         {
             /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsEmpty => _included && _membersIncludedOrExcluded.IsEmpty;
 
-            ConstantValue IValueSet.Sample
+            ConstantValue IConstantValueSet.Sample
             {
                 get
                 {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, _tc.FromConstantValue(value));
+            bool IConstantValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, _tc.FromConstantValue(value));
 
             public bool All(BinaryOperatorKind relation, T value)
             {
@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
+            bool IConstantValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
 
-            public IValueSet<T> Complement() => new EnumeratedValueSet<T>(!_included, _membersIncludedOrExcluded, _tc);
+            public IConstantValueSet<T> Complement() => new EnumeratedValueSet<T>(!_included, _membersIncludedOrExcluded, _tc);
 
             IValueSet IValueSet.Complement() => this.Complement();
 
-            public IValueSet<T> Intersect(IValueSet<T> o)
+            public IConstantValueSet<T> Intersect(IConstantValueSet<T> o)
             {
                 if (this == o)
                     return this;
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSet.Intersect(IValueSet other) => Intersect((IValueSet<T>)other);
+            IValueSet IValueSet.Intersect(IValueSet other) => Intersect((IConstantValueSet<T>)other);
 
-            public IValueSet<T> Union(IValueSet<T> o)
+            public IConstantValueSet<T> Union(IConstantValueSet<T> o)
             {
                 if (this == o)
                     return this;
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSet.Union(IValueSet other) => Union((IValueSet<T>)other);
+            IValueSet IValueSet.Union(IValueSet other) => Union((IConstantValueSet<T>)other);
 
             public override bool Equals(object? obj)
             {

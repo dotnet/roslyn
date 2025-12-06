@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The implementation of a value set for an numeric type <typeparamref name="T"/>.
         /// </summary>
-        private sealed class NumericValueSet<T> : IValueSet<T>
+        private sealed class NumericValueSet<T> : IConstantValueSet<T>
         {
             private readonly ImmutableArray<(T first, T last)> _intervals;
             private readonly INumericTC<T> _tc;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsEmpty => _intervals.Length == 0;
 
-            ConstantValue IValueSet.Sample
+            ConstantValue IConstantValueSet.Sample
             {
                 get
                 {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, _tc.FromConstantValue(value));
+            bool IConstantValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, _tc.FromConstantValue(value));
 
             public bool All(BinaryOperatorKind relation, T value)
             {
@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
+            bool IConstantValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
 
-            public IValueSet<T> Complement()
+            public IConstantValueSet<T> Complement()
             {
                 if (_intervals.Length == 0)
                     return AllValues(_tc);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Complement() => this.Complement();
 
-            public IValueSet<T> Intersect(IValueSet<T> o)
+            public IConstantValueSet<T> Intersect(IConstantValueSet<T> o)
             {
                 var other = (NumericValueSet<T>)o;
                 Debug.Assert(this._tc.GetType() == other._tc.GetType());
@@ -234,9 +234,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return tc.Related(LessThan, a, b) ? b : a;
             }
 
-            IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IValueSet<T>)other);
+            IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IConstantValueSet<T>)other);
 
-            public IValueSet<T> Union(IValueSet<T> o)
+            public IConstantValueSet<T> Union(IConstantValueSet<T> o)
             {
                 var other = (NumericValueSet<T>)o;
                 Debug.Assert(this._tc.GetType() == other._tc.GetType());
@@ -285,12 +285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new NumericValueSet<T>(builder.ToImmutableAndFree(), _tc);
             }
 
-            IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<T>)other);
+            IValueSet IValueSet.Union(IValueSet other) => this.Union((IConstantValueSet<T>)other);
 
             /// <summary>
             /// Produce a random value set for testing purposes.
             /// </summary>
-            internal static IValueSet<T> Random(int expectedSize, Random random, INumericTC<T> tc)
+            internal static IConstantValueSet<T> Random(int expectedSize, Random random, INumericTC<T> tc)
             {
                 T[] values = new T[expectedSize * 2];
                 for (int i = 0, n = expectedSize * 2; i < n; i++)
