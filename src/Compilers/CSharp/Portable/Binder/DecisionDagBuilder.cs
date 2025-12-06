@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     // We don't know for sure that test for T2 is going to match, but if it fails,
                                     // that means that some previous test must match and we simply cannot get to this test.
-                                    // In other words, this test is either unreachanble or it will succeed.
+                                    // In other words, this test is either unreachable or it will succeed.
                                     // Either way, for the purposes of exhaustiveness check, default branch won't be taken on this path,
                                     // and we record this fact below by setting 'falseTestImpliesTrueOther' to true.
                                     falseTestImpliesTrueOther = true;
@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // !(v == null) --> v != null
                             falseTestImpliesTrueOther = true;
                             break;
-                        case BoundDagTypeTest t:
+                        case BoundDagTypeTest _:
                             // v == null --> !(v is T)
                             trueTestPermitsTrueOther = false;
                             break;
@@ -2882,7 +2882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (easyOutForLowering != (object)planA && !forLowering && ValueSetFactory.TypeUnionValueSetFactoryForInput(planA.Input) is not null)
                             {
-                                // We need a test about `null` peresent in the Dag to properly handle exhaustiveness
+                                // We need a test about `null` present in the Dag to properly handle exhaustiveness
                                 // analysis for 'null' values when we are matching for a union of types.
                                 // We don't know if an explicit test about 'null' is coming and haven't yet matched
                                 // against 'null', otherwise the test would be filtered out.

@@ -579,8 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constraints.All(t => t switch
                     {
                         (BoundDagTypeTest _, _) => true,
-                        (BoundDagExplicitNullTest _, false) => true,
-                        (BoundDagNonNullTest _, true) => true,
+                        (BoundDagExplicitNullTest _, sense: false) => true,
+                        (BoundDagNonNullTest _, sense: true) => true,
                         _ => false
                     }))
                 {
