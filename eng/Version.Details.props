@@ -39,9 +39,9 @@ This file should be imported by eng/Versions.props
     <SystemThreadingTasksDataflowPackageVersion>9.0.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>9.0.0</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet/arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25604.3</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25604.3</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.25604.3</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25605.2</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25605.2</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.25605.2</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet/symreader dependencies -->
     <MicrosoftDiaSymReaderPackageVersion>2.0.0</MicrosoftDiaSymReaderPackageVersion>
     <!-- dotnet/arcade-services dependencies -->
