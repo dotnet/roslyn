@@ -501,7 +501,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32 Then
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32 OrElse
+                   special = SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -590,7 +591,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -690,7 +693,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

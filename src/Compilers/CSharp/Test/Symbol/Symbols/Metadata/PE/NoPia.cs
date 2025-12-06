@@ -1420,5 +1420,93 @@ public class Derived : Base, I2
                 compilationDerived.VerifyDiagnostics();
             }
         }
+
+        [Fact]
+        public void ExtendedLayoutAttribute()
+        {
+            var corlibExtendedSource = """
+            namespace System.Runtime.InteropServices;
+            #pragma warning disable CS9113
+
+            [AttributeUsage(AttributeTargets.Struct)]
+            public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+
+            [AttributeUsage(AttributeTargets.Assembly)]
+            public sealed class PrimaryInteropAssemblyAttribute(int major, int minor): Attribute;
+
+            [AttributeUsage(AttributeTargets.Assembly)]
+            public sealed class GuidAttribute(string guid) : Attribute;
+
+            public enum ExtendedLayoutKind
+            {
+                CStruct,
+                CUnion
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Delegate | System.AttributeTargets.Enum | System.AttributeTargets.Interface | System.AttributeTargets.Struct, AllowMultiple=false, Inherited=false)]
+            public sealed class TypeIdentifierAttribute(string scope, string identifier) : Attribute;
+            """;
+
+            var minimalCoreLibReference = MinimalCoreLibBuilder.Create(corlibExtendedSource).ToMetadataReference();
+
+            var sourcePIA =
+@"using System.Runtime.InteropServices;
+[assembly: PrimaryInteropAssembly(0, 0)]
+[assembly: Guid(""863D5BC0-46A1-49AC-97AA-A5F0D441A9DA"")]
+
+[ExtendedLayout(ExtendedLayoutKind.CStruct)]
+public struct S
+{
+    public int i;
+}
+";
+            var sourceBase =
+@"
+public class C
+{
+    public virtual int F1(S s) => s.i;
+}
+";
+            var compilationPIA = CreateCompilation(sourcePIA, [minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
+            compilationPIA.VerifyDiagnostics();
+
+            var referencePIAImage = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            var referencePIASource = compilationPIA.ToMetadataReference(embedInteropTypes: true);
+
+            var compilationBase = CreateCompilation(sourceBase, [referencePIASource, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
+            compilationBase.VerifyDiagnostics();
+
+            var referenceBaseImage = compilationBase.EmitToImageReference();
+            var referenceBaseSource = compilationBase.ToMetadataReference();
+
+            var sourceDerived =
+@"
+public class Derived : C
+{
+    public override int F1(S s) => s.i * 2;
+}
+";
+            var compilationDerived1 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseSource, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
+            verify(compilationDerived1);
+
+            var compilationDerived2 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseSource, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
+            verify(compilationDerived2);
+
+            var compilationDerived3 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseImage, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
+            verify(compilationDerived3);
+
+            var compilationDerived4 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseImage, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
+            verify(compilationDerived4);
+
+            static void verify(CSharpCompilation compilationDerived)
+            {
+                var s = compilationDerived.GetTypeByMetadataName("S");
+                var baseF1 = compilationDerived.GetTypeByMetadataName("C").GetMember<MethodSymbol>("F1");
+                Assert.Same(s, baseF1.Parameters[0].Type);
+                Assert.Equal(MetadataHelpers.LayoutKindExtended, s.Layout.Kind);
+                Assert.NotNull(s.GetAttribute(compilationDerived.GetTypeByMetadataName("System.Runtime.InteropServices.ExtendedLayoutAttribute")).AttributeConstructor);
+                compilationDerived.VerifyDiagnostics();
+            }
+        }
     }
 }

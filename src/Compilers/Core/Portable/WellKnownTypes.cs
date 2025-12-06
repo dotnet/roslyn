@@ -234,10 +234,11 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,
-        System_Runtime_CompilerServices_AsyncStateMachineAttribute,
-        System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
+        System_Runtime_CompilerServices_AsyncStateMachineAttribute,
+        System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
         System_Windows_Forms_Form,
         System_Windows_Forms_Application,
@@ -374,6 +375,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray14,
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
+
+        System_Runtime_InteropServices_ExtendedLayoutAttribute,
+        System_Runtime_InteropServices_ExtendedLayoutKind,
 
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
@@ -602,10 +606,11 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncVoidMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1",
-            "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
-            "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
             "", // WellKnownType.ExtSentinel extension marker
+
+            "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
+            "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
             "System.Windows.Forms.Form",
             "System.Windows.Forms.Application",
@@ -735,6 +740,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray14`1",
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
+
+            "System.Runtime.InteropServices.ExtendedLayoutAttribute",
+            "System.Runtime.InteropServices.ExtendedLayoutKind",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

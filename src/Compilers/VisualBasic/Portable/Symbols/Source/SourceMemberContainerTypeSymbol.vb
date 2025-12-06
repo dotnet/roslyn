@@ -61,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ReportedBaseClassConstraintsDiagnostics = &H4    ' Set if base class constraints diagnostics have been reported.
             ReportedInterfacesConstraintsDiagnostics = &H8    ' Set if constraints diagnostics for base/implemented interfaces have been reported.
             ReportedCodeAnalysisEmbeddedAttributeDiagnostics = &H10 ' Set if the symbol has been checked for Microsoft.CodeAnalysis.EmbeddedAttribute definition diagnostics.
+            ReportedLayoutAttributeDiagnostics = &H20 ' Set if the symbol has been checked for both StructLayout and ExtendedLayout attributes.
         End Enum
 
         ' Containing symbol

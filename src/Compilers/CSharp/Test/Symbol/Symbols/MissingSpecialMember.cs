@@ -572,6 +572,7 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
+                    || special == SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
                     )
                 {
                     Assert.Null(symbol); // Not available
@@ -667,6 +668,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray14:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray15:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray16:
+                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
