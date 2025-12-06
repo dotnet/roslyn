@@ -95,8 +95,8 @@
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.11-beta" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.50" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.50" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.3.6-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.3.6-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.332-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="18.0.332-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2101-preview.1" />
