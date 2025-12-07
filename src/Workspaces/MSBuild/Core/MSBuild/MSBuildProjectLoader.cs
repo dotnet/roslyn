@@ -269,7 +269,7 @@ public partial class MSBuildProjectLoader
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    internal Task<ImmutableArray<ProjectInfo>> LoadInfoAsync(
+    internal Task<ImmutableArray<ProjectInfo>> LoadInfosAsync(
         ImmutableArray<string> projectFilePaths,
         string baseDirectory,
         IProjectFileInfoProvider projectFileInfoProvider,
