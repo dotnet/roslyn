@@ -878,30 +878,41 @@ struct S1 : System.Runtime.CompilerServices.IUnion
 
 class Program
 {
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
     static bool Test1(S1 u)
     {
         return u is int;
     }   
-
-    static bool Test2(S1 u)
-    {
-        return u is string and ['1', .., '2'];
-    }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics(
-                // PROTOTYPE: This isn't actually a type pattern, but it looks like one, and the behavior is very confusing.
-
-                // (14,16): warning CS0184: The given expression is never of the provided ('int') type
-                //         return u is int;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is int").WithArguments("int").WithLocation(14, 16)
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics(
                 );
 
             var tree = comp.SyntaxTrees[0];
 
             Assert.Equal("u is int", tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().ToString());
-            Assert.Equal("string and ['1', .., '2']", tree.GetRoot().DescendantNodes().OfType<TypePatternSyntax>().Single().Parent.ToString());
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
         }
 
         [Fact]
@@ -2370,6 +2381,39 @@ class Program
                 // (404,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //             case byte:
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(404, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_TypePattern_04_BindIsOperator()
+        {
+            var src1 = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Test4(S1 u)
+    {
+        _ = u is System.IComparable;
+        _ = u is int;
+        _ = u is string;
+        _ = u is object;
+        _ = u is long;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
+                //         _ = u is long;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(10, 18)
                 );
         }
 
