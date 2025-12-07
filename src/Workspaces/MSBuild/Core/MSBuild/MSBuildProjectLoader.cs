@@ -33,15 +33,13 @@ public partial class MSBuildProjectLoader
     internal MSBuildProjectLoader(
         SolutionServices solutionServices,
         DiagnosticReporter diagnosticReporter,
-        Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
-        ProjectFileExtensionRegistry projectFileExtensionRegistry,
         ImmutableDictionary<string, string>? properties)
     {
         _solutionServices = solutionServices;
         _diagnosticReporter = diagnosticReporter;
-        _loggerFactory = loggerFactory;
+        _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
         _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = projectFileExtensionRegistry;
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(solutionServices, diagnosticReporter);
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -58,20 +56,18 @@ public partial class MSBuildProjectLoader
     /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
     /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
     public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
+        : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), properties)
     {
-        _solutionServices = workspace.Services.SolutionServices;
-        _diagnosticReporter = new DiagnosticReporter(workspace);
-        _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
-        _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
-
-        Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        if (properties != null)
-        {
-            Properties = Properties.AddRange(properties);
-        }
     }
+
+    internal DiagnosticReporter Reporter
+        => _diagnosticReporter;
+
+    internal ProjectFileExtensionRegistry ProjectFileExtensionRegistry
+        => _projectFileExtensionRegistry;
+
+    internal Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+        => _loggerFactory;
 
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
