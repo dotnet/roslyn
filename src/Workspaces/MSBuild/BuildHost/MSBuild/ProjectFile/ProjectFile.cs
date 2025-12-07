@@ -19,7 +19,7 @@ internal abstract class ProjectFile
     private readonly MSB.Evaluation.Project? _loadedProject;
     private readonly string _projectDirectory;
 
-    public virtual string FilePath => _loadedProject?.FullPath ?? string.Empty;
+    public string FilePath => _loadedProject?.FullPath ?? string.Empty;
 
     protected ProjectFile(MSB.Evaluation.Project? loadedProject)
     {

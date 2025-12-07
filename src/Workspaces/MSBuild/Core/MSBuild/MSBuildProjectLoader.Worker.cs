@@ -27,8 +27,8 @@ public partial class MSBuildProjectLoader
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-        private readonly BuildHostProcessManager _buildHostProcessManager;
         private readonly string _baseDirectory;
+        private readonly IProjectFileInfoProvider _projectFileInfoProvider;
 
         /// <summary>
         /// An ordered list of paths to project files that should be loaded. In the case of a solution,
@@ -70,7 +70,7 @@ public partial class MSBuildProjectLoader
             DiagnosticReporter diagnosticReporter,
             PathResolver pathResolver,
             ProjectFileExtensionRegistry projectFileExtensionRegistry,
-            BuildHostProcessManager buildHostProcessManager,
+            IProjectFileInfoProvider projectFileInfoProvider,
             ImmutableArray<string> requestedProjectPaths,
             string baseDirectory,
             ProjectMap? projectMap,
@@ -83,7 +83,7 @@ public partial class MSBuildProjectLoader
             _diagnosticReporter = diagnosticReporter;
             _pathResolver = pathResolver;
             _projectFileExtensionRegistry = projectFileExtensionRegistry;
-            _buildHostProcessManager = buildHostProcessManager;
+            _projectFileInfoProvider = projectFileInfoProvider;
             _baseDirectory = baseDirectory;
             _requestedProjectPaths = requestedProjectPaths;
             _projectMap = projectMap ?? ProjectMap.Create();
@@ -94,29 +94,6 @@ public partial class MSBuildProjectLoader
             _projectIdToFileInfoMap = [];
             _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
             _projectIdToProjectReferencesMap = [];
-        }
-
-        private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
-        {
-            var watch = _progress != null
-                ? Stopwatch.StartNew()
-                : null;
-
-            TResult result;
-            try
-            {
-                result = await doFunc().ConfigureAwait(false);
-            }
-            finally
-            {
-                if (_progress != null && watch != null)
-                {
-                    watch.Stop();
-                    _progress.Report(new ProjectLoadProgress(projectPath ?? string.Empty, operation, targetFramework, watch.Elapsed));
-                }
-            }
-
-            return result;
         }
 
         public async Task<ImmutableArray<ProjectInfo>> LoadAsync(CancellationToken cancellationToken)
@@ -161,54 +138,6 @@ public partial class MSBuildProjectLoader
             return results.ToImmutableAndClear();
         }
 
-        private async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
-        {
-            if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
-            {
-                return []; // Failure should already be reported.
-            }
-
-            var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
-            var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
-            var projectFile = await DoOperationAndReportProgressAsync(
-                ProjectLoadOperation.Evaluate,
-                projectPath,
-                targetFramework: null,
-                () => buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken)
-            ).ConfigureAwait(false);
-
-            // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
-            var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-            if (diagnosticItems.Any(d => d.Kind == DiagnosticLogItemKind.Error))
-            {
-                _diagnosticReporter.Report(diagnosticItems);
-
-                return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
-            }
-
-            var projectFileInfos = await DoOperationAndReportProgressAsync(
-                ProjectLoadOperation.Build,
-                projectPath,
-                targetFramework: null,
-                () => projectFile.GetProjectFileInfosAsync(cancellationToken)
-            ).ConfigureAwait(false);
-
-            var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(projectFileInfos.Length);
-
-            foreach (var projectFileInfo in projectFileInfos)
-            {
-                // Note: any diagnostics would have been logged to the original project file's log.
-
-                results.Add(projectFileInfo);
-            }
-
-            // We'll go check for any further diagnostics and report them
-            diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-            _diagnosticReporter.Report(diagnosticItems);
-
-            return results.MoveToImmutable();
-        }
-
         private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(
             string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
         {
@@ -220,7 +149,7 @@ public partial class MSBuildProjectLoader
 
             var builder = ImmutableArray.CreateBuilder<ProjectInfo>();
 
-            var projectFileInfos = await LoadProjectFileInfosAsync(projectPath, reportingOptions, cancellationToken).ConfigureAwait(false);
+            var projectFileInfos = await _projectFileInfoProvider.LoadProjectFileInfosAsync(projectPath, reportingOptions, cancellationToken).ConfigureAwait(false);
 
             var idsAndFileInfos = new List<(ProjectId id, ProjectFileInfo fileInfo)>();
 
@@ -304,7 +233,7 @@ public partial class MSBuildProjectLoader
                         parseOptions: parseOptions));
             }
 
-            return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
+            return _progress.DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
             {
                 var projectDirectory = Path.GetDirectoryName(projectPath);
 
@@ -332,7 +261,7 @@ public partial class MSBuildProjectLoader
                     assemblyName = GetAssemblyNameFromProjectPath(projectPath);
                 }
 
-                // Ensure sure that doc-comments are parsed
+                // Ensure that doc-comments are parsed
                 var parseOptions = commandLineArgs.ParseOptions;
                 if (parseOptions.DocumentationMode == DocumentationMode.None)
                 {
