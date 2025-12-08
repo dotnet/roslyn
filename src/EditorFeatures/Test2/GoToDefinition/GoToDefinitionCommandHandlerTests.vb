@@ -153,18 +153,14 @@ class C
             End Using
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError1() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
+        <InlineData("
             static class Extension1
             {
                 public static void Goo(this string s) { }
                 public static void Goo(this string s, string t) { }
             }
-                
+
             static class Extension2
             {
                 public static void Goo(this string s) { }
@@ -175,54 +171,17 @@ class C
             {
                 static void Test(string s)
                 {
-                    s.$$Goo("test");
+                    s.$$Goo(""test"");
                 }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim document = workspace.Documents.First()
-                Dim view = document.GetTextView()
-
-                Dim mockDocumentNavigationService =
-                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
-                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
-                Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    provider)
-
-                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
-
-                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Await waiter.ExpeditedWaitAsync()
-
-                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
-                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
-
-                Dim navigatedPosition = mockDocumentNavigationService._position
-                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
-
-                ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("public static void Goo(this string s, string t) { }", navigatedLine)
-            End Using
-        End Function
-
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError2() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+            }",
+            "public static void Goo(this string s, string t) { }")>
+        <InlineData("
             static class Extension1
             {
                 public static void Goo(this string s) { }
                 public static void Goo(this string s, string t) { }
             }
-                
+
             static class Extension2
             {
                 public static void Goo(this string s) { }
@@ -233,201 +192,53 @@ class C
             {
                 static void Test(string s)
                 {
-                    s?.$$Goo("test");
+                    s?.$$Goo(""test"");
                 }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim document = workspace.Documents.First()
-                Dim view = document.GetTextView()
-
-                Dim mockDocumentNavigationService =
-                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
-                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
-                Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    provider)
-
-                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
-
-                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Await waiter.ExpeditedWaitAsync()
-
-                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
-                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
-
-                Dim navigatedPosition = mockDocumentNavigationService._position
-                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
-
-                ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("public static void Goo(this string s, string t) { }", navigatedLine)
-            End Using
-        End Function
-
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError3() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+            }",
+            "public static void Goo(this string s, string t) { }")>
+        <InlineData("
             class Program
             {
                 static void Test(string s)
                 {
-                    $$Goo("test");
+                    $$Goo(""test"");
                 }
 
                 static void Goo() { }
                 static void Goo(string s) { }
                 static void Goo(string s) { }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim document = workspace.Documents.First()
-                Dim view = document.GetTextView()
-
-                Dim mockDocumentNavigationService =
-                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
-                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
-                Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    provider)
-
-                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
-
-                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Await waiter.ExpeditedWaitAsync()
-
-                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
-                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
-
-                Dim navigatedPosition = mockDocumentNavigationService._position
-                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
-
-                ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("static void Goo(string s) { }", navigatedLine)
-            End Using
-        End Function
-
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError4() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+            }",
+            "static void Goo(string s) { }")>
+        <InlineData("
             class Base
             {
                 public Base() { }
                 public Base(string s) { }
                 public Base(string s) { }
             }
-                
+
             class Derived : Base
             {
-                public Derived() : $$base("") { }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim document = workspace.Documents.First()
-                Dim view = document.GetTextView()
-
-                Dim mockDocumentNavigationService =
-                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
-                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
-                Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    provider)
-
-                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
-
-                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Await waiter.ExpeditedWaitAsync()
-
-                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
-                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
-
-                Dim navigatedPosition = mockDocumentNavigationService._position
-                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
-
-                ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("public Base(string s) { }", navigatedLine)
-            End Using
-        End Function
-
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError5() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+                public Derived() : $$base("""") { }
+            }",
+            "public Base(string s) { }")>
+        <InlineData("
             class Base
             {
                 public Base() { }
                 public Base(string s) { }
                 public Base(string s) { }
             }
-                
+
             class C
             {
                 void M()
                 {
-                    var d = new $$Base("");
+                    var d = new $$Base("""");
                 }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim document = workspace.Documents.First()
-                Dim view = document.GetTextView()
-
-                Dim mockDocumentNavigationService =
-                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
-                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
-                Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    provider)
-
-                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
-
-                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Await waiter.ExpeditedWaitAsync()
-
-                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
-                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
-
-                Dim navigatedPosition = mockDocumentNavigationService._position
-                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
-
-                ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("public Base(string s) { }", navigatedLine)
-            End Using
-        End Function
-
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError6() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+            }",
+            "public Base(string s) { }")>
+        <InlineData("
             namespace N
             {
                 class Base
@@ -442,65 +253,32 @@ class C
             {
                 void M()
                 {
-                    var d = new N.$$Base("");
+                    var d = new N.$$Base("""");
                 }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim document = workspace.Documents.First()
-                Dim view = document.GetTextView()
-
-                Dim mockDocumentNavigationService =
-                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
-                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
-                Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    provider)
-
-                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
-
-                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Await waiter.ExpeditedWaitAsync()
-
-                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
-                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
-
-                Dim navigatedPosition = mockDocumentNavigationService._position
-                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
-
-                ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("public Base(string s) { }", navigatedLine)
-            End Using
-        End Function
-
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError7() As Task
-            Dim definition =
-<Workspace>
-    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
-        <Document>
+            }",
+            "public Base(string s) { }")>
+        <InlineData("
             class Base
             {
                 public Base() { }
                 public Base(string s) { }
                 public Base(string s) { }
             }
-                
+
             class C
             {
                 void M()
                 {
-                    Base d = new$$("");
+                    Base d = new$$("""");
                 }
-            }
-        </Document>
-    </Project>
-</Workspace>
+            }",
+            "public Base(string s) { }")>
+        Public Async Function TestCSharpOverloadResolutionError(documentContent As String, expectedNavigatedLine As String) As Task
+            Dim definition = <Workspace>
+                                 <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                                     <Document><%= documentContent %></Document>
+                                 </Project>
+                             </Workspace>
 
             Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
                 Dim document = workspace.Documents.First()
@@ -527,7 +305,7 @@ class C
                 Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
 
                 ' We had to navigate to one of the overloads that takes an actual string parameter.
-                Assert.Equal("public Base(string s) { }", navigatedLine)
+                Assert.Equal(expectedNavigatedLine, navigatedLine)
             End Using
         End Function
     End Class
