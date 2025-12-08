@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -11,8 +12,11 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -22,63 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlProvider(IDiagnosticsRefresher diagnosticRefresher, DotnetCliHelper dotnetCliHelper)
+internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
 {
-    private readonly SemaphoreSlim _gate = new(initialCount: 1);
-    private readonly Dictionary<string, ImmutableArray<SimpleDiagnostic>> _diagnosticsByFilePath = [];
-
-    internal async ValueTask<ImmutableArray<SimpleDiagnostic>> GetCachedDiagnosticsAsync(string path, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            _diagnosticsByFilePath.TryGetValue(path, out var diagnostics);
-            return diagnostics;
-        }
-    }
-
-    internal async ValueTask UnloadCachedDiagnosticsAsync(string path)
-    {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
-        {
-            _diagnosticsByFilePath.Remove(path);
-        }
-    }
-
     internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
-    {
-        var result = await GetVirtualProjectContentImplAsync(documentFilePath, logger, cancellationToken);
-        if (result is { } project)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken))
-            {
-                _diagnosticsByFilePath.TryGetValue(documentFilePath, out var previousCachedDiagnostics);
-                _diagnosticsByFilePath[documentFilePath] = project.Diagnostics;
-
-                // check for difference, and signal to host to update if so.
-                if (previousCachedDiagnostics.IsDefault || !project.Diagnostics.SequenceEqual(previousCachedDiagnostics))
-                    diagnosticRefresher.RequestWorkspaceRefresh();
-            }
-        }
-        else
-        {
-            using (await _gate.DisposableWaitAsync(CancellationToken.None))
-            {
-                if (_diagnosticsByFilePath.TryGetValue(documentFilePath, out var diagnostics))
-                {
-                    _diagnosticsByFilePath.Remove(documentFilePath);
-                    if (!diagnostics.IsDefaultOrEmpty)
-                    {
-                        // diagnostics have changed from "non-empty" to "unloaded". refresh.
-                        diagnosticRefresher.RequestWorkspaceRefresh();
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentImplAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
         var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, keepStandardInputOpen: true);
@@ -146,17 +96,45 @@ internal class VirtualProjectXmlProvider(IDiagnosticsRefresher diagnosticRefresh
     /// Adjusts a path to a file-based program for use in passing the virtual project to msbuild.
     /// (msbuild needs the path to end in .csproj to recognize as a C# project and apply all the standard props/targets to it.)
     /// </summary>
-    internal static string GetVirtualProjectPath(string documentFilePath)
+    [return: NotNullIfNotNull(nameof(documentFilePath))]
+    internal static string? GetVirtualProjectPath(string? documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    internal static bool IsFileBasedProgram(string documentFilePath, SourceText text)
+    /// <summary>
+    /// Indicates whether the editor considers the text to be a file-based program.
+    /// If this returns false, the text is either a miscellaneous file or is part of an ordinary project.
+    /// </summary>
+    /// <remarks>
+    /// The editor considers the text to be a file-based program if it has any '#!' or '#:' directives at the top.
+    /// Note that a file with top-level statements but no directives can still work with 'dotnet app.cs' etc. on the CLI, but will be treated as a misc file in the editor.
+    /// </remarks>
+    internal static bool IsFileBasedProgram(SourceText text)
     {
-        // https://github.com/dotnet/roslyn/issues/78878: this needs to be adjusted to be more sustainable.
-        // When we adopt the dotnet run-api, we need to get rid of this or adjust it to be more sustainable (e.g. using the appropriate document to get a syntax tree)
-        var tree = CSharpSyntaxTree.ParseText(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), path: documentFilePath);
-        var root = tree.GetRoot();
-        var isFileBasedProgram = root.GetLeadingTrivia().Any(SyntaxKind.IgnoredDirectiveTrivia) || root.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement));
-        return isFileBasedProgram;
+        var tokenizer = SyntaxFactory.CreateTokenParser(text, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
+        var result = tokenizer.ParseLeadingTrivia();
+        var triviaList = result.Token.LeadingTrivia;
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
+                return true;
+        }
+
+        return false;
+    }
+
+    internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
+            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        {
+            return false;
+        }
+
+        var root = await tree.GetRootAsync(cancellationToken);
+        if (root is CompilationUnitSyntax compilationUnit)
+            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
+
+        return false;
     }
 
     #region Temporary copy of subset of dotnet run-api behavior for fallback: https://github.com/dotnet/roslyn/issues/78618

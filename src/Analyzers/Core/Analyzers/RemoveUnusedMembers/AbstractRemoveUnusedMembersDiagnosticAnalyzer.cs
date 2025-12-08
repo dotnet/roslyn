@@ -27,8 +27,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
     : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
-        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        FadingOptions.FadeOutUnusedMembers)
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule])
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -238,6 +237,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                 symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
                 symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeParameterInitializerOperation, OperationKind.ParameterInitializer);
+                symbolStartContext.RegisterOperationAction(AnalyzeFunctionParameterDefaults, OperationKind.AnonymousFunction, OperationKind.LocalFunction);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
 
@@ -439,6 +440,87 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 }
 
                 OnSymbolUsage(memberSymbol, valueUsageInfo);
+            }
+        }
+
+        private void AnalyzeParameterInitializerOperation(OperationAnalysisContext operationContext)
+        {
+            var parameterInitializer = (IParameterInitializerOperation)operationContext.Operation;
+            var value = parameterInitializer.Value;
+
+            if (value is null || value.Syntax is null)
+                return;
+
+            var semanticModel = parameterInitializer.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            AnalyzeDefaultValueSyntax(semanticModel, value.Syntax, operationContext.CancellationToken);
+        }
+
+        private void AnalyzeFunctionParameterDefaults(OperationAnalysisContext operationContext)
+        {
+            var semanticModel = operationContext.Operation.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            var parameters = operationContext.Operation switch
+            {
+                IAnonymousFunctionOperation anonymousFunction => anonymousFunction.Symbol.Parameters,
+                ILocalFunctionOperation localFunction => localFunction.Symbol.Parameters,
+                _ => default,
+            };
+
+            if (parameters.IsDefaultOrEmpty)
+                return;
+
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+            var cancellationToken = operationContext.CancellationToken;
+
+            foreach (var parameter in parameters)
+            {
+                if (!parameter.HasExplicitDefaultValue)
+                    continue;
+
+                foreach (var reference in parameter.DeclaringSyntaxReferences)
+                {
+                    var parameterSyntax = reference.GetSyntax(cancellationToken);
+                    var equalsValueSyntax = syntaxFacts.GetDefaultOfParameter(parameterSyntax);
+
+                    if (equalsValueSyntax is null)
+                        continue;
+
+                    var valueSyntax = syntaxFacts.GetValueOfEqualsValueClause(equalsValueSyntax);
+
+                    if (valueSyntax is null)
+                        continue;
+
+                    AnalyzeDefaultValueSyntax(semanticModel, valueSyntax, cancellationToken);
+                }
+            }
+        }
+
+        private void AnalyzeDefaultValueSyntax(
+            SemanticModel semanticModel,
+            SyntaxNode valueSyntax,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+
+            foreach (var node in valueSyntax.DescendantNodesAndSelf())
+            {
+                if (!syntaxFacts.IsSimpleName(node))
+                    continue;
+
+                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+
+                foreach (var symbol in symbolInfo.GetAllSymbols())
+                {
+                    if (IsCandidateSymbol(symbol))
+                        OnSymbolUsage(symbol, ValueUsageInfo.Read);
+                }
             }
         }
 

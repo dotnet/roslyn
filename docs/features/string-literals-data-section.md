@@ -72,10 +72,10 @@ ReadOnlySpan<byte> c = "Hello."u8;
 string d = "Hello."; // assuming this string literal is eligible for the `ldsfld` emit strategy
 ```
 
-The initialization calls `<PrivateImplementationDetails>.BytesToString` helper which in turn calls `Encoding.UTF8.GetBytes`.
+The initialization calls `<PrivateImplementationDetails>.BytesToString` helper which in turn calls `Encoding.UTF8.GetString`.
 This is an optimization so each of the generated static constructors is slightly smaller in IL size.
 These size savings can add up since one class is generated per one eligible string literal.
-A compile-time error is reported if the `Encoding.UTF8.GetBytes` API is not available and needs to be used
+A compile-time error is reported if the `Encoding.UTF8.GetString` API is not available and needs to be used
 (the user can then either ensure the API is available or turn off the feature flag).
 
 The following example demonstrates the code generated for string literal `"Hello."`.

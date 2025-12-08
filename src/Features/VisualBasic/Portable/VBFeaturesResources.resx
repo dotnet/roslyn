@@ -1179,4 +1179,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Project_level_Imports" xml:space="preserve">
     <value>Project level 'Imports'</value>
   </data>
+  <data name="Add_Imports_0" xml:space="preserve">
+    <value>Add 'Imports {0}'</value>
+    <comment>{Locked="Imports"} "Imports" is a Visual Basic keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_Imports_0_and_simplify_all_occurrences" xml:space="preserve">
+    <value>Add 'Imports {0}' and simplify all occurrences</value>
+    <comment>{Locked="Imports"} "Imports" is a Visual Basic keyword and should not be localized.</comment>
+  </data>
 </root>

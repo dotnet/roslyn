@@ -6349,7 +6349,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C", "false").WithLocation(6, 18)
             };
@@ -6861,7 +6861,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7582,7 +7582,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7691,7 +7691,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -8013,7 +8013,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("bool?", "false").WithLocation(6, 18)
             };

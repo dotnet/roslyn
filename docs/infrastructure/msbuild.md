@@ -4,8 +4,8 @@
 
 This repo must support the ability to build with a number of different MSBuild configurations:
 
-- MSBuild via Visual Studio: this happens when developers open Roslyn.sln in Visual Studio and execute the build action.  This uses desktop MSBuild to drive the solution. 
-- MSBuild via CLI: the cross platform portions of the repo are built via the CLI.  This is a subset of the code contained in Roslyn.sln. 
+- MSBuild via Visual Studio: this happens when developers open Roslyn.slnx in Visual Studio and execute the build action.  This uses desktop MSBuild to drive the solution. 
+- MSBuild via CLI: the cross platform portions of the repo are built via the CLI.  This is a subset of the code contained in Roslyn.slnx. 
 - MSBuild xcopy: an xcopyable version of MSBuild that is used to run many of our Jenkins legs.  It allows Roslyn to build and run tests on a completely fresh Windows image (no pre-reqs).  The [xcopy-msbuild](https://github.com/jaredpar/xcopy-msbuild) project is responsible for building this image. 
 - BuildTools: this is a collection of tools produced by [dotnet/buildtools](https://github.com/dotnet/buildtools) which build a number of dotnet repos. 
 

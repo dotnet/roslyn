@@ -1,0 +1,31 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.LanguageServer.Protocol;
+
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(WorkDoneProgressCancelledHandler)), Shared]
+[Method(Methods.WindowWorkDoneProgressCancelName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkDoneProgressCancelledHandler() : ILspServiceNotificationHandler<WorkDoneProgressCancelParams>
+{
+    public bool MutatesSolutionState => false;
+
+    public bool RequiresLSPSolution => false;
+
+    public Task HandleNotificationAsync(WorkDoneProgressCancelParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    {
+        var manager = requestContext.GetRequiredLspService<WorkDoneProgressManager>();
+        // We always create guid tokens, so use the string sumtype directly.
+        manager.CancelWorkDoneProgress(request.Token.Second);
+        return Task.CompletedTask;
+    }
+}
