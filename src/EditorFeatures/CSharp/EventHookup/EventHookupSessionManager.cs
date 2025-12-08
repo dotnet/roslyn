@@ -106,6 +106,8 @@ internal sealed partial class EventHookupSessionManager(
             // CancellationToken.None here as we don't actually want to cancel this operation, since we've already
             // made UI changes/hookup that we now have to go through.  We are technically safe, as we've cleared
             // out cancellationToken above, but this is an extra level safety.
+            //
+            // Also, 'ConfigureAwait(true)' on everything here as we want to stay on the UI thread.
             _suggestionBlocker?.DisposeAsync().ConfigureAwait(true);
             _suggestionBlocker = await SuggestionServiceBase.Value.DismissAndBlockProposalsAsync(
                 analyzedSession.TextView, ReasonForDismiss.DismissedAfterBufferChange, CancellationToken.None).ConfigureAwait(true);
