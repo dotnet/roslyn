@@ -16,11 +16,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Include="Copilot\.editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+
+    <!--
+      ⚠ ONLY ASP.NET CORE ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <!-- TODO: Remove Microsoft.AspNetCore.App.Analyzers once types referencing this assembly complete their move to the CodeFixes assembly -->
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.CodeFixes" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers.Test" Key="$(AspNetCoreKey)" />
+
     <!--
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
@@ -34,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>
