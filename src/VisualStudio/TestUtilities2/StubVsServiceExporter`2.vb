@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            <Import(GetType(SAsyncServiceProvider))> asyncServiceProvider As IAsyncServiceProvider2, joinableTaskContext As JoinableTaskContext)
+            <Import(GetType(SVsServiceProvider))> asyncServiceProvider As IAsyncServiceProvider2, joinableTaskContext As JoinableTaskContext)
 
             _serviceGetter = New AsyncLazy(Of TInterface)(
                 Function() asyncServiceProvider.GetServiceAsync(Of TService, TInterface)(True, CancellationToken.None),
