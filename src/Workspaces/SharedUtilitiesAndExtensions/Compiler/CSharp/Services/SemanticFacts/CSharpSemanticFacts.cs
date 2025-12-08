@@ -387,10 +387,8 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
             return [preprocessingSymbol];
 
         var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
-        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure &&
-            symbolInfo.CandidateSymbols.Length >= 2 &&
-            symbolInfo.CandidateSymbols.All(static s => s is IMethodSymbol) &&
-            node is SimpleNameSyntax simpleName)
+        if (symbolInfo.CandidateSymbols.Length >= 2 &&
+            symbolInfo.CandidateSymbols.All(static s => s is IMethodSymbol))
         {
             // Compiler ran into an overload resolution issue.  In this case, they generally return the methods in no
             // special order.  So see if we can do a little better here by picking the best method based on some shared
@@ -401,7 +399,15 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 ? memberAccess
                 : simpleName;
 
-            var argumentList = parent.Parent switch
+            var argumentList2 = node switch
+            {
+                ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
+                SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } => invocation.ArgumentList,
+                SimpleNameSyntax {  Parent: BaseObjectCreationExpressionSyntax objectCreation } => objectCreation.ArgumentList,
+                SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax invocation } memberAccess } when => invocation.ArgumentList,
+            };
+
+            var argumentList =  parent.Parent switch
             {
                 InvocationExpressionSyntax invocation => invocation.ArgumentList,
                 BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
