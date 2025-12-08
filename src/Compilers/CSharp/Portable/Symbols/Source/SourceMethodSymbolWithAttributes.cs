@@ -570,6 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.IsReadOnlyAttribute |
                 ReservedAttributes.RequiresLocationAttribute |
+                ReservedAttributes.RequiresUnsafeAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.NullableContextAttribute |

@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
         private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
         private SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol _lazyMemorySafetyRulesAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresUnsafeAttribute;
         private SynthesizedEmbeddedExtensionMarkerAttributeSymbol _lazyExtensionMarkerAttribute;
 
         /// <summary>
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyScopedRefAttribute);
             builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
             builder.AddIfNotNull(_lazyMemorySafetyRulesAttribute);
+            builder.AddIfNotNull(_lazyRequiresUnsafeAttribute);
             builder.AddIfNotNull(_lazyExtensionMarkerAttribute);
 
             return builder.ToImmutableAndFree();
@@ -311,6 +313,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return base.TrySynthesizeMemorySafetyRulesAttribute(arguments);
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttribute()
+        {
+            if ((object)_lazyRequiresUnsafeAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRequiresUnsafeAttribute.Constructors[0],
+                    arguments: [],
+                    namedArguments: []);
+            }
+
+            return base.TrySynthesizeRequiresUnsafeAttribute();
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -547,6 +563,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics,
                     AttributeDescription.MemorySafetyRulesAttribute,
                     CreateMemorySafetyRulesAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresUnsafeAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresUnsafeAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresUnsafeAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
             }
 
             if ((needsAttributes & EmbeddableAttributes.ExtensionMarkerAttribute) != 0)

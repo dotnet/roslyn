@@ -619,6 +619,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
+        // PROTOTYPE: add a public API for this
+        /// <summary>
+        /// <see langword="true"/> if the method was compiled under updated memory safety rules
+        /// (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>) and marked as <see langword="unsafe"/>.
+        /// </summary>
+        internal virtual bool IsCallerUnsafe => false; // PROTOTYPE: should be abstract
+
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
         /// that cannot be referenced by name are:
@@ -1532,6 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
             MemorySafetyRulesAttribute = 1 << 16,
+            RequiresUnsafeAttribute = 1 << 17,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1610,6 +1618,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((reserved & ReservedAttributes.MemorySafetyRulesAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.MemorySafetyRulesAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.RequiresUnsafeAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresUnsafeAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&

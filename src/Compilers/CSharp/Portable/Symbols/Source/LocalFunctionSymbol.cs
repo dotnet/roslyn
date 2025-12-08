@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal override bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 

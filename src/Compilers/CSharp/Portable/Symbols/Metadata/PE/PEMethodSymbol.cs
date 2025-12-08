@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |z|y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -74,10 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // u = IsUnmanagedCallersOnlyAttributePopulated. 1 bit.
             // v = IsSetsRequiredMembersBit. 1 bit.
             // w = IsSetsRequiredMembersPopulated. 1 bit.
-            // x = IsUnscopedRef. 1 bit.
+            // x = RequiresUnsafePopulated. 1 bit.
             // y = IsUnscopedRefPopulated. 1 bit.
             // z = OverloadResolutionPriorityPopulated. 1 bit.
-            // 1 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
             private const int HasSetsRequiredMembersBit = 0x1 << 27;
             private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
-            private const int IsUnscopedRefBit = 0x1 << 29;
+            private const int RequiresUnsafePopulatedBit = 0x1 << 29;
             private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
             private const int OverloadResolutionPriorityPopulatedBit = 0x1 << 31;
 
@@ -146,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsUnmanagedCallersOnlyAttributePopulated => (Volatile.Read(ref _bits) & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
             public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
-            public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
+            public bool RequiresUnsafePopulated => (Volatile.Read(ref _bits) & RequiresUnsafePopulatedBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
             public bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(ref _bits) & OverloadResolutionPriorityPopulatedBit) != 0;
 
@@ -264,12 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public bool InitializeIsUnscopedRef(bool value)
+            public void SetRequiresUnsafePopulated()
             {
-                int bitsToSet = IsUnscopedRefPopulatedBit;
-                if (value) bitsToSet |= IsUnscopedRefBit;
+                ThreadSafeFlagOperations.Set(ref _bits, RequiresUnsafePopulatedBit);
+            }
 
-                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            public void SetIsUnscopedRefPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsUnscopedRefPopulatedBit);
             }
 
             public void SetIsOverloadResolutionPriorityPopulated()
@@ -314,6 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
             public MethodSymbol _lazyExplicitClassOverride;
+            public bool _lazyRequiresUnsafe;
+            public bool _lazyIsUnscopedRef;
             public int _lazyOverloadResolutionPriority;
         }
 
@@ -1013,6 +1016,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      ? _packedFlags.IsReadOnly
                      : IsValidReadOnlyTarget;
 
+                bool requiresUnsafeAlreadySet = _packedFlags.RequiresUnsafePopulated;
+                bool checkForRequiresUnsafe = !requiresUnsafeAlreadySet || _uncommonFields?._lazyRequiresUnsafe == true;
+
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
@@ -1020,7 +1026,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember)
+                bool requiresUnsafe = false;
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember || checkForRequiresUnsafe)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
                         filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
@@ -1033,11 +1040,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
                         filterOut5: AttributeDescription.ExtensionMarkerAttribute,
-                        filteredOutAttribute6: out _,
-                        filterOut6: default);
+                        filteredOutAttribute6: out CustomAttributeHandle requiresUnsafeAttribute,
+                        filterOut6: AttributeDescription.RequiresUnsafeAttribute);
 
                     isExtensionMethod = !extensionAttribute.IsNil;
                     isReadOnly = !isReadOnlyAttribute.IsNil;
+                    requiresUnsafe = !requiresUnsafeAttribute.IsNil;
                 }
                 else
                 {
@@ -1053,6 +1061,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!isReadOnlyAlreadySet)
                 {
                     _packedFlags.InitializeIsReadOnly(isReadOnly);
+                }
+
+                if (!requiresUnsafeAlreadySet)
+                {
+                    if (requiresUnsafe)
+                    {
+                        AccessUncommonFields()._lazyRequiresUnsafe = true;
+                    }
+                    _packedFlags.SetRequiresUnsafePopulated();
                 }
 
                 // Store the result in uncommon fields only if it's not empty.
@@ -1456,6 +1473,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private bool IsDeclaredRequiresUnsafe
+        {
+            get
+            {
+                if (!_packedFlags.RequiresUnsafePopulated)
+                {
+                    if (_containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute))
+                    {
+                        AccessUncommonFields()._lazyRequiresUnsafe = true;
+                    }
+                    else
+                    {
+                        Debug.Assert(_uncommonFields is null or { _lazyRequiresUnsafe: false });
+                    }
+
+                    _packedFlags.SetRequiresUnsafePopulated();
+                }
+
+                return _uncommonFields?._lazyRequiresUnsafe == true;
+            }
+        }
+
         internal override bool IsInitOnly
         {
             get
@@ -1766,16 +1805,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsUnscopedRefPopulated)
                 {
-                    var moduleSymbol = _containingType.ContainingPEModule;
-                    bool unscopedRef = moduleSymbol.Module.HasUnscopedRefAttribute(_handle);
-                    _packedFlags.InitializeIsUnscopedRef(unscopedRef);
+                    if (_containingType.ContainingPEModule.Module.HasUnscopedRefAttribute(_handle))
+                    {
+                        AccessUncommonFields()._lazyIsUnscopedRef = true;
+                    }
+                    else
+                    {
+                        Debug.Assert(_uncommonFields is null or { _lazyIsUnscopedRef: false });
+                    }
+
+                    _packedFlags.SetIsUnscopedRefPopulated();
                 }
 
-                return _packedFlags.IsUnscopedRef;
+                return _uncommonFields?._lazyIsUnscopedRef == true;
             }
         }
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

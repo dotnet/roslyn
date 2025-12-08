@@ -2582,6 +2582,11 @@
         <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>Using '{0}' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules</source>
+        <target state="new">Using '{0}' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
         <target state="new">This operation may only be used in an unsafe context</target>

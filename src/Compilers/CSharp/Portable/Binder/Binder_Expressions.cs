@@ -9088,6 +9088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, propertySymbol, node);
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 

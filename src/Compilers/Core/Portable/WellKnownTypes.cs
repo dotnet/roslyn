@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RefSafetyRulesAttribute,
 
         System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
+        System_Runtime_CompilerServices_RequiresUnsafeAttribute,
 
         System_ArgumentNullException,
 
@@ -687,6 +688,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
 
             "System.Runtime.CompilerServices.MemorySafetyRulesAttribute",
+            "System.Runtime.CompilerServices.RequiresUnsafeAttribute",
 
             "System.ArgumentNullException",
 

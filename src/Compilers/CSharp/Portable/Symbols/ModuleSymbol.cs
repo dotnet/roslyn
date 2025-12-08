@@ -319,6 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool UseUpdatedEscapeRules { get; }
 
+        /// <summary>
+        /// <see cref="CSharpCompilationOptions.UseUpdatedMemorySafetyRules"/>
+        /// </summary>
         internal abstract bool UseUpdatedMemorySafetyRules { get; }
 
         /// <summary>

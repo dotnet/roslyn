@@ -186,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsCallerUnsafe => UnderlyingMethod.IsCallerUnsafe;
+
         internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return UnderlyingMethod.IsMetadataVirtual(option);

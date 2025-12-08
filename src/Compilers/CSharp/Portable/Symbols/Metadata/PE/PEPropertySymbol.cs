@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |....................c|o|d|uu|rr|c|n|s|
+            // |..................|f|p|c|o|d|uu|rr|c|n|s|
             //
             // s = special name flag. 1 bit
             // n = runtime special name flag. 1 bit
@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // o = Obsolete flag. 1 bit
             // c = Custom attributes flag. 1 bit
             // p = Overload resolution priority populated. 1 bit
+            // f = Requires unsafe populated. 1 bit
             private const int IsSpecialNameFlag = 1 << 0;
             private const int IsRuntimeSpecialNameFlag = 1 << 1;
             private const int CallMethodsDirectlyFlag = 1 << 2;
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsObsoleteAttributePopulatedBit = 1 << 9;
             private const int IsCustomAttributesPopulatedBit = 1 << 10;
             private const int IsOverloadResolutionPriorityPopulatedBit = 1 << 11;
+            private const int RequiresUnsafePopulatedBit = 1 << 12;
 
             private int _bits;
 
@@ -150,6 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             public bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(ref _bits) & IsOverloadResolutionPriorityPopulatedBit) != 0;
+
+            public void SetRequiresUnsafePopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, RequiresUnsafePopulatedBit);
+            }
+
+            public bool RequiresUnsafePopulated => (Volatile.Read(ref _bits) & RequiresUnsafePopulatedBit) != 0;
         }
 
         /// <summary>
@@ -181,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
             public ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             public int _lazyOverloadResolutionPriority;
+            public bool _lazyRequiresUnsafe;
         }
 
         internal static PEPropertySymbol Create(
@@ -637,6 +647,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private bool IsDeclaredRequiresUnsafe
+        {
+            get
+            {
+                if (!_flags.RequiresUnsafePopulated)
+                {
+                    if (_containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute))
+                    {
+                        AccessUncommonFields()._lazyRequiresUnsafe = true;
+                    }
+                    else
+                    {
+                        Debug.Assert(_uncommonFields is null or { _lazyRequiresUnsafe: false });
+                    }
+
+                    _flags.SetRequiresUnsafePopulated();
+                }
+
+                return _uncommonFields?._lazyRequiresUnsafe == true;
+            }
+        }
+
+        internal override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return _parameters; }
@@ -741,8 +775,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       AttributeDescription.RequiredMemberAttribute,
                       out _,
                       this.IsExtensionBlockMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
-                      out _,
-                      default,
+                      out CustomAttributeHandle requiresUnsafe,
+                      AttributeDescription.RequiresUnsafeAttribute,
                       out _,
                       default,
                       out _,
@@ -752,6 +786,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
                 }
+
+                if (!requiresUnsafe.IsNil)
+                {
+                    AccessUncommonFields()._lazyRequiresUnsafe = true;
+                }
+                _flags.SetRequiresUnsafePopulated();
 
                 _flags.SetCustomAttributesPopulated();
                 _flags.SetHasRequiredMemberAttribute(!required.IsNil);

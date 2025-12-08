@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsUnsafe
+        internal sealed override bool IsUnsafe
         {
             get
             {
@@ -980,6 +980,11 @@ done:
             if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
+            }
+
+            if (IsCallerUnsafe)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
