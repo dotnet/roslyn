@@ -6,23 +6,31 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 /// <summary>
-/// Helper type that allows signature help to make better decisions about which overload the user is likely choosing
-/// when the compiler itself bails out and gives a generic list of options.
+/// Helper type that allows features (like signature-help or go-to-definition) to make better decisions about which
+/// overload the user is likely choosing when the compiler itself bails out and gives a generic list of options.
 /// </summary>
+/// <param name="position">Location the user is at <em>within</em> the argument list.  Used to determine which <see
+/// cref="IParameterSymbol"/> corresponds to that location.  This value is optional, and does not need to be provided if
+/// the client of <see cref="LightweightOverloadResolution"/> only wants to determine which overload is most likely
+/// given the arguments.</param>
 internal readonly struct LightweightOverloadResolution(
+    ISemanticFacts semanticFacts,
     SemanticModel semanticModel,
-    int position,
-    SeparatedSyntaxList<ArgumentSyntax> arguments)
+    SeparatedSyntaxList<SyntaxNode> arguments,
+    int? position = null)
 {
+    private ISyntaxFacts SyntaxFacts => semanticFacts.SyntaxFacts;
+
+    public IMethodSymbol? RefineOverload(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
+        => RefineOverloadAndPickParameter(symbolInfo, candidates).method;
+
     public (IMethodSymbol? method, int parameterIndex) RefineOverloadAndPickParameter(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
     {
         // If the compiler told us the correct overload or we only have one choice, but we need to find out the
@@ -90,8 +98,11 @@ internal readonly struct LightweightOverloadResolution(
                 return (null, -1);
         }
 
+        if (position is null)
+            return (method, -1);
+
         // find the parameter at the cursor position
-        var argumentIndexToSave = GetArgumentIndex();
+        var argumentIndexToSave = GetArgumentIndex(position.Value);
         var foundParameterIndex = -1;
         if (argumentIndexToSave >= 0)
         {
@@ -108,12 +119,13 @@ internal readonly struct LightweightOverloadResolution(
     /// <summary>
     /// Determines if the given argument is compatible with the given parameter
     /// </summary>
-    private bool IsCompatibleArgument(ArgumentSyntax argument, IParameterSymbol parameter)
+    private bool IsCompatibleArgument(SyntaxNode argument, IParameterSymbol parameter)
     {
         var parameterRefKind = parameter.RefKind;
         if (parameterRefKind == RefKind.None)
         {
-            if (IsEmptyArgument(argument.Expression))
+            var expression = this.SyntaxFacts.GetExpressionOfArgument(argument);
+            if (IsEmptyArgument(expression))
             {
                 // An argument left empty is considered to match any parameter
                 // M(1, $$)
@@ -124,15 +136,15 @@ internal readonly struct LightweightOverloadResolution(
             var type = parameter.Type;
             if (parameter.IsParams
                 && type is IArrayTypeSymbol arrayType
-                && semanticModel.ClassifyConversion(argument.Expression, arrayType.ElementType).IsImplicit)
+                && semanticFacts.ClassifyConversion(semanticModel, expression, arrayType.ElementType).IsImplicit)
             {
                 return true;
             }
 
-            return semanticModel.ClassifyConversion(argument.Expression, type).IsImplicit;
+            return semanticFacts.ClassifyConversion(semanticModel, expression, type).IsImplicit;
         }
 
-        var argumentRefKind = argument.GetRefKind();
+        var argumentRefKind = this.SyntaxFacts.GetRefKindOfArgument(argument);
         if (parameterRefKind == argumentRefKind)
             return true;
 
@@ -186,7 +198,10 @@ internal readonly struct LightweightOverloadResolution(
                 return false;
 
             var argument = arguments[argumentIndex];
-            if (argument is { NameColon.Name.Identifier.ValueText: var argumentName })
+            var expression = this.SyntaxFacts.GetExpressionOfArgument(argument);
+            var argumentName = this.SyntaxFacts.GetNameForArgument(argument);
+
+            if (!string.IsNullOrEmpty(argumentName))
             {
                 // If this was a named argument but the method has no parameter with that name, there's definitely
                 // no match.  Note: this is C# only, so we don't need to worry about case matching.
@@ -199,7 +214,7 @@ internal readonly struct LightweightOverloadResolution(
 
                 AddArgumentToParameterMapping(argumentIndex, namedParameterIndex, ref argumentToParameterMap);
             }
-            else if (IsEmptyArgument(argument.Expression))
+            else if (IsEmptyArgument(expression))
             {
                 // We count the empty argument as a used position
                 if (!seenOutOfPositionArgument)
@@ -233,14 +248,14 @@ internal readonly struct LightweightOverloadResolution(
         }
     }
 
-    private static bool IsEmptyArgument(ExpressionSyntax expression)
+    private static bool IsEmptyArgument(SyntaxNode expression)
         => expression.Span.IsEmpty;
 
     /// <summary>
     /// Given the cursor position, find which argument is active.
     /// This will be useful to later find which parameter should be highlighted.
     /// </summary>
-    private int GetArgumentIndex()
+    private int GetArgumentIndex(int position)
     {
         for (var i = 0; i < arguments.Count - 1; i++)
         {
