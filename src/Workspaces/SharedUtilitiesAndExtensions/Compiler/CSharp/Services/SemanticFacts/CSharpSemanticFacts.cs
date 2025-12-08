@@ -395,22 +395,14 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
             // heuristics.  This is particularly useful when overload resolution fails because there are methods with
             // duplicate signatures.  We'd at least like to pick one of the duplicate methods to show to the user,
             // versus some random method that doesn't even apply to the arguments the user passed.
-            ExpressionSyntax parent = simpleName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == simpleName
-                ? memberAccess
-                : simpleName;
-
-            var argumentList2 = node switch
+            var argumentList = node switch
             {
+                // base(a, b, c)
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
+                // Goo(a, b, c)
                 SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } => invocation.ArgumentList,
-                SimpleNameSyntax {  Parent: BaseObjectCreationExpressionSyntax objectCreation } => objectCreation.ArgumentList,
-                SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax invocation } memberAccess } when => invocation.ArgumentList,
-            };
-
-            var argumentList =  parent.Parent switch
-            {
-                InvocationExpressionSyntax invocation => invocation.ArgumentList,
-                BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
+                // X.Goo(a, b, c)
+                SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax invocation } memberAccess } when memberAccess.Name == node => invocation.ArgumentList,
                 _ => null,
             };
 
