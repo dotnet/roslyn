@@ -2577,9 +2577,9 @@
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、デリゲート型に変換できません。このメソッドへの関数ポインターを取得してください。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}' は、認識されない RefSafetyRulesAttribute バージョンを持つモジュールで定義され、'11' が必要です。</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">

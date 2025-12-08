@@ -2577,9 +2577,9 @@
         <target state="translated">' {0} ' tiene un atributo ' UnmanagedCallersOnly ' y no se puede convertir en un tipo de delegado. Obtenga un puntero de función a este método.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}' se define en un módulo con una versión refSafetyRulesAttribute no reconocida, que espera '11'.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">

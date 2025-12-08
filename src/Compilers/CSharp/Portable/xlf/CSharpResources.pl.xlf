@@ -2577,9 +2577,9 @@
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">Element '{0}' jest zdefiniowany w module z nierozpoznaną wersją RefSafetyRulesAttribute, oczekiwano „11”.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">

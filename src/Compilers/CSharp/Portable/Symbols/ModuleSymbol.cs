@@ -319,6 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool UseUpdatedEscapeRules { get; }
 
+        internal abstract bool UseUpdatedMemorySafetyRules { get; }
+
         /// <summary>
         /// Default char set for contained types, or null if not specified.
         /// </summary>
