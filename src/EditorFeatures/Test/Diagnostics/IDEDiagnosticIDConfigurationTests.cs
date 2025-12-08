@@ -87,6 +87,12 @@ public sealed class IDEDiagnosticIDConfigurationTests
             return;
         }
 
+        if (diagnosticId == FileBasedPrograms.FileLevelDirectiveDiagnosticAnalyzer.DiagnosticId)
+        {
+            Assert.Equal("https://learn.microsoft.com/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps", helpLinkUri);
+            return;
+        }
+
         if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
         {
             Assert.True(false, $"Invalid help link for {diagnosticId}");

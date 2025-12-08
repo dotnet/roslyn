@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!Subpatterns.Any(p => p is BoundPatternWithUnionMatching));
             Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);
-            Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
+            Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
             Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
 
             if (IsUnionMatching)

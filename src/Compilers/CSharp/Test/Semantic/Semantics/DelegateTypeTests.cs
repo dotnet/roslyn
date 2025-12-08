@@ -12191,7 +12191,7 @@ class Program
                 var stmt = SyntaxFactory.ParseStatement(text);
                 Assert.True(model.TryGetSpeculativeSemanticModel(position, stmt, out model));
                 var expr = ((ExpressionStatementSyntax)stmt).Expression;
-                var type = model!.GetTypeInfo(expr).Type;
+                var type = model.GetTypeInfo(expr).Type;
                 Assert.Equal(expectedDelegateType, type.ToTestDisplayString());
             }
 
