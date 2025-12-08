@@ -98,7 +98,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
 
         // guess the best candidate if needed and determine parameter index
         var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
             .RefineOverloadAndPickParameter(symbolInfo, methods);
 
         // if the symbol could be bound, replace that item in the symbol list
@@ -145,7 +145,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
         }
 
         // determine parameter index
-        var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
+        var parameterIndexOverride = new CSharpLightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
             .FindParameterIndexIfCompatibleMethod(currentSymbol);
 
         // present item and select

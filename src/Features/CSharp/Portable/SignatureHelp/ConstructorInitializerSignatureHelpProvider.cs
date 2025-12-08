@@ -98,7 +98,7 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
         if (!constructors.Any())
             return null;
 
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, constructorInitializer.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, position, constructorInitializer.ArgumentList.Arguments)
             .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken), constructors);
 
         // present items and select

@@ -89,7 +89,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
             return null;
 
         // guess the best candidate if needed and determine parameter index
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
             .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
 
         // present items and select
@@ -119,7 +119,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
             return null;
 
         // determine parameter index
-        var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+        var parameterIndexOverride = new CSharpLightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
             .FindParameterIndexIfCompatibleMethod(invokeMethod);
 
         // present item and select
