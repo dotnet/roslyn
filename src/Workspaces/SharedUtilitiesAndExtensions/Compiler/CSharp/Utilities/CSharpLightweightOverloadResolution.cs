@@ -10,10 +10,13 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal readonly struct CSharpLightweightOverloadResolution(
     SemanticModel semanticModel,
-    int position,
-    SeparatedSyntaxList<ArgumentSyntax> arguments)
+    SeparatedSyntaxList<ArgumentSyntax> arguments,
+    int? position = null)
 {
-    private readonly LightweightOverloadResolution _overloadResolution = new(CSharpSemanticFacts.Instance, semanticModel, position, arguments);
+    private readonly LightweightOverloadResolution _overloadResolution = new(CSharpSemanticFacts.Instance, semanticModel, arguments, position);
+
+    public IMethodSymbol? RefineOverload(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
+        => _overloadResolution.RefineOverload(symbolInfo, candidates);
 
     public (IMethodSymbol? method, int parameterIndex) RefineOverloadAndPickParameter(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
         => _overloadResolution.RefineOverloadAndPickParameter(symbolInfo, candidates);

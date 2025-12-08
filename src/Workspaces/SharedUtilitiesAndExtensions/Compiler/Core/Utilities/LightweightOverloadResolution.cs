@@ -16,13 +16,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// Helper type that allows features (like signature-help or go-to-definition) to make better decisions about which
 /// overload the user is likely choosing when the compiler itself bails out and gives a generic list of options.
 /// </summary>
+/// <param name="position">Location the user is at <em>within</em> the argument list.  Used to determine which <see
+/// cref="IParameterSymbol"/> corresponds to that location.  This value is optional, and does not need to be provided if
+/// the client of <see cref="LightweightOverloadResolution"/> only wants to determine which overload is most likely
+/// given the arguments.</param>
 internal readonly struct LightweightOverloadResolution(
     ISemanticFacts semanticFacts,
     SemanticModel semanticModel,
-    int position,
-    SeparatedSyntaxList<SyntaxNode> arguments)
+    SeparatedSyntaxList<SyntaxNode> arguments,
+    int? position = null)
 {
     private ISyntaxFacts SyntaxFacts => semanticFacts.SyntaxFacts;
+
+    public IMethodSymbol? RefineOverload(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
+        => RefineOverloadAndPickParameter(symbolInfo, candidates).method;
 
     public (IMethodSymbol? method, int parameterIndex) RefineOverloadAndPickParameter(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
     {
@@ -91,8 +98,11 @@ internal readonly struct LightweightOverloadResolution(
                 return (null, -1);
         }
 
+        if (position is null)
+            return (method, -1);
+
         // find the parameter at the cursor position
-        var argumentIndexToSave = GetArgumentIndex();
+        var argumentIndexToSave = GetArgumentIndex(position.Value);
         var foundParameterIndex = -1;
         if (argumentIndexToSave >= 0)
         {
@@ -245,7 +255,7 @@ internal readonly struct LightweightOverloadResolution(
     /// Given the cursor position, find which argument is active.
     /// This will be useful to later find which parameter should be highlighted.
     /// </summary>
-    private int GetArgumentIndex()
+    private int GetArgumentIndex(int position)
     {
         for (var i = 0; i < arguments.Count - 1; i++)
         {

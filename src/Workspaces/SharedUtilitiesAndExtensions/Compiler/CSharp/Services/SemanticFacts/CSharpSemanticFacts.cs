@@ -266,7 +266,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     public IParameterSymbol? FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
         => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken);
 
-    // Normal arguments can't reference fields/properties in c#
+    // Normal argumentList can't reference fields/properties in c#
     public ISymbol? FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
         => null;
 
@@ -383,9 +383,41 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         }
 
         var preprocessingSymbol = GetPreprocessingSymbol(semanticModel, node);
-        return preprocessingSymbol != null
-            ? [preprocessingSymbol]
-            : semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
+        if (preprocessingSymbol != null)
+            return [preprocessingSymbol];
+
+        var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure &&
+            symbolInfo.CandidateSymbols.Length >= 2 &&
+            symbolInfo.CandidateSymbols.All(static s => s is IMethodSymbol) &&
+            node is SimpleNameSyntax simpleName)
+        {
+            // Compiler ran into an overload resolution issue.  In this case, they generally return the methods in no
+            // special order.  So see if we can do a little better here by picking the best method based on some shared
+            // heuristics.  This is particularly useful when overload resolution fails because there are methods with
+            // duplicate signatures.  We'd at least like to pick one of the duplicate methods to show to the user,
+            // versus some random method that doesn't even apply to the arguments the user passed.
+            ExpressionSyntax parent = simpleName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == simpleName
+                ? memberAccess
+                : simpleName;
+
+            var argumentList = parent.Parent switch
+            {
+                InvocationExpressionSyntax invocation => invocation.ArgumentList,
+                BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
+                _ => null,
+            };
+
+            if (argumentList != null)
+            {
+                var overloadResolution = new CSharpLightweightOverloadResolution(semanticModel, argumentList.Arguments);
+                var refined = overloadResolution.RefineOverload(symbolInfo, symbolInfo.CandidateSymbols.SelectAsArray(s => (IMethodSymbol)s));
+                if (refined != null)
+                    return [refined, .. symbolInfo.CandidateSymbols.Where(s => s != refined)];
+            }
+        }
+
+        return symbolInfo.GetBestOrAllSymbols();
     }
 
     public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
