@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -442,6 +443,9 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
     public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
+
+    public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
+        => semanticModel.ClassifyConversion((ExpressionSyntax)expression, destination).ToCommonConversion();
 
 #if CSHARP_WORKSPACE
 
