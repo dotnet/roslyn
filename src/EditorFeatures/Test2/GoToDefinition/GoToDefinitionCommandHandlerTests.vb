@@ -212,7 +212,7 @@ class C
         End Function
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
-        Public Async Function TestCSharpOverloadResolutionError() As Task
+        Public Async Function TestCSharpOverloadResolutionError2() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
@@ -443,6 +443,59 @@ class C
                 void M()
                 {
                     var d = new N.$$Base("");
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+                Dim document = workspace.Documents.First()
+                Dim view = document.GetTextView()
+
+                Dim mockDocumentNavigationService =
+                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+
+                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
+                Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    provider)
+
+                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
+
+                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
+                Await waiter.ExpeditedWaitAsync()
+
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
+
+                Dim navigatedPosition = mockDocumentNavigationService._position
+                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
+
+                ' We had to navigate to one of the overloads that takes an actual string parameter.
+                Assert.Equal("public Base(string s) { }", navigatedLine)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
+        Public Async Function TestCSharpOverloadResolutionError7() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            class Base
+            {
+                public Base() { }
+                public Base(string s) { }
+                public Base(string s) { }
+            }
+                
+            class C
+            {
+                void M()
+                {
+                    Base d = new$$("");
                 }
             }
         </Document>

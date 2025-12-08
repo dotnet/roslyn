@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -351,7 +352,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
 
             case ObjectCreationExpressionSyntax objectCreation:
-                var symbols = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).GetBestOrAllSymbols();
+                var symbols = GetOrderCandidates();
                 if (symbols.Length > 0)
                     return symbols;
 
@@ -386,36 +387,45 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         if (preprocessingSymbol != null)
             return [preprocessingSymbol];
 
-        var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
-        if (symbolInfo.CandidateSymbols.Length >= 2 &&
-            symbolInfo.CandidateSymbols.All(static s => s is IMethodSymbol))
+        return GetOrderCandidates();
+
+        ImmutableArray<ISymbol> GetOrderCandidates()
         {
-            // Compiler ran into an overload resolution issue.  In this case, they generally return the methods in no
-            // special order.  So see if we can do a little better here by picking the best method based on some shared
-            // heuristics.  This is particularly useful when overload resolution fails because there are methods with
-            // duplicate signatures.  We'd at least like to pick one of the duplicate methods to show to the user,
-            // versus some random method that doesn't even apply to the arguments the user passed.
-            var argumentList = node switch
+            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+            if (symbolInfo.CandidateSymbols.Length >= 2 &&
+                symbolInfo.CandidateSymbols.All(static s => s is IMethodSymbol))
             {
-                // base(a, b, c)
-                ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
-                // Goo(a, b, c)
-                SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } => invocation.ArgumentList,
-                // X.Goo(a, b, c)
-                SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax invocation } memberAccess } when memberAccess.Name == node => invocation.ArgumentList,
-                _ => null,
-            };
+                // Compiler ran into an overload resolution issue.  In this case, they generally return the methods in no
+                // special order.  So see if we can do a little better here by picking the best method based on some shared
+                // heuristics.  This is particularly useful when overload resolution fails because there are methods with
+                // duplicate signatures.  We'd at least like to pick one of the duplicate methods to show to the user,
+                // versus some random method that doesn't even apply to the arguments the user passed.
+                var argumentList = node switch
+                {
+                    // base(a, b, c)
+                    ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
+                    // new T(a, b, c)
+                    BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
+                    // Goo(a, b, c)
+                    SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } => invocation.ArgumentList,
+                    // X.Goo(a, b, c)
+                    SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax invocation } memberAccess } when memberAccess.Name == node => invocation.ArgumentList,
+                    // X?.Goo(a, b, c)
+                    SimpleNameSyntax { Parent: MemberBindingExpressionSyntax { Parent: InvocationExpressionSyntax invocation } memberBinding } when memberBinding.Name == node => invocation.ArgumentList,
+                    _ => null,
+                };
 
-            if (argumentList != null)
-            {
-                var overloadResolution = new CSharpLightweightOverloadResolution(semanticModel, argumentList.Arguments);
-                var refined = overloadResolution.RefineOverload(symbolInfo, symbolInfo.CandidateSymbols.SelectAsArray(s => (IMethodSymbol)s));
-                if (refined != null)
-                    return [refined, .. symbolInfo.CandidateSymbols.Where(s => s != refined)];
+                if (argumentList != null)
+                {
+                    var overloadResolution = new CSharpLightweightOverloadResolution(semanticModel, argumentList.Arguments);
+                    var refined = overloadResolution.RefineOverload(symbolInfo, symbolInfo.CandidateSymbols.SelectAsArray(s => (IMethodSymbol)s));
+                    if (refined != null)
+                        return [refined, .. symbolInfo.CandidateSymbols.Where(s => s != refined)];
+                }
             }
-        }
 
-        return symbolInfo.GetBestOrAllSymbols();
+            return symbolInfo.GetBestOrAllSymbols();
+        }
     }
 
     public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
