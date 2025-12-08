@@ -63,6 +63,9 @@ internal sealed partial class EventHookupSessionManager(
         if (cancellationToken.IsCancellationRequested)
             return;
 
+        // Now that we've switched to the UI thread, the rest of the work is not cancellable.  We're about to be making
+        // mutations, and we don't want to stop somewhere in the middle of that.
+        cancellationToken = default;
         var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
         // only generate tooltip if it is not already shown (_toolTipPresenter == null)
@@ -99,11 +102,13 @@ internal sealed partial class EventHookupSessionManager(
             analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
             CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
 
-            // Dismiss and suppress gray text proposals for the duration of the event hookup session.
+            // Dismiss and suppress gray text proposals for the duration of the event hookup session. Note we pass
+            // CancellationToken.None here as we don't actually want to cancel this operation, since we've already
+            // made UI changes/hookup that we now have to go through.  We are technically safe, as we've cleared
+            // out cancellationToken above, but this is an extra level safety.
             _suggestionBlocker?.DisposeAsync().ConfigureAwait(true);
             _suggestionBlocker = await SuggestionServiceBase.Value.DismissAndBlockProposalsAsync(
-                analyzedSession.TextView, ReasonForDismiss.DismissedAfterBufferChange, cancellationToken)
-                .ConfigureAwait(true);
+                analyzedSession.TextView, ReasonForDismiss.DismissedAfterBufferChange, CancellationToken.None).ConfigureAwait(true);
         }
     }
 
