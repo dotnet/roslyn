@@ -14812,35 +14812,70 @@ I1(x);";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestLocalDeclarationWithMissingEquals()
         {
-            UsingStatement("""
-                int value 5;
-                """,
-                // (1,11): error CS1003: Syntax error, '=' expected
-                // int value 5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(1, 11));
-
-            N(SyntaxKind.LocalDeclarationStatement);
-            {
-                N(SyntaxKind.VariableDeclaration);
+            UsingTree("""
+                class C
                 {
-                    N(SyntaxKind.PredefinedType);
+                    void M()
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "value");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            M(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
+                        int value 5;
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                """,
+                // (5,19): error CS1003: Syntax error, '=' expected
+                //         int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(5, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "5");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
@@ -14848,36 +14883,71 @@ I1(x);";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestLocalUsingDeclarationWithMissingEquals1()
         {
-            UsingStatement("""
-                using int value 5;
-                """,
-                // (1,17): error CS1003: Syntax error, '=' expected
-                // using int value 5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(1, 17));
-
-            N(SyntaxKind.LocalDeclarationStatement);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.VariableDeclaration);
+            UsingTree("""
+                class C
                 {
-                    N(SyntaxKind.PredefinedType);
+                    void M()
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "value");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            M(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
+                        using int value 5;
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                """,
+                // (5,25): error CS1003: Syntax error, '=' expected
+                //         using int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(5, 25));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.UsingKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "5");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
@@ -14885,31 +14955,369 @@ I1(x);";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestLocalUsingDeclarationWithMissingEquals2()
         {
-            UsingStatement("""
-                using value 5;
-                """,
-                // (1,13): error CS1001: Identifier expected
-                // using value 5;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "5").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // using value 5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments(",").WithLocation(1, 13));
-
-            N(SyntaxKind.LocalDeclarationStatement);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.VariableDeclaration);
+            UsingTree("""
+                class C
                 {
-                    N(SyntaxKind.IdentifierName);
+                    void M()
                     {
-                        N(SyntaxKind.IdentifierToken, "value");
-                    }
-                    M(SyntaxKind.VariableDeclarator);
-                    {
-                        M(SyntaxKind.IdentifierToken);
+                        using value 5;
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                """,
+                // (5,21): error CS1001: Identifier expected
+                //         using value 5;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "5").WithLocation(5, 21),
+                // (5,21): error CS1002: ; expected
+                //         using value 5;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "5").WithLocation(5, 21));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.UsingKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestMultipleLocalDeclarationWithMissingEquals1()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        int x int y 1
+                    }
+                }
+                """,
+                // (5,15): error CS1002: ; expected
+                //         int x int y 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(5, 15),
+                // (5,21): error CS1003: Syntax error, '=' expected
+                //         int x int y 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("=").WithLocation(5, 21),
+                // (5,22): error CS1002: ; expected
+                //         int x int y 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 22));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestMultipleLocalDeclarationWithMissingEquals2()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        int x 1 int y 1
+                    }
+                }
+                """,
+                // (5,15): error CS1003: Syntax error, '=' expected
+                //         int x 1 int y 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("=").WithLocation(5, 15),
+                // (5,17): error CS1002: ; expected
+                //         int x 1 int y 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(5, 17),
+                // (5,23): error CS1003: Syntax error, '=' expected
+                //         int x 1 int y 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("=").WithLocation(5, 23),
+                // (5,24): error CS1002: ; expected
+                //         int x 1 int y 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 24));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestMultipleLocalDeclarationWithMissingEquals3()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        int x 1; int y 1
+                    }
+                }
+                """,
+                // (5,15): error CS1003: Syntax error, '=' expected
+                //         int x 1; int y 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("=").WithLocation(5, 15),
+                // (5,24): error CS1003: Syntax error, '=' expected
+                //         int x 1; int y 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("=").WithLocation(5, 24),
+                // (5,25): error CS1002: ; expected
+                //         int x 1; int y 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 25));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
