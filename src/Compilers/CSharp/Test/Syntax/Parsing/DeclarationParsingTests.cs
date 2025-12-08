@@ -14846,6 +14846,75 @@ I1(x);";
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalUsingDeclarationWithMissingEquals1()
+        {
+            UsingStatement("""
+                using int value 5;
+                """,
+                // (1,17): error CS1003: Syntax error, '=' expected
+                // using int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(1, 17));
+
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "value");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestLocalUsingDeclarationWithMissingEquals2()
+        {
+            UsingStatement("""
+                using value 5;
+                """,
+                // (1,13): error CS1001: Identifier expected
+                // using value 5;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "5").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // using value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments(",").WithLocation(1, 13));
+
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "value");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestLocalDeclarationWithMissingEquals_StringLiteral()
         {
             UsingStatement("""
