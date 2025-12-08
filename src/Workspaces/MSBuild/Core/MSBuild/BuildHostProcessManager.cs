@@ -316,10 +316,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static void AppendBuildHostCommandLineArgumentsAndConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
     {
-        AddArgument(processStartInfo, "--pipe");
         AddArgument(processStartInfo, pipeName);
-
-        AddArgument(processStartInfo, "--locale");
         AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
 
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
