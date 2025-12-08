@@ -136,6 +136,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, constructor, constructorUsedInExpandedForm, elementConversions));
         }
 
+        internal static Conversion CreateUnionConversion(UserDefinedConversionResult conversionResult)
+        {
+            return new Conversion(
+                ConversionKind.Union,
+                new MethodUncommonData(
+                    isExtensionMethod: false,
+                    isArrayIndex: false,
+                    conversionResult: conversionResult,
+                    conversionMethod: null));
+        }
+
         private Conversion(
             ConversionKind kind,
             UncommonData? uncommonData = null)
@@ -433,6 +444,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UserDefinedFromConversion.AssertUnderlyingConversionsCheckedRecursive();
                 UserDefinedToConversion.AssertUnderlyingConversionsCheckedRecursive();
             }
+            else if (IsUnion)
+            {
+                Debug.Assert(BestUnionConversionAnalysis is { });
+                var analysis = BestUnionConversionAnalysis;
+                analysis.SourceConversion.AssertUnderlyingConversionsCheckedRecursive();
+                analysis.TargetConversion.AssertUnderlyingConversionsCheckedRecursive();
+            }
         }
 
         [Conditional("DEBUG")]
@@ -471,6 +489,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     UserDefinedFromConversion.MarkUnderlyingConversionsCheckedRecursive();
                     UserDefinedToConversion.MarkUnderlyingConversionsCheckedRecursive();
+                }
+                else if (IsUnion)
+                {
+                    Debug.Assert(BestUnionConversionAnalysis is { });
+                    var analysis = BestUnionConversionAnalysis;
+                    analysis.SourceConversion.MarkUnderlyingConversionsCheckedRecursive();
+                    analysis.TargetConversion.MarkUnderlyingConversionsCheckedRecursive();
                 }
             }
 #endif
@@ -581,10 +606,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(!this.IsUserDefined);
+                    Debug.Assert(!this.IsUnion);
                     return true;
                 }
 
-                return !this.IsUserDefined ||
+                return (!this.IsUserDefined && !this.IsUnion) ||
                     this.Method is object ||
                     (_uncommonData as MethodUncommonData)?._conversionResult.Kind == UserDefinedConversionResultKind.Valid;
             }
@@ -852,6 +878,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is an implicit union conversion.
+        /// </summary>
+        public bool IsUnion
+        {
+            get
+            {
+                return Kind.IsUnionConversion();
+            }
+        }
+
+        /// <summary>
         /// Returns true if the conversion is an implicit boxing conversion.
         /// </summary>
         /// <remarks>
@@ -1009,6 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the method used to create the delegate for a method group conversion if <see cref="IsMethodGroup"/> is true 
         /// or the method used to perform the conversion for a user-defined conversion if <see cref="IsUserDefined"/> is true.
+        /// or the method used to perform the conversion for a union conversion if <see cref="IsUnion"/> is true.
         /// Otherwise, returns null.
         /// </summary>
         /// <remarks>
@@ -1111,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the IDE wants information about the *inferred* method, not the original unconstructed
                 // generic method.
 
-                if (_uncommonData is MethodUncommonData { _conversionResult: { Kind: not UserDefinedConversionResultKind.NoApplicableOperators } conversionResult })
+                if (!IsUnion && _uncommonData is MethodUncommonData { _conversionResult: { Kind: not UserDefinedConversionResultKind.NoApplicableOperators } conversionResult })
                 {
                     var builder = ArrayBuilder<MethodSymbol>.GetInstance();
                     foreach (var analysis in conversionResult.Results)
@@ -1129,7 +1167,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_uncommonData is MethodUncommonData { _conversionResult: { Kind: UserDefinedConversionResultKind.Valid } conversionResult })
+                if (!IsUnion && _uncommonData is MethodUncommonData { _conversionResult: { Kind: UserDefinedConversionResultKind.Valid } conversionResult })
+                {
+                    UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
+                    return analysis;
+                }
+
+                return null;
+            }
+        }
+
+        internal UserDefinedConversionAnalysis? BestUnionConversionAnalysis
+        {
+            get
+            {
+                if (IsUnion && _uncommonData is MethodUncommonData { _conversionResult: { Kind: UserDefinedConversionResultKind.Valid } conversionResult })
                 {
                     UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
                     return analysis;
@@ -1150,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var (methodSymbol, constrainedToType) = IsUserDefined ? (MethodSymbol, ConstrainedToType) : (null, null);
+            var (methodSymbol, constrainedToType) = IsUserDefined || IsUnion ? (MethodSymbol, ConstrainedToType) : (null, null);
             return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol, constrainedToType);
         }
 

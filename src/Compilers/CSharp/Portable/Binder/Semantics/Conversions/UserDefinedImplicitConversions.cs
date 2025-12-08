@@ -634,6 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.FunctionType:
 
                 // Not implicit.
@@ -977,6 +978,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return UserDefinedConversionResult.NoApplicableOperators(u);
+        }
+
+        private Conversion AnalyzeImplicitUnionConversions(
+            BoundExpression sourceExpression,
+            TypeSymbol source,
+            TypeSymbol target,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
+            Debug.Assert(sourceExpression != null || (object)source != null);
+            Debug.Assert((object)target != null);
+
+            // PROTOTYPE: It might make sense to block conversions from a base class or any interface. See comments in tests.
+
+            if (target is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionTypeWithUseSiteDiagnostics(ref useSiteInfo))
+            {
+                return Conversion.NoConversion;
+            }
+
+            // SPEC: Find the set of applicable constructors
+            var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
+            computeApplicableConstructorSet(sourceExpression, source, namedTarget, ubuild, ref useSiteInfo);
+
+            if (ubuild.Count == 0)
+            {
+                ubuild.Free();
+                return Conversion.NoConversion;
+            }
+
+            ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
+
+            // Find the most specific source type SX of the operators in U...
+            TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteInfo);
+            if ((object)sx == null || MostSpecificConversionOperator(sx, namedTarget, u) is not int best)
+            {
+                // Ambiguous. The first applicable is good enough then.
+                return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best: 0));
+            }
+
+            return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best));
+
+            void computeApplicableConstructorSet(
+                BoundExpression sourceExpression,
+                TypeSymbol source,
+                NamedTypeSymbol declaringType,
+                ArrayBuilder<UserDefinedConversionAnalysis> u,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                foreach (MethodSymbol ctor in declaringType.InstanceConstructors)
+                {
+                    if (!NamedTypeSymbol.IsSuitableUnionConstructor(ctor))
+                    {
+                        continue;
+                    }
+
+                    TypeSymbol convertsFrom = ctor.GetParameterType(0);
+                    Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
+
+                    if (fromConversion.Exists)
+                    {
+                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, ctor, fromConversion, targetConversion: Conversion.Identity, convertsFrom, toType: declaringType));
+                    }
+                }
+            }
         }
     }
 }

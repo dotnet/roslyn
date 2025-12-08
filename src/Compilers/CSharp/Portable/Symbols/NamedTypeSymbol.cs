@@ -1803,7 +1803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var ctor in this.InstanceConstructors)
                 {
-                    if (ctor.DeclaredAccessibility == Accessibility.Public && ctor.ParameterCount == 1)
+                    if (IsSuitableUnionConstructor(ctor))
                     {
                         var candidate = ctor.Parameters[0].Type;
                         if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
@@ -1815,6 +1815,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return builder.ToImmutableAndFree();
             }
+        }
+
+        internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
+        {
+            Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
+            // PROTOTYPE: Confirm RefKind restriction. Conversion operators allow only RefKind.None or RefKind.In.
+            //            It feels like it makes sense to use the same restriction here.
+            return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
         }
 
         /// <summary>

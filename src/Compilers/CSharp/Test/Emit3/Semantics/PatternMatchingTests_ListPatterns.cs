@@ -3508,10 +3508,40 @@ public class C
             "_ = new C()[..];"
         };
 
-        foreach (var source in sources)
+        // PROTOTYPE: The errors are coming from an attempt to classify Union conversion during overload resolution.
+        //            Is there a relatively easy way to avoid reporting them? Perhaps that can be done if we limit Union
+        //            types to structs only. This way we can expect all interfaces to be explicitly listed on the struct.
+        //            IUnion cannot be implemented indirectly, i.e. by listing only a derived interface, or inheriting
+        //            from a base implementing it. Therefore, we could rely on InterfacesNoUseSiteDiagnostics instead of
+        //            AllInterfacesWithDefinitionUseSiteDiagnostics to check whether IUnion is among implemented interfaces.
+        DiagnosticDescription[][] diagnostic =
+        [
+            [],
+            [],
+            [
+                // (1,16): error CS0012: The type 'IMissing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // _ = new C() is [var x];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x]").WithArguments("IMissing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 16)
+
+            ],
+            [
+                // (1,16): error CS0012: The type 'IMissing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // _ = new C() is [..var y];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var y]").WithArguments("IMissing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 16)
+            ],
+            [
+                // (1,5): error CS0012: The type 'IMissing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // _ = new C()[^1];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[^1]").WithArguments("IMissing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 5)
+            ],
+            [],
+        ];
+
+        for (int i = 0; i < sources.Length; i++)
         {
+            string source = sources[i];
             var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference(), rangeRef });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(diagnostic[i]);
             var used = comp.GetUsedAssemblyReferences();
             Assert.True(used.Any(r => r.Display == "range"));
         }

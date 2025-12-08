@@ -343,6 +343,12 @@ interface I1<T>
                 // (177,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y.Test1();
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "y.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(177, 9),
+                // (171,9): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test4").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(171, 9),
+                // (171,9): error CS0012: The type 'CL2_I2' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test4").WithArguments("CL2_I2", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(171, 9),
                 // (195,23): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_D1 d1 = y.Test2;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Test2").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(195, 23),
@@ -536,6 +542,9 @@ public interface CL3_I1 : CL2_I1
                 // (171,9): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
                 //         CL3_C2.Test4(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test4").WithArguments("CL2_I1").WithLocation(171, 9),
+                // (171,9): error CS0246: The type or namespace name 'CL2_I2' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test4").WithArguments("CL2_I2").WithLocation(171, 9),
                 // (171,16): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
                 //         CL3_C2.Test4(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)").WithLocation(171, 16),

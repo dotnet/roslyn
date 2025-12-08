@@ -216,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, isChecked: false, ref useSiteInfo);
 
                             Debug.Assert(!conversion.IsUserDefined);
+                            Debug.Assert(!conversion.IsUnion);
                             _localRewriter._diagnostics.Add(t.Syntax, useSiteInfo);
                             BoundExpression evaluated;
                             if (conversion.Exists)

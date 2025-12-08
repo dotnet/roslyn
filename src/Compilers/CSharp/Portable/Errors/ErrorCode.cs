@@ -2446,6 +2446,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InequalityOperatorInPatternNotSupported = 9345,
         ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
 
+        // PROTOTYPE: Pack numbers
+        ERR_ExpressionTreeContainsUnionConversion = 9400,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

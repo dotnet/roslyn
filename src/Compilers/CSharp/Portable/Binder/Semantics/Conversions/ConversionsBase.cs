@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            conversion = GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteInfo);
+            conversion = GetImplicitUserDefinedOrUnionConversion(sourceExpression, sourceType, destination, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedOrUnionConversion(source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Conversion conversion = GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
+            Conversion conversion = GetImplicitUserDefinedOrUnionConversion(source, destination, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
@@ -471,13 +471,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // fail.
 
+            // PROTOTYPE: Note, an explicit user-defined conversion may come before a union conversion in this case.
+            //            Confirm that this is acceptable.
             var conversion = GetExplicitUserDefinedConversion(source, destination, isChecked: isChecked, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            return GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedOrUnionConversion(source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -779,15 +781,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private Conversion GetImplicitUserDefinedConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetImplicitUserDefinedOrUnionConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var conversionResult = AnalyzeImplicitUserDefinedConversions(sourceExpression, source, destination, ref useSiteInfo);
-            return new Conversion(conversionResult, isImplicit: true);
+            var result = new Conversion(conversionResult, isImplicit: true);
+
+            if (result.Exists)
+            {
+                return result;
+            }
+
+            // PROTOTYPE: Confirm that union conversions are considered after user-defined conversions.
+            Conversion unionConversion = AnalyzeImplicitUnionConversions(sourceExpression, source, destination, ref useSiteInfo);
+
+            if (unionConversion.Exists)
+            {
+                return unionConversion;
+            }
+
+            return result;
         }
 
-        private Conversion GetImplicitUserDefinedConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetImplicitUserDefinedOrUnionConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return GetImplicitUserDefinedConversion(sourceExpression: null, source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedOrUnionConversion(sourceExpression: null, source, destination, ref useSiteInfo);
         }
 
         private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
@@ -1012,6 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (implicitConversion.Kind)
             {
                 case ConversionKind.ImplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitTupleLiteral:

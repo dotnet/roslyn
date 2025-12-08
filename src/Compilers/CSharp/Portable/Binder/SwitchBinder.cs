@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.IsValid)
                     {
                         // Condition (2) satisfied
-                        Debug.Assert(conversion.Kind == ConversionKind.ImplicitUserDefined);
+                        Debug.Assert(conversion.Kind == ConversionKind.ImplicitUserDefined); // PROTOTYPE: Follow up
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));

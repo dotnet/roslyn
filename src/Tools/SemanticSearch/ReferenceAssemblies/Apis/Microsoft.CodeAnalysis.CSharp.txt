@@ -1168,6 +1168,7 @@ Microsoft.CodeAnalysis.CSharp.Conversion.get_IsThrow
 Microsoft.CodeAnalysis.CSharp.Conversion.get_IsTupleConversion
 Microsoft.CodeAnalysis.CSharp.Conversion.get_IsTupleLiteralConversion
 Microsoft.CodeAnalysis.CSharp.Conversion.get_IsUnboxing
+Microsoft.CodeAnalysis.CSharp.Conversion.get_IsUnion
 Microsoft.CodeAnalysis.CSharp.Conversion.get_IsUserDefined
 Microsoft.CodeAnalysis.CSharp.Conversion.get_MethodSymbol
 Microsoft.CodeAnalysis.CSharp.Conversion.op_Equality(Microsoft.CodeAnalysis.CSharp.Conversion,Microsoft.CodeAnalysis.CSharp.Conversion)

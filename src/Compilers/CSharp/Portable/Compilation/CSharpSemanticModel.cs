@@ -3539,6 +3539,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedConversions, out symbols, out resultKind);
                         }
+                        else if (conversion.ConversionKind.IsUnionConversion())
+                        {
+                            Debug.Assert(conversion.SymbolOpt is { });
+                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, originalCandidates: [], out symbols, out resultKind);
+                        }
                         else
                         {
                             goto default;
