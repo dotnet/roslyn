@@ -16,11 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Unsafe)]
 public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
+    /// <param name="expectedUnsafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
+    /// <param name="expectedSafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
     private void CompileAndVerify(
         string lib,
         string caller,
-        object[] unsafeSymbols,
-        object[] safeSymbols,
+        object[] expectedUnsafeSymbols,
+        object[] expectedSafeSymbols,
         params DiagnosticDescription[] expectedDiagnostics)
     {
         CreateCompilation([lib, caller],
@@ -32,7 +34,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             symbolValidator: module =>
             {
                 VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
-                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: true, isSynthesized: true, unsafeSymbols: unsafeSymbols, safeSymbols: safeSymbols);
+                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: true, isSynthesized: true, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
             })
             .VerifyDiagnostics()
             .GetImageReference();
@@ -125,11 +127,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
+    /// <remarks>
+    /// <paramref name="expectedUnsafeSymbols"/> (and <paramref name="expectedSafeSymbols"/>) should be symbol names (<see cref="string"/>)
+    /// or symbol getters (<c><![CDATA[Func<ModuleSymbol, Symbol>]]></c>) of symbols that are expected to be unsafe (or safe, respectively).
+    /// </remarks>
     private static void VerifyRequiresUnsafeAttribute(
         ModuleSymbol module,
         bool includesAttributeDefinition,
-        ReadOnlySpan<object> unsafeSymbols,
-        ReadOnlySpan<object> safeSymbols,
+        ReadOnlySpan<object> expectedUnsafeSymbols,
+        ReadOnlySpan<object> expectedSafeSymbols,
         bool? isSynthesized = null)
     {
         const string Name = "RequiresUnsafeAttribute";
@@ -164,12 +170,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         var seenSymbols = new HashSet<Symbol>();
 
-        foreach (var symbol in unsafeSymbols)
+        foreach (var symbol in expectedUnsafeSymbols)
         {
             verifySymbol(symbol, shouldBeUnsafe: true);
         }
 
-        foreach (var symbol in safeSymbols)
+        foreach (var symbol in expectedSafeSymbols)
         {
             verifySymbol(symbol, shouldBeUnsafe: false);
         }
@@ -314,7 +320,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public static int GetAttributeValue(Type type)
                 {
                     var module = type.Assembly.Modules.Single();
-                    var attribute = module.GetCustomAttributes(false).Single(a => a.GetType().Name == "MemorySafetyRulesAttribute");
+                    var attribute = module.GetCustomAttributes(inherit: false).Single(a => a.GetType().Name == "MemorySafetyRulesAttribute");
                     var prop = attribute.GetType().GetProperty("Version");
                     return (int)prop.GetValue(attribute);
                 }
@@ -2451,6 +2457,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
     }
 
+    // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
+    // PROTOTYPE: Should some synthesized members be unsafe (like state machine methods that are declared unsafe)?
     [Theory, CombinatorialData]
     public void Member_Method_Invocation(
         bool apiUpdatedRules,
@@ -2580,8 +2588,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.M1();
                 c.M2();
                 """,
-            unsafeSymbols: ["C.M2"],
-            safeSymbols: ["C.M1"],
+            expectedUnsafeSymbols: ["C.M2"],
+            expectedSafeSymbols: ["C.M1"],
             expectedDiagnostics:
             [
                 // (3,1): error CS9502: Using 'C.M2()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
@@ -2593,17 +2601,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_NameOf()
     {
-        var source = """
-            _ = nameof(C.M);
-
-            class C
-            {
-                public static unsafe void M() { }
-            }
-            """;
-        CreateCompilation(source,
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics();
+        CompileAndVerify(
+            lib: """
+                public class C
+                {
+                    public static unsafe void M() { }
+                }
+                """,
+            caller: """
+                _ = nameof(C.M);
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics: []);
     }
 
     [Fact]
@@ -2625,8 +2635,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 123.M1();
                 123.M2();
                 """,
-            unsafeSymbols: ["E.M1", "E.M2", ExtensionMember("E", "M2")],
-            safeSymbols: [],
+            expectedUnsafeSymbols: ["E.M1", "E.M2", ExtensionMember("E", "M2")],
+            expectedSafeSymbols: [],
             expectedDiagnostics:
             [
                 // (1,1): error CS9502: Using 'E.M1(int)' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
@@ -2661,8 +2671,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.M2();
                 c.M3();
                 """,
-            unsafeSymbols: ["C.M3"],
-            safeSymbols: ["C.M1", "C.M2"],
+            expectedUnsafeSymbols: ["C.M3"],
+            expectedSafeSymbols: ["C.M1", "C.M2"],
             expectedDiagnostics:
             [
                 // (4,1): error CS9502: Using 'C.M3()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
@@ -2674,20 +2684,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_ConvertToFunctionPointer()
     {
-        var source = """
-            unsafe
-            {
-                delegate*<void> p = &C.M;
-            }
-
-            public static class C
-            {
-                public static unsafe void M() { }
-            }
-            """;
-        CreateCompilation(source,
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics();
+        CompileAndVerify(
+            lib: """
+                public static class C
+                {
+                    public static unsafe void M() { }
+                }
+                """,
+            caller: """
+                delegate*<void> p1 = &C.M;
+                unsafe { delegate*<void> p2 = &C.M; }
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics: []);
     }
 
     // PROTOTYPE: Test also lambdas and delegates.
@@ -2708,6 +2718,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
     }
 
+    // PROTOTYPE: Test unsafe on individual get/set/init accessors.
     [Fact]
     public void Member_Property()
     {
@@ -2724,8 +2735,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.P1 = c.P1 + 123;
                 c.P2 = c.P2 + 123;
                 """,
-            unsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
-            safeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
+            expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
+            expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
             expectedDiagnostics:
             [
                 // (3,1): error CS9502: Using 'C.P2' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
@@ -2756,8 +2767,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 x.P1 = x.P1 + 222;
                 x.P2 = x.P2 + 333;
                 """,
-            unsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
-            safeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
+            expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
+            expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
             expectedDiagnostics:
             [
                 // (3,1): error CS9502: Using 'E.extension(int).P2' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
@@ -2782,24 +2793,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source,
             options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: [],
-                safeSymbols: ["C", "C.M1", "C.M2"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M1", "C.M2"]))
             .VerifyDiagnostics();
 
         var ref1 = CompileAndVerify(source,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: true,
-                unsafeSymbols: ["C.M1"],
-                safeSymbols: ["C", "C.M2"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: ["C.M1"],
+                expectedSafeSymbols: ["C", "C.M2"]))
             .VerifyDiagnostics()
             .GetImageReference();
 
         CompileAndVerify("", [ref1],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: [],
-                safeSymbols: []))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: []))
             .VerifyDiagnostics();
 
         var source2 = """
@@ -2812,17 +2830,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source2, [ref1],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: true,
-                unsafeSymbols: ["B.M4"],
-                safeSymbols: ["B", "B.M3"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: ["B.M4"],
+                expectedSafeSymbols: ["B", "B.M3"]))
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All),
             verify: Verification.Skipped,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: [],
-                safeSymbols: ["C", "C.M1", "C.M2"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M1", "C.M2"]))
             .VerifyDiagnostics();
 
         CreateCompilation([source, MemorySafetyRulesAttributeDefinition],
@@ -2844,25 +2867,81 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CompileAndVerify(source,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: [],
-                safeSymbols: ["C", "C.M"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: [],
-                safeSymbols: ["C", "C.M"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules(),
             verify: Verification.Skipped,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: [],
-                safeSymbols: ["C", "C.M"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
             .VerifyDiagnostics();
+    }
+
+    /// <summary>
+    /// No attribute is synthesized for local functions.
+    /// </summary>
+    [Fact]
+    public void RequiresUnsafeAttribute_LocalFunction()
+    {
+        var source = """
+            #pragma warning disable CS8321 // Local function is declared but never used
+            class C
+            {
+                void M()
+                {
+                    unsafe void M1() { }
+                    void M2() { }
+                }
+            }
+            """;
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.Skipped,
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.Skipped,
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C.<M>g__M1|0_0", "C.<M>g__M2|0_1"]);
+        }
     }
 
     [Fact]
@@ -2878,7 +2957,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public void M2() { }
                 public static void RequiresUnsafe(MethodInfo method)
                 {
-                    var count = method.GetCustomAttributes(false).Count(a => a.GetType().Name == "RequiresUnsafeAttribute");
+                    var count = method.GetCustomAttributes(inherit: false).Count(a => a.GetType().Name == "RequiresUnsafeAttribute");
                     Console.Write(count);
                 }
             }
@@ -2920,16 +2999,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: false,
-                unsafeSymbols: [],
-                safeSymbols: ["C", "C.M"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: false,
-                unsafeSymbols: ["C.M"],
-                safeSymbols: ["C"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
             .VerifyDiagnostics();
     }
 
@@ -2938,9 +3023,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     {
         var comp = CreateCompilation(RequiresUnsafeAttributeDefinition);
         CompileAndVerify(comp,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: false,
-                unsafeSymbols: [],
-                safeSymbols: [AttributeDescription.RequiresUnsafeAttribute.FullName]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [AttributeDescription.RequiresUnsafeAttribute.FullName]))
             .VerifyDiagnostics();
         var ref1 = AsReference(comp, useCompilationReference);
 
@@ -2953,9 +3041,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source, [ref1],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: ["C.M"],
-                safeSymbols: ["C"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
             .VerifyDiagnostics();
     }
 
@@ -2978,17 +3068,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         // Ambiguous attribute definitions from references => synthesize our own.
         CompileAndVerify(source, [ref1, ref2],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: true,
-                unsafeSymbols: ["C.M"],
-                safeSymbols: ["C"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
             .VerifyDiagnostics();
 
         // Also defined in source.
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition], [ref1, ref2],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: true, isSynthesized: false,
-                unsafeSymbols: ["C.M"],
-                safeSymbols: ["C"]))
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
             .VerifyDiagnostics();
     }
 
@@ -3035,9 +3131,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var verifier = CompileAndVerify(CreateEmptyCompilation(source, [ref1, ref2, corlibRef],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()),
             verify: Verification.Skipped,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(m, includesAttributeDefinition: false,
-                unsafeSymbols: ["C.M"],
-                safeSymbols: ["C"]));
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]));
 
         verifier.Diagnostics.WhereAsArray(d => d.Code != (int)ErrorCode.WRN_NoRuntimeMetadataVersion).Verify();
 
@@ -3096,7 +3194,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         // [module: MemorySafetyRules(2)]
         // public class A
         // {
-        //     [RequiresUnsafe(1), RequiresUnsafe(0)]
+        //     [RequiresUnsafe(1), RequiresUnsafe()]
         //     public static void M() => throw null;
         // }
         var sourceA = $$"""
@@ -3195,6 +3293,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var comp = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
         var ref1 = AsReference(comp, useCompilationReference);
 
+        // PROTOTYPE: Test other member kinds too (audit all callers of Symbol.ReportExplicitUseOfReservedAttributes).
         var source = """
             using System.Runtime.CompilerServices;
             [RequiresUnsafeAttribute] class C

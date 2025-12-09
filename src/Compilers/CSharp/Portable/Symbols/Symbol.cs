@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE: add a public API for this
         /// <summary>
-        /// <see langword="true"/> if the method was compiled under updated memory safety rules
+        /// <see langword="true"/> if this is a member that was compiled under updated memory safety rules
         /// (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>) and marked as <see langword="unsafe"/>.
         /// </summary>
         internal virtual bool IsCallerUnsafe => false; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
