@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                        !conversion.IsCollectionExpression &&
                        !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
                        (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion)) &&
-                       (!conversion.IsUnion || filterConversion(conversion.BestUnionConversionAnalysis!.SourceConversion));
+                       (!conversion.IsUnion || filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion));
             }
 #endif
 

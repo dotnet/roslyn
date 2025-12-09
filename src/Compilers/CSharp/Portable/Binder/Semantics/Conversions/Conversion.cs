@@ -9,6 +9,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -880,6 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the conversion is an implicit union conversion.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(BestUnionConversionAnalysis))]
         public bool IsUnion
         {
             get
