@@ -47510,5 +47510,38 @@ class Program
 
             CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81552")]
+        public void VisitedNodes_CollectionExpression()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                Merge([.. D.P]);
+
+                static void Merge(params ReadOnlySpan<C> cs) { }
+
+                [CollectionBuilder(typeof(C), methodName: nameof(Create))]
+                class C : IEnumerable<int>
+                {
+                    public static C Create(ReadOnlySpan<int> span) => new();
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                class D
+                {
+                    public static IEnumerable<int> P => [1];
+                }
+                """;
+
+            CompileAndVerify(CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]), expectedOutput: "").VerifyDiagnostics();
+        }
     }
 }
