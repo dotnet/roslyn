@@ -1001,20 +1001,28 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return;
             }
 
+#pragma warning disable RS0030 // Do not use banned APIs
             using SemaphoreSlim semaphore = new SemaphoreSlim(1);
+#pragma warning restore RS0030
             await RunWithSolutionEventsAsync(
                 async solutionEvents =>
                 {
+#pragma warning disable RS0030 // Do not use banned APIs
                     await semaphore.WaitAsync(cancellationToken);
+#pragma warning restore RS0030
 
                     void HandleAfterCloseSolution(object sender, EventArgs e)
+#pragma warning disable RS0030 // Do not use banned APIs
                         => semaphore.Release();
+#pragma warning restore RS0030
 
                     solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
                     try
                     {
                         ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+#pragma warning disable RS0030 // Do not use banned APIs
                         await semaphore.WaitAsync(cancellationToken);
+#pragma warning restore RS0030
                     }
                     finally
                     {
