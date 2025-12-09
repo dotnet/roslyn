@@ -239,6 +239,8 @@
   <Folder Name="/Features/ExternalAccess/">
     <Project Path="src/Features/ExternalAccess/AspNetCore/Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <Project Path="src/Features/ExternalAccess/Copilot/Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
+    <Project Path="src/Features/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.Features.csproj" />
+    <Project Path="src/Features/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
     <Project Path="src/Features/ExternalAccess/HotReload/Microsoft.CodeAnalysis.ExternalAccess.HotReload.csproj" />
     <Project Path="src/Features/ExternalAccess/HotReloadTest/Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests.csproj" />
     <Project Path="src/Features/ExternalAccess/OmniSharp.CSharp/Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.csproj" />
@@ -318,7 +320,6 @@
     <Project Path="src/Tools/TestDiscoveryWorker/TestDiscoveryWorker.csproj" />
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
-    <Project Path="src/Tools/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
     <Project Path="src/Tools/ExternalAccess/Razor/EditorFeatures/Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
     <Project Path="src/Tools/ExternalAccess/Razor/Features/Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompiler/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
