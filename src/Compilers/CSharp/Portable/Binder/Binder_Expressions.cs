@@ -2085,10 +2085,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (parameter.IsExtensionParameter() && !IsInsideNameof)
                         {
                             var member = this.ContainingMember();
-                            var isInStaticMemberOfSameExtension = member is { Kind: not SymbolKind.NamedType, IsStatic: true } &&
-                                                                   (object)member.ContainingSymbol == parameter.ContainingSymbol;
+                            var isStaticContextInExtension = member is { Kind: not SymbolKind.NamedType, IsStatic: true } &&
+                                                              (object)member.ContainingSymbol == parameter.ContainingSymbol;
 
-                            if (isInStaticMemberOfSameExtension && !InParameterDefaultValue && !InAttributeArgument)
+                            // Give a specific error for static members in the same extension referencing the extension parameter.
+                            // For other invalid contexts (parameter defaults, attributes), use the general error.
+                            if (isStaticContextInExtension && !InParameterDefaultValue && !InAttributeArgument)
                             {
                                 Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter);
                             }
