@@ -17,37 +17,22 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal sealed class ProjectFile
 {
     private readonly ProjectCommandLineProvider _commandLineProvider;
-    private readonly MSB.Evaluation.Project? _loadedProject;
+    public readonly MSB.Evaluation.Project? Project;
+
     private readonly string _projectDirectory;
 
-    public string FilePath => _loadedProject?.FullPath ?? string.Empty;
+    public string FilePath => Project?.FullPath ?? string.Empty;
 
     public ProjectFile(ProjectCommandLineProvider commandLineReader, MSB.Evaluation.Project? project)
     {
         _commandLineProvider = commandLineReader;
-        _loadedProject = project;
+        Project = project;
         var directory = project?.DirectoryPath ?? string.Empty;
         _projectDirectory = PathUtilities.EnsureTrailingSeparator(directory);
     }
 
     public string Language
         => _commandLineProvider.Language;
-
-    /// <summary>
-    /// Gets project file information asynchronously. Note that this can produce multiple
-    /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
-    /// each target framework.
-    /// </summary>
-    public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(ProjectBuildManager buildManager, DiagnosticLog log, CancellationToken cancellationToken)
-    {
-        if (_loadedProject is null)
-        {
-            return [ProjectFileInfo.CreateEmpty(Language, filePath: null)];
-        }
-
-        var projectInstances = await buildManager.BuildProjectInstancesAsync(_loadedProject, log, cancellationToken).ConfigureAwait(false);
-        return projectInstances.SelectAsArray(CreateProjectFileInfo);
-    }
 
     public ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
     {
@@ -110,7 +95,7 @@ internal sealed class ProjectFile
         var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
         var contentFileInfo = GetContentFiles(project);
 
-        var fileGlobs = _loadedProject?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
+        var fileGlobs = Project?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
 
         return new ProjectFileInfo()
         {
@@ -237,12 +222,12 @@ internal sealed class ProjectFile
         if (_documents == null)
         {
             _documents = new Dictionary<string, MSB.Evaluation.ProjectItem>();
-            if (_loadedProject is null)
+            if (Project is null)
             {
                 return false;
             }
 
-            foreach (var item in _loadedProject.GetItems(ItemNames.Compile))
+            foreach (var item in Project.GetItems(ItemNames.Compile))
             {
                 _documents[GetAbsolutePathRelativeToProject(item.EvaluatedInclude)] = item;
             }
@@ -287,216 +272,5 @@ internal sealed class ProjectFile
                 return PathUtilities.GetFileName(normalizedPath);
             }
         }
-    }
-
-    public void AddDocument(string filePath, string? logicalPath = null)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
-
-        Dictionary<string, string>? metadata = null;
-        if (logicalPath != null && relativePath != logicalPath)
-        {
-            metadata = new Dictionary<string, string>
-            {
-                { MetadataNames.Link, logicalPath }
-            };
-
-            relativePath = filePath; // link to full path
-        }
-
-        _loadedProject.AddItem(ItemNames.Compile, relativePath, metadata);
-    }
-
-    public void RemoveDocument(string filePath)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
-
-        var items = _loadedProject.GetItems(ItemNames.Compile);
-        var item = items.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
-                                           || PathUtilities.PathsEqual(it.EvaluatedInclude, filePath));
-        if (item != null)
-        {
-            _loadedProject.RemoveItem(item);
-        }
-    }
-
-    public void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var metadata = new Dictionary<string, string>();
-        if (!aliases.IsEmpty)
-            metadata.Add(MetadataNames.Aliases, string.Join(",", aliases));
-
-        if (hintPath is not null)
-            metadata.Add(MetadataNames.HintPath, hintPath);
-
-        _loadedProject.AddItem(ItemNames.Reference, metadataReferenceIdentity, metadata);
-    }
-
-    public void RemoveMetadataReference(string shortAssemblyName, string fullAssemblyName, string filePath)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var item = FindReferenceItem(shortAssemblyName, fullAssemblyName, filePath);
-        if (item != null)
-        {
-            _loadedProject.RemoveItem(item);
-        }
-    }
-
-    private MSB.Evaluation.ProjectItem FindReferenceItem(string shortAssemblyName, string fullAssemblyName, string filePath)
-    {
-        Contract.ThrowIfNull(_loadedProject, "The project was not loaded.");
-
-        var references = _loadedProject.GetItems(ItemNames.Reference);
-        MSB.Evaluation.ProjectItem? item = null;
-
-        var fileName = Path.GetFileNameWithoutExtension(filePath);
-
-        // check for short name match
-        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
-        if (item is not null)
-            return item;
-
-        // check for full name match
-        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
-        if (item is not null)
-            return item;
-
-        // check for file path match
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
-
-        item = references.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
-                                                || PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
-                                                || PathUtilities.PathsEqual(GetHintPath(it), filePath)
-                                                || PathUtilities.PathsEqual(GetHintPath(it), relativePath));
-
-        if (item is not null)
-            return item;
-
-        var partialName = shortAssemblyName + ",";
-        var items = references.Where(it => it.EvaluatedInclude.StartsWith(partialName, StringComparison.OrdinalIgnoreCase)).ToList();
-        if (items.Count == 1)
-        {
-            return items[0];
-        }
-
-        throw new InvalidOperationException($"Unable to find reference item '{shortAssemblyName}'");
-    }
-
-    private static string GetHintPath(MSB.Evaluation.ProjectItem item)
-        => item.Metadata.FirstOrDefault(m => string.Equals(m.Name, MetadataNames.HintPath, StringComparison.OrdinalIgnoreCase))?.EvaluatedValue ?? string.Empty;
-
-    public void AddProjectReference(string projectName, ProjectFileReference reference)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var metadata = new Dictionary<string, string>
-        {
-            { MetadataNames.Name, projectName }
-        };
-
-        if (!reference.Aliases.IsEmpty)
-        {
-            metadata.Add(MetadataNames.Aliases, string.Join(",", reference.Aliases));
-        }
-
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, reference.Path);
-        _loadedProject.AddItem(ItemNames.ProjectReference, relativePath, metadata);
-    }
-
-    public void RemoveProjectReference(string projectName, string projectFilePath)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var item = FindProjectReferenceItem(projectName, projectFilePath);
-        if (item != null)
-        {
-            _loadedProject.RemoveItem(item);
-        }
-    }
-
-    private MSB.Evaluation.ProjectItem? FindProjectReferenceItem(string projectName, string projectFilePath)
-    {
-        if (_loadedProject is null)
-        {
-            return null;
-        }
-
-        var references = _loadedProject.GetItems(ItemNames.ProjectReference);
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
-
-        MSB.Evaluation.ProjectItem? item = null;
-
-        // find by project file path
-        item = references.First(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
-                                   || PathUtilities.PathsEqual(it.EvaluatedInclude, projectFilePath));
-
-        // try to find by project name
-        item ??= references.First(it => string.Compare(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase) == 0);
-
-        return item;
-    }
-
-    public void AddAnalyzerReference(string fullPath)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fullPath);
-        _loadedProject.AddItem(ItemNames.Analyzer, relativePath);
-    }
-
-    public void RemoveAnalyzerReference(string fullPath)
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fullPath);
-
-        var analyzers = _loadedProject.GetItems(ItemNames.Analyzer);
-        var item = analyzers.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
-                                                || PathUtilities.PathsEqual(it.EvaluatedInclude, fullPath));
-        if (item != null)
-        {
-            _loadedProject.RemoveItem(item);
-        }
-    }
-
-    public void Save()
-    {
-        if (_loadedProject is null)
-        {
-            return;
-        }
-
-        _loadedProject.Save();
     }
 }
