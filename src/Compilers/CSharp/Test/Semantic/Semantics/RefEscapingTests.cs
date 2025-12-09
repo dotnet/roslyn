@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5540,6 +5541,78 @@ class X : List<int>
                 static class Builder
                 {
                     public static R Create(scoped ref int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With7_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref heapSpan, stackSpan)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, Span<int> b, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(ref Span<int>, Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("Builder.Create(ref System.Span<int>, System.Span<int>, System.ReadOnlySpan<int>)", "b").WithLocation(12, 16),
+                // (12,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(12, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With7_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref stackSpan, heapSpan)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, Span<int> b, ReadOnlySpan<int> x) => throw null;
                 }
                 """;
 
