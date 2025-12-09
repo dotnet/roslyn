@@ -161,5 +161,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>6a49297c0ed6a091d0b652918ac0387d2d045d3f</Sha>
     </Dependency>
+    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.3.0-2.25608.6">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>6a49297c0ed6a091d0b652918ac0387d2d045d3f</Sha>
+    </Dependency>
   </ToolsetDependencies>
 </Dependencies>

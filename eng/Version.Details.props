@@ -10,6 +10,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.3.0-2.25608.6</MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.3.0-2.25608.6</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>5.3.0-2.25608.6</MicrosoftNetCompilersToolsetPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.3.0-2.25608.6</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet/dotnet dependencies -->
     <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <SystemCommandLinePackageVersion>3.0.0-alpha.1.25570.101</SystemCommandLinePackageVersion>
@@ -58,6 +59,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
+    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsAnalyzersPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <!-- dotnet/dotnet dependencies -->
     <MicrosoftDotNetFileBasedProgramsVersion>$(MicrosoftDotNetFileBasedProgramsPackageVersion)</MicrosoftDotNetFileBasedProgramsVersion>
     <SystemCommandLineVersion>$(SystemCommandLinePackageVersion)</SystemCommandLineVersion>
