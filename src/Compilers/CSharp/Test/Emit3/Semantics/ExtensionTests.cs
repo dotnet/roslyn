@@ -5172,8 +5172,6 @@ public static class Extensions
     [Fact]
     public void ExtensionParameterInStaticContext_WithDifferentContexts()
     {
-        // Verify that the new error CS9347 is used for static members in the same extension,
-        // but the old error CS9293 is still used for other contexts (default values)
         var src = """
 static class Extensions
 {
