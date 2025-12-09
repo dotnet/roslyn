@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -6800,13 +6801,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (13,12): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerable<T>'
-                // ref struct R : IEnumerable<Span<int>>
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "R").WithArguments("System.Collections.Generic.IEnumerable<T>", "T", "System.Span<int>").WithLocation(13, 12),
-                // (17,35): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerator<T>'
-                //     public IEnumerator<Span<int>> GetEnumerator() => throw null;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "GetEnumerator").WithArguments("System.Collections.Generic.IEnumerator<T>", "T", "System.Span<int>").WithLocation(17, 35));
+            CompileAndVerify(
+                [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6834,13 +6832,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (13,12): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerable<T>'
-                // ref struct R : IEnumerable<Span<int>>
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "R").WithArguments("System.Collections.Generic.IEnumerable<T>", "T", "System.Span<int>").WithLocation(13, 12),
-                // (17,35): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerator<T>'
-                //     public IEnumerator<Span<int>> GetEnumerator() => throw null;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "GetEnumerator").WithArguments("System.Collections.Generic.IEnumerator<T>", "T", "System.Span<int>").WithLocation(17, 35));
+            CompileAndVerify(
+                [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
