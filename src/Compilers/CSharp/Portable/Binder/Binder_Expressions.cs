@@ -2084,17 +2084,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (parameter.IsExtensionParameter() && !IsInsideNameof)
                         {
-                            var containingMember = this.ContainingMember();
-                            var isInStaticMemberOfSameExtension = containingMember is { Kind: not SymbolKind.NamedType, IsStatic: true } &&
-                                                                   (object)containingMember.ContainingSymbol == parameter.ContainingSymbol;
+                            var member = this.ContainingMember();
+                            var isInStaticMemberOfSameExtension = member is { Kind: not SymbolKind.NamedType, IsStatic: true } &&
+                                                                   (object)member.ContainingSymbol == parameter.ContainingSymbol;
 
                             if (isInStaticMemberOfSameExtension && !InParameterDefaultValue && !InAttributeArgument)
                             {
                                 Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter);
                             }
                             else if (InParameterDefaultValue || InAttributeArgument ||
-                                     containingMember is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
-                                     (object)containingMember.ContainingSymbol != parameter.ContainingSymbol)
+                                     member is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                     (object)member.ContainingSymbol != parameter.ContainingSymbol)
                             {
                                 Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
                             }

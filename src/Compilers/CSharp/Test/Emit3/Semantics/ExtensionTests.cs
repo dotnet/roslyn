@@ -5170,6 +5170,38 @@ public static class Extensions
     }
 
     [Fact]
+    public void ExtensionParameterInStaticContext_WithDifferentContexts()
+    {
+        // Verify that the new error CS9347 is used for static members in the same extension,
+        // but the old error CS9293 is still used for other contexts (default values)
+        var src = """
+static class Extensions
+{
+    extension(int p)
+    {
+        // CS9347: Static member of same extension
+        static int M1() => p;
+        
+        // CS9293: Default parameter value  
+        void M3(int x = p) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,28): error CS9347: Static members cannot refer to extension parameter 'int p'. Use an instance member instead.
+            //         static int M1() => p;
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("int p").WithLocation(6, 28),
+            // (9,25): error CS9293: Cannot use extension parameter 'int p' in this context.
+            //         void M3(int x = p) { }
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(9, 25),
+            // (9,25): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //         void M3(int x = p) { }
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p").WithArguments("x").WithLocation(9, 25)
+            );
+    }
+
+    [Fact]
     public void PassingValueForARefReceiver_01()
     {
         var src = """
