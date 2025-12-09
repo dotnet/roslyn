@@ -9,8 +9,13 @@ internal static class LanguageVersionExtensions
     public static bool IsCSharp15OrAbove(this LanguageVersion languageVersion)
         => languageVersion >= LanguageVersion.Preview;
 
+#if ROSLYN_4_12_OR_LOWER
+    public static bool IsCSharp14OrAbove(this LanguageVersion languageVersion)
+        => (int)languageVersion >= 1400;
+#else
     public static bool IsCSharp14OrAbove(this LanguageVersion languageVersion)
         => languageVersion >= LanguageVersion.CSharp14;
+#endif
 
     public static bool IsCSharp13OrAbove(this LanguageVersion languageVersion)
         => languageVersion >= LanguageVersion.CSharp13;
