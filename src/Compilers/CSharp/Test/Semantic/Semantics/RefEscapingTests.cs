@@ -6801,6 +6801,7 @@ class X : List<int>
                 }
                 """;
 
+            // https://github.com/dotnet/roslyn/issues/81520: expect a diagnostic for the possibility of 'stackSpan' being assigned to 'heapSpan'
             CompileAndVerify(
                 [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
                 targetFramework: TargetFramework.Net90,
