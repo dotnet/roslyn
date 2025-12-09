@@ -3470,9 +3470,9 @@ Program
             var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions), expectedAll);
-            AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicOnly);
+            AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature(FeatureFlag.NullablePublicOnly)), expectedPublicOnly);
             AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions), expectedAll);
-            AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicAndInternal);
+            AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions.WithFeature(FeatureFlag.NullablePublicOnly)), expectedPublicAndInternal);
         }
 
         /// <summary>
@@ -3587,7 +3587,7 @@ internal class B : I<object>
                 //     private (object, object?) F;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(24, 31));
 
-            comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions.WithFeature(FeatureFlag.NullablePublicOnly));
             comp.VerifyEmitDiagnostics(
                 // (8,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private object? P => null;
@@ -3646,7 +3646,7 @@ public class Program
                 //     private object? P => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 19));
 
-            comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions.WithFeature(FeatureFlag.NullablePublicOnly));
             comp.VerifyEmitDiagnostics(
                 // (4,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     private object? F = null;

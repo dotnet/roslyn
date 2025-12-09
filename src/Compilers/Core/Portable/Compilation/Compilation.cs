@@ -2191,7 +2191,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
             !StrongNameKeys.HasCounterSignature &&
-            !_features.ContainsKey("UseLegacyStrongNameProvider");
+            !_features.ContainsKey(FeatureFlag.UseLegacyStrongNameProvider);
 
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
@@ -3582,6 +3582,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <remarks>Known feature flags should use <see cref="FeatureFlag"/></remarks>
         internal string? Feature(string p)
         {
             string? v;
@@ -3596,13 +3597,13 @@ namespace Microsoft.CodeAnalysis
         /// False when the "debug-analyzers" feature flag is set.
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
-        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
+        internal bool CatchAnalyzerExceptions => Feature(FeatureFlag.DebugAnalyzers) == null;
 
         internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
 
         private int? ComputeDataSectionStringLiteralThreshold()
         {
-            if (Feature("experimental-data-section-string-literals") is { } s)
+            if (Feature(FeatureFlag.ExperimentalDataSectionStringLiterals) is { } s)
             {
                 if (s == "off")
                 {

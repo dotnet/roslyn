@@ -2947,19 +2947,19 @@ public class Child : Parent, IParent
                 System.Console.Write("ccc");
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.VerifyDiagnostics(
                 // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
             comp.VerifyDiagnostics(
                 // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
             comp.VerifyDiagnostics(
@@ -2968,7 +2968,7 @@ public class Child : Parent, IParent
                 // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "1"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
             comp.VerifyDiagnostics(
@@ -2977,7 +2977,7 @@ public class Child : Parent, IParent
                 // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "3"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
             comp.VerifyDiagnostics(
@@ -3020,7 +3020,7 @@ public class Child : Parent, IParent
             foreach (var feature in new[] { "off", null })
             {
                 verifier = CompileAndVerify(source,
-                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", null),
+                    parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, null),
                     expectedOutput: expectedOutput)
                     .VerifyDiagnostics()
                     .VerifyIL("<top-level-statements-entry-point>", expectedIl);
@@ -3031,7 +3031,7 @@ public class Child : Parent, IParent
             foreach (var feature in new[] { "true", "false", "", "-1", long.MaxValue.ToString() })
             {
                 verifier = CompileAndVerify(source,
-                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
+                    parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, feature),
                     expectedOutput: expectedOutput)
                     .VerifyDiagnostics()
                     .VerifyIL("<top-level-statements-entry-point>", expectedIl);
@@ -3039,21 +3039,21 @@ public class Child : Parent, IParent
             }
 
             verifier = CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1000"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "1000"),
                 expectedOutput: expectedOutput)
                 .VerifyDiagnostics()
                 .VerifyIL("<top-level-statements-entry-point>", expectedIl);
             Assert.Equal(1000, verifier.Compilation.DataSectionStringLiteralThreshold);
 
             verifier = CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "3"),
                 expectedOutput: expectedOutput)
                 .VerifyDiagnostics()
                 .VerifyIL("<top-level-statements-entry-point>", expectedIl);
             Assert.Equal(3, verifier.Compilation.DataSectionStringLiteralThreshold);
 
             verifier = CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "2"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "2"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput)
                 .VerifyDiagnostics()
@@ -3073,7 +3073,7 @@ public class Child : Parent, IParent
             Assert.Equal(2, verifier.Compilation.DataSectionStringLiteralThreshold);
 
             verifier = CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "1"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput)
                 .VerifyDiagnostics()
@@ -3093,7 +3093,7 @@ public class Child : Parent, IParent
             Assert.Equal(1, verifier.Compilation.DataSectionStringLiteralThreshold);
 
             verifier = CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput)
                 .VerifyDiagnostics()
@@ -3128,7 +3128,7 @@ public class Child : Parent, IParent
 
             var verifier = CompileAndVerify(
                 source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                 verify: Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -3229,7 +3229,7 @@ public class Child : Parent, IParent
             comp.VerifyEmitDiagnostics();
 
             comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib2",
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"));
             AssertEx.SetEqual([ref1, ref2], comp.GetUsedAssemblyReferences());
             comp.VerifyEmitDiagnostics();
         }
@@ -3241,7 +3241,7 @@ public class Child : Parent, IParent
                 System.Console.WriteLine("Hello \uD801\uD802");
                 """;
             CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                 expectedOutput: "Hello \uD801\uD802",
                 symbolValidator: static (ModuleSymbol module) =>
                 {
@@ -3279,7 +3279,7 @@ public class Child : Parent, IParent
                 System.Console.Write("aa");
                 """;
             CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"))
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"))
                 .VerifyEmitDiagnostics(emitOptions,
                     // (3,22): error CS9274: Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: a
                     // System.Console.Write("aa");
@@ -3294,7 +3294,7 @@ public class Child : Parent, IParent
                 """;
             var verifier = CompileAndVerify(source,
                 targetFramework: TargetFramework.Mscorlib46,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                 verify: Verification.Fails,
                 expectedOutput: "Hello",
                 symbolValidator: static (ModuleSymbol module) =>
@@ -3395,7 +3395,7 @@ public class Child : Parent, IParent
                 """;
             CompileAndVerify(source,
                 emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, feature),
                 symbolValidator: static (ModuleSymbol module) =>
                 {
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
@@ -3420,7 +3420,7 @@ public class Child : Parent, IParent
                 Write("ddd");
                 """;
             CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 verify: Verification.Fails,
                 expectedOutput: "abcccddd",
@@ -3462,7 +3462,7 @@ public class Child : Parent, IParent
                 Write("bbb");
                 """;
             CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 verify: Verification.Fails,
                 expectedOutput: "aabbbbbb",
@@ -3508,7 +3508,7 @@ public class Child : Parent, IParent
                 """;
             CompileAndVerify(
                 CreateCompilationWithSpan(source,
-                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                    parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
                 verify: Verification.Fails,
                 expectedOutput: "abc123",
@@ -3545,7 +3545,7 @@ public class Child : Parent, IParent
                 """;
             CompileAndVerify(
                 CreateCompilationWithSpan(source,
-                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                    parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"),
                     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
                 verify: Verification.Fails,
                 expectedOutput: "abcabc",
@@ -3620,7 +3620,7 @@ public class Child : Parent, IParent
             // NOTE: If the feature is enabled by default in the future, it should not fail in case of missing Encoding members
             //       (it should be automatically disabled instead and could warn) to avoid regressing the scenario above.
             CreateEmptyCompilation(source,
-                parseOptions: parseOptions.WithFeature("experimental-data-section-string-literals", "0"))
+                parseOptions: parseOptions.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0"))
                 .VerifyDiagnostics(
                 // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),

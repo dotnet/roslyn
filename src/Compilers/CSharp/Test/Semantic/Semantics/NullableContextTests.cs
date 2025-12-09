@@ -181,15 +181,16 @@ class Program
                 new[] { ".cctor", "F1" };
 #endif
 
+            Assert.Equal("run-nullable-analysis", FeatureFlag.RunNullableAnalysis);
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedAnalyzedKeysDefault);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "ALWAYS"), expectedAnalyzedKeysDefault); // unrecognized value (incorrect case) ignored
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "NEVER"), expectedAnalyzedKeysDefault); // unrecognized value (incorrect case) ignored
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "true"), expectedAnalyzedKeysDefault); // unrecognized value ignored
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "false"), expectedAnalyzedKeysDefault); // unrecognized value ignored
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "unknown"), expectedAnalyzedKeysDefault); // unrecognized value ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, null), expectedAnalyzedKeysDefault);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "always"), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"));
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "ALWAYS"), expectedAnalyzedKeysDefault); // unrecognized value (incorrect case) ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "NEVER"), expectedAnalyzedKeysDefault); // unrecognized value (incorrect case) ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "true"), expectedAnalyzedKeysDefault); // unrecognized value ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "false"), expectedAnalyzedKeysDefault); // unrecognized value ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "unknown"), expectedAnalyzedKeysDefault); // unrecognized value ignored
 
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
@@ -236,9 +237,9 @@ class Program
 #endif
 
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedAnalyzedKeysDefault);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, null), expectedAnalyzedKeysDefault);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "always"), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"));
 
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
@@ -295,9 +296,9 @@ struct B2
 #endif
 
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedAnalyzedKeysDefault);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, null), expectedAnalyzedKeysDefault);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "always"), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"));
 
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
@@ -337,9 +338,9 @@ class Program
             var expectedAnalyzedKeysAll = new[] { "F" };
 
             verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"), expectedFlowState: false);
 
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
@@ -376,9 +377,9 @@ class B
             var expectedAnalyzedKeysAll = new[] { "A(A.F = null)" };
 
             verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"), expectedFlowState: false);
 
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
@@ -411,9 +412,9 @@ class Program
             var expectedAnalyzedKeysAll = new[] { "arg" };
 
             verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
-            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"), expectedFlowState: false);
 
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {

@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
+        // Note: use FeatureFlag entry for known feature flags.
         public ParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
             return CommonWithFeatures(features);
@@ -119,6 +120,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the experimental features.
         /// </summary>
+        // Note: use FeatureFlag entry for known feature flags.
         public abstract IReadOnlyDictionary<string, string> Features
         {
             get;

@@ -14,6 +14,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -8556,7 +8557,7 @@ class C
             var reader0 = md0.MetadataReader;
 
             var generation0 = CreateInitialBaseline(compilation0,
-                ModuleMetadata.CreateFromImage(bytes0),
+ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
@@ -9746,7 +9747,7 @@ class B : A<B>
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = CreateInitialBaseline(compilation0,
-                ModuleMetadata.CreateFromImage(bytes0),
+ModuleMetadata.CreateFromImage(bytes0),
                 m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
             #region Gen1 
@@ -10092,7 +10093,7 @@ class B : A<B>
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = CreateInitialBaseline(compilation0,
-                ModuleMetadata.CreateFromImage(bytes0),
+ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -12011,7 +12012,7 @@ class C
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = CreateInitialBaseline(compilation0,
-                ModuleMetadata.CreateFromImage(bytes0),
+ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -12078,7 +12079,7 @@ class C
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = CreateInitialBaseline(compilation0,
-                ModuleMetadata.CreateFromImage(bytes0),
+ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             testData0.GetMethodData("C.M").VerifyIL(@"
@@ -17521,7 +17522,7 @@ class C
         [Fact]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0");
 
             var exceptionSource = """
                 namespace System.Runtime.CompilerServices
@@ -21047,7 +21048,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21146,7 +21147,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(FeatureFlag.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(

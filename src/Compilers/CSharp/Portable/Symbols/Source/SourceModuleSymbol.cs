@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static bool isFeatureDisabled(CSharpCompilation compilation)
             {
                 var options = (CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options;
-                return options?.Features?.ContainsKey("noRefSafetyRulesAttribute") == true;
+                return options?.Features?.ContainsKey(FeatureFlag.NoRefSafetyRulesAttribute) == true;
             }
 
             static bool namespaceIncludesTypeDeclarations(NamespaceSymbol ns)

@@ -8617,7 +8617,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(FeatureFlag.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation(source, parseOptions: parseOptions);
@@ -8667,7 +8667,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(FeatureFlag.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
@@ -8707,7 +8707,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(FeatureFlag.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
@@ -8769,7 +8769,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(FeatureFlag.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
