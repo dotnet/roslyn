@@ -5945,7 +5945,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with()]").WithArguments("R").WithLocation(6, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -5993,9 +5996,9 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
                 //         return [with(), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(7, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6018,7 +6021,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(), 1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1]").WithArguments("R").WithLocation(6, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6043,9 +6049,9 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(10, 13));
+                // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         r = [with(), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(7, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6068,7 +6074,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         r = [with(), 1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1]").WithArguments("R").WithLocation(6, 13));
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6366,7 +6375,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(ref a)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6390,7 +6402,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(ref a)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6415,9 +6430,9 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (9,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
                 //         return [with(ref a)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(9, 16));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6441,7 +6456,10 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(ref a)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6470,12 +6488,12 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(ref Span<int>, Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                // (10,16): error CS8350: This combination of arguments to 'R.R(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         R r = [with(ref heapSpan, stackSpan)];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("Builder.Create(ref System.Span<int>, System.Span<int>, System.ReadOnlySpan<int>)", "b").WithLocation(12, 16),
-                // (12,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("R.R(ref System.Span<int>, System.Span<int>)", "b").WithLocation(10, 16),
+                // (10,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         R r = [with(ref heapSpan, stackSpan)];
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(12, 35));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(10, 35));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6587,13 +6605,7 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (12,16): error CS8352: Cannot use variable 'with(ref heapSpan)' in this context because it may expose referenced variables outside of their declaration scope
-                //         R r = [with(ref heapSpan), local];
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "with(ref heapSpan)").WithArguments("with(ref heapSpan)").WithLocation(12, 16),
-                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(ref Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         R r = [with(ref heapSpan), local];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan)").WithArguments("Builder.Create(ref System.Span<int>, System.ReadOnlySpan<int>)", "x").WithLocation(12, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6621,13 +6633,7 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (12,16): error CS8352: Cannot use variable 'with(ref heapSpan)' in this context because it may expose referenced variables outside of their declaration scope
-                //         R r = [with(ref heapSpan), local];
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "with(ref heapSpan)").WithArguments("with(ref heapSpan)").WithLocation(12, 16),
-                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(scoped ref Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         R r = [with(ref heapSpan), local];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan)").WithArguments("Builder.Create(scoped ref System.Span<int>, System.ReadOnlySpan<int>)", "x").WithLocation(12, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
 
