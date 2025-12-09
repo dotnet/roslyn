@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal interface IProjectFileInfoProvider
 {
     Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken);
-    Task<string?> TryGetProjectOutputPathAsync(string projectPath, CancellationToken cancellationToken);
+    Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken);
 }

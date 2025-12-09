@@ -52,9 +52,9 @@ Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Tra
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Updates() -> void
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.GetProjectOutputPathsAsync(string! projectPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<string!>>!
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.LoadProjectFileInfosAsync(string! projectPath, Microsoft.CodeAnalysis.MSBuild.DiagnosticReportingOptions reportingOptions, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo!>>!
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.ProjectGraphFileInfoProvider(Microsoft.Build.Graph.ProjectGraph! graph, Microsoft.CodeAnalysis.MSBuild.ProjectFileExtensionRegistry! projectFileExtensionRegistry) -> void
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.TryGetProjectOutputPathAsync(string! projectPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string?>!
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ILDelta -> System.Collections.Immutable.ImmutableArray<byte>
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.MetadataDelta -> System.Collections.Immutable.ImmutableArray<byte>
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ModuleId -> System.Guid

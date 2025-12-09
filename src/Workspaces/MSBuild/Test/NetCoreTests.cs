@@ -414,16 +414,22 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
-    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp()
+    [CombinatorialData]
+    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp(bool build)
     {
         CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
 
         var solutionFilePath = GetSolutionFileName("Solution.sln");
 
         DotNetRestore("Solution.sln");
+
+        if (build)
+        {
+            DotNetBuild("Solution.sln", configuration: "Debug");
+        }
 
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
@@ -436,7 +442,62 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         {
             Assert.StartsWith("csharplib", project.Name);
             Assert.Empty(project.ProjectReferences);
-            Assert.Single(project.AllProjectReferences);
+
+            if (build)
+            {
+                Assert.Empty(project.AllProjectReferences);
+                Assert.Contains(project.MetadataReferences, m => m is PortableExecutableReference pe && pe.FilePath.EndsWith("fsharplib.dll"));
+            }
+            else
+            {
+                Assert.Single(project.AllProjectReferences);
+            }
+        }
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), Reason = "https://github.com/dotnet/roslyn/issues/81589")]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/81589")]
+    [CombinatorialData]
+    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp_MultiTFM(bool build)
+    {
+        CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
+
+        var solutionFilePath = GetSolutionFileName("Solution.sln");
+        var fsharpProjectFilePath = GetSolutionFileName(@"fsharplib\fsharplib.fsproj");
+
+        File.WriteAllText(fsharpProjectFilePath, Resources.ProjectFiles.FSharp.NetCoreMultiTFM_ProjectReferenceToFSharp_FSharpLib
+            .Replace("<TargetFramework>netstandard2.0</TargetFramework>", "<TargetFrameworks>netstandard2.0;netcoreapp2.0</TargetFrameworks>"));
+
+        DotNetRestore("Solution.sln");
+
+        if (build)
+        {
+            DotNetBuild("Solution.sln", configuration: "Debug");
+        }
+
+        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
+        var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+        var projects = solution.Projects.ToArray();
+
+        Assert.Equal(2, projects.Length);
+
+        foreach (var project in projects)
+        {
+            Assert.StartsWith("csharplib", project.Name);
+            Assert.Empty(project.ProjectReferences);
+
+            if (build)
+            {
+                Assert.Empty(project.AllProjectReferences);
+                Assert.Contains(project.MetadataReferences, m => m is PortableExecutableReference pe && pe.FilePath.EndsWith("fsharplib.dll"));
+            }
+            else
+            {
+                Assert.Single(project.AllProjectReferences);
+            }
         }
     }
 

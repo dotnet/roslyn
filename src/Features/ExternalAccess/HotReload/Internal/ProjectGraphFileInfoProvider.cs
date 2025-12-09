@@ -35,9 +35,9 @@ internal sealed class ProjectGraphFileInfoProvider(ProjectGraph graph, ProjectFi
         }));
     }
 
-    public Task<string?> TryGetProjectOutputPathAsync(string projectPath, CancellationToken cancellationToken)
+    public Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
         => Task.FromResult(
             _projectFilePathToNodeMap.TryGetValue(projectPath, out var nodes)
-                ? nodes.First().ProjectInstance.GetPropertyValue(BuildHost::Microsoft.CodeAnalysis.MSBuild.PropertyNames.TargetPath)
-                : null);
+                ? nodes.SelectAsArray(node => node.ProjectInstance.GetPropertyValue(BuildHost::Microsoft.CodeAnalysis.MSBuild.PropertyNames.TargetPath))
+                : []);
 }

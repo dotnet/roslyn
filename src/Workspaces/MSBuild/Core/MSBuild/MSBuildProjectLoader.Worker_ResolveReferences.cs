@@ -210,17 +210,15 @@ public partial class MSBuildProjectLoader
                         continue;
                     }
 
-                    if (projectFileReference.ReferenceOutputAssembly)
+                    if (!projectFileReference.ReferenceOutputAssembly)
                     {
-                        // If we don't know how to load a project (that is, it's not a language we support), we can still
-                        // attempt to verify that its output exists on disk and is included in our set of metadata references.
-                        // If it is, we'll just leave it in place.
-                        if (!IsProjectLoadable(projectReferencePath) &&
-                            await VerifyUnloadableProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
-                        {
-                            continue;
-                        }
+                        // Load the project but do not add a reference:
+                        _ = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
 
+                    if (IsProjectLoadable(projectReferencePath))
+                    {
                         // If metadata is preferred, see if the project reference's output exists on disk and is included
                         // in our metadata references. If it is, don't create a project reference; we'll just use the metadata.
                         if (_preferMetadataForReferencesOfDiscoveredProjects &&
@@ -237,9 +235,13 @@ public partial class MSBuildProjectLoader
                     }
                     else
                     {
-                        // Load the project but do not add a reference:
-                        _ = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
-                        continue;
+                        // If we don't know how to load a project (that is, it's not a language we support), we can still
+                        // attempt to verify that its output exists on disk and is included in our set of metadata references.
+                        // If it is, we'll just leave it in place.
+                        if (await VerifyUnloadableProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
+                        {
+                            continue;
+                        }
                     }
                 }
 
@@ -340,10 +342,8 @@ public partial class MSBuildProjectLoader
 
         private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
-            var outputFilePath = await _projectFileInfoProvider.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
-            return outputFilePath != null
-                && builder.Contains(outputFilePath)
-                && File.Exists(outputFilePath);
+            var outputFilePaths = await _projectFileInfoProvider.GetProjectOutputPathsAsync(projectPath, cancellationToken).ConfigureAwait(false);
+            return outputFilePaths.Any(path => builder.Contains(path) && File.Exists(path));
         }
 
         private async Task<bool> VerifyProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)

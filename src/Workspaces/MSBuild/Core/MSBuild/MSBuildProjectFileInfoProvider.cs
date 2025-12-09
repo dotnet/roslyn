@@ -55,9 +55,13 @@ internal sealed class BuildHostProjectFileInfoProvider(
         return projectFileInfos;
     }
 
-    public async Task<string?> TryGetProjectOutputPathAsync(string projectPath, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
     {
+        // TODO: Should return multiple output paths for multi-targeted projects.
+        // https://github.com/dotnet/roslyn/issues/81589
+
         var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, cancellationToken).ConfigureAwait(false);
-        return await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+        var path = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+        return string.IsNullOrEmpty(path) ? [] : [path];
     }
 }
