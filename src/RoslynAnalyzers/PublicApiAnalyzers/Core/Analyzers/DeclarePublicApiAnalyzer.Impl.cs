@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 private static bool CheckTypeParameterConstraints(ITypeParameterSymbol symbol)
                 {
-                    if (symbol.HasReferenceTypeConstraint() &&
+                    if (symbol.HasReferenceTypeConstraint &&
                         symbol.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.None)
                     {
                         // where T : class~
