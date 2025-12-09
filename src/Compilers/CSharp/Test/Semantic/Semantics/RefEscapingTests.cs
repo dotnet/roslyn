@@ -6775,6 +6775,74 @@ class X : List<int>
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With9_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref heapSpan), stackSpan];
+                    }
+                }
+                ref struct R : IEnumerable<Span<int>>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(Span<int> i) { }
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (13,12): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerable<T>'
+                // ref struct R : IEnumerable<Span<int>>
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "R").WithArguments("System.Collections.Generic.IEnumerable<T>", "T", "System.Span<int>").WithLocation(13, 12),
+                // (17,35): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerator<T>'
+                //     public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "GetEnumerator").WithArguments("System.Collections.Generic.IEnumerator<T>", "T", "System.Span<int>").WithLocation(17, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With9_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref stackSpan), heapSpan];
+                    }
+                }
+                ref struct R : IEnumerable<Span<int>>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(Span<int> i) { }
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (13,12): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerable<T>'
+                // ref struct R : IEnumerable<Span<int>>
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "R").WithArguments("System.Collections.Generic.IEnumerable<T>", "T", "System.Span<int>").WithLocation(13, 12),
+                // (17,35): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IEnumerator<T>'
+                //     public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "GetEnumerator").WithArguments("System.Collections.Generic.IEnumerator<T>", "T", "System.Span<int>").WithLocation(17, 35));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
         public void InterpolatedString_UnscopedRef_Return()
         {
