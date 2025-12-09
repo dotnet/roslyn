@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Union conversions are likely to be represented as multiple
                     // BoundConversion instances so a ConversionGroup is necessary.
-                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
+                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
                 }
 
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -2185,8 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCast,
             ConversionGroup conversionGroup,
             TypeSymbol destination,
-            BindingDiagnosticBag diagnostics,
-            bool hasErrors)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(conversionGroup != null);
             Debug.Assert(conversion.IsUnion);
