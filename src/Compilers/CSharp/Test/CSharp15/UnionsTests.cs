@@ -5081,6 +5081,11 @@ class Program
     {
         return x;
     }   
+
+    static S1? Test2(int? y)
+    {
+        return y;
+    }   
 }
 ";
             var comp = CreateCompilation([src, IUnionSource]);
@@ -5090,7 +5095,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (20,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1'
                 //         return x;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int?", "S1").WithLocation(20, 16)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int?", "S1").WithLocation(20, 16),
+                // (25,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1?'
+                //         return y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int?", "S1?").WithLocation(25, 16)
                 );
         }
 
@@ -5553,11 +5561,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     public S1(string x) => throw null;
     object System.Runtime.CompilerServices.IUnion.Value => throw null;
 
-    public static explicit operator S1(int x)
-    {
-        System.Console.Write(""implicit operator "");
-        return new S1(x.ToString());
-    }
+    public static explicit operator S1(int x) => throw null;
 }
 
 class Program
