@@ -8,14 +8,16 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class VisualBasicProjectFile(MSB.Evaluation.Project? loadedProject) : ProjectFile(loadedProject)
+internal sealed class VisualBasicProjectCommandLineProvider : ProjectCommandLineProvider
 {
+    public static readonly VisualBasicProjectCommandLineProvider Instance = new();
+
     public override string Language
         => LanguageNames.VisualBasic;
 
-    protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
+    public override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.VbcCommandLineArgs);
 
-    protected override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
+    public override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
         => VisualBasicCommandLineArgumentReader.Read(project);
 }

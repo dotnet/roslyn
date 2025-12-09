@@ -8,14 +8,17 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class CSharpProjectFile(MSB.Evaluation.Project? project) : ProjectFile(project)
+internal sealed class CSharpProjectCommandLineProvider : ProjectCommandLineProvider
 {
+    public static readonly CSharpProjectCommandLineProvider Instance = new();
+
     public override string Language
         => LanguageNames.CSharp;
 
-    protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
+    public override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.CscCommandLineArgs);
 
-    protected override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
+    public override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
         => CSharpCommandLineArgumentReader.Read(project);
 }
+

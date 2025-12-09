@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.Build.Graph;
 using Microsoft.CodeAnalysis.MSBuild;
 
+using MSBuildHost = BuildHost::Microsoft.CodeAnalysis.MSBuild;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal;
 
 internal sealed class ProjectGraphFileInfoProvider(ProjectGraph graph, ProjectFileExtensionRegistry projectFileExtensionRegistry) : IProjectFileInfoProvider
@@ -30,7 +32,7 @@ internal sealed class ProjectGraphFileInfoProvider(ProjectGraph graph, ProjectFi
 
         return Task.FromResult(nodes.SelectAsArray(node =>
         {
-            var projectFile = BuildHost::Microsoft.CodeAnalysis.MSBuild.ProjectFile.Create(project: null, languageName);
+            var projectFile = new MSBuildHost.ProjectFile(MSBuildHost.ProjectCommandLineProvider.Create(languageName), project: null);
             return projectFile.CreateProjectFileInfo(node.ProjectInstance).Convert();
         }));
     }
@@ -38,6 +40,6 @@ internal sealed class ProjectGraphFileInfoProvider(ProjectGraph graph, ProjectFi
     public Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
         => Task.FromResult(
             _projectFilePathToNodeMap.TryGetValue(projectPath, out var nodes)
-                ? nodes.SelectAsArray(node => node.ProjectInstance.GetPropertyValue(BuildHost::Microsoft.CodeAnalysis.MSBuild.PropertyNames.TargetPath))
+                ? nodes.SelectAsArray(node => node.ProjectInstance.GetPropertyValue(MSBuildHost.PropertyNames.TargetPath))
                 : []);
 }

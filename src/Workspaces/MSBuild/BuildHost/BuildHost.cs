@@ -202,9 +202,7 @@ internal sealed class BuildHost : IBuildHost
         _logger.LogInformation($"Loading {projectFilePath}");
 
         var (project, log) = await _buildManager.LoadProjectAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
-        var projectFile = new BuildableProjectFile(ProjectFile.Create(project, languageName), _buildManager, log);
-
-        return _server.AddTarget(projectFile);
+        return AddProjectFileTarget(project, languageName, log);
     }
 
     // When using the Mono runtime, the MSBuild types used in this method must be available
@@ -226,8 +224,13 @@ internal sealed class BuildHost : IBuildHost
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
 
         var (project, log) = _buildManager.LoadProject(projectFilePath, stream);
-        var projectFile = new BuildableProjectFile(ProjectFile.Create(project, languageName), _buildManager, log);
+        return AddProjectFileTarget(project, languageName, log);
+    }
 
+    private int AddProjectFileTarget(Build.Evaluation.Project? project, string languageName, DiagnosticLog log)
+    {
+        Contract.ThrowIfNull(_buildManager);
+        var projectFile = new BuildableProjectFile(new ProjectFile(ProjectCommandLineProvider.Create(languageName), project), _buildManager, log);
         return _server.AddTarget(projectFile);
     }
 

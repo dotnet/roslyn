@@ -14,31 +14,24 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal abstract class ProjectFile
+internal sealed class ProjectFile
 {
+    private readonly ProjectCommandLineProvider _commandLineProvider;
     private readonly MSB.Evaluation.Project? _loadedProject;
     private readonly string _projectDirectory;
 
     public string FilePath => _loadedProject?.FullPath ?? string.Empty;
 
-    protected ProjectFile(MSB.Evaluation.Project? loadedProject)
+    public ProjectFile(ProjectCommandLineProvider commandLineReader, MSB.Evaluation.Project? project)
     {
-        _loadedProject = loadedProject;
-        var directory = loadedProject?.DirectoryPath ?? string.Empty;
+        _commandLineProvider = commandLineReader;
+        _loadedProject = project;
+        var directory = project?.DirectoryPath ?? string.Empty;
         _projectDirectory = PathUtilities.EnsureTrailingSeparator(directory);
     }
 
-    public static ProjectFile Create(MSB.Evaluation.Project? project, string languageName)
-        => languageName switch
-        {
-            LanguageNames.CSharp => new CSharpProjectFile(project),
-            LanguageNames.VisualBasic => new VisualBasicProjectFile(project),
-            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
-        };
-
-    public abstract string Language { get; }
-    protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
-    protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
+    public string Language
+        => _commandLineProvider.Language;
 
     /// <summary>
     /// Gets project file information asynchronously. Note that this can produce multiple
@@ -162,7 +155,7 @@ internal abstract class ProjectFile
 
     private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
     {
-        var commandLineArgs = GetCompilerCommandLineArgs(project)
+        var commandLineArgs = _commandLineProvider.GetCompilerCommandLineArgs(project)
             .SelectAsArray(item => item.ItemSpec);
 
         if (commandLineArgs.Length == 0)
@@ -171,13 +164,13 @@ internal abstract class ProjectFile
             // was not successful. In that case, try to read the command-line args from
             // the ProjectInstance that we have. This is a best effort to provide something
             // meaningful for the user, though it will likely be incomplete.
-            commandLineArgs = ReadCommandLineArgs(project);
+            commandLineArgs = _commandLineProvider.ReadCommandLineArgs(project);
         }
 
         return commandLineArgs;
     }
 
-    protected static bool IsNotTemporaryGeneratedFile(MSB.Framework.ITaskItem item)
+    private static bool IsNotTemporaryGeneratedFile(MSB.Framework.ITaskItem item)
         => !Path.GetFileName(item.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal);
 
     private DocumentFileInfo MakeDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -239,7 +232,7 @@ internal abstract class ProjectFile
 
     private IDictionary<string, MSB.Evaluation.ProjectItem>? _documents;
 
-    protected bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
+    private bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
     {
         if (_documents == null)
         {
@@ -258,7 +251,7 @@ internal abstract class ProjectFile
         return !_documents.ContainsKey(GetAbsolutePathRelativeToProject(documentItem.ItemSpec));
     }
 
-    protected static string GetDocumentLogicalPath(MSB.Framework.ITaskItem documentItem, string projectDirectory)
+    private static string GetDocumentLogicalPath(MSB.Framework.ITaskItem documentItem, string projectDirectory)
     {
         var link = documentItem.GetMetadata(MetadataNames.Link);
         if (!RoslynString.IsNullOrEmpty(link))
