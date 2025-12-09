@@ -63,9 +63,13 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
         _runningDocumentTable = new(() =>
         {
-            // The running document table since 18.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
-            // This is specifically guaranteed by the shell that those limited operations are safe and do not cause RPCs, and it's important we don't try to fetch the service
-            // via a helper that will "helpfully" try to jump to the UI thread.
+            // The hope was fetching the running document table and calling Advise() can be fully free-threaded, but at the moment (in 18.3) that's not entirely the case.
+            // As of this writing, this Running Document Table object has an internal managed code implementation; when we call Advise() that native implementation forwards
+            // to the managed implementation, and might send along not only our listener, but any other listeners that had been registered with the native side but not the managed side.
+            // In this case, the other handlers get a QueryInterface called, which is expected to be on the UI thread. Until this is fixed, we'll do this on the UI thread.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2578713 for the investigation.
+
+            _threadingContext.ThrowIfNotOnUIThread();
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
 
@@ -103,7 +107,8 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         await Task.Yield().ConfigureAwait(false);
 
         // Ensure we obtain the RDT before transitioning to the main thread
-        _ = _runningDocumentTable.Value;
+        // TODO: add this back once we move the RDT acquisition and event advising off the UI thread again.
+        // _ = _runningDocumentTable.Value;
 
         // Now switch to the main thread since document enumeration does require it
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
