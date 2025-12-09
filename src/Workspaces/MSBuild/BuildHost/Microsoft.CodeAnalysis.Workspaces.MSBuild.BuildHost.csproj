@@ -5,12 +5,18 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFrameworks>$(NetRoslynBuildHostNetCoreVersion);net472</TargetFrameworks>
+    <IsShipping>true</IsShipping>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") MSBuild host.
+    </PackageDescription>
+    
     <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
     <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
     <SelfContained>false</SelfContained>
-    <!-- We don't ship a regular NuGet package for this (it gets included in the Workspaces.MSBuild package directly), but we still need to publish symbols -->
-    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
     <!-- Explicitly mark ourselves as AnyCPU; if we don't do this, since this project is an executable targeting net472, the SDK has logic that assumes we're targeting Windows
          and will explicitly provide a RuntimeIdentifier for us which will target win7-x86. This then causes PlatformTarget to be set to x86, which
          in turn causes our NuGet PackageId (set by IsSymbolPublishingPackage above) to be set to a different name only the net472 variant. This mismatched PackageId
