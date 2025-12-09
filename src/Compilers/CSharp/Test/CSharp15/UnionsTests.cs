@@ -6303,7 +6303,37 @@ class Program
         }
 
         [Fact]
-        public void UnionConversion_29_In_Parameter()
+        public void UnionConversion_29_Not_Under_Nullable_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1? Test1(int x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            // PROTOTYPE: Do we want to adjust conversion rules to allow this case?
+
+            comp.VerifyDiagnostics(
+                // (13,16): error CS0029: Cannot implicitly convert type 'int' to 'S1?'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int", "S1?").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_30_In_Parameter()
         {
             var src = @"
 struct S1 : System.Runtime.CompilerServices.IUnion
@@ -6393,7 +6423,7 @@ class Program
         }
 
         [Fact]
-        public void UnionConversion_30_Ambiguity_In_Vs_Val_First_Declared_Wins()
+        public void UnionConversion_31_Ambiguity_In_Vs_Val_First_Declared_Wins()
         {
             var src1 = @"
 public struct S1 : System.Runtime.CompilerServices.IUnion
@@ -6446,7 +6476,7 @@ class Program
         }
 
         [Fact]
-        public void UnionConversion_31_No_Params_Expansion()
+        public void UnionConversion_32_No_Params_Expansion()
         {
             var src = @"
 struct S1 : System.Runtime.CompilerServices.IUnion
@@ -6473,7 +6503,7 @@ class Program
         }
 
         [Fact]
-        public void UnionConversion_32_No_Optional()
+        public void UnionConversion_33_No_Optional()
         {
             var src = @"
 struct S1 : System.Runtime.CompilerServices.IUnion
@@ -6501,7 +6531,7 @@ class Program
         }
 
         [Fact]
-        public void UnionConversion_33_No_Non_Public()
+        public void UnionConversion_34_No_Non_Public()
         {
             var src = @"
 struct S1 : System.Runtime.CompilerServices.IUnion
@@ -6530,7 +6560,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void UnionConversion_34_No_Ref_Out([CombinatorialValues("ref", "out", "ref readonly")] string refModifier)
+        public void UnionConversion_35_No_Ref_Out([CombinatorialValues("ref", "out", "ref readonly")] string refModifier)
         {
             var src = @"
 struct S1 : System.Runtime.CompilerServices.IUnion
