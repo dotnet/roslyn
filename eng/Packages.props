@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.800-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
@@ -161,7 +160,7 @@
 
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
-      packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
+      packages we will keep it untied to the RoslynDiagnosticsAnalyzersPackageVersion we use for
       other analyzers to ensure it stays on a release version.
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
@@ -318,7 +317,7 @@
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.71" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
-    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
+    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
