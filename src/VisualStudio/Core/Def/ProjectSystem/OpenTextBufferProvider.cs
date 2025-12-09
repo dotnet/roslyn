@@ -329,9 +329,13 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
             return;
         }
 
-        var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable.Value;
-        runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
-        _runningDocumentTableEventsCookie = 0;
+        // Unsubscribe from the RDT, assuming we ever subscribed in the first case
+        if (_runningDocumentTable.IsValueCreated)
+        {
+            var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable.Value;
+            runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
+            _runningDocumentTableEventsCookie = 0;
+        }
 
         _isDisposed = true;
     }
