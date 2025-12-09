@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |..................|f|p|c|o|d|uu|rr|c|n|s|
+            // |.................|e|f|p|c|o|d|uu|rr|c|n|s|
             //
             // s = special name flag. 1 bit
             // n = runtime special name flag. 1 bit
@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // o = Obsolete flag. 1 bit
             // c = Custom attributes flag. 1 bit
             // p = Overload resolution priority populated. 1 bit
-            // f = Requires unsafe populated. 1 bit
+            // f = Requires unsafe. 1 bit
+            // e = Requires unsafe populated. 1 bit
             private const int IsSpecialNameFlag = 1 << 0;
             private const int IsRuntimeSpecialNameFlag = 1 << 1;
             private const int CallMethodsDirectlyFlag = 1 << 2;
@@ -74,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsObsoleteAttributePopulatedBit = 1 << 9;
             private const int IsCustomAttributesPopulatedBit = 1 << 10;
             private const int IsOverloadResolutionPriorityPopulatedBit = 1 << 11;
-            private const int RequiresUnsafePopulatedBit = 1 << 12;
+            private const int RequiresUnsafeBit = 1 << 12;
+            private const int RequiresUnsafePopulatedBit = 1 << 13;
 
             private int _bits;
 
@@ -121,6 +123,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
+            public void SetRequiresUnsafe(bool requiresUnsafe)
+            {
+                var bitsToSet = (requiresUnsafe ? RequiresUnsafeBit : 0) | RequiresUnsafePopulatedBit;
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public readonly bool TryGetRequiresUnsafe(out bool requiresUnsafe)
+            {
+                if ((_bits & RequiresUnsafePopulatedBit) != 0)
+                {
+                    requiresUnsafe = (_bits & RequiresUnsafeBit) != 0;
+                    return true;
+                }
+
+                requiresUnsafe = false;
+                return false;
+            }
+
             public readonly bool IsSpecialName => (_bits & IsSpecialNameFlag) != 0;
             public readonly bool IsRuntimeSpecialName => (_bits & IsRuntimeSpecialNameFlag) != 0;
             public readonly bool CallMethodsDirectly => (_bits & CallMethodsDirectlyFlag) != 0;
@@ -152,13 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             public bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(ref _bits) & IsOverloadResolutionPriorityPopulatedBit) != 0;
-
-            public void SetRequiresUnsafePopulated()
-            {
-                ThreadSafeFlagOperations.Set(ref _bits, RequiresUnsafePopulatedBit);
-            }
-
-            public bool RequiresUnsafePopulated => (Volatile.Read(ref _bits) & RequiresUnsafePopulatedBit) != 0;
         }
 
         /// <summary>
@@ -190,7 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
             public ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             public int _lazyOverloadResolutionPriority;
-            public bool _lazyRequiresUnsafe;
         }
 
         internal static PEPropertySymbol Create(
@@ -651,21 +663,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (!_flags.RequiresUnsafePopulated)
+                if (!_flags.TryGetRequiresUnsafe(out bool requiresUnsafe))
                 {
-                    if (_containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute))
-                    {
-                        AccessUncommonFields()._lazyRequiresUnsafe = true;
-                    }
-                    else
-                    {
-                        Debug.Assert(_uncommonFields is null or { _lazyRequiresUnsafe: false });
-                    }
-
-                    _flags.SetRequiresUnsafePopulated();
+                    var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
+                    requiresUnsafe = containingPEModuleSymbol.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    _flags.SetRequiresUnsafe(requiresUnsafe);
                 }
 
-                return _uncommonFields?._lazyRequiresUnsafe == true;
+                return requiresUnsafe;
             }
         }
 
@@ -787,14 +792,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
                 }
 
-                if (!requiresUnsafe.IsNil)
-                {
-                    AccessUncommonFields()._lazyRequiresUnsafe = true;
-                }
-                _flags.SetRequiresUnsafePopulated();
-
                 _flags.SetCustomAttributesPopulated();
                 _flags.SetHasRequiredMemberAttribute(!required.IsNil);
+                _flags.SetRequiresUnsafe(!requiresUnsafe.IsNil);
             }
 
             var uncommonFields = _uncommonFields;
