@@ -662,6 +662,11 @@
         <target state="translated">既定のリテラル 'default' はパターンとして無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。すべてと一致させるには、破棄パターン '_' をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeforePropertyPattern">
+        <source>A variable designator must come after a property pattern.</source>
+        <target state="new">A variable designator must come after a property pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">'not' または 'or' パターンの中で変数を宣言することはできません。</target>
@@ -732,6 +737,11 @@
         <target state="translated">更新プログラムを生成できません。 {0} '{1}' がありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">アプリケーションのエントリ ポイントに 'UnmanagedCallersOnly' 属性を設定することはできません。</target>
@@ -740,6 +750,11 @@
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
         <target state="translated">レコードの等値コントラクト プロパティ '{0}' には get アクセサーが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
+        <source>The '==' operator is not supported in a pattern.</source>
+        <target state="new">The '==' operator is not supported in a pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
@@ -1140,6 +1155,11 @@
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
         <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
+        <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
+        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">

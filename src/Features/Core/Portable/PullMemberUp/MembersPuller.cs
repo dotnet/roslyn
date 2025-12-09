@@ -369,7 +369,7 @@ internal static class MembersPuller
             RemoveLeadingTriviaBeforeFirstMember(root, syntaxFacts));
 
         destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
-            destinationEditor.SemanticModel.Compilation,
+            destinationEditor.SemanticModel,
             node,
             node.GetAnnotatedNodes(s_destinationNodeAnnotation).FirstOrDefault(),
             sourceImports,

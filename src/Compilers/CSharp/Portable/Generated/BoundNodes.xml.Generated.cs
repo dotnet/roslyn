@@ -17449,4 +17449,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         );
     }
+
+#if DEBUG
+    internal sealed partial class PipelinePhaseValidator
+    {
+        internal static PipelinePhase DoesNotSurvive(BoundKind kind)
+        {
+            return kind switch
+            {
+                BoundKind.ValuePlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.DeconstructValuePlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.TupleOperandPlaceholder => PipelinePhase.InitialBinding,
+                BoundKind.AwaitableValuePlaceholder => PipelinePhase.StateMachineRewriting,
+                BoundKind.DisposableValuePlaceholder => PipelinePhase.InitialBinding,
+                BoundKind.ImplicitIndexerReceiverPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.ListPatternReceiverPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.ListPatternIndexPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.SlicePatternReceiverPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.SlicePatternRangePlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.TypeOrValueExpression => PipelinePhase.InitialBinding,
+                BoundKind.UnconvertedAddressOfOperator => PipelinePhase.InitialBinding,
+                BoundKind.UnconvertedConditionalOperator => PipelinePhase.InitialBinding,
+                BoundKind.AwaitableInfo => PipelinePhase.StateMachineRewriting,
+                BoundKind.AwaitExpression => PipelinePhase.StateMachineRewriting,
+                BoundKind.DefaultLiteral => PipelinePhase.LocalRewriting,
+                BoundKind.LocalFunctionStatement => PipelinePhase.ClosureConversion,
+                BoundKind.YieldReturnStatement => PipelinePhase.StateMachineRewriting,
+                BoundKind.YieldBreakStatement => PipelinePhase.StateMachineRewriting,
+                BoundKind.IfStatement => PipelinePhase.LocalRewriting,
+                BoundKind.UsingStatement => PipelinePhase.LocalRewriting,
+                BoundKind.UnconvertedSwitchExpression => PipelinePhase.InitialBinding,
+                BoundKind.SpillSequence => PipelinePhase.Spilling,
+                BoundKind.UnconvertedObjectCreationExpression => PipelinePhase.InitialBinding,
+                BoundKind.UnconvertedCollectionExpression => PipelinePhase.InitialBinding,
+                BoundKind.TupleLiteral => PipelinePhase.InitialBinding,
+                BoundKind.TypeOrInstanceInitializers => PipelinePhase.LocalRewriting,
+                BoundKind.UnconvertedInterpolatedString => PipelinePhase.InitialBinding,
+                BoundKind.InterpolatedStringHandlerPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.InterpolatedStringArgumentPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.DeconstructionVariablePendingInference => PipelinePhase.LocalRewriting,
+                _ => PipelinePhase.Emit
+            };
+        }
+    }
+#endif
 }

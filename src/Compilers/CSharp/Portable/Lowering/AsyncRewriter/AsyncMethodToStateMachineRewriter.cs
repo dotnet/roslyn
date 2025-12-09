@@ -485,13 +485,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Emit await yield point to be injected into PDB
                     F.NoOp(NoOpStatementFlavor.AwaitYieldPoint));
 
+            // this.<>t__awaiter = $awaiterTemp
+
+            BoundExpression awaiterTempRef = F.Local(awaiterTemp);
+
+            if (!TypeSymbol.Equals(awaiterFieldType, awaiterTemp.Type, TypeCompareKind.ConsiderEverything2))
+            {
+                Debug.Assert(awaiterFieldType.IsObjectType());
+                Conversion c = F.ClassifyEmitConversion(awaiterTempRef, awaiterFieldType);
+                Debug.Assert(c.IsImplicit);
+                Debug.Assert(c.IsReference || c.IsIdentity);
+                awaiterTempRef = F.Convert(awaiterFieldType, awaiterTempRef, c);
+            }
+
             blockBuilder.Add(
-                    // this.<>t__awaiter = $awaiterTemp
                     F.Assignment(
                     F.Field(F.This(), awaiterField),
-                    (TypeSymbol.Equals(awaiterField.Type, awaiterTemp.Type, TypeCompareKind.ConsiderEverything2))
-                        ? F.Local(awaiterTemp)
-                        : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
+                    awaiterTempRef));
 
             blockBuilder.Add(awaiterTemp.Type.IsDynamic()
                 ? GenerateAwaitOnCompletedDynamic(awaiterTemp)
@@ -516,14 +526,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Emit await resume point to be injected into PDB
                     F.NoOp(NoOpStatementFlavor.AwaitResumePoint));
 
+            // $awaiterTemp = this.<>t__awaiter   or   $awaiterTemp = (AwaiterType)this.<>t__awaiter
+            // $this.<>t__awaiter = null;
+
+            BoundExpression awaiterFieldRef = F.Field(F.This(), awaiterField);
+
+            if (!TypeSymbol.Equals(awaiterTemp.Type, awaiterField.Type, TypeCompareKind.ConsiderEverything2))
+            {
+                Debug.Assert(awaiterFieldRef.Type.IsObjectType());
+                Conversion c = F.ClassifyEmitConversion(awaiterFieldRef, awaiterTemp.Type);
+                Debug.Assert(c.IsReference || c.IsIdentity);
+                awaiterFieldRef = F.Convert(awaiterTemp.Type, awaiterFieldRef, c);
+            }
+
             blockBuilder.Add(
-                    // $awaiterTemp = this.<>t__awaiter   or   $awaiterTemp = (AwaiterType)this.<>t__awaiter
-                    // $this.<>t__awaiter = null;
                     F.Assignment(
                     F.Local(awaiterTemp),
-                    TypeSymbol.Equals(awaiterTemp.Type, awaiterField.Type, TypeCompareKind.ConsiderEverything2)
-                        ? F.Field(F.This(), awaiterField)
-                        : F.Convert(awaiterTemp.Type, F.Field(F.This(), awaiterField))));
+                    awaiterFieldRef));
 
             blockBuilder.Add(
                 F.Assignment(F.Field(F.This(), awaiterField), F.NullOrDefault(awaiterField.Type)));
