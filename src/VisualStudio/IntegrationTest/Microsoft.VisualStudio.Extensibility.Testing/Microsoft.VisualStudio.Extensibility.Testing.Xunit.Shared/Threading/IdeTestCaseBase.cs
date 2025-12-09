@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Threading
 {
@@ -106,36 +107,36 @@ namespace Xunit.Threading
 
             switch (visualStudioVersion)
             {
-            case VisualStudioVersion.VS2012:
-                majorVersion = 11;
-                break;
+                case VisualStudioVersion.VS2012:
+                    majorVersion = 11;
+                    break;
 
-            case VisualStudioVersion.VS2013:
-                majorVersion = 12;
-                break;
+                case VisualStudioVersion.VS2013:
+                    majorVersion = 12;
+                    break;
 
-            case VisualStudioVersion.VS2015:
-                majorVersion = 14;
-                break;
+                case VisualStudioVersion.VS2015:
+                    majorVersion = 14;
+                    break;
 
-            case VisualStudioVersion.VS2017:
-                majorVersion = 15;
-                break;
+                case VisualStudioVersion.VS2017:
+                    majorVersion = 15;
+                    break;
 
-            case VisualStudioVersion.VS2019:
-                majorVersion = 16;
-                break;
+                case VisualStudioVersion.VS2019:
+                    majorVersion = 16;
+                    break;
 
-            case VisualStudioVersion.VS2022:
-                majorVersion = 17;
-                break;
+                case VisualStudioVersion.VS2022:
+                    majorVersion = 17;
+                    break;
 
-            case VisualStudioVersion.VS18:
-                majorVersion = 18;
-                break;
+                case VisualStudioVersion.VS18:
+                    majorVersion = 18;
+                    break;
 
-            default:
-                throw new ArgumentException();
+                default:
+                    throw new ArgumentException();
             }
 
             var instances = VisualStudioInstanceFactory.EnumerateVisualStudioInstances();

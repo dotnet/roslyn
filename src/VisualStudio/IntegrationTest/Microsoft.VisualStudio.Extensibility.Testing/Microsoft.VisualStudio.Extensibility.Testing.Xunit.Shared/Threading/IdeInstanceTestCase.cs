@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Threading
 {
@@ -41,7 +42,7 @@ namespace Xunit.Threading
         public static IdeInstanceTestCase? TryCreateNewInstanceForFramework(ITestFrameworkDiscoveryOptions discoveryOptions, IMessageSink diagnosticMessageSink, VisualStudioInstanceKey visualStudioInstanceKey)
         {
             var lazyInstances = _instances.GetValue(discoveryOptions, static _ => new StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>(ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>.Empty));
-            var candidateTestCase = new IdeInstanceTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(visualStudioInstanceKey), visualStudioInstanceKey);
+            var candidateTestCase = new IdeInstanceTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(), visualStudioInstanceKey);
             var testCase = ImmutableInterlocked.GetOrAdd(ref lazyInstances.Value, visualStudioInstanceKey, candidateTestCase);
             if (testCase != candidateTestCase)
             {

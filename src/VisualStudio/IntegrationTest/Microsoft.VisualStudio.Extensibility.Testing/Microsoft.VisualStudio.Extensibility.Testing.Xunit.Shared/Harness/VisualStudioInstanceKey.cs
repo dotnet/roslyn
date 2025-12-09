@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Harness
 {
@@ -57,7 +58,7 @@ namespace Xunit.Harness
         public override int GetHashCode()
         {
             var hashCode = 223772477;
-            hashCode = (hashCode * -1521134295) + Version.GetHashCode();
+            hashCode = (hashCode * -1521134295) + ((int)Version).GetHashCode();
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(RootSuffix);
             hashCode = (hashCode * -1521134295) + MaxAttempts.GetHashCode();
             hashCode = (hashCode * -1521134295) + EnvironmentVariables.Count.GetHashCode();

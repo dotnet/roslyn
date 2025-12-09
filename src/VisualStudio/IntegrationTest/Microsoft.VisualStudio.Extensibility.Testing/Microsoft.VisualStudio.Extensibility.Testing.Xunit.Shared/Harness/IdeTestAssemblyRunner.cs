@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Harness
 {
@@ -41,7 +42,7 @@ namespace Xunit.Harness
         {
             _ideInstancesInTests = null;
             TestCollectionOrderer = ((TestCollectionOrdererWrapper)TestCollectionOrderer).Underlying;
-            await base.BeforeTestAssemblyFinishedAsync();
+            await base.BeforeTestAssemblyFinishedAsync().ConfigureAwait(true);
         }
 
         protected override async Task<RunSummary> RunTestCollectionAsync(IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
@@ -54,7 +55,7 @@ namespace Xunit.Harness
                 var nonIdeTestCases = testCases.Where(testCase => testCase is not IdeTestCaseBase).ToArray();
                 if (nonIdeTestCases.Any())
                 {
-                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, nonIdeTestCases, cancellationTokenSource);
+                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, nonIdeTestCases, cancellationTokenSource).ConfigureAwait(true);
                     result.Aggregate(summary);
                 }
 
@@ -72,7 +73,7 @@ namespace Xunit.Harness
                         using var visualStudioInstanceFactory = new VisualStudioInstanceFactory();
 
                         marshalledObjects.Add(visualStudioInstanceFactory);
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt, currentInstance, completedTestCaseIds, messageBus, testCollection, currentTests, cancellationTokenSource);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt, currentInstance, completedTestCaseIds, messageBus, testCollection, currentTests, cancellationTokenSource).ConfigureAwait(true);
                         result.Aggregate(summary);
 
                         currentTests = currentTests.Where(test => !completedTestCaseIds.Contains(test.UniqueID)).ToArray();
@@ -109,7 +110,7 @@ namespace Xunit.Harness
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory(leaveRunning: true))
                     {
                         marshalledObjects.Add(visualStudioInstanceFactory);
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt: 0, ideInstanceTestCase.VisualStudioInstanceKey, completedTestCaseIds, messageBus, testCollection, new[] { ideInstanceTestCase }, cancellationTokenSource);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt: 0, ideInstanceTestCase.VisualStudioInstanceKey, completedTestCaseIds, messageBus, testCollection, new[] { ideInstanceTestCase }, cancellationTokenSource).ConfigureAwait(true);
                         result.Aggregate(summary);
                     }
                 }
@@ -156,7 +157,7 @@ namespace Xunit.Harness
             if (visualStudioInstanceKey.Version == VisualStudioVersion.Unspecified
                 || !IdeTestCaseBase.IsInstalled(visualStudioInstanceKey.Version))
             {
-                return RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
+                return RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, testCases, cancellationTokenSource);
             }
 
             DispatcherSynchronizationContext? synchronizationContext = null;
@@ -196,10 +197,10 @@ namespace Xunit.Harness
                 {
                     Debug.Assert(SynchronizationContext.Current is DispatcherSynchronizationContext, "Assertion failed: SynchronizationContext.Current is DispatcherSynchronizationContext");
 
-                    using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None))
+                    using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(true))
                     {
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
+                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, completedTestCaseIds, messageBus, testCases, cancellationTokenSource);
                         return await invoker().ConfigureAwait(true);
                     }
                 },
@@ -230,7 +231,7 @@ namespace Xunit.Harness
                 });
         }
 
-        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(HashSet<string> completedTestCaseIds, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             // These tests just run in the current process, but we still need to hook the assembly and collection events
             // to work correctly in mixed-testing scenarios.
@@ -239,14 +240,14 @@ namespace Xunit.Harness
             marshalledObjects.Add(executionMessageSinkFilter);
             using (var runner = new XunitTestAssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSinkFilter, ExecutionOptions))
             {
-                var runSummary = await runner.RunAsync();
+                var runSummary = await runner.RunAsync().ConfigureAwait(true);
                 return runSummary;
             }
         }
 
         /// <param name="currentAttempt">The 0-based attempt number. If this value is
         /// <c><see cref="VisualStudioInstanceKey.MaxAttempts"/> - 1</c>, a failed test will not be retried.</param>
-        private Func<Task<RunSummary>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, int currentAttempt, VisualStudioInstanceKey visualStudioInstanceKey, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private Func<Task<RunSummary>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, int currentAttempt, VisualStudioInstanceKey visualStudioInstanceKey, HashSet<string> completedTestCaseIds, IMessageBus messageBus, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             return async () =>
             {
@@ -281,7 +282,7 @@ namespace Xunit.Harness
                             var ipcMessageBus = new IpcMessageBus(messageBus);
                             marshalledObjects.Add(ipcMessageBus);
 
-                            var result = runner.RunTestCollection(ipcMessageBus, testCollection, testCases.ToArray());
+                            var result = runner.RunTestCollection();
                             var runSummary = new RunSummary
                             {
                                 Total = result.Item1,
@@ -305,7 +306,7 @@ namespace Xunit.Harness
                     {
                         // Run the tests again, but using an error reporting test runner that will report the exception.
                         WpfTestSharedData.Instance.Exception = e;
-                        return await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource).ConfigureAwait(true);
+                        return await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, testCases, cancellationTokenSource).ConfigureAwait(true);
                     }
                     finally
                     {
@@ -315,7 +316,7 @@ namespace Xunit.Harness
             };
         }
 
-        private ImmutableList<string> GetExtensionFiles(IEnumerable<IXunitTestCase> testCases)
+        private static ImmutableList<string> GetExtensionFiles(IEnumerable<IXunitTestCase> testCases)
         {
             var extensionFiles = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
             var visited = new HashSet<IAssemblyInfo>();
@@ -338,29 +339,29 @@ namespace Xunit.Harness
         {
             switch (visualStudioVersion)
             {
-            case VisualStudioVersion.VS2012:
-                return new Version(11, 0);
+                case VisualStudioVersion.VS2012:
+                    return new Version(11, 0);
 
-            case VisualStudioVersion.VS2013:
-                return new Version(12, 0);
+                case VisualStudioVersion.VS2013:
+                    return new Version(12, 0);
 
-            case VisualStudioVersion.VS2015:
-                return new Version(14, 0);
+                case VisualStudioVersion.VS2015:
+                    return new Version(14, 0);
 
-            case VisualStudioVersion.VS2017:
-                return new Version(15, 0);
+                case VisualStudioVersion.VS2017:
+                    return new Version(15, 0);
 
-            case VisualStudioVersion.VS2019:
-                return new Version(16, 0);
+                case VisualStudioVersion.VS2019:
+                    return new Version(16, 0);
 
-            case VisualStudioVersion.VS2022:
-                return new Version(17, 0);
+                case VisualStudioVersion.VS2022:
+                    return new Version(17, 0);
 
-            case VisualStudioVersion.VS18:
-                return new Version(18, 0);
+                case VisualStudioVersion.VS18:
+                    return new Version(18, 0);
 
-            default:
-                throw new ArgumentException();
+                default:
+                    throw new ArgumentException();
             }
         }
 
@@ -549,7 +550,7 @@ namespace Xunit.Harness
 
         private class IpcAssemblyInfo : LongLivedMarshalByRefObject, IAssemblyInfo
         {
-            private IAssemblyInfo _assemblyInfo;
+            private readonly IAssemblyInfo _assemblyInfo;
 
             public IpcAssemblyInfo(IAssemblyInfo assemblyInfo)
             {

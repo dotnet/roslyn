@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Threading
 {
@@ -37,7 +38,7 @@ namespace Xunit.Threading
                         {
                             try
                             {
-                                await asyncLifetime.InitializeAsync();
+                                await asyncLifetime.InitializeAsync().ConfigureAwait(true);
                             }
                             catch (Exception ex) when (DataCollectionService.LogAndPropagate(ex))
                             {
@@ -47,13 +48,13 @@ namespace Xunit.Threading
 
                         if (!CancellationTokenSource.IsCancellationRequested)
                         {
-                            await BeforeTestMethodInvokedAsync();
+                            await BeforeTestMethodInvokedAsync().ConfigureAwait(true);
                             if (!CancellationTokenSource.IsCancellationRequested && !Aggregator.HasExceptions)
                             {
-                                await InvokeTestMethodAsync(testClassInstance);
+                                await InvokeTestMethodAsync(testClassInstance).ConfigureAwait(true);
                             }
 
-                            await AfterTestMethodInvokedAsync();
+                            await AfterTestMethodInvokedAsync().ConfigureAwait(true);
                         }
 
                         if (asyncLifetime != null)
@@ -62,13 +63,13 @@ namespace Xunit.Threading
                             {
                                 try
                                 {
-                                    await asyncLifetime.DisposeAsync();
+                                    await asyncLifetime.DisposeAsync().ConfigureAwait(true);
                                 }
                                 catch (Exception ex) when (DataCollectionService.LogAndPropagate(ex))
                                 {
                                     throw ExceptionUtilities.Unreachable;
                                 }
-                            });
+                            }).ConfigureAwait(true);
                         }
                     }
                     finally
@@ -175,7 +176,7 @@ namespace Xunit.Threading
 
                                     try
                                     {
-                                        await task;
+                                        await task.ConfigureAwait(true);
                                     }
                                     catch (Exception ex) when (DataCollectionService.LogAndPropagate(ex))
                                     {
@@ -184,7 +185,7 @@ namespace Xunit.Threading
                                 }
                                 else
                                 {
-                                    var ex = await asyncSyncContext.WaitForCompletionAsync();
+                                    var ex = await asyncSyncContext.WaitForCompletionAsync().ConfigureAwait(true);
                                     if (ex != null)
                                     {
                                         DataCollectionService.TryLog(ex);
@@ -192,7 +193,7 @@ namespace Xunit.Threading
                                     }
                                 }
                             }
-                        }));
+                        })).ConfigureAwait(true);
             }
             finally
             {

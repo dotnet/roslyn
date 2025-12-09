@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Threading
 {
@@ -36,7 +37,7 @@ namespace Xunit.Threading
                     () => new InProcessIdeTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource).RunAsync(),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    taskScheduler).Unwrap();
+                    taskScheduler).Unwrap().ConfigureAwait(true);
             }
             finally
             {

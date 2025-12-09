@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Threading
 {
@@ -22,14 +23,8 @@ namespace Xunit.Threading
         /// </summary>
         internal static readonly Guid TestSerializationGateName = Guid.NewGuid();
 
-        /// <summary>
-        /// Holds the last 10 test cases executed: more recent test cases will occur later in the
-        /// list. Useful for debugging deadlocks that occur because state leak between runs.
-        /// </summary>
-        private readonly List<string> _recentTestCases = new List<string>();
-
 #pragma warning disable CA2235 // Mark all non-serializable fields
-        private Semaphore _testSerializationGate = new Semaphore(1, 1, TestSerializationGateName.ToString("N"));
+        private readonly Semaphore _testSerializationGate = new Semaphore(1, 1, TestSerializationGateName.ToString("N"));
 #pragma warning restore CA2235 // Mark all non-serializable fields
 
         private WpfTestSharedData()

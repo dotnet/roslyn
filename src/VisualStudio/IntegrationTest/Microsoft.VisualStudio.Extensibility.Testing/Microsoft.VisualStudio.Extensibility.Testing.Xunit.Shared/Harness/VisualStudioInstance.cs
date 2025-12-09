@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Harness
 {
@@ -39,14 +40,14 @@ namespace Xunit.Harness
                 // If a Visual Studio debugger is attached to the test process, attach it to the instance running
                 // integration tests as well.
                 var debuggerHostDte = GetDebuggerHostDte();
-                int targetProcessId = Process.GetCurrentProcess().Id;
+                var targetProcessId = Process.GetCurrentProcess().Id;
                 var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
                 localProcess?.Attach2(VSConstants.DebugEnginesGuids.ManagedOnly_string);
             }
 
             StartRemoteIntegrationService(dte);
 
-            string portName = $"IPC channel client for {HostProcess.Id}";
+            var portName = $"IPC channel client for {HostProcess.Id}";
             _integrationServiceChannel = new IpcChannel(
                 new Hashtable
                 {
@@ -251,13 +252,8 @@ namespace Xunit.Harness
             }
         }
 
-        private void StartRemoteIntegrationService(DTE dte)
+        private static void StartRemoteIntegrationService(DTE dte)
         {
-            var dd = dte.Commands.Item(WellKnownCommandNames.IntegrationTestServiceStart);
-            var x1 = dd.IsAvailable;
-            var x2 = dd.Name;
-            var x3 = dd.ID;
-            var x4 = dd.Guid;
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
             if (dte.Commands.Item(WellKnownCommandNames.IntegrationTestServiceStart).IsAvailable)
             {

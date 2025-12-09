@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Harness
 {
@@ -23,8 +24,6 @@ namespace Xunit.Harness
     {
         private const int ReportTimeMinute = 5;
         private static readonly TimeSpan ReportTimeInterval = TimeSpan.FromMinutes(ReportTimeMinute);
-        private static readonly Dictionary<Version, Assembly> _installerAssemblies = new Dictionary<Version, Assembly>();
-
         private readonly bool _leaveRunning;
 
         /// <summary>
@@ -82,7 +81,7 @@ namespace Xunit.Harness
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            bool shouldStartNewInstance = ShouldStartNewInstance(version, requiredPackageIds);
+            var shouldStartNewInstance = ShouldStartNewInstance(version, requiredPackageIds);
             await UpdateCurrentlyRunningInstanceAsync(version, rootSuffix, environmentVariables, extensionFiles, requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
             return new VisualStudioInstanceContext(_currentlyRunningInstance!, this);
@@ -296,9 +295,9 @@ namespace Xunit.Harness
                 instanceFoundWithInvalidState = true;
             }
 
-            throw new PlatformNotSupportedException(instanceFoundWithInvalidState ?
-                                "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio found that match the specified requirements.");
+            throw new PlatformNotSupportedException(instanceFoundWithInvalidState
+                                ? "An instance matching the specified requirements was found but it was in an invalid state."
+                                : "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
         private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string? rootSuffix, ImmutableDictionary<string, string> environmentVariables, ImmutableList<string> extensionFiles, string vsInstanceId)

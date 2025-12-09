@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Xunit.Threading
 {
@@ -13,7 +14,7 @@ namespace Xunit.Threading
         {
             if (cancellationToken.CanBeCanceled)
             {
-                int signalledIndex = WaitHandle.WaitAny(new[] { semaphore, cancellationToken.WaitHandle });
+                var signalledIndex = WaitHandle.WaitAny(new[] { semaphore, cancellationToken.WaitHandle });
                 if (signalledIndex != 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();

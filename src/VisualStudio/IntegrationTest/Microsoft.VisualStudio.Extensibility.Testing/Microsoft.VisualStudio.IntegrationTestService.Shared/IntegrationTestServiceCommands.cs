@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.VisualStudio.IntegrationTestService
 {
@@ -128,7 +129,7 @@ namespace Microsoft.VisualStudio.IntegrationTestService
             }
         }
 
-        private void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
+        private static void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
         {
             commandToDisable.Enabled = false;
             commandToDisable.Visible = false;
