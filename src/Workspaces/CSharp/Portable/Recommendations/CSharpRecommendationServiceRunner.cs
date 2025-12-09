@@ -681,7 +681,7 @@ internal partial class CSharpRecommendationService
 
             // If the thing on the left is a type, namespace, or alias, we shouldn't show anything in
             // IntelliSense.
-            if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
+            if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault() is INamedTypeSymbol or INamespaceSymbol or IAliasSymbol)
                 return default;
 
             // Can't access statics through `?.` so do not allow for the `Color Color` case.

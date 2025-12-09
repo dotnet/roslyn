@@ -2470,7 +2470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationBuilder.Add(argument.NameColon?.Name.Location);
                     }
 
-                    targetType = targetType.WithElementNames(sourceTuple.ArgumentNamesOpt!,
+                    targetType = targetType.WithElementNames(sourceTuple.ArgumentNamesOpt,
                         locationBuilder.ToImmutableAndFree(),
                         errorPositions: default,
                         ImmutableArray.Create(tupleSyntax.Location));

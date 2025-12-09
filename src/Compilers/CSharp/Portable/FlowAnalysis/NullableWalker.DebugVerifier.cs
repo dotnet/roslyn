@@ -147,6 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
+            {
+                Visit(node.Expression);
+
+                if (node.Conversion is BoundConversion conversion)
+                {
+                    Visit(conversion);
+                }
+
+                return null;
+            }
+
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
             {
                 // https://github.com/dotnet/roslyn/issues/35010: handle
