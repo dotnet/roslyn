@@ -176,7 +176,7 @@
 
   <!-- This node represents the ReadOnlySpan<T> for the elements passed as the last argument to a collection builder
        method. It does not survive lowering. -->
-  <Node Name="BoundCollectionBuilderElementsPlaceholder" Base="BoundValuePlaceholderBase" />
+  <Node Name="BoundCollectionBuilderElementsPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting"  />
 
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">

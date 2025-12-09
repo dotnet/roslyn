@@ -17467,6 +17467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.ListPatternIndexPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.SlicePatternReceiverPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.SlicePatternRangePlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.CollectionBuilderElementsPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.TypeOrValueExpression => PipelinePhase.InitialBinding,
                 BoundKind.UnconvertedAddressOfOperator => PipelinePhase.InitialBinding,
                 BoundKind.UnconvertedConditionalOperator => PipelinePhase.InitialBinding,
