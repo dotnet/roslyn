@@ -8557,7 +8557,7 @@ class C
             var reader0 = md0.MetadataReader;
 
             var generation0 = CreateInitialBaseline(compilation0,
-ModuleMetadata.CreateFromImage(bytes0),
+                ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
@@ -9747,7 +9747,7 @@ class B : A<B>
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = CreateInitialBaseline(compilation0,
-ModuleMetadata.CreateFromImage(bytes0),
+                ModuleMetadata.CreateFromImage(bytes0),
                 m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
             #region Gen1 
@@ -10093,7 +10093,7 @@ ModuleMetadata.CreateFromImage(bytes0),
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = CreateInitialBaseline(compilation0,
-ModuleMetadata.CreateFromImage(bytes0),
+                ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -12012,7 +12012,7 @@ class C
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = CreateInitialBaseline(compilation0,
-ModuleMetadata.CreateFromImage(bytes0),
+                ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -12079,7 +12079,7 @@ ModuleMetadata.CreateFromImage(bytes0),
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = CreateInitialBaseline(compilation0,
-ModuleMetadata.CreateFromImage(bytes0),
+                ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             testData0.GetMethodData("C.M").VerifyIL(@"
