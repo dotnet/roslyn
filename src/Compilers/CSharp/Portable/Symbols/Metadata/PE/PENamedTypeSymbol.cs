@@ -1795,7 +1795,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
         {
-            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            int capacity = 0;
+            foreach (var typeArray in _lazyNestedTypes.Values)
+            {
+                capacity += typeArray.Length;
+            }
+
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(capacity);
             foreach (var typeArray in _lazyNestedTypes.Values)
             {
                 builder.AddRange(typeArray);
