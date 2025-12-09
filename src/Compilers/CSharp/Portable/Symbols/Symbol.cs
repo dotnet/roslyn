@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see langword="true"/> if the method was compiled under updated memory safety rules
         /// (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>) and marked as <see langword="unsafe"/>.
         /// </summary>
-        internal virtual bool IsCallerUnsafe => false; // PROTOTYPE: should be abstract
+        internal virtual bool IsCallerUnsafe => false; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols

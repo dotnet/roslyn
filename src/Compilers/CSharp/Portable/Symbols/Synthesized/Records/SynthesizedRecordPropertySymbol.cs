@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
 
+        internal override bool IsCallerUnsafe => false;
+
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 

@@ -291,6 +291,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => false;
 
+        internal sealed override bool IsCallerUnsafe => false;
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
             builderArgument = null;

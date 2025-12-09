@@ -46,6 +46,7 @@ internal sealed class SynthesizedPropertySymbol : PropertySymbol
     internal override CallingConvention CallingConvention => CallingConvention.HasThis;
     internal override bool MustCallMethodsDirectly => false;
     internal override bool HasUnscopedRefAttribute => false;
+    internal override bool IsCallerUnsafe => false;
     internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
     internal override int TryGetOverloadResolutionPriority() => 0;
 
