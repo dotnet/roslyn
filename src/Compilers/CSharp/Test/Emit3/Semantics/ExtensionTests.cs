@@ -5154,18 +5154,18 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,31): error CS9293: Cannot use extension parameter 'object o' in this context.
+            // (5,31): error CS9347: Static members cannot refer to extension parameter 'object o'. Use an instance member instead.
             //         static object M1() => o;
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(5, 31),
-            // (6,37): error CS9293: Cannot use extension parameter 'object o' in this context.
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("object o").WithLocation(5, 31),
+            // (6,37): error CS9347: Static members cannot refer to extension parameter 'object o'. Use an instance member instead.
             //         static object M2() { return o; }
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(6, 37),
-            // (7,29): error CS9293: Cannot use extension parameter 'object o' in this context.
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("object o").WithLocation(6, 37),
+            // (7,29): error CS9347: Static members cannot refer to extension parameter 'object o'. Use an instance member instead.
             //         static object P1 => o;
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 29),
-            // (8,41): error CS9293: Cannot use extension parameter 'object o' in this context.
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("object o").WithLocation(7, 29),
+            // (8,41): error CS9347: Static members cannot refer to extension parameter 'object o'. Use an instance member instead.
             //         static object P2 { get { return o; } }
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(8, 41)
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("object o").WithLocation(8, 41)
             );
     }
 
@@ -30847,12 +30847,12 @@ static class Extensions
             // (27,13): error CS9282: This member is not allowed in an extension block
             //         int this[int y]
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(27, 13),
-            // (42,23): error CS9293: Cannot use extension parameter 'short M1' in this context.
+            // (42,23): error CS9347: Static members cannot refer to extension parameter 'short M1'. Use an instance member instead.
             //             short x = M1;
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "M1").WithArguments("short M1").WithLocation(42, 23),
-            // (53,17): error CS9293: Cannot use extension parameter 'string P1' in this context.
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "M1").WithArguments("short M1").WithLocation(42, 23),
+            // (53,17): error CS9347: Static members cannot refer to extension parameter 'string P1'. Use an instance member instead.
             //                 P1 = "val";
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17),
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "P1").WithArguments("string P1").WithLocation(53, 17),
             // (67,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(67, 13),
@@ -31314,9 +31314,9 @@ public static class E
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (9,39): error CS9293: Cannot use extension parameter 'T[] ts' in this context.
+            // (9,39): error CS9347: Static members cannot refer to extension parameter 'T[] ts'. Use an instance member instead.
             //         public static bool M2(T t) => ts.Contains(t); // Error: Cannot refer to `ts` from static context
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "ts").WithArguments("T[] ts").WithLocation(9, 39),
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "ts").WithArguments("T[] ts").WithLocation(9, 39),
             // (10,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         public void M3(int T, string ts) { }          // Error: Cannot reuse names `T` and `ts`
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(10, 28),
@@ -31468,12 +31468,12 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (5,32): error CS9293: Cannot use extension parameter 'int p' in this context.
+            // (5,32): error CS9347: Static members cannot refer to extension parameter 'int p'. Use an instance member instead.
             //         static int P1 { get => p; }
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(5, 32),
-            // (8,20): error CS9293: Cannot use extension parameter 'int p' in this context.
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("int p").WithLocation(5, 32),
+            // (8,20): error CS9347: Static members cannot refer to extension parameter 'int p'. Use an instance member instead.
             //             return p;
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(8, 20)
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("int p").WithLocation(8, 20)
             );
     }
 
@@ -31504,12 +31504,12 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (9,32): error CS9293: Cannot use extension parameter 'int p' in this context.
+            // (9,32): error CS9347: Static members cannot refer to extension parameter 'int p'. Use an instance member instead.
             //                 int local() => p;
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(9, 32),
-            // (15,28): error CS9293: Cannot use extension parameter 'int p' in this context.
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("int p").WithLocation(9, 32),
+            // (15,28): error CS9347: Static members cannot refer to extension parameter 'int p'. Use an instance member instead.
             //             int local() => p;
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(15, 28)
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("int p").WithLocation(15, 28)
             );
     }
 
@@ -39955,9 +39955,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9293: Cannot use extension parameter 'object o' in this context.
+            // (7,13): error CS9347: Static members cannot refer to extension parameter 'object o'. Use an instance member instead.
             //             o.M2();
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 13));
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("object o").WithLocation(7, 13));
     }
 
     [Fact]

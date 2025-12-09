@@ -2082,13 +2082,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
-                        else if (parameter.IsExtensionParameter() &&
-                                (InParameterDefaultValue || InAttributeArgument ||
-                                 this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
-                                 (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
-                                !IsInsideNameof)
+                        else if (parameter.IsExtensionParameter() && !IsInsideNameof)
                         {
-                            Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
+                            var containingMember = this.ContainingMember();
+                            var isInStaticMemberOfSameExtension = containingMember is { Kind: not SymbolKind.NamedType, IsStatic: true } &&
+                                                                   (object)containingMember.ContainingSymbol == parameter.ContainingSymbol;
+
+                            if (isInStaticMemberOfSameExtension && !InParameterDefaultValue && !InAttributeArgument)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter);
+                            }
+                            else if (InParameterDefaultValue || InAttributeArgument ||
+                                     containingMember is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                     (object)containingMember.ContainingSymbol != parameter.ContainingSymbol)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
+                            }
                         }
                         else
                         {
