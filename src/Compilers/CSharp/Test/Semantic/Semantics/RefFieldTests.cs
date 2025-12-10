@@ -22016,13 +22016,15 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(ref scoped scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 16),
-                // (3,30): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16),
+                // (3,23): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
                 //     void M(ref scoped scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(3, 30)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(3, 23),
+                // (3,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                //     void M(ref scoped scoped R parameter)
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 23));
 
             source =
 @"ref struct R
@@ -22125,19 +22127,9 @@ ref struct R { }
 ";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,21): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (2,21): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(2, 21),
-                // (2,30): error CS1003: Syntax error, ',' expected
-                // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(2, 30),
-                // (2,30): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(2, 30),
-                // (2,39): error CS1001: Identifier expected
-                // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 39)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(2, 21));
 
             source = @"
 ref struct R

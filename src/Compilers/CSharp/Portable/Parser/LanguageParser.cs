@@ -4977,11 +4977,6 @@ parse_member_name:;
             public void Add(int i) { }
         }
 
-        void Foo(params scoped S a)
-        {
-
-        }
-
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
         {
             Debug.Assert(!(isFunctionPointerParameter && isLambdaParameter), "Can't be parsing parameters for both a function pointer and a lambda at the same time");
@@ -5006,17 +5001,16 @@ parse_member_name:;
                     }
                     else
                     {
-                        // If we've already seen `scoped` then we may have a situation like `scoped scoped`. This could be
-                        // duplicated modifier, or it could be that the second `scoped` is actually the identifier of a
-                        // lambda parameter.
+                        // If we've already seen `scoped` then we may have a situation like `scoped scoped`. This could
+                        // be duplicated modifier, or it could be that the second `scoped` is actually the identifier of
+                        // a parameter.
                         //
                         // Places where it is an identifier are:
                         //
                         //      `(scoped scoped, ...) =>`
                         //      `(scoped scoped) =>`
                         //      `(scoped scoped = ...) =>`
-                        if (isLambdaParameter &&
-                            this.PeekToken(1).Kind is not (SyntaxKind.CommaToken or SyntaxKind.CloseParenToken or SyntaxKind.EqualsEqualsToken))
+                        if (this.PeekToken(1).Kind is not (SyntaxKind.CommaToken or SyntaxKind.CloseParenToken or SyntaxKind.EqualsEqualsToken))
                         {
                             modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
                             continue;

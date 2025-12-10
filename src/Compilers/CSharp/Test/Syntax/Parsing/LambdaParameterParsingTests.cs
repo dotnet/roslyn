@@ -5839,6 +5839,15 @@ class C {
                         }
                         N(SyntaxKind.IdentifierToken, "scoped");
                     }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
                     N(SyntaxKind.CloseParenToken);
                 }
                 N(SyntaxKind.EqualsGreaterThanToken);
@@ -5869,6 +5878,14 @@ class C {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
                         N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.DefaultLiteralExpression);
+                            {
+                                N(SyntaxKind.DefaultKeyword);
+                            }
+                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -5925,6 +5942,15 @@ class C {
                     {
                         N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
                     }
                     N(SyntaxKind.CloseParenToken);
                 }

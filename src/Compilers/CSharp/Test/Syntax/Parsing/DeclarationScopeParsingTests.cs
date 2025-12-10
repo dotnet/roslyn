@@ -564,13 +564,8 @@ ref @scoped F4() { }";
         public void Method_08()
         {
             string source = "void F(ref scoped scoped R r) { }";
-            UsingDeclaration(source, TestOptions.Regular11,
-                // (1,28): error CS1003: Syntax error, ',' expected
-                // void F(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(1, 28),
-                // (1,29): error CS1001: Identifier expected
-                // void F(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29));
+            UsingDeclaration(source, TestOptions.Regular11);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
 
             N(SyntaxKind.MethodDeclaration);
             {
