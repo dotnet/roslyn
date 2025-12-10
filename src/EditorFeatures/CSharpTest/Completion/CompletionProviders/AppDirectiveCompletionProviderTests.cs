@@ -118,7 +118,7 @@ public sealed class ProjectAppDirectiveCompletionProviderTests : AbstractAppDire
             """;
 
         // In this case, only stuff like drive roots would be recommended.
-        var expectedRoot = PlatformInformation.IsWindows ? @"C:" : "/";
+        var expectedRoot = PlatformInformation.IsWindows ? "C:" : "/";
         await VerifyItemExistsAsync(markup, expectedRoot);
     }
 

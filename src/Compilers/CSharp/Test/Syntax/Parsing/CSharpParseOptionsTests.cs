@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpParseOptions),
                 "Features",
-                "AllowIgnoredDirectives",
+                "FileBasedProgram",
                 "Language",
                 "LanguageVersion",
                 "InterceptorsNamespaces",

@@ -112,19 +112,6 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
     }
 
     [Fact]
-    public void Semantics_MiscellaneousFile()
-    {
-        var source = """
-            #!xyz
-            #:name value
-            System.Console.WriteLine(123);
-            """;
-        CompileAndVerify(source,
-            parseOptions: TestOptions.Regular.WithFeature("MiscellaneousFile"),
-            expectedOutput: "123").VerifyDiagnostics();
-    }
-
-    [Fact]
     public void Api()
     {
         var source = """
