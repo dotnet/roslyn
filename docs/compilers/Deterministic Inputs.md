@@ -62,6 +62,8 @@ diff build1/MyAssembly.dll.key build2/MyAssembly.dll.key
 fc build1\MyAssembly.dll.key build2\MyAssembly.dll.key
 ```
 
+**Note**: If the `.key` files are identical but the output assemblies differ, this indicates a compiler determinism bug. Please report such cases to the Roslyn team with a reproduction so the issue can be investigated.
+
 ### 2. Compare Metadata Using metadata-tools
 
 Install the `mdv` (MetaData Viewer) tool from the [dotnet/metadata-tools](https://github.com/dotnet/metadata-tools) repository:
