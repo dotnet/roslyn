@@ -11640,7 +11640,7 @@ static class Extensions
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F0").Parameters[0], "R<System.Object> r", RefKind.None, ScopedKind.None);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, ScopedKind.ScopedValue);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped R<T> r", RefKind.None, ScopedKind.None);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F3").Parameters[0], "scoped ref T t", RefKind.Ref, ScopedKind.ScopedRef);
         }
 
@@ -11833,9 +11833,9 @@ readonly scoped record struct C();
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11853,8 +11853,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
                 // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
         }
 
         [Fact]
@@ -21921,9 +21920,24 @@ public ref struct R
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                //     void M(ref scoped R parameter)
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16));
+                // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
+                // (3,16): error CS0542: 'R': member names cannot be the same as their enclosing type
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 16),
+                // (3,16): warning CS0169: The field 'R.R' is never used
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
+                // (3,18): error CS1002: ; expected
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "field").WithLocation(3, 18),
+                // (3,23): error CS1519: Invalid token ';' in a member declaration
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
+                // (3,23): error CS1519: Invalid token ';' in a member declaration
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23));
 
             source =
 @"ref struct R

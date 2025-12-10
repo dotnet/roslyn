@@ -179,15 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -198,15 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.InKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -217,15 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.OutKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -591,20 +567,21 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.IdentifierToken, "R");
                     }
                     M(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "R");
+                            N(SyntaxKind.IdentifierToken, "r");
                         }
-                        N(SyntaxKind.IdentifierToken, "r");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -624,7 +601,34 @@ ref @scoped F4() { }";
         {
             string source = "void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 8),
+                // (1,15): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 15),
+                // (1,29): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 29),
+                // (1,43): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 43),
+                // (1,43): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 43),
+                // (1,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 50),
+                // (1,60): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 60),
+                // (1,71): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 71));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -766,7 +770,22 @@ ref @scoped F4() { }";
         {
             string source = "void F(scoped readonly int a) { }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
+                // void F(scoped readonly int a) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // void F(scoped readonly int a) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 8),
+                // (1,8): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // void F(scoped readonly int a) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped readonly int a").WithLocation(1, 8),
+                // (1,15): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
+                // void F(scoped readonly int a) { }
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(1, 15),
+                // (1,15): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // void F(scoped readonly int a) { }
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 15));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -854,7 +873,22 @@ ref @scoped F4() { }";
         {
             string source = "void F(out scoped ref int a) { }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,6): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("a").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 12),
+                // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                // (1,19): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(1, 19));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -1022,18 +1056,28 @@ ref @scoped F4() { }";
                 // (ref scoped int a) => null
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
                     }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
             }
             EOF();
         }
@@ -1056,14 +1100,28 @@ ref @scoped F4() { }";
                 // (in scoped int a) => null
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ParameterList);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
             }
             EOF();
         }
@@ -1089,14 +1147,28 @@ ref @scoped F4() { }";
                 // (out scoped int a) => null
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ParameterList);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
             }
             EOF();
         }
@@ -1200,15 +1272,8 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "R");
@@ -1354,15 +1419,7 @@ ref @scoped F4() { }";
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.ParamsKeyword);
                         N(SyntaxKind.ArrayType);
                         {
@@ -9629,7 +9686,28 @@ for (scoped scoped var b;;);
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,11): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(1, 11),
+                // (1,18): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 18),
+                // (1,25): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(1, 25),
+                // (1,32): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 32),
+                // (1,35): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(1, 35),
+                // (1,57): warning CS0168: The variable 'f' is declared but never used
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(1, 57));
 
             N(SyntaxKind.LocalDeclarationStatement);
             {
