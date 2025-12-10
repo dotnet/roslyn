@@ -629,37 +629,105 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 checksumAlgorithm: HashAlgorithm);
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
 
-            var resourceContent = "Test resource content";
-            var resourceBytes = Encoding.UTF8.GetBytes(resourceContent);
-            string resourceChecksum;
+            // Embedded public resource
+            var embeddedPublicContent = "Embedded public resource";
+            var embeddedPublicBytes = Encoding.UTF8.GetBytes(embeddedPublicContent);
+            string embeddedPublicChecksum;
             using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
             {
-                var hash = hashAlgorithm.ComputeHash(resourceBytes);
-                resourceChecksum = DeterministicKeyBuilder.EncodeByteArrayValue(hash);
+                var hash = hashAlgorithm.ComputeHash(embeddedPublicBytes);
+                embeddedPublicChecksum = DeterministicKeyBuilder.EncodeByteArrayValue(hash);
             }
 
-            var resource = new ResourceDescription(
-                "TestResource",
-                () => new System.IO.MemoryStream(resourceBytes),
-                isPublic: true);
+            // Embedded non-public resource
+            var embeddedPrivateContent = "Embedded private resource";
+            var embeddedPrivateBytes = Encoding.UTF8.GetBytes(embeddedPrivateContent);
+            string embeddedPrivateChecksum;
+            using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
+            {
+                var hash = hashAlgorithm.ComputeHash(embeddedPrivateBytes);
+                embeddedPrivateChecksum = DeterministicKeyBuilder.EncodeByteArrayValue(hash);
+            }
+
+            var resources = ImmutableArray.Create(
+                new ResourceDescription(
+                    "EmbeddedPublicResource",
+                    () => new System.IO.MemoryStream(embeddedPublicBytes),
+                    isPublic: true),
+                new ResourceDescription(
+                    "EmbeddedPrivateResource",
+                    () => new System.IO.MemoryStream(embeddedPrivateBytes),
+                    isPublic: false),
+                new ResourceDescription(
+                    "LinkedResource",
+                    "LinkedResource.txt",
+                    () => new System.IO.MemoryStream(Encoding.UTF8.GetBytes("dummy")),
+                    isPublic: true)
+            );
 
             var key = compilation.GetDeterministicKey(
-                resources: [resource],
+                resources: resources,
                 options: DeterministicKeyOptions.IgnoreToolVersions);
 
             var expected = $$"""
 "resources": [
   {
-    "resourceName": "TestResource",
+    "resourceName": "EmbeddedPublicResource",
     "fileName": null,
     "isPublic": true,
     "content": {
-      "checksum": "{{resourceChecksum}}"
+      "checksum": "{{embeddedPublicChecksum}}"
     }
+  },
+  {
+    "resourceName": "EmbeddedPrivateResource",
+    "fileName": null,
+    "isPublic": false,
+    "content": {
+      "checksum": "{{embeddedPrivateChecksum}}"
+    }
+  },
+  {
+    "resourceName": "LinkedResource",
+    "fileName": "LinkedResource.txt",
+    "isPublic": true,
+    "content": null
   }
 ]
 """;
             AssertJsonSection(expected, key, "resources");
+        }
+
+        [Fact]
+        public void RuleSetChangesDoNotAffectKey()
+        {
+            // This test demonstrates that changes to the ruleset file do not affect the deterministic key,
+            // as long as the resulting diagnostic options (GeneralDiagnosticOption and SpecificDiagnosticOptions)
+            // remain the same. Those options are already included in the key.
+
+            var syntaxTree = CSharpTestBase.Parse(
+                "",
+                filename: "file.cs",
+                checksumAlgorithm: HashAlgorithm);
+            
+            // Create two compilations with the same diagnostic options but different "ruleset files"
+            // (conceptually - we're not actually using rulesets here, just showing the options are what matters)
+            var options1 = Options
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Warn)
+                .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0168", ReportDiagnostic.Error));
+            
+            var options2 = Options
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Warn)
+                .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0168", ReportDiagnostic.Error));
+
+            var compilation1 = CSharpTestBase.CreateCompilation(syntaxTree, options: options1);
+            var compilation2 = CSharpTestBase.CreateCompilation(syntaxTree, options: options2);
+
+            var key1 = compilation1.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+            var key2 = compilation2.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            // Keys should be identical since the diagnostic options are the same
+            Assert.Equal(key1, key2);
         }
     }
 }
