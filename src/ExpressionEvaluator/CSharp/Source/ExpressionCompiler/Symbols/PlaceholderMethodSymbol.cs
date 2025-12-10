@@ -222,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
+        internal override bool IsCallerUnsafe => false;
+
         internal override bool RequiresSecurityObject
         {
             get { return false; }
