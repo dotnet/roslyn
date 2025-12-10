@@ -85,7 +85,22 @@ diff assembly1.txt assembly2.txt
 
 The metadata dump shows detailed information about types, methods, fields, attributes, and other metadata in the assembly. Differences in the metadata can help identify what changed between builds.
 
-### 3. Binary Diff of the DLL
+### 3. Compare Embedded Resources
+
+If your assembly contains embedded resources, verify they are identical. The recommended approach is to use ILSpy, which has an easy "Save" button to export resources from the DLL for comparison. Other tools like dnSpy or `ildasm` can also be used to extract and inspect embedded resources.
+
+Example using `ildasm` to disassemble and extract embedded `.res` files:
+
+```bash
+# Disassemble and generate .res files
+ildasm /out=assembly1.il MyAssembly1.dll
+ildasm /out=assembly2.il MyAssembly2.dll
+
+# Compare the generated .res files
+diff assembly1.res assembly2.res
+```
+
+### 4. Binary Diff of the DLL
 
 As a last resort, perform a hex dump comparison of the actual DLL files:
 
