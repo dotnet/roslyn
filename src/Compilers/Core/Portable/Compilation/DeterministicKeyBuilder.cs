@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
             SourceText? sourceLinkText,
-            string? ruleSetFilePath,
+            SourceText? ruleSetText,
             ImmutableArray<ResourceDescription> resources,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, ruleSetFilePath, options, cancellationToken);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, ruleSetText, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> references,
             ImmutableArray<byte> publicKey,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
-            string? ruleSetFilePath,
+            SourceText? ruleSetText,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
 
             WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
             writer.WriteKey("options");
-            WriteCompilationOptions(writer, compilationOptions, ruleSetFilePath, pathMap, options);
+            WriteCompilationOptions(writer, compilationOptions, ruleSetText, options);
 
             writer.WriteKey("syntaxTrees");
             writer.WriteArrayStart();
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis
                     compilation.References.AsImmutable(),
                     compilation.Assembly.Identity.PublicKey,
                     pathMap,
-                    ruleSetFilePath: null,
+                    ruleSetText: null,
                     deterministicKeyOptions,
                     cancellationToken);
             }
@@ -485,13 +485,13 @@ namespace Microsoft.CodeAnalysis
         private void WriteCompilationOptions(
             JsonWriter writer,
             CompilationOptions options,
-            string? ruleSetFilePath,
-            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            SourceText? ruleSetText,
             DeterministicKeyOptions deterministicKeyOptions)
         {
             writer.WriteObjectStart();
             WriteCompilationOptionsCore(writer, options);
-            WriteFilePath(writer, "ruleSetPath", ruleSetFilePath, pathMap, deterministicKeyOptions);
+            writer.WriteKey("ruleSet");
+            WriteSourceText(writer, ruleSetText);
             writer.WriteObjectEnd();
         }
 

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": [],
-      ""ruleSetPath"": null
+      ""ruleSet"": null
     },
     ""syntaxTrees"": [
       {
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": [],
-      ""ruleSetPath"": null
+      ""ruleSet"": null
     }}
   }},
   ""additionalTexts"": [],
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": [],
-      ""ruleSetPath"": null
+      ""ruleSet"": null
     },
     ""syntaxTrees"": [
       {
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "unsafe": false,
       "topLevelBinderFlags": "None",
       "usings": [],
-      "ruleSetPath": null
+      "ruleSet": null
     },
     "syntaxTrees": [
       {
@@ -633,15 +633,26 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 checksumAlgorithm: HashAlgorithm);
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
 
-            var ruleSetPath = "/path/to/ruleset.ruleset";
+            var ruleSetContent = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <RuleSet Name="Test" ToolsVersion="14.0">
+                </RuleSet>
+                """;
+            var ruleSetText = SourceText.From(ruleSetContent, Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            var ruleSetChecksum = GetChecksum(ruleSetText);
+
             var key = compilation.GetDeterministicKey(
-                ruleSetFilePath: ruleSetPath,
+                ruleSetText: ruleSetText,
                 options: DeterministicKeyOptions.IgnoreToolVersions);
 
-            var expected = $"""
-"ruleSetPath": "{ruleSetPath}"
+            var expected = $$"""
+"ruleSet": {
+  "checksum": "{{ruleSetChecksum}}",
+  "checksumAlgorithm": "Sha256",
+  "encodingName": "Unicode (UTF-8)"
+}
 """;
-            AssertJsonSection(expected, key, "compilation.options.ruleSetPath");
+            AssertJsonSection(expected, key, "compilation.options.ruleSet");
         }
 
         [Fact]

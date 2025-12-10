@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""embedVbCoreRuntime"": false,
       ""globalImports"": [],
       ""parseOptions"": null,
-      ""ruleSetPath"": null
+      ""ruleSet"": null
     },
     ""syntaxTrees"": [
       {
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""_MYTYPE"": ""Empty""
         }}
       }},
-      ""ruleSetPath"": null
+      ""ruleSet"": null
     }},
     ""syntaxTrees"": [
       {{

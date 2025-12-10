@@ -1234,6 +1234,7 @@ namespace Microsoft.CodeAnalysis
             var finalXmlFilePath = Arguments.DocumentationPath;
 
             NoThrowStreamDisposer? sourceLinkStreamDisposerOpt = null;
+            NoThrowStreamDisposer? ruleSetStreamDisposerOpt = null;
 
             try
             {
@@ -1269,6 +1270,25 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                if (Arguments.RuleSetPath != null)
+                {
+                    var ruleSetStreamOpt = OpenFile(
+                        Arguments.RuleSetPath,
+                        diagnostics,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read);
+
+                    if (ruleSetStreamOpt != null)
+                    {
+                        ruleSetStreamDisposerOpt = new NoThrowStreamDisposer(
+                            ruleSetStreamOpt,
+                            Arguments.RuleSetPath,
+                            diagnostics,
+                            MessageProvider);
+                    }
+                }
+
                 if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
                 {
                     EmitDeterminismKey(
@@ -1280,7 +1300,7 @@ namespace Microsoft.CodeAnalysis
                         Arguments.PathMap,
                         emitOptions,
                         sourceLinkStreamDisposerOpt?.Stream,
-                        Arguments.RuleSetPath,
+                        ruleSetStreamDisposerOpt?.Stream,
                         Arguments.ManifestResources);
                 }
 
@@ -1484,9 +1504,15 @@ namespace Microsoft.CodeAnalysis
             finally
             {
                 sourceLinkStreamDisposerOpt?.Dispose();
+                ruleSetStreamDisposerOpt?.Dispose();
             }
 
             if (sourceLinkStreamDisposerOpt?.HasFailedToDispose == true)
+            {
+                return;
+            }
+
+            if (ruleSetStreamDisposerOpt?.HasFailedToDispose == true)
             {
                 return;
             }
@@ -1747,13 +1773,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
             Stream? sourceLinkStream,
-            string? ruleSetPath,
+            Stream? ruleSetStream,
             ImmutableArray<ResourceDescription> resources)
         {
             SourceText? sourceLinkText = null;
             if (sourceLinkStream != null)
             {
                 sourceLinkText = SourceText.From(sourceLinkStream, encoding: null, canBeEmbedded: false);
+            }
+
+            SourceText? ruleSetText = null;
+            if (ruleSetStream != null)
+            {
+                ruleSetText = SourceText.From(ruleSetStream, encoding: null, canBeEmbedded: false);
             }
 
             var key = compilation.GetDeterministicKey(
@@ -1763,7 +1795,7 @@ namespace Microsoft.CodeAnalysis
                 pathMap,
                 emitOptions,
                 sourceLinkText,
-                ruleSetPath,
+                ruleSetText,
                 resources);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
