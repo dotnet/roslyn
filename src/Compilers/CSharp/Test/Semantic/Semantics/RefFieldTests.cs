@@ -11327,24 +11327,18 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
+                // (6,26): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
-                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
-                // (6,35): error CS1003: Syntax error, ',' expected
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
-                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
-                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (7,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
-                // (7,37): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 23),
+                // (7,30): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(7, 30),
+                // (7,30): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 30),
                 // (8,19): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 19),
@@ -11371,33 +11365,21 @@ class Program
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
+                // (6,26): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
-                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
-                // (6,35): error CS1003: Syntax error, ',' expected
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
-                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
-                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (7,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
-                // (7,37): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 23),
+                // (7,30): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
-                // (8,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(7, 30),
+                // (7,30): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 30),
+                // (8,26): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 26),
-                // (8,33): error CS1001: Identifier expected
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(8, 33),
-                // (8,33): error CS1003: Syntax error, ',' expected
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(8, 26));
         }
 
         [Fact]
@@ -11652,19 +11634,9 @@ static class Extensions
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,30): error CS9348: The 'this' modifier cannot immediately follow the 'scoped' modifier.
                 //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 23),
-                // (6,30): error CS1001: Identifier expected
-                //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "this").WithLocation(6, 30),
-                // (6,30): error CS1003: Syntax error, ',' expected
-                //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",").WithLocation(6, 30),
-                // (6,30): error CS1100: Method 'F2' has a parameter modifier 'this' which is not on the first parameter
-                //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("F2").WithLocation(6, 30)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "this").WithArguments("this").WithLocation(6, 30));
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F0").Parameters[0], "R<System.Object> r", RefKind.None, ScopedKind.None);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, ScopedKind.ScopedValue);
@@ -11789,10 +11761,9 @@ scoped readonly ref struct C { }
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
-                // (3,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(3, 8)
-                );
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(3, 1));
         }
 
         [Fact]
@@ -11817,9 +11788,9 @@ readonly scoped record struct C();
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11837,8 +11808,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
                 // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
         }
 
         [Fact]
@@ -21951,25 +21921,9 @@ public ref struct R
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
-                // (3,16): error CS0542: 'R': member names cannot be the same as their enclosing type
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 16),
-                // (3,16): warning CS0169: The field 'R.R' is never used
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "field").WithLocation(3, 18),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23)
-                );
+                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                //     void M(ref scoped R parameter)
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16));
 
             source =
 @"ref struct R

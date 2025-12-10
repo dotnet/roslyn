@@ -139,26 +139,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Method_03(LanguageVersion langVersion)
         {
             string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,19): error CS1001: Identifier expected
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,6): error CS0177: The out parameter 'd' must be assigned to before control leaves the current method
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("d").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 19),
-                // (1,36): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 36),
-                // (1,36): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 12),
+                // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 36),
-                // (1,54): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                // (1,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 54),
-                // (1,54): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 29),
+                // (1,29): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 54)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 29),
+                // (1,47): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 47),
+                // (1,47): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 47));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -565,10 +571,12 @@ ref @scoped F4() { }";
         {
             string source = "void F(ref scoped scoped R r) { }";
             UsingDeclaration(source, TestOptions.Regular11,
-                // (1,26): error CS1003: Syntax error, ',' expected
+                // (1,28): error CS1003: Syntax error, ',' expected
                 // void F(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 26)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(1, 28),
+                // (1,29): error CS1001: Identifier expected
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -615,14 +623,8 @@ ref @scoped F4() { }";
         public void Method_09(LanguageVersion langVersion)
         {
             string source = "void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,57): error CS1003: Syntax error, ',' expected
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(",").WithLocation(1, 57),
-                // (1,58): error CS1001: Identifier expected
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 58)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -763,14 +765,8 @@ ref @scoped F4() { }";
         public void Method_11(LanguageVersion langVersion)
         {
             string source = "void F(scoped readonly int a) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,15): error CS1001: Identifier expected
-                // void F(scoped readonly int a) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
-                // void F(scoped readonly int a) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 15)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -857,14 +853,8 @@ ref @scoped F4() { }";
         public void Method_13(LanguageVersion langVersion)
         {
             string source = "void F(out scoped ref int a) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,19): error CS1001: Identifier expected
-                // void F(out scoped ref int a) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
-                // void F(out scoped ref int a) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 19)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -1020,17 +1010,17 @@ ref @scoped F4() { }";
         public void Lambda_03_Ref(LanguageVersion langVersion)
         {
             string source = "(ref scoped int a) => null";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS1073: Unexpected token 'int'
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(ref scoped ").WithArguments("int").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'ref'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
+                // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(1, 2),
-                // (1,13): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                // (1,27): error CS1002: ; expected
                 // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(1, 13)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
 
             N(SyntaxKind.ParenthesizedExpression);
             {
@@ -1054,17 +1044,17 @@ ref @scoped F4() { }";
         public void Lambda_03_In(LanguageVersion langVersion)
         {
             string source = "(in scoped int a) => null";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS1073: Unexpected token 'in'
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(").WithArguments("in").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'in'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 5),
+                // (1,5): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(1, 2),
-                // (1,2): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 5),
+                // (1,26): error CS1002: ; expected
                 // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(1, 2)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26));
 
             N(SyntaxKind.ParenthesizedExpression);
             {
@@ -1084,17 +1074,20 @@ ref @scoped F4() { }";
         public void Lambda_03_Out(LanguageVersion langVersion)
         {
             string source = "(out scoped int a) => null";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS1073: Unexpected token 'out'
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(").WithArguments("out").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'out'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
+                // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(1, 2),
-                // (1,2): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                // (1,23): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
                 // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(1, 2)
-                );
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "null").WithArguments("a").WithLocation(1, 23),
+                // (1,27): error CS1002: ; expected
+                // (out scoped int a) => null
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
 
             N(SyntaxKind.ParenthesizedExpression);
             {
@@ -1181,10 +1174,23 @@ ref @scoped F4() { }";
         public void Lambda_06()
         {
             string source = "(ref scoped scoped R r) => { }";
-            UsingExpression(source, TestOptions.Regular11,
-                // (1,20): error CS1003: Syntax error, ',' expected
+            UsingExpression(source, TestOptions.Regular11);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                // (1,13): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(1, 13),
+                // (1,13): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 13),
+                // (1,20): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 20),
+                // (1,31): error CS1002: ; expected
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 31));
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -1321,14 +1327,20 @@ ref @scoped F4() { }";
         public void Params_01()
         {
             string source = "void F(scoped params object[] args);";
-            UsingDeclaration(source, TestOptions.Regular11,
-                // (1,15): error CS1001: Identifier expected
+            UsingDeclaration(source, TestOptions.Regular11);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,6): error CS8112: Local function 'F(params scoped object[])' must declare a body because it is not marked 'static extern'.
                 // void F(scoped params object[] args);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "params").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "F").WithArguments("F(params scoped object[])").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
                 // void F(scoped params object[] args);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "params").WithArguments(",").WithLocation(1, 15)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,8): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // void F(scoped params object[] args);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped params object[] args").WithLocation(1, 8),
+                // (1,15): error CS9348: The 'params' modifier cannot immediately follow the 'scoped' modifier.
+                // void F(scoped params object[] args);
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "params").WithArguments("params").WithLocation(1, 15));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -9616,11 +9628,8 @@ for (scoped scoped var b;;);
         public void FunctionPointer_02(LanguageVersion langVersion)
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
-            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,32): error CS1003: Syntax error, ',' expected
-                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 32)
-                );
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
 
             N(SyntaxKind.LocalDeclarationStatement);
             {
@@ -9645,9 +9654,10 @@ for (scoped scoped var b;;);
                             N(SyntaxKind.FunctionPointerParameter);
                             {
                                 N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.IdentifierToken, "R");
                                 }
                             }
                             N(SyntaxKind.CommaToken);
@@ -11218,9 +11228,9 @@ scoped readonly record struct B;
 readonly scoped record struct C();
 ";
             UsingTree(source, TestOptions.Regular11,
-                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11229,8 +11239,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -11250,10 +11259,7 @@ readonly scoped record struct C();
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
+                    N(SyntaxKind.ScopedKeyword);
                 }
                 N(SyntaxKind.RecordStructDeclaration);
                 {

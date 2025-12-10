@@ -3118,10 +3118,7 @@ scoped readonly ref struct C { }
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
+                    N(SyntaxKind.ScopedKeyword);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
