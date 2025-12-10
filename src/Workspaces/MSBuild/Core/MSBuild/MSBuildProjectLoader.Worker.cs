@@ -27,7 +27,6 @@ public partial class MSBuildProjectLoader
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-        private readonly string _baseDirectory;
         private readonly IProjectFileInfoProvider _projectFileInfoProvider;
 
         /// <summary>
@@ -72,7 +71,6 @@ public partial class MSBuildProjectLoader
             ProjectFileExtensionRegistry projectFileExtensionRegistry,
             IProjectFileInfoProvider projectFileInfoProvider,
             ImmutableArray<string> requestedProjectPaths,
-            string baseDirectory,
             ProjectMap? projectMap,
             IProgress<ProjectLoadProgress>? progress,
             DiagnosticReportingOptions requestedProjectOptions,
@@ -84,7 +82,6 @@ public partial class MSBuildProjectLoader
             _pathResolver = pathResolver;
             _projectFileExtensionRegistry = projectFileExtensionRegistry;
             _projectFileInfoProvider = projectFileInfoProvider;
-            _baseDirectory = baseDirectory;
             _requestedProjectPaths = requestedProjectPaths;
             _projectMap = projectMap ?? ProjectMap.Create();
             _progress = progress;
@@ -105,22 +102,17 @@ public partial class MSBuildProjectLoader
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!_pathResolver.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var absoluteProjectPath))
-                {
-                    continue; // Failure should already be reported.
-                }
-
-                if (!processedPaths.Add(absoluteProjectPath))
+                if (!processedPaths.Add(projectPath))
                 {
                     _diagnosticReporter.Report(
                         new WorkspaceDiagnostic(
                             WorkspaceDiagnosticKind.Warning,
-                            string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, absoluteProjectPath)));
+                            string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, projectPath)));
 
                     continue;
                 }
 
-                var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+                var projectFileInfos = await LoadProjectInfosFromPathAsync(projectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
 
                 results.AddRange(projectFileInfos);
             }

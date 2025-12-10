@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
@@ -165,7 +167,15 @@ public partial class MSBuildProjectLoader
             onLoaderFailure: reportingMode);
 
         var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
-        var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
+
+        // TryGetAbsoluteSolutionPath should not return an invalid path
+        var solutionDir = Path.GetDirectoryName(absoluteSolutionPath)!;
+
+        var projectPaths =
+            from project in projects
+            let fullPath = _pathResolver.TryGetAbsoluteProjectPath(project.ProjectPath, solutionDir, reportingMode, out var absoluteProjectPath) ? absoluteProjectPath : null
+            where fullPath != null
+            select fullPath;
 
         using (_dataGuard.DisposableWait(cancellationToken))
         {
@@ -173,9 +183,7 @@ public partial class MSBuildProjectLoader
         }
 
         var projectInfos = await LoadInfoAsync(
-            projectPaths,
-            // TryGetAbsoluteSolutionPath should not return an invalid path
-            baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
+            [.. projectPaths],
             projectMap: null,
             progress,
             msbuildLogger,
@@ -210,15 +218,22 @@ public partial class MSBuildProjectLoader
         ILogger? msbuildLogger = null,
         CancellationToken cancellationToken = default)
     {
+        if (projectFilePath == null)
+            throw new ArgumentNullException(nameof(projectFilePath));
+
         var reportingMode = GetReportingModeForUnrecognizedProjects();
         var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
         var discoveredProjectOptions = new DiagnosticReportingOptions(
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
+        if (!_pathResolver.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), reportingMode, out var absoluteProjectPath))
+        {
+            return Task.FromResult(ImmutableArray<ProjectInfo>.Empty);
+        }
+
         return LoadInfoAsync(
-            [projectFilePath ?? throw new ArgumentNullException(nameof(projectFilePath))],
-            baseDirectory: Directory.GetCurrentDirectory(),
+            [absoluteProjectPath],
             projectMap,
             progress,
             msbuildLogger,
@@ -229,8 +244,7 @@ public partial class MSBuildProjectLoader
     }
 
     private async Task<ImmutableArray<ProjectInfo>> LoadInfoAsync(
-        ImmutableArray<string> requestedProjectPaths,
-        string baseDirectory,
+        ImmutableArray<string> projectPaths,
         ProjectMap? projectMap,
         IProgress<ProjectLoadProgress>? progress,
         ILogger? msbuildLogger,
@@ -258,8 +272,7 @@ public partial class MSBuildProjectLoader
             _pathResolver,
             _projectFileExtensionRegistry,
             projectFileProvider,
-            requestedProjectPaths,
-            baseDirectory,
+            projectPaths,
             projectMap,
             progress,
             requestedProjectOptions,
@@ -271,12 +284,13 @@ public partial class MSBuildProjectLoader
 
     internal Task<ImmutableArray<ProjectInfo>> LoadInfosAsync(
         ImmutableArray<string> projectFilePaths,
-        string baseDirectory,
         IProjectFileInfoProvider projectFileInfoProvider,
         ProjectMap? projectMap,
         IProgress<ProjectLoadProgress>? progress,
         CancellationToken cancellationToken)
     {
+        Debug.Assert(projectFilePaths.All(PathUtilities.IsAbsolute));
+
         var reportingMode = GetReportingModeForUnrecognizedProjects();
         var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
         var discoveredProjectOptions = new DiagnosticReportingOptions(
@@ -290,7 +304,6 @@ public partial class MSBuildProjectLoader
             _projectFileExtensionRegistry,
             projectFileInfoProvider,
             projectFilePaths,
-            baseDirectory,
             projectMap,
             progress,
             requestedProjectOptions,

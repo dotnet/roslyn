@@ -194,8 +194,8 @@ public partial class MSBuildProjectLoader
 
             var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
-            var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
-            RoslynDebug.AssertNotNull(projectDirectory);
+            var projectDirectory = PathUtilities.GetDirectoryName(projectFileInfo.FilePath);
+            Contract.ThrowIfNull(projectDirectory);
 
             // Next, iterate through all project references in the file and create project references.
             foreach (var projectFileReference in projectFileInfo.ProjectReferences)

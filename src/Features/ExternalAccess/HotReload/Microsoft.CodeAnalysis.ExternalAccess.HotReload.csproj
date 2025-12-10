@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <!--
-      ⚠ ONLY Microsoft.DotNet.HotReload.Watch and Microsoft.DotNet.HotReload.Utils.Generator ASSEMBLIES MAY BE ADDED HERE ⚠
+      ⚠ ONLY Microsoft.DotNet.HotReload.Watch and Microsoft.DotNet.HotReload.Utils.Generator ASSEMBLIES AND TESTS  MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.DotNet.HotReload.Watch" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.DotNet.HotReload.Utils.Generator" Key="$(MicrosoftSharedPublicKey)" />

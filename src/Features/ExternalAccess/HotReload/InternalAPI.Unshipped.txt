@@ -4,10 +4,9 @@ Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind.Add 
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind.Delete = 2 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind.Update = 0 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.HotReloadMSBuildWorkspace(Microsoft.Extensions.Logging.ILogger! logger) -> void
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateFileContentAsync(System.Collections.Generic.IEnumerable<(string! path, Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind change)>! changedFiles, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateGraph(Microsoft.Build.Graph.ProjectGraph! graph) -> void
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateProjectConeAsync(string! projectPath, string! baseDirectory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.HotReloadMSBuildWorkspace(Microsoft.Extensions.Logging.ILogger! logger, System.Func<string!, System.Collections.Immutable.ImmutableArray<Microsoft.Build.Execution.ProjectInstance!>>! getProjectInstances) -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateFileContentAsync(System.Collections.Generic.IEnumerable<(string! path, Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind change)>! changedFiles, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution!>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateProjectConeAsync(string! projectPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution!>
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.CapabilitiesChanged() -> void
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.CommitUpdate() -> void
@@ -51,10 +50,6 @@ Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Tra
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.TransientDiagnostics.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Updates() -> void
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.GetProjectOutputPathsAsync(string! projectPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<string!>>!
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.LoadProjectFileInfosAsync(string! projectPath, Microsoft.CodeAnalysis.MSBuild.DiagnosticReportingOptions reportingOptions, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo!>>!
-Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ProjectGraphFileInfoProvider.ProjectGraphFileInfoProvider(Microsoft.Build.Graph.ProjectGraph! graph, Microsoft.CodeAnalysis.MSBuild.ProjectFileExtensionRegistry! projectFileExtensionRegistry) -> void
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ILDelta -> System.Collections.Immutable.ImmutableArray<byte>
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.MetadataDelta -> System.Collections.Immutable.ImmutableArray<byte>
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ModuleId -> System.Guid

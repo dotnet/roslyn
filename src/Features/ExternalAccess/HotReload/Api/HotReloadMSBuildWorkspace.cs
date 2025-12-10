@@ -13,9 +13,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Graph;
+using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
@@ -23,64 +22,43 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 
-internal sealed class HotReloadMSBuildWorkspace : Workspace
+internal sealed partial class HotReloadMSBuildWorkspace : Workspace
 {
     private readonly ILogger _logger;
     private readonly MSBuildProjectLoader _loader;
+    private readonly ProjectFileInfoProvider _projectGraphFileInfoProvider;
 
-    private int _solutionUpdateId;
-    private ProjectGraphFileInfoProvider? _projectGraphFileInfoProvider;
-
-    public HotReloadMSBuildWorkspace(ILogger logger)
+    public HotReloadMSBuildWorkspace(ILogger logger, Func<string, ImmutableArray<ProjectInstance>> getProjectInstances)
         : base(MSBuildMefHostServices.DefaultServices, WorkspaceKind.MSBuild)
     {
-#pragma warning disable CS0618 // https://github.com/dotnet/sdk/issues/49725
-        WorkspaceFailed += (_sender, diag) =>
+        RegisterWorkspaceFailedHandler(args =>
         {
             // Report both Warning and Failure as warnings.
             // MSBuildProjectLoader reports Failures for cases where we can safely continue loading projects
             // (e.g. non-C#/VB project is ignored).
             // https://github.com/dotnet/roslyn/issues/75170
-            logger.LogWarning($"msbuild: {diag.Diagnostic}");
-        };
-#pragma warning restore CS0618
+            logger.LogWarning($"msbuild: {args.Diagnostic}");
+        });
 
         _logger = logger;
         _loader = new MSBuildProjectLoader(this);
+        _projectGraphFileInfoProvider = new ProjectFileInfoProvider(getProjectInstances, _loader.ProjectFileExtensionRegistry);
     }
 
-    public void UpdateGraph(ProjectGraph graph)
+    public async ValueTask<Solution> UpdateProjectConeAsync(string projectPath, CancellationToken cancellationToken)
     {
-        _projectGraphFileInfoProvider = new ProjectGraphFileInfoProvider(graph, _loader.ProjectFileExtensionRegistry);
-    }
+        Contract.ThrowIfFalse(Path.IsPathFullyQualified(projectPath));
 
-    public async Task UpdateProjectConeAsync(string projectPath, string baseDirectory, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_projectGraphFileInfoProvider);
-
-        _logger.LogInformation("Loading projects ...");
-
-        var stopwatch = Stopwatch.StartNew();
         var oldSolution = CurrentSolution;
 
         var projectMap = ProjectMap.Create();
 
-        ImmutableArray<ProjectInfo> projectInfos;
-        try
-        {
-            projectInfos = await _loader.LoadInfosAsync(
-                [projectPath],
-                baseDirectory,
-                _projectGraphFileInfoProvider,
-                projectMap,
-                progress: null,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (InvalidOperationException)
-        {
-            // TODO: workaround for https://github.com/dotnet/roslyn/issues/75956
-            projectInfos = [];
-        }
+        var projectInfos = await _loader.LoadInfosAsync(
+            [projectPath],
+            _projectGraphFileInfoProvider,
+            projectMap,
+            progress: null,
+            cancellationToken).ConfigureAwait(false);
 
         var oldProjectIdsByPath = oldSolution.Projects.ToDictionary(keySelector: static p => (p.FilePath!, p.Name), elementSelector: static p => p.Id);
 
@@ -94,7 +72,7 @@ internal sealed class HotReloadMSBuildWorkspace : Workspace
 
         foreach (var newProjectInfo in projectInfos)
         {
-            Debug.Assert(newProjectInfo.FilePath != null);
+            Contract.ThrowIfNull(newProjectInfo.FilePath);
 
             var oldProjectId = projectIdMap[newProjectInfo.Id];
             if (oldProjectId == null)
@@ -125,10 +103,10 @@ internal sealed class HotReloadMSBuildWorkspace : Workspace
                 .WithCompilationOutputInfo(newProjectInfo.CompilationOutputInfo));
         }
 
-        await UpdateSolutionAsync(newSolution, operationDisplayName: "project update", cancellationToken).ConfigureAwait(false);
+        var result = SetCurrentSolution(newSolution);
         UpdateReferencesAfterAdd();
 
-        _logger.LogInformation("Projects loaded in {Time}s.", stopwatch.Elapsed.TotalSeconds.ToString("0.0"));
+        return result;
 
         ProjectReference MapProjectReference(ProjectReference pr)
             // Only C# and VB projects are loaded by the MSBuildProjectLoader, so some references might be missing.
@@ -149,7 +127,7 @@ internal sealed class HotReloadMSBuildWorkspace : Workspace
             }).ToImmutableArray();
     }
 
-    public async ValueTask UpdateFileContentAsync(IEnumerable<(string path, HotReloadFileChangeKind change)> changedFiles, CancellationToken cancellationToken)
+    public async ValueTask<Solution> UpdateFileContentAsync(IEnumerable<(string path, HotReloadFileChangeKind change)> changedFiles, CancellationToken cancellationToken)
     {
         var updatedSolution = CurrentSolution;
 
@@ -158,7 +136,7 @@ internal sealed class HotReloadMSBuildWorkspace : Workspace
         foreach (var (path, change) in changedFiles)
         {
             // when a file is added we reevaluate the project:
-            Debug.Assert(change != HotReloadFileChangeKind.Add);
+            Contract.ThrowIfTrue(change == HotReloadFileChangeKind.Add);
 
             var documentIds = updatedSolution.GetDocumentIdsWithFilePath(path);
             if (change == HotReloadFileChangeKind.Delete)
@@ -194,14 +172,14 @@ internal sealed class HotReloadMSBuildWorkspace : Workspace
                     Document document => document.WithText(newText).Project.Solution,
                     AdditionalDocument ad => updatedSolution.WithAdditionalDocumentText(textDocument.Id, newText, PreservationMode.PreserveValue),
                     AnalyzerConfigDocument acd => updatedSolution.WithAnalyzerConfigDocumentText(textDocument.Id, newText, PreservationMode.PreserveValue),
-                    _ => throw new InvalidOperationException()
+                    _ => throw ExceptionUtilities.UnexpectedValue(textDocument),
                 };
             }
         }
 
         updatedSolution = RemoveDocuments(updatedSolution, documentsToRemove);
 
-        await UpdateSolutionAsync(updatedSolution, operationDisplayName: "document update", cancellationToken).ConfigureAwait(false);
+        return SetCurrentSolution(updatedSolution);
     }
 
     private static Solution RemoveDocuments(Solution solution, IEnumerable<DocumentId> ids)
@@ -249,44 +227,5 @@ internal sealed class HotReloadMSBuildWorkspace : Workspace
         }
 
         throw ExceptionUtilities.Unreachable();
-    }
-
-    private Task UpdateSolutionAsync(Solution newSolution, string operationDisplayName, CancellationToken cancellationToken)
-        => ReportSolutionFilesAsync(SetCurrentSolution(newSolution), Interlocked.Increment(ref _solutionUpdateId), operationDisplayName, cancellationToken);
-
-    private async Task ReportSolutionFilesAsync(Solution solution, int updateId, string operationDisplayName, CancellationToken cancellationToken)
-    {
-        _logger.LogDebug("Solution after {Operation}: v{Version}", operationDisplayName, updateId);
-
-        if (!_logger.IsEnabled(LogLevel.Trace))
-        {
-            return;
-        }
-
-        foreach (var project in solution.Projects)
-        {
-            _logger.LogDebug("  Project: {Path}", project.FilePath);
-
-            foreach (var document in project.Documents)
-            {
-                await InspectDocumentAsync(document, "Document").ConfigureAwait(false);
-            }
-
-            foreach (var document in project.AdditionalDocuments)
-            {
-                await InspectDocumentAsync(document, "Additional").ConfigureAwait(false);
-            }
-
-            foreach (var document in project.AnalyzerConfigDocuments)
-            {
-                await InspectDocumentAsync(document, "Config").ConfigureAwait(false);
-            }
-        }
-
-        async ValueTask InspectDocumentAsync(TextDocument document, string kind)
-        {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("    {Kind}: {FilePath} [{Checksum}]", kind, document.FilePath, Convert.ToBase64String(text.GetChecksum().ToArray()));
-        }
     }
 }
