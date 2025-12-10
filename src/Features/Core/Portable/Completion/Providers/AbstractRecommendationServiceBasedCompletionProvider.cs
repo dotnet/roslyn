@@ -178,20 +178,14 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
     private static int ComputeSymbolMatchPriority(ISymbol symbol)
     {
-        if (symbol.MatchesKind(SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable))
-        {
+        if (symbol is ILocalSymbol or IParameterSymbol or IRangeVariableSymbol)
             return SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable;
-        }
 
-        if (symbol.MatchesKind(SymbolKind.Field, SymbolKind.Property))
-        {
+        if (symbol is IFieldSymbol or IPropertySymbol)
             return SymbolMatchPriority.PreferFieldOrProperty;
-        }
 
-        if (symbol.MatchesKind(SymbolKind.Event, SymbolKind.Method))
-        {
+        if (symbol is IEventSymbol or IMethodSymbol)
             return SymbolMatchPriority.PreferEventOrMethod;
-        }
 
         return SymbolMatchPriority.PreferType;
     }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -108,6 +109,8 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument) => throw ExceptionUtilities.Unreachable();
     internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes) => throw ExceptionUtilities.Unreachable();
+
     private sealed class SynthesizedCollectionBuilderProjectedParameterSymbol(
         SynthesizedCollectionBuilderProjectedMethodSymbol methodSymbol,
         ParameterSymbol originalParameter) : WrappedParameterSymbol(originalParameter)
@@ -127,6 +130,8 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
         internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes) => throw ExceptionUtilities.Unreachable();
     }
 }
 

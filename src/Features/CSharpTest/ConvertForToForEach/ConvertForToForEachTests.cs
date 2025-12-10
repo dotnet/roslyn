@@ -1277,6 +1277,25 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81530")]
+    public Task TestNotWithIterationVariableInTupleExpression()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Test(string[] array)
+                {
+                    [||]for (int i = 0; i < array.Length; i++)
+                    {
+                        var tuple = (array[i], i);
+                        Console.WriteLine(tuple);
+                    }
+                }
+            }
+            """);
+
     [Fact]
     public Task TestMultidimensionalArray1()
         => TestMissingInRegularAndScriptAsync(

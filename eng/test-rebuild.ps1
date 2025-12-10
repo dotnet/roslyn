@@ -60,6 +60,7 @@ try {
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net8.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net9.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
+  " --exclude net10.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
