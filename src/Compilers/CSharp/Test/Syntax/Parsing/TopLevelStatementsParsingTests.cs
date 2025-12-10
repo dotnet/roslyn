@@ -1324,16 +1324,21 @@ public class A
 "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}";
 
             UsingTree(test,
+                // (1,20): error CS1026: ) expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "*").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "*").WithLocation(1, 20),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS1026: ) expected
+                // (1,61): error CS1733: Expected expression
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 61),
                 // (1,61): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1351,6 +1356,21 @@ public class A
                         {
                             N(SyntaxKind.OpenParenToken);
                             M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.PointerIndirectionExpression);
+                        {
+                            N(SyntaxKind.AsteriskToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
@@ -1669,16 +1689,21 @@ using VT2 = (int, int);
             var test = "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}";
 
             UsingTree(test,
+                // (1,20): error CS1026: ) expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "*").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "*").WithLocation(1, 20),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS1026: ) expected
+                // (1,61): error CS1733: Expected expression
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 61),
                 // (1,61): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1696,6 +1721,21 @@ using VT2 = (int, int);
                         {
                             N(SyntaxKind.OpenParenToken);
                             M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.PointerIndirectionExpression);
+                        {
+                            N(SyntaxKind.AsteriskToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
@@ -3512,6 +3552,12 @@ global using Bar x;
                 // (2,15): error CS1003: Syntax error, ',' expected
                 // 			       W   )b
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 15),
+                // (2,16): error CS1002: ; expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "b").WithLocation(2, 16),
+                // (2,17): error CS1001: Identifier expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 17),
                 // (2,17): error CS1002: ; expected
                 // 			       W   )b
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17));
@@ -3527,6 +3573,24 @@ global using Bar x;
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "W");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                             M(SyntaxKind.VariableDeclarator);
                             {
@@ -3562,6 +3626,9 @@ partial ext X
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
+                // (2,9): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ext").WithLocation(2, 9),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
@@ -3588,6 +3655,24 @@ partial ext X
                             M(SyntaxKind.VariableDeclarator);
                             {
                                 M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ext");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
                             }
                         }
                         M(SyntaxKind.SemicolonToken);

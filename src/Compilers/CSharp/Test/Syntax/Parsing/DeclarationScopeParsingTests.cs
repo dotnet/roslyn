@@ -2965,12 +2965,12 @@ ref scoped var;
 scoped scoped var b;
 ";
             UsingTree(source, TestOptions.Regular11,
-                // (1,15): error CS1003: Syntax error, ',' expected
+                // (1,15): error CS1002: ; expected
                 // scoped scoped int a;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 15),
-                // (2,19): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(1, 15),
+                // (2,19): error CS1002: ; expected
                 // scoped scoped var b;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "b").WithLocation(2, 19));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3648,9 +3648,21 @@ scoped ref readonly R x = M;
                 // (2,20): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
                 // (ref scoped int b, var c) = M;
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 20),
-                // (2,24): error CS1003: Syntax error, ',' expected
+                // (2,24): error CS1002: ; expected
                 // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 24));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "c").WithLocation(2, 24),
+                // (2,25): error CS1001: Identifier expected
+                // (ref scoped int b, var c) = M;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 25),
+                // (2,25): error CS1003: Syntax error, ',' expected
+                // (ref scoped int b, var c) = M;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 25),
+                // (2,27): error CS1002: ; expected
+                // (ref scoped int b, var c) = M;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(2, 27),
+                // (2,27): error CS1525: Invalid expression term '='
+                // (ref scoped int b, var c) = M;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 27));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3724,9 +3736,21 @@ scoped ref readonly R x = M;
                 // (2,18): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
                 // (ref scoped a b, var c) = M;
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 18),
-                // (2,22): error CS1003: Syntax error, ',' expected
+                // (2,22): error CS1002: ; expected
                 // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 22));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "c").WithLocation(2, 22),
+                // (2,23): error CS1001: Identifier expected
+                // (ref scoped a b, var c) = M;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 23),
+                // (2,23): error CS1003: Syntax error, ',' expected
+                // (ref scoped a b, var c) = M;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 23),
+                // (2,25): error CS1002: ; expected
+                // (ref scoped a b, var c) = M;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(2, 25),
+                // (2,25): error CS1525: Invalid expression term '='
+                // (ref scoped a b, var c) = M;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 25));
 
             N(SyntaxKind.CompilationUnit);
             {

@@ -6856,12 +6856,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 record TypeName
                 """,
                 options: null,
-                // (3,8): error CS1003: Syntax error, ',' expected
+                // (3,8): error CS1002: ; expected
                 // record TypeName
-                Diagnostic(ErrorCode.ERR_SyntaxError, "TypeName").WithArguments(",").WithLocation(3, 8),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "TypeName").WithLocation(3, 8),
+                // (3,16): error CS1001: Identifier expected
+                // record TypeName
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 16),
                 // (3,16): error CS1002: ; expected
                 // record TypeName
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 16));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6886,6 +6890,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.VariableDeclarator);
                             {
                                 N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "TypeName");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
                         M(SyntaxKind.SemicolonToken);
