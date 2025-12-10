@@ -350,8 +350,6 @@ extends:
             demands: ImageOverride -equals windows.vs2022.amd64
 
     - stage: insert
-      dependsOn:
-      - publish_using_darc
       displayName: Insert to VS
       trigger: manual
 
