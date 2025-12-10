@@ -193,6 +193,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// 2. Get definition and references if <see cref="IsUsingSemanticContext"/> is set.
     /// 3. Call to <see cref="ISmartRenameSession.GetSuggestionsAsync(ImmutableDictionary{string, string[]}, CancellationToken)"/>.
     /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
         RoslynDebug.Assert(!this.IsInProgress);
@@ -217,7 +218,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 var stopwatch = SharedStopwatch.StartNew();
                 _semanticContextUsed = true;
                 var document = this.BaseViewModel.Session.TriggerDocument;
-                var smartRenameContext = ImmutableDictionary<string, string[]>.Empty;
+                var smartRenameContext = ImmutableArray<RenameContext>.Empty;
                 try
                 {
                     var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
@@ -225,8 +226,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                         .ConfigureAwait(false);
                     var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
                         .ConfigureAwait(false);
-                    smartRenameContext = ImmutableDictionary.CreateRange(
-                        context.Select(n => KeyValuePair.Create(n.Key, n.Value.SelectMany(t => new[] { t.filePath, t.content }).ToArray())));
+                    smartRenameContext = context.SelectManyAsArray(kvp => kvp.Value.Select(t =>
+                        new RenameContext(ContextKind: kvp.Key, SourceString: t.content, SourceFilePath: t.filePath)));
                     _semanticContextDelay = stopwatch.Elapsed;
                 }
                 catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
@@ -249,6 +250,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             this.IsInProgress = false;
         }
     }
+    #pragma warning restore CS0618 // Type or member is obsolete
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
