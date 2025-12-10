@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenOut = false;
             var seenParams = false;
             var seenIn = false;
-            var seenScoped = false;
+            bool seenScoped = false;
             bool seenReadonly = false;
 
             SyntaxToken? previousModifier = null;
