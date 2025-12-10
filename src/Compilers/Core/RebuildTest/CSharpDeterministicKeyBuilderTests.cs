@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var checksum2 = GetChecksum(tree2.GetText());
 
             AssertJsonSection($$"""
-[
+"syntaxTrees": [
   {
     "fileName": "file1.cs",
     "text": {

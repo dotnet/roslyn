@@ -1751,7 +1751,7 @@ namespace Microsoft.CodeAnalysis
             SourceText? sourceLinkText = null;
             if (sourceLinkStream != null)
             {
-                sourceLinkText = SourceText.From(sourceLinkStream, encoding: null, canBeEmbedded: false);
+                sourceLinkText = SourceText.From(sourceLinkStream, checksumAlgorithm: SourceHashAlgorithm.Sha256, encoding: null, canBeEmbedded: false);
             }
 
             var key = compilation.GetDeterministicKey(
