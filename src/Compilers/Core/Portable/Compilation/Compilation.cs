@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -202,10 +203,13 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            SourceText? sourceLinkText = null,
+            string? ruleSetFilePath = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkText, ruleSetFilePath, resources, options);
         }
 
         internal string GetDeterministicKey(
@@ -214,6 +218,9 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            SourceText? sourceLinkText = null,
+            string? ruleSetFilePath = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
             => GetDeterministicKey(
                 Options,
@@ -225,6 +232,9 @@ namespace Microsoft.CodeAnalysis
                 generators,
                 pathMap,
                 emitOptions,
+                sourceLinkText,
+                ruleSetFilePath,
+                resources,
                 options);
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)

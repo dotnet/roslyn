@@ -1250,11 +1250,6 @@ namespace Microsoft.CodeAnalysis
                     emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
                 }
 
-                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-                {
-                    EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, emitOptions);
-                }
-
                 if (Arguments.SourceLink != null)
                 {
                     var sourceLinkStreamOpt = OpenFile(
@@ -1272,6 +1267,21 @@ namespace Microsoft.CodeAnalysis
                             diagnostics,
                             MessageProvider);
                     }
+                }
+
+                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+                {
+                    EmitDeterminismKey(
+                        compilation,
+                        FileSystem,
+                        additionalTextFiles,
+                        analyzers,
+                        generators,
+                        Arguments.PathMap,
+                        emitOptions,
+                        sourceLinkStreamDisposerOpt?.Stream,
+                        Arguments.RuleSetPath,
+                        Arguments.ManifestResources);
                 }
 
                 // Need to ensure the PDB file path validation is done on the original path as that is the
@@ -1735,9 +1745,26 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
-            EmitOptions? emitOptions)
+            EmitOptions? emitOptions,
+            Stream? sourceLinkStream,
+            string? ruleSetPath,
+            ImmutableArray<ResourceDescription> resources)
         {
-            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
+            SourceText? sourceLinkText = null;
+            if (sourceLinkStream != null)
+            {
+                sourceLinkText = SourceText.From(sourceLinkStream, encoding: null, canBeEmbedded: false);
+            }
+
+            var key = compilation.GetDeterministicKey(
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                sourceLinkText,
+                ruleSetPath,
+                resources);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             var bytes = Encoding.UTF8.GetBytes(key);

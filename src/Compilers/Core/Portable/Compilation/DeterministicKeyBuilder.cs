@@ -77,6 +77,23 @@ namespace Microsoft.CodeAnalysis
         protected static void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value) =>
             writer.Write(name, EncodeByteArrayValue(value));
 
+        protected void WriteResourceContent(JsonWriter writer, ResourceDescription resource, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (resource.IsEmbedded)
+            {
+                using var stream = resource.DataProvider();
+                using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();
+                var hash = hashAlgorithm.ComputeHash(stream);
+                WriteByteArrayValue(writer, "checksum", hash.AsSpan());
+            }
+            else
+            {
+                writer.WriteNull();
+            }
+        }
+
         protected static void WriteVersion(JsonWriter writer, string key, Version version)
         {
             writer.WriteKey(key);
@@ -128,19 +145,23 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
+            SourceText? sourceLinkText,
+            string? ruleSetFilePath,
+            ImmutableArray<ResourceDescription> resources,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
             additionalTexts = additionalTexts.NullToEmpty();
             analyzers = analyzers.NullToEmpty();
             generators = generators.NullToEmpty();
+            resources = resources.NullToEmpty();
 
             var (writer, builder) = CreateWriter();
 
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, cancellationToken);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, ruleSetFilePath, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -148,7 +169,9 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("generators");
             writeGenerators();
             writer.WriteKey("emitOptions");
-            WriteEmitOptions(writer, emitOptions, pathMap, options);
+            WriteEmitOptions(writer, emitOptions, pathMap, sourceLinkText, options, cancellationToken);
+            writer.WriteKey("resources");
+            writeResources();
 
             writer.WriteObjectEnd();
 
@@ -191,6 +214,24 @@ namespace Microsoft.CodeAnalysis
                 }
                 writer.WriteArrayEnd();
             }
+
+            void writeResources()
+            {
+                writer.WriteArrayStart();
+                foreach (var resource in resources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    writer.WriteObjectStart();
+                    writer.Write("resourceName", resource.ResourceName);
+                    writer.Write("fileName", resource.FileName);
+                    writer.Write("isPublic", resource.IsPublic);
+                    writer.Write("isEmbedded", resource.IsEmbedded);
+                    writer.WriteKey("content");
+                    WriteResourceContent(writer, resource, cancellationToken);
+                    writer.WriteObjectEnd();
+                }
+                writer.WriteArrayEnd();
+            }
         }
 
         internal static string GetGuidValue(in Guid guid) => guid.ToString("D");
@@ -202,6 +243,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> references,
             ImmutableArray<byte> publicKey,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
+            string? ruleSetFilePath,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
@@ -210,7 +252,7 @@ namespace Microsoft.CodeAnalysis
 
             WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
             writer.WriteKey("options");
-            WriteCompilationOptions(writer, compilationOptions);
+            WriteCompilationOptions(writer, compilationOptions, ruleSetFilePath, pathMap, options);
 
             writer.WriteKey("syntaxTrees");
             writer.WriteArrayStart();
@@ -332,6 +374,7 @@ namespace Microsoft.CodeAnalysis
                     compilation.References.AsImmutable(),
                     compilation.Assembly.Identity.PublicKey,
                     pathMap,
+                    ruleSetFilePath: null,
                     deterministicKeyOptions,
                     cancellationToken);
             }
@@ -384,7 +427,9 @@ namespace Microsoft.CodeAnalysis
             JsonWriter writer,
             EmitOptions? options,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
-            DeterministicKeyOptions deterministicKeyOptions)
+            SourceText? sourceLinkText,
+            DeterministicKeyOptions deterministicKeyOptions,
+            CancellationToken cancellationToken)
         {
             if (options is null)
             {
@@ -418,6 +463,8 @@ namespace Microsoft.CodeAnalysis
             writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
             writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
             writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
+            writer.WriteKey("sourceLink");
+            WriteSourceText(writer, sourceLinkText);
             writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
@@ -430,10 +477,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteCompilationOptions(JsonWriter writer, CompilationOptions options)
+        private void WriteCompilationOptions(
+            JsonWriter writer,
+            CompilationOptions options,
+            string? ruleSetFilePath,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            DeterministicKeyOptions deterministicKeyOptions)
         {
             writer.WriteObjectStart();
             WriteCompilationOptionsCore(writer, options);
+            WriteFilePath(writer, "ruleSetPath", ruleSetFilePath, pathMap, deterministicKeyOptions);
             writer.WriteObjectEnd();
         }
 

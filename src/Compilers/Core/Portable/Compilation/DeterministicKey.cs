@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            SourceText? sourceLinkText = null,
+            string? ruleSetFilePath = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
@@ -70,6 +73,9 @@ namespace Microsoft.CodeAnalysis
                 generators,
                 pathMap,
                 emitOptions,
+                sourceLinkText,
+                ruleSetFilePath,
+                resources,
                 options,
                 cancellationToken);
         }
@@ -84,6 +90,9 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            SourceText? sourceLinkText = null,
+            string? ruleSetFilePath = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
@@ -98,6 +107,9 @@ namespace Microsoft.CodeAnalysis
                 generators.NullToEmpty(),
                 pathMap.NullToEmpty(),
                 emitOptions,
+                sourceLinkText,
+                ruleSetFilePath,
+                resources.NullToEmpty(),
                 options,
                 cancellationToken);
         }
