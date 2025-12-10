@@ -604,6 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenOut = false;
             var seenParams = false;
             var seenIn = false;
+            var seenScoped = false;
             bool seenReadonly = false;
 
             SyntaxToken? previousModifier = null;
@@ -776,21 +777,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ScopedKeyword when parameterContext is not ParameterContext.FunctionPointer:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
 
-                        if (seenIn || seenOut || seenRef || seenReadonly)
+                        if (seenScoped)
+                        {
+                            addERR_DupParamMod(diagnostics, modifier);
+                        }
+                        else if (seenIn || seenOut || seenRef || seenReadonly)
                         {
                             // Matches original parsing logic that disallowed parsing out 'scoped' once in/out/ref/readonly had been seen.
                             diagnostics.Add(ErrorCode.ERR_ScopedAfterInOutRefReadonly, modifier.GetLocation());
                         }
-
-                        if (i < n - 1)
+                        else if (i < n - 1)
                         {
                             // Matches original parsing logic that only allowed 'scoped' to be followed by ref/out/in to
                             // actually be considered the modifier.
+                            //
+                            // Note we don't add an error in the case of 'scoped scoped' as that is already handled by
+                            // seenScoped above.
                             var nextModifier = parameter.Modifiers[i + 1];
-                            if (nextModifier.Kind() is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
+                            if (nextModifier.Kind() is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ScopedKeyword))
                                 diagnostics.Add(ErrorCode.ERR_InvalidModifierAfterScoped, nextModifier.GetLocation(), nextModifier.Text);
                         }
 
+                        seenScoped = true;
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
