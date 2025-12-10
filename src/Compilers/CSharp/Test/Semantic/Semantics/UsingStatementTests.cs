@@ -1845,7 +1845,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(FeatureFlag.RunNullableAnalysis, "never"));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

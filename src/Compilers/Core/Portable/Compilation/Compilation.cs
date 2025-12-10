@@ -2191,7 +2191,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
             !StrongNameKeys.HasCounterSignature &&
-            !HasFeature(FeatureFlag.UseLegacyStrongNameProvider);
+            !HasFeature(CodeAnalysis.Feature.UseLegacyStrongNameProvider);
 
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
@@ -3582,15 +3582,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool HasFeature(string featureFlag)
+        internal bool HasFeature(string feature)
         {
-            FeatureFlag.AssertValidFeatureFlag(featureFlag);
-            return _features.TryGetValue(featureFlag, out var value) && value is not null;
+            CodeAnalysis.Feature.AssertValidFeature(feature);
+            return _features.TryGetValue(feature, out var value) && value is not null;
         }
 
         internal string? Feature(string p)
         {
-            FeatureFlag.AssertValidFeatureFlag(p);
+            CodeAnalysis.Feature.AssertValidFeature(p);
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
@@ -3603,13 +3603,13 @@ namespace Microsoft.CodeAnalysis
         /// False when the "debug-analyzers" feature flag is set.
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
-        internal bool CatchAnalyzerExceptions => !HasFeature(FeatureFlag.DebugAnalyzers);
+        internal bool CatchAnalyzerExceptions => !HasFeature(CodeAnalysis.Feature.DebugAnalyzers);
 
         internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
 
         private int? ComputeDataSectionStringLiteralThreshold()
         {
-            if (Feature(FeatureFlag.ExperimentalDataSectionStringLiterals) is { } s)
+            if (Feature(CodeAnalysis.Feature.ExperimentalDataSectionStringLiterals) is { } s)
             {
                 if (s == "off")
                 {

@@ -1734,7 +1734,7 @@ class C
 }
 ";
 
-            var featureFlagOff = TestOptions.Regular8.WithFeature(FeatureFlag.RunNullableAnalysis, "never");
+            var featureFlagOff = TestOptions.Regular8.WithFeature(Feature.RunNullableAnalysis, "never");
 
             var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: featureFlagOff);
             comp.VerifyDiagnostics(
@@ -2620,7 +2620,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature(FeatureFlag.RunNullableAnalysis, flagState));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature(Feature.RunNullableAnalysis, flagState));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -5178,7 +5178,7 @@ class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature(FeatureFlag.RunNullableAnalysis, "always") : TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "always") : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
@@ -5216,7 +5216,7 @@ class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(FeatureFlag.RunNullableAnalysis, "never"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"));
             comp.VerifyDiagnostics();
 
             test(SemanticModelOptions.None);

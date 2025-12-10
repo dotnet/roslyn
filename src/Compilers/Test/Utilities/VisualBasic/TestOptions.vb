@@ -15,7 +15,7 @@ Public Class TestOptions
     Public Shared ReadOnly Regular16_9 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic16_9)
     Public Shared ReadOnly Regular17_13 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic17_13)
     Public Shared ReadOnly RegularLatest As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.Latest)
-    Public Shared ReadOnly RegularWithLegacyStrongName As VisualBasicParseOptions = Regular.WithFeature(FeatureFlag.UseLegacyStrongNameProvider)
+    Public Shared ReadOnly RegularWithLegacyStrongName As VisualBasicParseOptions = Regular.WithFeature(Feature.UseLegacyStrongNameProvider)
 
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)

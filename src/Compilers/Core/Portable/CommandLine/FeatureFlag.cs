@@ -9,7 +9,8 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis;
 
-internal static class FeatureFlag
+// TODO2 rename file after review completes
+internal static class Feature
 {
     internal const string Strict = "strict";
     internal const string UseLegacyStrongNameProvider = "UseLegacyStrongNameProvider";
@@ -32,9 +33,9 @@ internal static class FeatureFlag
     internal const string Test = "Test";
 
     [Conditional("DEBUG")]
-    internal static void AssertValidFeatureFlag(string s)
+    internal static void AssertValidFeature(string s)
     {
-        IEnumerable<string> flags = typeof(FeatureFlag)
+        IEnumerable<string> flags = typeof(Feature)
             .GetFields(BindingFlags.NonPublic | BindingFlags.Static)
             .Where(f => f.FieldType == typeof(string) && f.IsLiteral)
             .Select(f => (string)f.GetRawConstantValue()!);

@@ -3204,7 +3204,7 @@ namespace System.Runtime.CompilerServices
 
         #region Runtime Async
 
-        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature(FeatureFlag.RuntimeAsync, "on");
+        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature(Feature.RuntimeAsync, "on");
 
         internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
         {

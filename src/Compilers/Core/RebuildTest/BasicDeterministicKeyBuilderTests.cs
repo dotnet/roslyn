@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
-            Assert.Equal("debug-determinism", CodeAnalysis.FeatureFlag.DebugDeterminism);
+            Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
             var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
             var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
             compiler.AddOutputFile("test.dll");

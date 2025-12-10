@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular14 = Regular.WithLanguageVersion(LanguageVersion.CSharp14);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularPreviewWithDocumentationComments = RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose);
-        public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature(FeatureFlag.UseLegacyStrongNameProvider);
+        public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature(Feature.UseLegacyStrongNameProvider);
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
         public static readonly CSharpParseOptions WithCovariantReturns = Regular.WithLanguageVersion(MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion());
         public static readonly CSharpParseOptions WithoutCovariantReturns = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
@@ -101,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(FeatureFlag.Strict, "true") }));
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(Feature.Strict, "true") }));
         }
 
         public static CSharpParseOptions WithPEVerifyCompatFeature(this CSharpParseOptions options)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(FeatureFlag.PEVerifyCompat, "true") }));
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(Feature.PEVerifyCompat, "true") }));
         }
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
@@ -126,20 +126,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithNullablePublicOnly(this CSharpParseOptions options)
         {
-            return options.WithFeature(FeatureFlag.NullablePublicOnly);
+            return options.WithFeature(Feature.NullablePublicOnly);
         }
 
         public static CSharpParseOptions WithNoRefSafetyRulesAttribute(this CSharpParseOptions options)
         {
-            return options.WithFeature(FeatureFlag.NoRefSafetyRulesAttribute);
+            return options.WithFeature(Feature.NoRefSafetyRulesAttribute);
         }
 
         public static CSharpParseOptions WithDisableLengthBasedSwitch(this CSharpParseOptions options)
         {
-            return options.WithFeature(FeatureFlag.DisableLengthBasedSwitch);
+            return options.WithFeature(Feature.DisableLengthBasedSwitch);
         }
 
-        /// <remarks>Known feature flags should use <see cref="FeatureFlag"/></remarks>
+        /// <remarks>Known feature flags should use <see cref="Feature"/></remarks>
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));

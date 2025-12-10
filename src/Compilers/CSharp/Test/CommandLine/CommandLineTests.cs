@@ -7396,7 +7396,7 @@ public class C
             var file = dir.CreateFile(fileName);
             file.WriteAllText(source);
 
-            Assert.Equal("UseLegacyStrongNameProvider", FeatureFlag.UseLegacyStrongNameProvider);
+            Assert.Equal("UseLegacyStrongNameProvider", Feature.UseLegacyStrongNameProvider);
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
@@ -8150,7 +8150,7 @@ namespace System
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
 
-            Assert.Equal("noRefSafetyRulesAttribute", FeatureFlag.NoRefSafetyRulesAttribute);
+            Assert.Equal("noRefSafetyRulesAttribute", Feature.NoRefSafetyRulesAttribute);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -11659,7 +11659,7 @@ class C {
             // Legacy feature flag
             using (var dir = new DisposableDirectory(Temp))
             {
-                Assert.Equal("pdb-path-determinism", FeatureFlag.PdbPathDeterminism);
+                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism);
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
                 AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
             }
@@ -12320,7 +12320,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [InlineData(@"/features:""InterceptorsNamespaces=NS1.NS2;NS3.NS4""")]
         public void FeaturesInterceptorsNamespaces_OptionParsing(string features)
         {
-            Assert.Equal("InterceptorsNamespaces", FeatureFlag.InterceptorsNamespaces);
+            Assert.Equal("InterceptorsNamespaces", Feature.InterceptorsNamespaces);
             var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
@@ -12330,7 +12330,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS1.NS2;NS3.NS4", options.Features[FeatureFlag.InterceptorsNamespaces]);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features[Feature.InterceptorsNamespaces]);
 
             var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(2, previewNamespaces.Length);
@@ -12350,7 +12350,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS3.NS4", options.Features[FeatureFlag.InterceptorsNamespaces]);
+            Assert.Equal("NS3.NS4", options.Features[Feature.InterceptorsNamespaces]);
 
             var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(1, previewNamespaces.Length);
@@ -12374,7 +12374,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal(1, options.Features.Count);
             Assert.Equal("NS1.NS2", options.Features["InterceptorsPreviewNamespaces"]);
 
-            Assert.False(options.HasFeature(FeatureFlag.InterceptorsNamespaces));
+            Assert.False(options.HasFeature(Feature.InterceptorsNamespaces));
             Assert.Empty(((CSharpParseOptions)options).InterceptorsNamespaces);
         }
 
