@@ -697,5 +697,62 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 """;
             AssertJsonSection(expected, key, "resources");
         }
+
+        [Fact]
+        public void MultipleSyntaxTreesWithDifferentChecksumAlgorithms()
+        {
+            var source1 = "public class Class1 { }";
+            var source2 = "public class Class2 { }";
+
+            var tree1 = CSharpTestBase.Parse(source1, filename: "file1.cs", checksumAlgorithm: SourceHashAlgorithm.Sha1);
+            var tree2 = CSharpTestBase.Parse(source2, filename: "file2.cs", checksumAlgorithm: SourceHashAlgorithm.Sha256);
+
+            var compilation = CSharpTestBase.CreateCompilation([tree1, tree2]);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var checksum1 = GetChecksum(tree1.GetText());
+            var checksum2 = GetChecksum(tree2.GetText());
+
+            AssertJsonSection($$"""
+[
+  {
+    "fileName": "file1.cs",
+    "text": {
+      "checksum": "{{checksum1}}",
+      "checksumAlgorithm": "Sha1",
+      "encodingName": "Unicode (UTF-8)"
+    },
+    "parseOptions": {
+      "kind": "Regular",
+      "specifiedKind": "Regular",
+      "documentationMode": "Parse",
+      "language": "C#",
+      "features": {},
+      "languageVersion": "Preview",
+      "specifiedLanguageVersion": "Preview",
+      "preprocessorSymbols": []
+    }
+  },
+  {
+    "fileName": "file2.cs",
+    "text": {
+      "checksum": "{{checksum2}}",
+      "checksumAlgorithm": "Sha256",
+      "encodingName": "Unicode (UTF-8)"
+    },
+    "parseOptions": {
+      "kind": "Regular",
+      "specifiedKind": "Regular",
+      "documentationMode": "Parse",
+      "language": "C#",
+      "features": {},
+      "languageVersion": "Preview",
+      "specifiedLanguageVersion": "Preview",
+      "preprocessorSymbols": []
+    }
+  }
+]
+""", key, "compilation.syntaxTrees");
+        }
     }
 }
