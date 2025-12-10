@@ -3584,8 +3584,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool HasFeature(string feature)
         {
-            CodeAnalysis.Feature.AssertValidFeature(feature);
-            return _features.TryGetValue(feature, out var value) && value is not null;
+            return Feature(feature) is not null;
         }
 
         internal string? Feature(string p)

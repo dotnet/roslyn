@@ -181,7 +181,6 @@ class Program
                 new[] { ".cctor", "F1" };
 #endif
 
-            Assert.Equal("run-nullable-analysis", Feature.RunNullableAnalysis);
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
             verify(parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, null), expectedAnalyzedKeysDefault);
             verify(parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "always"), expectedAnalyzedKeysAll);

@@ -54,7 +54,7 @@ Friend Module TestOptionExtensions
     End Function
 
     <Extension()>
-    Friend Function WithExperimental(options As VisualBasicParseOptions, ParamArray features As Feature()) As VisualBasicParseOptions
+    Friend Function WithExperimental(options As VisualBasicParseOptions, ParamArray features As InternalSyntax.Feature()) As VisualBasicParseOptions
         If features.Length = 0 Then
             Throw New InvalidOperationException("Need at least one feature to enable")
         End If
