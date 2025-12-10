@@ -2365,7 +2365,11 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             };
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method<C>()'
+                //     [Attr(nameof(Method<C>().Method))]
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method<C>").WithArguments("C.Method<C>()").WithLocation(4, 18)
+                );
         }
 
         [Fact]
