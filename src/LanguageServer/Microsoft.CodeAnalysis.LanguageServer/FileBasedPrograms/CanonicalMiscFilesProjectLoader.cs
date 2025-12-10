@@ -153,7 +153,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetCanonicalProject(), newDocumentInfo, documentText, cancellationToken);
+        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetCanonicalProject(), newDocumentInfo, documentText, GlobalOptionService, cancellationToken);
 
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
@@ -317,14 +317,14 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// Creates a new project based on the canonical project with a new document added.
     /// This should only be called when the canonical project is in the FullyLoaded state.
     /// </summary>
-    private static async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SourceText documentText, CancellationToken cancellationToken)
+    private static async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SourceText documentText, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
     {
         var newDocumentPath = newDocumentInfo.FilePath;
         Contract.ThrowIfNull(newDocumentPath);
 
         var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{newDocumentPath}'");
         var syntaxTree = CSharpSyntaxTree.ParseText(text: documentText, canonicalProject.ParseOptions as CSharpParseOptions, path: newDocumentPath, cancellationToken);
-        var hasAllInformation = await VirtualProjectXmlProvider.HasTopLevelStatementsAsync(syntaxTree, cancellationToken);
+        var hasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(globalOptionService, syntaxTree, cancellationToken);
         var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
             newDocumentInfo.Id.ProjectId,
             version: VersionStamp.Create(),

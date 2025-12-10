@@ -141,9 +141,7 @@ internal sealed partial class SolutionCompilationState
                 return GetOriginatingProjectInfo(ns.ConstituentNamespaces[0]);
             }
         }
-        else if (symbol.IsKind(SymbolKind.Assembly) ||
-                 symbol.IsKind(SymbolKind.NetModule) ||
-                 symbol.IsKind(SymbolKind.DynamicType))
+        else if (symbol is IAssemblySymbol or IModuleSymbol or IDynamicTypeSymbol)
         {
             if (!unrootedSymbolToProjectId.TryGetValue(symbol, out var projectId))
             {

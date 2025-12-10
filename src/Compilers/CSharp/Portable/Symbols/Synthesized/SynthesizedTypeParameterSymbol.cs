@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A type parameter for a synthesized class or method.
     /// </summary>
-    internal sealed class SynthesizedSubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbol
+    internal sealed class SynthesizedTypeParameterSymbol : SubstitutedTypeParameterSymbolBase
     {
         /// <summary>
         /// Indicates whether the synthesized type parameter should keep the original attributes by default
@@ -22,9 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private readonly bool _propagateAttributes;
 
-        public SynthesizedSubstitutedTypeParameterSymbol(Symbol owner, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal, bool propagateAttributes)
+        public SynthesizedTypeParameterSymbol(Symbol owner, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal, bool propagateAttributes)
             : base(owner, map, substitutedFrom, ordinal)
         {
+            Debug.Assert(ContainingSymbol.OriginalDefinition != _underlyingTypeParameter.ContainingSymbol.OriginalDefinition);
+
             Debug.Assert(this.TypeParameterKind == (ContainingSymbol is MethodSymbol ? TypeParameterKind.Method :
                                                    (ContainingSymbol is NamedTypeSymbol ? TypeParameterKind.Type :
                                                    TypeParameterKind.Cref)),
@@ -39,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override TypeParameterKind TypeParameterKind => ContainingSymbol is MethodSymbol ? TypeParameterKind.Method : TypeParameterKind.Type;
+
+        public override TypeParameterSymbol OriginalDefinition => this;
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
@@ -56,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.HasUnmanagedTypeConstraint)
             {
