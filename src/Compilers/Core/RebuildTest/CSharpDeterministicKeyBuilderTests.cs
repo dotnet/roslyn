@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""usings"": []
+      ""usings"": [],
+      ""ruleSetPath"": null
     },
     ""syntaxTrees"": [
       {
@@ -133,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": null
+  ""emitOptions"": null,
+  ""resources"": []
 }
 ", key);
         }
@@ -258,13 +260,15 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""usings"": []
+      ""usings"": [],
+      ""ruleSetPath"": null
     }}
   }},
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": null
+  ""emitOptions"": null,
+  ""resources"": []
 }}
 ", key, "references", "syntaxTrees", "extensions");
         }
@@ -458,7 +462,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""usings"": []
+      ""usings"": [],
+      ""ruleSetPath"": null
     },
     ""syntaxTrees"": [
       {
@@ -528,7 +533,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "localtime": null,
       "unsafe": false,
       "topLevelBinderFlags": "None",
-      "usings": []
+      "usings": [],
+      "ruleSetPath": null
     },
     "syntaxTrees": [
       {
@@ -574,8 +580,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "pdbChecksumAlgorithm": "SHA256",
     "runtimeMetadataVersion": null,
     "defaultSourceFileEncoding": null,
-    "fallbackSourceFileEncoding": null
-  }
+    "fallbackSourceFileEncoding": null,
+    "sourceLink": null
+  },
+  "resources": []
 }
 """;
             AssertJson(expected, json, "toolsVersions", "references", "extensions");

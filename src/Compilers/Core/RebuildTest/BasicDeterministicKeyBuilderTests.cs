@@ -272,7 +272,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""optionCompareText"": false,
       ""embedVbCoreRuntime"": false,
       ""globalImports"": [],
-      ""parseOptions"": null
+      ""parseOptions"": null,
+      ""ruleSetPath"": null
     },
     ""syntaxTrees"": [
       {
@@ -363,7 +364,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""VBC_VER"": ""17.13"",
           ""_MYTYPE"": ""Empty""
         }}
-      }}
+      }},
+      ""ruleSetPath"": null
     }},
     ""syntaxTrees"": [
       {{
@@ -413,8 +415,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""pdbChecksumAlgorithm"": ""SHA256"",
     ""runtimeMetadataVersion"": null,
     ""defaultSourceFileEncoding"": null,
-    ""fallbackSourceFileEncoding"": null
-  }}
+    ""fallbackSourceFileEncoding"": null,
+    ""sourceLink"": null
+  }},
+  ""resources"": []
 }}
 ";
             AssertJson(expected, json, "toolsVersions", "references", "extensions");

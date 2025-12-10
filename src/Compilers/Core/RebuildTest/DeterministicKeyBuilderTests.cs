@@ -499,7 +499,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""pdbChecksumAlgorithm"": ""SHA256"",
   ""runtimeMetadataVersion"": null,
   ""defaultSourceFileEncoding"": null,
-  ""fallbackSourceFileEncoding"": null
+  ""fallbackSourceFileEncoding"": null,
+  ""sourceLink"": null
 }
 ", obj.ToString(Formatting.Indented));
         }
@@ -537,7 +538,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""pdbChecksumAlgorithm"": ""SHA256"",
   ""runtimeMetadataVersion"": null,
   ""defaultSourceFileEncoding"": null,
-  ""fallbackSourceFileEncoding"": null
+  ""fallbackSourceFileEncoding"": null,
+  ""sourceLink"": null
 }}
 ", obj.ToString(Formatting.Indented));
         }
