@@ -4,11 +4,12 @@
 
 #nullable disable
 
-using Xunit;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
@@ -931,24 +932,32 @@ class Test
         public void RefReadonlyWithScoped_02()
         {
             var source = "void M(ref scoped readonly int p);";
-            var expectedDiagnostics = new[]
-            {
-                // (1,19): error CS1001: Identifier expected
+
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.Regular12);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularPreview);
+            verifyNodes();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,6): error CS8112: Local function 'M(scoped ref int)' must declare a body because it is not marked 'static extern'.
                 // void M(ref scoped readonly int p);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "M").WithArguments("M(scoped ref int)").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'M' is declared but never used
                 // void M(ref scoped readonly int p);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 19)
-            };
-
-            UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
-            verifyNodes();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void M(ref scoped readonly int p);
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                // (1,19): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
+                // void M(ref scoped readonly int p);
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(1, 19),
+                // (1,19): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // void M(ref scoped readonly int p);
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 19));
 
             void verifyNodes()
             {
@@ -965,15 +974,7 @@ class Test
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.ReadOnlyKeyword);
                             N(SyntaxKind.PredefinedType);
                             {
@@ -993,24 +994,26 @@ class Test
         public void RefReadonlyWithScoped_03()
         {
             var source = "void M(readonly scoped ref int p);";
-            var expectedDiagnostics = new[]
-            {
-                // (1,24): error CS1001: Identifier expected
+
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.Regular12);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularPreview);
+            verifyNodes();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,6): error CS8112: Local function 'M(scoped ref int)' must declare a body because it is not marked 'static extern'.
                 // void M(readonly scoped ref int p);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(1, 24),
-                // (1,24): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "M").WithArguments("M(scoped ref int)").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'M' is declared but never used
                 // void M(readonly scoped ref int p);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 24)
-            };
-
-            UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
-            verifyNodes();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                // (1,8): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // void M(readonly scoped ref int p);
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 8));
 
             void verifyNodes()
             {
@@ -1027,15 +1030,7 @@ class Test
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.PredefinedType);
                             {
@@ -1055,24 +1050,32 @@ class Test
         public void ReadonlyWithScoped()
         {
             var source = "void M(scoped readonly int p);";
-            var expectedDiagnostics = new[]
-            {
-                // (1,15): error CS1001: Identifier expected
+
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.Regular12);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularPreview);
+            verifyNodes();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,6): error CS8112: Local function 'M(scoped int)' must declare a body because it is not marked 'static extern'.
                 // void M(scoped readonly int p);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "M").WithArguments("M(scoped int)").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'M' is declared but never used
                 // void M(scoped readonly int p);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 15)
-            };
-
-            UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
-            verifyNodes();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                // (1,8): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // void M(scoped readonly int p);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped readonly int p").WithLocation(1, 8),
+                // (1,15): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
+                // void M(scoped readonly int p);
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(1, 15),
+                // (1,15): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // void M(scoped readonly int p);
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 15));
 
             void verifyNodes()
             {
@@ -1088,15 +1091,7 @@ class Test
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.ReadOnlyKeyword);
                             N(SyntaxKind.PredefinedType);
                             {
@@ -1116,24 +1111,29 @@ class Test
         public void ReadonlyWithScoped_02()
         {
             var source = "void M(scoped readonly ref int p);";
-            var expectedDiagnostics = new[]
-            {
-                // (1,15): error CS1001: Identifier expected
+
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.Regular12);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularPreview);
+            verifyNodes();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,6): error CS8112: Local function 'M(scoped ref int)' must declare a body because it is not marked 'static extern'.
                 // void M(scoped readonly ref int p);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "M").WithArguments("M(scoped ref int)").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'M' is declared but never used
                 // void M(scoped readonly ref int p);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 15)
-            };
-
-            UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
-            verifyNodes();
-
-            UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
-            verifyNodes();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                // (1,15): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
+                // void M(scoped readonly ref int p);
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(1, 15),
+                // (1,15): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // void M(scoped readonly ref int p);
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 15));
 
             void verifyNodes()
             {
@@ -1149,15 +1149,7 @@ class Test
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.ReadOnlyKeyword);
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.PredefinedType);
@@ -1366,6 +1358,262 @@ class Test
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ScopedThis()
+        {
+            var source = """
+                ref struct S { }
+                static class C
+                {
+                    public static void M(scoped this S x)
+                    {
+                    }
+                }
+                """;
+            UsingTree(source);
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,33): error CS9348: The 'this' modifier cannot immediately follow the 'scoped' modifier.
+                //     public static void M(scoped this S x)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "this").WithArguments("this").WithLocation(4, 33));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.ThisKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "S");
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ThisScoped()
+        {
+            var source = """
+                ref struct S { }
+
+                static class C
+                {
+                    public static void M(this scoped S x)
+                    {
+                    }
+                }
+                """;
+            UsingTree(source);
+            CreateCompilation(source).VerifyDiagnostics();
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "S");
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ScopedParams()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(scoped params S x)
+                    {
+                    }
+                }
+                """;
+            UsingTree(source);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.ParamsKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "S");
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParamsScoped()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(params scoped S x)
+                    {
+                    }
+                }
+                """;
+            UsingTree(source);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.ParamsKeyword);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "S");
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }

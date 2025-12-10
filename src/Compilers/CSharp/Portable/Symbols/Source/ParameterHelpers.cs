@@ -604,12 +604,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenOut = false;
             var seenParams = false;
             var seenIn = false;
-            bool seenScoped = false;
             bool seenReadonly = false;
 
             SyntaxToken? previousModifier = null;
-            foreach (var modifier in parameter.Modifiers)
+            for (int i = 0, n = parameter.Modifiers.Count; i < n; i++)
             {
+                var modifier = parameter.Modifiers[i];
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.ThisKeyword:
@@ -775,12 +775,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ScopedKeyword when parameterContext is not ParameterContext.FunctionPointer:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
-                        Debug.Assert(!seenIn);
-                        Debug.Assert(!seenOut);
-                        Debug.Assert(!seenRef);
-                        Debug.Assert(!seenScoped);
 
-                        seenScoped = true;
+                        if (seenIn || seenOut || seenRef || seenReadonly)
+                        {
+                            // Matches original parsing logic that disallowed parsing out 'scoped' once in/out/ref/readonly had been seen.
+                            diagnostics.Add(ErrorCode.ERR_ScopedAfterInOutRefReadonly, modifier.GetLocation());
+                        }
+
+                        if (i < n - 1)
+                        {
+                            // Matches original parsing logic that only allowed 'scoped' to be followed by ref/out/in to
+                            // actually be considered the modifier.
+                            var nextModifier = parameter.Modifiers[i + 1];
+                            if (nextModifier.Kind() is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
+                                diagnostics.Add(ErrorCode.ERR_InvalidModifierAfterScoped, nextModifier.GetLocation(), nextModifier.Text);
+                        }
+
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
@@ -1165,7 +1175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         thisKeyword = modifier;
                         break;
                     case SyntaxKind.ScopedKeyword:
-                        Debug.Assert(refKind == RefKind.None);
                         isScoped = true;
                         break;
                     case SyntaxKind.ReadOnlyKeyword:

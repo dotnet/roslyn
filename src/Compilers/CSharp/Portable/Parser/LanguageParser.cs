@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Collections;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal sealed partial class LanguageParser : SyntaxParser
@@ -4834,7 +4835,9 @@ parse_member_name:;
                     return this.IsTrueIdentifier();
 
                 default:
-                    return IsParameterModifierExcludingScoped(this.CurrentToken) || IsPossibleScopedKeyword(isFunctionPointerParameter: false) || IsPredefinedType(this.CurrentToken.Kind);
+                    return IsParameterModifierExcludingScoped(this.CurrentToken) ||
+                           IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false) ||
+                           IsPredefinedType(this.CurrentToken.Kind);
             }
         }
 
@@ -4959,33 +4962,43 @@ parse_member_name:;
             return false;
         }
 
-        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
+        ref struct S : IEnumerable<int>
         {
-            bool tryScoped = true;
-
-            while (IsParameterModifierExcludingScoped(this.CurrentToken))
+            public IEnumerator<int> GetEnumerator()
             {
-                if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
-                {
-                    tryScoped = false;
-                }
-
-                modifiers.Add(this.EatToken());
+                throw new NotImplementedException();
             }
 
-            if (tryScoped)
+            IEnumerator IEnumerable.GetEnumerator()
             {
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter);
+                return GetEnumerator();
+            }
 
-                if (scopedKeyword != null)
+            public void Add(int i) { }
+        }
+
+        void Foo(params scoped S a)
+        {
+
+        }
+
+        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
+        {
+            Debug.Assert(!(isFunctionPointerParameter && isLambdaParameter), "Can't be parsing parameters for both a function pointer and a lambda at the same time");
+
+            while (true)
+            {
+                if (IsParameterModifierExcludingScoped(this.CurrentToken))
                 {
-                    modifiers.Add(scopedKeyword);
-
-                    // Look if ref/out/in/readonly are next
-                    while (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
-                    {
-                        modifiers.Add(this.EatToken());
-                    }
+                    modifiers.Add(this.EatToken());
+                }
+                else if (this.IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter))
+                {
+                    modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                }
+                else
+                {
+                    break;
                 }
             }
         }
@@ -8464,7 +8477,7 @@ done:
                 return true;
             }
 
-            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+            if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
                 return true;
             }
@@ -8482,11 +8495,11 @@ done:
             return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
         }
 
-        private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
-        {
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-            return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
-        }
+        //private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
+        //{
+        //    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+        //    return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
+        //}
 
         private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
@@ -8623,7 +8636,7 @@ done:
             // Skip 'using' keyword
             EatToken();
 
-            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+            if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
                 return true;
             }
@@ -10518,41 +10531,31 @@ done:
             }
         }
 
-        private SyntaxToken ParsePossibleScopedKeyword(
+        private bool IsDefiniteScopedModifier(
             bool isFunctionPointerParameter,
             bool isLambdaParameter)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
-                return null;
+                return false;
 
             // In C# 14 we decided that within a lambda 'scoped' would *always* be a keyword.
             if (isLambdaParameter && IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
-                return this.EatContextualToken(SyntaxKind.ScopedKeyword);
+                return true;
 
-            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
             var scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
 
-            // trivial case.  scoped ref/out/in  is definitely the scoped keyword.
-            if (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
-                return scopedKeyword;
+            // trivial case.  scoped ref/out/in/this  is definitely the scoped keyword. Note: the only actual legal
+            // cases are `scoped ref`, `scoped out`, and `scoped in`.  But we detect and allow `scoped this`, `scoped
+            // params` and `scoped readonly` as well.  These will be reported as errors later in binding.
+            if (IsParameterModifierExcludingScoped(this.CurrentToken))
+                return true;
 
             // More complex cases.  We have to check for `scoped Type ...` now.
-            using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-            if (ScanType() is ScanTypeFlags.NotType ||
-                !isValidScopedTypeCase())
-            {
-                // We didn't see a type, or it wasn't a legal usage of a type.  This is not a scoped-keyword.  Rollback to
-                // before the keyword so the caller has to handle it.
-                beforeScopedResetPoint.Reset();
-                return null;
-            }
-
-            // We had a Type syntax in a supported production.  Roll back to just after the scoped-keyword and
-            // return it successfully.
-            afterScopedResetPoint.Reset();
-            return scopedKeyword;
+            //
+            // Note that `scoped scoped` can be valid here as a type called scoped and a variable called scoped.
+            return ScanType() is not ScanTypeFlags.NotType && isValidScopedTypeCase();
 
             bool isValidScopedTypeCase()
             {
@@ -10572,6 +10575,15 @@ done:
 
                 return false;
             }
+        }
+
+        private SyntaxToken ParsePossibleScopedKeyword(
+            bool isFunctionPointerParameter,
+            bool isLambdaParameter)
+        {
+            return IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter)
+                ? this.EatContextualToken(SyntaxKind.ScopedKeyword)
+                : null;
         }
 
         private VariableDesignationSyntax ParseDesignation(bool forPattern)
