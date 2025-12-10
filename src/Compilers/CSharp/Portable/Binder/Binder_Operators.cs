@@ -903,18 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindExpression(current, diagnostics);
 
-            if (node.IsKind(SyntaxKind.SubtractExpression)
-                && current.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (current is ParenthesizedExpressionSyntax parenthesizedExpression
+                && IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesizedExpression))
             {
                 if (result.Kind == BoundKind.TypeExpression
-                    && !((ParenthesizedExpressionSyntax)current).Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                    && !parenthesizedExpression.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)current;
-
                     if (parenthesizedExpression.Expression.IsKind(SyntaxKind.IdentifierName)
                         && ((IdentifierNameSyntax)parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
                     {
@@ -1619,8 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (left.Type is not null)
                 {
-                    var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated();
-                    CreateConversion(left.Syntax, operandPlaceholder, implicitConversion, isCast: false, conversionGroupOpt: null, booleanType, diagnostics);
+                    CreateConversion(left.Syntax, new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated(), implicitConversion, isCast: false, conversionGroupOpt: null, booleanType, diagnostics);
                 }
                 else
                 {
@@ -1631,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (type.Kind != SymbolKind.NamedType)
+            if (type is not NamedTypeSymbol { IsInterface: false } namedType || namedType.IsNullableType())
             {
                 diagnostics.Add(left.Syntax, useSiteInfo);
                 return false;
@@ -1650,53 +1647,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Stack Trace:
             //     at CallSite.Target(Closure, CallSite, Object, Nullable`1)
             //     at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
-            var namedType = type as NamedTypeSymbol;
-            var result = hasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteInfo, out userDefinedOperator);
+            var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, namedType).MakeCompilerGenerated();
+            UnaryOperatorAnalysisResult result = operatorOverloadResolution(left.Syntax, operandPlaceholder, isNegative ? UnaryOperatorKind.False : UnaryOperatorKind.True, diagnostics);
 
-            if (result)
+            if (result.HasValue)
             {
-                Debug.Assert(userDefinedOperator is not null);
+                Debug.Assert(result.Conversion.IsImplicit);
+                userDefinedOperator = result.Signature.Method;
 
-                var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated();
                 TypeSymbol parameterType = userDefinedOperator.Parameters[0].Type;
-
-                implicitConversion = this.Conversions.ClassifyConversionFromType(operandPlaceholder.Type, parameterType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
-                Debug.Assert(implicitConversion.IsImplicit);
-
-                CreateConversion(left.Syntax, operandPlaceholder, implicitConversion, isCast: false, conversionGroupOpt: null, parameterType, diagnostics);
+                CreateConversion(left.Syntax, operandPlaceholder, result.Conversion, isCast: false, conversionGroupOpt: null, parameterType, diagnostics);
+                return true;
             }
 
-            diagnostics.Add(left.Syntax, useSiteInfo);
+            return false;
 
-            return result;
-
-            bool hasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out MethodSymbol @operator)
+            UnaryOperatorAnalysisResult operatorOverloadResolution(SyntaxNode node, BoundExpression operand, UnaryOperatorKind kind, BindingDiagnosticBag diagnostics)
             {
-                var operators = ArrayBuilder<MethodSymbol>.GetInstance();
-                for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
-                {
-                    operators.Clear();
-                    type.AddOperators(name, operators);
+                OverloadResolution.GetStaticUserDefinedUnaryOperatorMethodNames(kind, isChecked: false, out string staticOperatorName1, out string staticOperatorName2Opt);
 
-                    for (var i = 0; i < operators.Count; i++)
-                    {
-                        var op = operators[i];
-                        if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
-                        {
-                            var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.GetParameterType(0), isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
-                            if (conversion.IsImplicit)
-                            {
-                                @operator = op;
-                                operators.Free();
-                                return true;
-                            }
-                        }
-                    }
-                }
+                OperatorResolutionForReporting operatorResolutionForReporting = default;
+                var result = this.UnaryOperatorNonExtensionOverloadResolution(
+                    kind, isChecked: false, staticOperatorName1, staticOperatorName2Opt,
+                    operand: operand, node, diagnostics, ref operatorResolutionForReporting, resultKind: out _, originalUserDefinedOperators: out _);
+                operatorResolutionForReporting.Free();
 
-                operators.Free();
-                @operator = null;
-                return false;
+                return result;
             }
         }
 
@@ -2245,7 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyBest;
         }
 
-        private void ReportObsoleteAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        private void ReportObsoleteAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             if ((object)operatorMethod != null)
             {
@@ -2326,7 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name1,
             string name2Opt,
             BoundExpression operand,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BindingDiagnosticBag diagnostics,
             ref OperatorResolutionForReporting operatorResolutionForReporting,
             out LookupResultKind resultKind,
@@ -2355,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolutionResult result,
             UnaryOperatorKind kind,
             BoundExpression operand,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BindingDiagnosticBag diagnostics,
             out LookupResultKind resultKind,
             out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
@@ -5799,12 +5775,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
-            // If either operand is bad, bail out preventing more cascading errors
+            // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
-                leftOperand = BindToTypeForErrorRecovery(leftOperand);
-                rightOperand = BindToTypeForErrorRecovery(rightOperand);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
@@ -6001,19 +5975,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private void ValidateRefConditionalOperator(SyntaxNode node, BoundExpression trueExpr, BoundExpression falseExpr, BindingDiagnosticBag diagnostics)
         {
-            var currentScope = _localScopeDepth;
-
             // val-escape must agree on both branches.
-            SafeContext whenTrueEscape = GetValEscape(trueExpr, currentScope);
-            SafeContext whenFalseEscape = GetValEscape(falseExpr, currentScope);
+            SafeContext whenTrueEscape = GetValEscape(trueExpr);
+            SafeContext whenFalseEscape = GetValEscape(falseExpr);
 
             if (whenTrueEscape != whenFalseEscape)
             {
                 // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
                 if (!whenFalseEscape.IsConvertibleTo(whenTrueEscape))
-                    CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    CheckValEscape(falseExpr.Syntax, falseExpr, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
                 else
-                    CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    CheckValEscape(trueExpr.Syntax, trueExpr, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
 
                 diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
             }

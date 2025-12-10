@@ -36,6 +36,7 @@ internal abstract class LanguageServerProjectLoader
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
+    private readonly DotnetCliHelper _dotnetCliHelper;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
@@ -56,7 +57,7 @@ internal abstract class LanguageServerProjectLoader
     /// <see cref="Primordial"/> -> <see cref="LoadedTargets"/>
     /// Any state -> unloaded (which is denoted by removing the <see cref="_loadedProjects"/> entry for the project)
     /// </summary>
-    private abstract record ProjectLoadState
+    protected abstract record ProjectLoadState
     {
         private ProjectLoadState() { }
 
@@ -84,6 +85,11 @@ internal abstract class LanguageServerProjectLoader
         public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
     }
 
+    /// <summary>
+    /// Indicates whether loads should report UI progress to the client for this loader.
+    /// </summary>
+    protected virtual bool EnableProgressReporting => true;
+
     protected LanguageServerProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -92,7 +98,8 @@ internal abstract class LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
@@ -101,6 +108,7 @@ internal abstract class LanguageServerProjectLoader
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
+        _dotnetCliHelper = dotnetCliHelper;
 
         AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
@@ -176,12 +184,8 @@ internal abstract class LanguageServerProjectLoader
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
-                // Tell the client to restore any projects with unresolved dependencies.
-                // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
-                // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
-                //
-                // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.SendProjectNeedsRestoreRequestAsync(projectsThatNeedRestore, cancellationToken);
+                // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
@@ -212,6 +216,16 @@ internal abstract class LanguageServerProjectLoader
     /// "file-based program" and "true miscellaneous file", will not result in this being called.
     /// </remarks>
     protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
+
+    /// <summary>
+    /// Called when transitioning from a primordial project to loaded targets.
+    /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
+    /// </summary>
+    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
+        string projectPath,
+        ProjectSystemProjectFactory primordialProjectFactory,
+        ProjectId primordialProjectId,
+        CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
@@ -317,11 +331,8 @@ internal abstract class LanguageServerProjectLoader
 
                 if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
                 {
-                    // Remove the primordial project now that the design-time build pass is finished. This ensures that
-                    // we have the new project in place before we remove the primordial project; otherwise for
-                    // Miscellaneous Files we could have a case where we'd get another request to create a project
-                    // for the project we're currently processing.
-                    await primordialProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
+                    // Transition from primordial to loaded state
+                    await TransitionPrimordialProjectToLoaded_NoLockAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
@@ -415,29 +426,47 @@ internal abstract class LanguageServerProjectLoader
     }
 
     /// <summary>
+    /// Executes an async action with access to the loaded project state under the _gate.
+    /// This allows subclasses to safely query or modify project state.
+    /// </summary>
+    protected async ValueTask<T> ExecuteUnderGateAsync<T>(Func<Dictionary<string, ProjectLoadState>, ValueTask<T>> action, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return await action(_loadedProjects);
+        }
+    }
+
+    /// <inheritdoc cref="BeginLoadingProjectWithPrimordial_NoLock"/>
+    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            BeginLoadingProjectWithPrimordial_NoLock(projectPath, primordialProjectFactory, primordialProjectId, doDesignTimeBuild);
+        }
+    }
+
+    /// <summary>
     /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
     /// </summary>
     /// <param name="doDesignTimeBuild">
     /// If <see langword="true"/>, initiates a design-time build now, and starts file watchers to repeat the design-time build on relevant changes.
     /// If <see langword="false"/>, only tracks the primordial project.
     /// </param>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    protected void BeginLoadingProjectWithPrimordial_NoLock(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
     {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        // If this project has already begun loading, we need to throw.
+        // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
+        // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
+        if (_loadedProjects.ContainsKey(projectPath))
         {
-            // If this project has already begun loading, we need to throw.
-            // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
-            // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
-            if (_loadedProjects.ContainsKey(projectPath))
-            {
-                Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
-            }
+            Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
+        }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
-            if (doDesignTimeBuild)
-            {
-                _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
-            }
+        _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
+        if (doDesignTimeBuild)
+        {
+            _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
         }
     }
 

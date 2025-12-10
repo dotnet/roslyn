@@ -18312,8 +18312,7 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
-                source: source,
-                sequencePoints: "Program.Main",
+                sequencePointDisplay: SequencePointDisplayMode.Enhanced,
                 expectedIL:
 @"{
   // Code size       30 (0x1e)
@@ -21994,22 +21993,12 @@ public ref struct R
                 // (3,18): error CS1002: ; expected
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Property").WithLocation(3, 18),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // (3,18): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Property").WithArguments("Property").WithLocation(3, 18),
+                // (3,27): error CS1001: Identifier expected
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 27));
 
             source =
 @"ref struct R
@@ -22167,6 +22156,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (1,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // ref struct R
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "R").WithLocation(1, 12),
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
@@ -22179,16 +22171,18 @@ public ref struct R
                 // (3,16): warning CS0169: The field 'R.R' is never used
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
+                // (3,18): error CS1003: Syntax error, '=' expected
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "M").WithLocation(3, 18),
-                // (3,18): error CS1520: Method must have a return type
+                Diagnostic(ErrorCode.ERR_SyntaxError, "M").WithArguments("=").WithLocation(3, 18),
+                // (3,18): error CS8172: Cannot initialize a by-reference variable with a value
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 18),
-                // (3,18): error CS8958: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "M() => throw null").WithLocation(3, 18),
+                // (3,18): error CS0246: The type or namespace name 'M' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "M").WithLocation(3, 18)
-                );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M").WithArguments("M").WithLocation(3, 18),
+                // (3,18): error CS1510: A ref or out value must be an assignable variable
+                //     ref scoped R M() => throw null;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "M() => throw null").WithLocation(3, 18));
 
             source = @"
 delegate void M(ref scoped R parameter);

@@ -3424,10 +3424,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // If we're seeing a node of this kind, then we failed to resolve the member access
                         // as either a type or a property/field/event/local/parameter.  In such cases,
-                        // the second interpretation applies so just visit the node for that.
-                        BoundExpression valueExpression = ((BoundTypeOrValueExpression)boundNode).Data.ValueExpression;
-                        return GetSemanticSymbols(valueExpression, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
+                        // the second interpretation applies.
+                        Debug.Assert(boundNode is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
+                        symbols = OneOrMany.Create(((BoundTypeOrValueExpression)boundNode).ValueSymbol);
                     }
+                    break;
 
                 case BoundKind.Call:
                     {
@@ -4860,13 +4861,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
+            if (isPossiblePreprocessingSymbolReference(node))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
                 return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
             }
 
             return PreprocessingSymbolInfo.None;
+
+            bool isPossiblePreprocessingSymbolReference(IdentifierNameSyntax node)
+            {
+                var parentNode = node.Parent;
+                while (parentNode is not null)
+                {
+                    var kind = parentNode.Kind();
+                    switch (kind)
+                    {
+                        case SyntaxKind.IfDirectiveTrivia:
+                            {
+                                var parentIf = (IfDirectiveTriviaSyntax)parentNode;
+                                return parentIf.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                        case SyntaxKind.ElifDirectiveTrivia:
+                            {
+                                var parentElif = (ElifDirectiveTriviaSyntax)parentNode;
+                                return parentElif.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                    }
+
+                    if (SyntaxFacts.IsPreprocessorDirective(kind))
+                    {
+                        return false;
+                    }
+
+                    parentNode = parentNode.Parent;
+                }
+                return false;
+            }
         }
 
         /// <summary>

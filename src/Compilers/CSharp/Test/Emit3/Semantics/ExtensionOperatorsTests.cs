@@ -15889,7 +15889,7 @@ class Program
             // Note, an attempt to do compile time optimization using non-dynamic static type of 's2' ignores true/false extensions.
             // This is desirable because runtime binder wouldn't be able to use them as well.
             comp.VerifyEmitDiagnostics(
-                // (26,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'object' must define operator 'false'.
+                // (26,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'object' must not be an interface and must define operator 'false'.
                 //         _ = s2 && s1;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s2").WithArguments("object", "false").WithLocation(26, 13)
                 );

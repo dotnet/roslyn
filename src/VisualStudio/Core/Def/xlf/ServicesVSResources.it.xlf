@@ -237,6 +237,11 @@
         <target state="translated">L'esecuzione di Code Analysis è stata terminata prima del completamento per '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Comprimere le funzioni locali durante la compressione delle definizioni</target>
@@ -1212,6 +1217,11 @@
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removed_0">
+        <source>Removed {0}</source>
+        <target state="new">Removed {0}</target>
+        <note>{0} is a modifier, type, and parameter name</note>
+      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Segnala stringhe JSON non valide</target>
@@ -1691,6 +1701,11 @@
         <source>Visual Studio Settings</source>
         <target state="translated">Impostazioni di Visual Studio</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_0_does_not_bind_to_type">
+        <source>Warning {0} does not bind to type</source>
+        <target state="new">Warning {0} does not bind to type</target>
+        <note>{0} is a type name</note>
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>

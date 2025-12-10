@@ -47,7 +47,7 @@ param (
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
-  [string]$solution = "Roslyn.sln",
+  [string]$solution = "Roslyn.slnx",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -117,7 +117,7 @@ function Print-Usage() {
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
-  Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
+  Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
@@ -357,6 +357,7 @@ function GetCompilerTestAssembliesIncludePaths() {
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
@@ -520,6 +521,17 @@ function TestUsingRunTests() {
         Write-Host "No VsProjectFault logs found to copy"
       }
 
+      if ($vsId) {
+        $activityLogPath = Join-Path ${env:USERPROFILE} "AppData\Roaming\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)$hive\ActivityLog.xml"
+        $devenvExeConfig = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)$hive\devenv.exe.config"
+        $mefErrors = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)$hive\ComponentModelCache\Microsoft.VisualStudio.Default.err"
+        CopyToArtifactLogs $activityLogPath
+        CopyToArtifactLogs $devenvExeConfig
+        CopyToArtifactLogs $mefErrors
+      } else {
+        Write-Host "No Visual Studio instance found to copy logs from"
+      }
+
       if ($lspEditor) {
         $lspLogs = Join-Path $TempDir "VSLogs"
         $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
@@ -541,118 +553,120 @@ function TestUsingRunTests() {
   }
 }
 
-function EnablePreviewSdks() {
-  $vsInfo = LocateVisualStudio
-  if ($vsInfo -eq $null) {
-    # Preview SDKs are allowed when no Visual Studio instance is installed
-    return
+function CopyToArtifactLogs($inputPath) {
+  if (Test-Path $inputPath) {
+    Write-Host "Copying $inputPath to $LogDir"
+    Copy-Item -Path $inputPath -Destination $LogDir
+  } else {
+    Write-Host "No log found to copy at $inputPath"
   }
-
-  $vsId = $vsInfo.instanceId
-  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
-
-  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
-  Create-Directory $instanceDir
-  $sdkFile = Join-Path $instanceDir "sdk.txt"
-  'UsePreviews=True' | Set-Content $sdkFile
 }
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net9.0\VSIXExpInstaller\VSIXExpInstaller.exe"
-  Write-Host "VSIX EXE path: " $vsixExe
-  if (-not (Test-Path $vsixExe)) {
-    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
-    ExitWithExitCode 1
-  }
+  # Create a log file name for vsix installation.  The vsix installer will append to this log (not overwrite)
+  # so we can re-use the same log file for all our install operations.
+  # VSIX installer will always write the log file to %temp% and ignores full paths.
+  $logFileName = "VSIXInstaller-" + [guid]::NewGuid().ToString() + ".log"
 
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
   }
 
-  $vsDir = $vsInfo.installationPath.TrimEnd("\")
-  $vsId = $vsInfo.instanceId
-  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
-  $displayVersion = $vsInfo.catalog.productDisplayVersion
+  try {
+    $vsDir = $vsInfo.installationPath.TrimEnd("\")
+    $script:vsId = $vsInfo.instanceId
+    $script:vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+    $displayVersion = $vsInfo.catalog.productDisplayVersion
 
-  $hive = "RoslynDev"
-  Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
-  $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
+    $script:hive = "RoslynDev"
 
-  Write-Host "Uninstalling old Roslyn VSIX"
+    Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
 
-  # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
-  # wildfire to uninstall our VSIX extensions
-  $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
-  if (Test-Path $extDir) {
-    foreach ($dir in Get-ChildItem -Directory $extDir) {
-      $name = Split-Path -leaf $dir
-      Write-Host "`tUninstalling $name"
+    # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
+    # The default installer behavior without it is to install into every installed VS instance.
+    $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
+
+    $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
+
+    Write-Host "Uninstalling old Roslyn VSIX"
+
+    # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
+    # wildfire to uninstall our VSIX extensions
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
+    if (Test-Path $extDir) {
+      foreach ($dir in Get-ChildItem -Directory $extDir) {
+        $name = Split-Path -leaf $dir
+        Write-Host "`tUninstalling $name"
+      }
+      Remove-Item -re -fo $extDir
     }
-    Remove-Item -re -fo $extDir
-  }
 
-  Write-Host "Installing all Roslyn VSIX"
+    Write-Host "Installing all Roslyn VSIX"
 
-  # VSIX files need to be installed in this specific order:
-  $orderedVsixFileNames = @(
-    "Roslyn.Compilers.Extension.vsix",
-    "Roslyn.VisualStudio.Setup.vsix",
-    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
-    "Roslyn.VisualStudio.Setup.Dependencies.vsix",
-    "ExpressionEvaluatorPackage.vsix",
-    "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-    "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
+    # VSIX files need to be installed in this specific order:
+    $orderedVsixFileNames = @(
+      "Roslyn.Compilers.Extension.vsix",
+      "Roslyn.VisualStudio.Setup.vsix",
+      "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
+      "Roslyn.VisualStudio.Setup.Dependencies.vsix",
+      "ExpressionEvaluatorPackage.vsix",
+      "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
+      "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
-  foreach ($vsixFileName in $orderedVsixFileNames) {
-    $vsixFile = Join-Path $VSSetupDir $vsixFileName
-    $fullArg = "$baseArgs $vsixFile"
-    Write-Host "`tInstalling $vsixFileName"
-    Exec-Command $vsixExe $fullArg
-  }
+    foreach ($vsixFileName in $orderedVsixFileNames) {
+      $vsixFile = Join-Path $VSSetupDir $vsixFileName
+      $fullArg = "$baseArgs $vsixFile"
+      Write-Host "`tInstalling $vsixFileName"
+      Exec-Command $vsixInstallerExe $fullArg
+    }
 
-  # Set up registry
-  $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
+    # Set up registry
+    $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
 
-  # Disable roaming settings to avoid interference from the online user profile
-  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio" RoamingEnabled string "1*System.Boolean*False"
+    # Disable roaming settings to avoid interference from the online user profile
+    &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio" RoamingEnabled string "1*System.Boolean*False"
 
-  # Disable IntelliCode line completions to avoid interference with argument completion testing
-  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
+    # Disable IntelliCode line completions to avoid interference with argument completion testing
+    &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
 
-  # Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
-  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" repositoryAttachedModels string "0*System.Int32*2"
+    # Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+    &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" repositoryAttachedModels string "0*System.Int32*2"
 
-  # Disable background download UI to avoid toasts
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
+    # Disable background download UI to avoid toasts
+    &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
-  # Disable text spell checker to avoid spurious warnings in the error list
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
+    # Disable text spell checker to avoid spurious warnings in the error list
+    &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
 
-  # Run source generators automatically during integration tests.
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\SourceGeneratorExecutionBalanced" Value dword 0
+    # Run source generators automatically during integration tests.
+    &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\SourceGeneratorExecutionBalanced" Value dword 0
 
-  # Configure LSP
-  $lspRegistryValue = [int]$lspEditor.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword 1
+    # Configure LSP
+    $lspRegistryValue = [int]$lspEditor.ToBool()
+    &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
+    &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword 1
 
-  # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
-  # custom handler or fail silently and continue testing.
-  &$vsRegEdit set "$vsDir" $hive HKCU "Text Editor" "Report Exceptions" dword 0
+    # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
+    # custom handler or fail silently and continue testing.
+    &$vsRegEdit set "$vsDir" $hive HKCU "Text Editor" "Report Exceptions" dword 0
 
-  # Configure RemoteHostOptions.OOP64Bit for testing
-  $oop64bitValue = [int]$oop64bit.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
+    # Configure RemoteHostOptions.OOP64Bit for testing
+    $oop64bitValue = [int]$oop64bit.ToBool()
+    &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
 
-  # Disable targeted notifications
-  if ($ci) {
-    # Currently does not work via vsregedit, so only apply this setting in CI
-    #&$vsRegEdit set "$vsDir" $hive HKCU "RemoteSettings" TurnOffSwitch dword 1
-    reg add hkcu\Software\Microsoft\VisualStudio\RemoteSettings /f /t REG_DWORD /v TurnOffSwitch /d 1
+    # Disable targeted notifications
+    if ($ci) {
+      # Currently does not work via vsregedit, so only apply this setting in CI
+      #&$vsRegEdit set "$vsDir" $hive HKCU "RemoteSettings" TurnOffSwitch dword 1
+      reg add hkcu\Software\Microsoft\VisualStudio\RemoteSettings /f /t REG_DWORD /v TurnOffSwitch /d 1
+    }
+  } finally {
+    $vsixInstallerLogs = Join-Path $TempDir $logFileName
+    CopyToArtifactLogs $vsixInstallerLogs
   }
 }
 
