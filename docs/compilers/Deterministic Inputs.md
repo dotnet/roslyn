@@ -30,3 +30,108 @@ The following are considered inputs to the compiler for the purpose of determini
 - The full path of source files although `/pathmap` can be used to normalize this between compiles of the same code in different root directories.
 
 At the moment the compiler also depends on the time of day and random numbers for GUIDs, so it is not deterministic unless you specify `/deterministic`.
+
+## Debugging Determinism Failures
+
+When investigating determinism issues where the same code produces different outputs, you can use several techniques to identify the cause:
+
+### 1. Generate a Deterministic Key File
+
+Build with `/p:Features="debug-determinism"` to generate a `.key` file that documents all inputs to the compiler:
+
+```bash
+# For MSBuild projects
+dotnet build /p:Features="debug-determinism"
+
+# For direct compiler invocation
+csc /features:debug-determinism YourFile.cs
+```
+
+This creates an additional output file (e.g., `MyAssembly.dll.key`) alongside your compiled assembly. The key file is a JSON document containing:
+- Compiler version and runtime information
+- All source file paths and content checksums
+- Referenced assemblies with their MVIDs
+- Compilation options
+- Parse options
+- Emit options
+- Analyzer and generator information
+
+Compare the `.key` files from two supposedly identical builds to identify which inputs differ:
+
+```bash
+# Unix/Linux/Mac
+diff build1/MyAssembly.dll.key build2/MyAssembly.dll.key
+
+# Windows (using fc)
+fc build1\MyAssembly.dll.key build2\MyAssembly.dll.key
+```
+
+### 2. Compare Metadata Using metadata-tools
+
+Install the `mdv` (MetaData Viewer) tool from the [dotnet/metadata-tools](https://github.com/dotnet/metadata-tools) repository:
+
+```bash
+dotnet tool install mdv -g --prerelease --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json
+```
+
+Generate metadata dumps for your assemblies and compare them:
+
+```bash
+# Generate metadata output for each DLL
+mdv MyAssembly1.dll > assembly1.txt
+mdv MyAssembly2.dll > assembly2.txt
+
+# Compare the outputs
+diff assembly1.txt assembly2.txt
+```
+
+The metadata dump shows detailed information about types, methods, fields, attributes, and other metadata in the assembly. Differences in the metadata can help identify what changed between builds.
+
+### 3. Compare Embedded Resources
+
+If your assembly contains embedded resources, verify they are identical:
+
+```bash
+# Extract resources using ilasm/ildasm or .NET tools
+# For example, using ildasm on Windows:
+ildasm /out=assembly1.il MyAssembly1.dll
+ildasm /out=assembly2.il MyAssembly2.dll
+
+# Then compare the .resources sections in the IL files
+diff assembly1.il assembly2.il
+```
+
+Alternatively, use a tool like `ILSpy` or `dnSpy` to inspect and compare embedded resources visually.
+
+### 4. Binary Diff of the DLL
+
+As a last resort, perform a hex dump comparison of the actual DLL files:
+
+```bash
+# Unix/Linux/Mac - using xxd or hexdump
+xxd MyAssembly1.dll > assembly1.hex
+xxd MyAssembly2.dll > assembly2.hex
+diff assembly1.hex assembly2.hex
+
+# Windows - using fc with /b flag for binary comparison
+fc /b MyAssembly1.dll MyAssembly2.dll
+
+# Or using Format-Hex in PowerShell
+Format-Hex MyAssembly1.dll | Out-File assembly1.hex
+Format-Hex MyAssembly2.dll | Out-File assembly2.hex
+Compare-Object (Get-Content assembly1.hex) (Get-Content assembly2.hex)
+```
+
+A hex diff shows the exact bytes that differ, which can help identify non-deterministic data like timestamps, GUIDs, or other embedded values.
+
+### Common Causes of Non-Determinism
+
+When debugging, look for these common issues:
+- **Missing `/deterministic` flag**: Ensure `/deterministic` is enabled
+- **Absolute paths**: Use `/pathmap` to normalize file paths
+- **Timestamps**: Check if PDBs or other files embed build times
+- **Different compiler versions**: Verify same compiler version is used
+- **Different reference assembly versions**: Check MVIDs in `.key` files
+- **Environment variables**: Variables like `%LIBPATH%` can affect output
+- **Source file encoding**: Ensure consistent encoding (UTF-8 with BOM recommended)
+- **Generator/analyzer differences**: Verify same versions are loaded
