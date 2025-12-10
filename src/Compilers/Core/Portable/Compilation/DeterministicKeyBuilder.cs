@@ -77,25 +77,6 @@ namespace Microsoft.CodeAnalysis
         protected static void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value) =>
             writer.Write(name, EncodeByteArrayValue(value));
 
-        protected void WriteResourceContent(JsonWriter writer, ResourceDescription resource, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (resource.IsEmbedded)
-            {
-                writer.WriteObjectStart();
-                using var stream = resource.DataProvider();
-                using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();
-                var hash = hashAlgorithm.ComputeHash(stream);
-                WriteByteArrayValue(writer, "checksum", hash.AsSpan());
-                writer.WriteObjectEnd();
-            }
-            else
-            {
-                writer.WriteNull();
-            }
-        }
-
         protected static void WriteVersion(JsonWriter writer, string key, Version version)
         {
             writer.WriteKey(key);
@@ -224,7 +205,7 @@ namespace Microsoft.CodeAnalysis
             void writeResources()
             {
                 writer.WriteArrayStart();
-                foreach (var resource in resources)
+                foreach (ResourceDescription resource in resources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     writer.WriteObjectStart();
@@ -232,11 +213,33 @@ namespace Microsoft.CodeAnalysis
                     writer.Write("fileName", resource.FileName);
                     writer.Write("isPublic", resource.IsPublic);
                     writer.WriteKey("content");
-                    WriteResourceContent(writer, resource, cancellationToken);
+                    writeResourceContent(writer, resource);
                     writer.WriteObjectEnd();
                 }
                 writer.WriteArrayEnd();
             }
+
+            static void writeResourceContent(JsonWriter writer, ResourceDescription resource)
+            {
+                if (resource.IsEmbedded)
+                {
+                    writer.WriteObjectStart();
+                    WriteByteArrayValue(writer, "checksum", computeChecksum(resource));
+                    writer.WriteObjectEnd();
+                }
+                else
+                {
+                    writer.WriteNull();
+                }
+            }
+
+            static Span<byte> computeChecksum(ResourceDescription resource)
+            {
+                using var stream = resource.DataProvider();
+                using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();
+                return hashAlgorithm.ComputeHash(stream).AsSpan();
+            }
+
         }
 
         internal static string GetGuidValue(in Guid guid) => guid.ToString("D");
@@ -257,7 +260,7 @@ namespace Microsoft.CodeAnalysis
 
             WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
             writer.WriteKey("options");
-            WriteCompilationOptions(writer, compilationOptions, ruleSetText, options);
+            WriteCompilationOptions(writer, compilationOptions, ruleSetText);
 
             writer.WriteKey("syntaxTrees");
             writer.WriteArrayStart();
@@ -365,7 +368,6 @@ namespace Microsoft.CodeAnalysis
 
                 writer.WriteKey("properties");
                 writeMetadataReferenceProperties(writer, reference.Properties);
-
             }
             else if (reference is CompilationReference compilationReference)
             {
@@ -481,11 +483,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteCompilationOptions(
-            JsonWriter writer,
-            CompilationOptions options,
-            SourceText? ruleSetText,
-            DeterministicKeyOptions deterministicKeyOptions)
+        private void WriteCompilationOptions(JsonWriter writer, CompilationOptions options, SourceText? ruleSetText)
         {
             writer.WriteObjectStart();
             WriteCompilationOptionsCore(writer, options);
