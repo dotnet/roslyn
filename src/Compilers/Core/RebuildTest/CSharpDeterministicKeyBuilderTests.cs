@@ -677,6 +677,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "isPublic": true,
     "content": {
       "checksum": "{{embeddedPublicChecksum}}"
+      "checksumAlgorithm": "Sha256",
+      "encodingName": "Unicode (UTF-8)"
     }
   },
   {
@@ -685,6 +687,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "isPublic": false,
     "content": {
       "checksum": "{{embeddedPrivateChecksum}}"
+      "checksumAlgorithm": "Sha256",
+      "encodingName": "Unicode (UTF-8)"
     }
   },
   {

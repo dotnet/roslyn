@@ -218,25 +218,18 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayEnd();
             }
 
-            static void writeResourceContent(JsonWriter writer, ResourceDescription resource)
+            void writeResourceContent(JsonWriter writer, ResourceDescription resource)
             {
                 if (resource.IsEmbedded)
                 {
-                    writer.WriteObjectStart();
-                    WriteByteArrayValue(writer, "checksum", computeChecksum(resource));
-                    writer.WriteObjectEnd();
+                    using var stream = resource.DataProvider();
+                    var sourceText = SourceText.From(stream, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default);
+                    WriteSourceText(writer, sourceText);
                 }
                 else
                 {
                     writer.WriteNull();
                 }
-            }
-
-            static Span<byte> computeChecksum(ResourceDescription resource)
-            {
-                using var stream = resource.DataProvider();
-                using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();
-                return hashAlgorithm.ComputeHash(stream).AsSpan();
             }
         }
 
