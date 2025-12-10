@@ -22145,15 +22145,9 @@ ref struct R
                 // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = void (ref scoped R parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9),
-                // (6,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 23),
-                // (6,32): error CS1003: Syntax error, ',' expected
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(6, 32),
-                // (6,32): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "parameter").WithLocation(6, 32));
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(6, 23));
         }
 
         [Theory, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]

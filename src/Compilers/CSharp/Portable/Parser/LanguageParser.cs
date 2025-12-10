@@ -4991,10 +4991,10 @@ parse_member_name:;
                         //
                         // Places where it is an identifier are:
                         //
-                        //      `(scoped scoped, ...) =>`
                         //      `(scoped scoped) =>`
+                        //      `(scoped scoped, ...) =>`
                         //      `(scoped scoped = ...) =>`
-                        if (this.PeekToken(1).Kind is not (SyntaxKind.CommaToken or SyntaxKind.CloseParenToken or SyntaxKind.EqualsEqualsToken))
+                        if (this.PeekToken(1).Kind is not (SyntaxKind.CloseParenToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken))
                         {
                             modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
                             continue;

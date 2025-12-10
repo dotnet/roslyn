@@ -5759,37 +5759,6 @@ class C {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
-        public void ScopedAsParameterName_06_CSharp13()
-        {
-            string source = "(scoped scoped) => { }";
-            UsingExpression(source, TestOptions.Regular13);
-
-            N(SyntaxKind.ParenthesizedLambdaExpression);
-            {
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.Block);
-                {
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_06_CSharp13_A()
         {
             string source = "(scoped scoped) => { }";
@@ -5979,6 +5948,14 @@ class C {
                     {
                         N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.DefaultLiteralExpression);
+                            {
+                                N(SyntaxKind.DefaultKeyword);
+                            }
+                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }

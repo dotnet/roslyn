@@ -565,7 +565,22 @@ ref @scoped F4() { }";
         {
             string source = "void F(ref scoped scoped R r) { }";
             UsingDeclaration(source, TestOptions.Regular11);
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                // (1,19): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(1, 19),
+                // (1,19): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 19),
+                // (1,26): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 26));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -581,20 +596,12 @@ ref @scoped F4() { }";
                     {
                         N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.IdentifierToken, "R");
                         }
-                        N(SyntaxKind.IdentifierToken, "R");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "r");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "r");
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
