@@ -238,7 +238,6 @@ namespace Microsoft.CodeAnalysis
                 using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();
                 return hashAlgorithm.ComputeHash(stream).AsSpan();
             }
-
         }
 
         internal static string GetGuidValue(in Guid guid) => guid.ToString("D");
