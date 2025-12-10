@@ -83,10 +83,12 @@ namespace Microsoft.CodeAnalysis
 
             if (resource.IsEmbedded)
             {
+                writer.WriteObjectStart();
                 using var stream = resource.DataProvider();
                 using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();
                 var hash = hashAlgorithm.ComputeHash(stream);
                 WriteByteArrayValue(writer, "checksum", hash.AsSpan());
+                writer.WriteObjectEnd();
             }
             else
             {

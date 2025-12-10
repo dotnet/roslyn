@@ -580,5 +580,100 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 """;
             AssertJson(expected, json, "toolsVersions", "references", "extensions");
         }
+
+        [Fact]
+        public void SourceLink()
+        {
+            var syntaxTree = CSharpTestBase.Parse(
+                "",
+                filename: "file.cs",
+                checksumAlgorithm: HashAlgorithm);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            var sourceLinkContent = """
+                {
+                  "documents": {
+                    "/*": "https://raw.githubusercontent.com/test/repo/*"
+                  }
+                }
+                """;
+            var sourceLinkText = SourceText.From(sourceLinkContent, Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            var sourceLinkChecksum = GetChecksum(sourceLinkText);
+
+            var emitOptions = EmitOptions;
+            var key = compilation.GetDeterministicKey(
+                emitOptions: emitOptions,
+                sourceLinkText: sourceLinkText,
+                options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = $@"
+""sourceLink"": {{
+  ""checksum"": ""{sourceLinkChecksum}"",
+  ""checksumAlgorithm"": ""Sha256"",
+  ""encodingName"": ""Unicode (UTF-8)""
+}}";
+            AssertJsonSection(expected, key, "emitOptions.sourceLink");
+        }
+
+        [Fact]
+        public void RuleSet()
+        {
+            var syntaxTree = CSharpTestBase.Parse(
+                "",
+                filename: "file.cs",
+                checksumAlgorithm: HashAlgorithm);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            var ruleSetPath = "/path/to/ruleset.ruleset";
+            var key = compilation.GetDeterministicKey(
+                ruleSetFilePath: ruleSetPath,
+                options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = @$"
+""ruleSetPath"": ""{ruleSetPath}""";
+            AssertJsonSection(expected, key, "compilation.options.ruleSetPath");
+        }
+
+        [Fact]
+        public void Resources()
+        {
+            var syntaxTree = CSharpTestBase.Parse(
+                "",
+                filename: "file.cs",
+                checksumAlgorithm: HashAlgorithm);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            var resourceContent = "Test resource content";
+            var resourceBytes = Encoding.UTF8.GetBytes(resourceContent);
+            string resourceChecksum;
+            using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
+            {
+                var hash = hashAlgorithm.ComputeHash(resourceBytes);
+                resourceChecksum = DeterministicKeyBuilder.EncodeByteArrayValue(hash);
+            }
+
+            var resource = new ResourceDescription(
+                "TestResource",
+                () => new System.IO.MemoryStream(resourceBytes),
+                isPublic: true);
+
+            var key = compilation.GetDeterministicKey(
+                resources: ImmutableArray.Create(resource),
+                options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = $@"
+""resources"": [
+  {{
+    ""resourceName"": ""TestResource"",
+    ""fileName"": null,
+    ""isPublic"": true,
+    ""isEmbedded"": true,
+    ""content"": {{
+      ""checksum"": ""{resourceChecksum}""
+    }}
+  }}
+]";
+            AssertJsonSection(expected, key, "resources");
+        }
     }
 }
