@@ -688,7 +688,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "resourceName": "TestResource",
     "fileName": null,
     "isPublic": true,
-    "isEmbedded": true,
     "content": {
       "checksum": "{{resourceChecksum}}"
     }

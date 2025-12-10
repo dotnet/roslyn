@@ -231,7 +231,6 @@ namespace Microsoft.CodeAnalysis
                     writer.Write("resourceName", resource.ResourceName);
                     writer.Write("fileName", resource.FileName);
                     writer.Write("isPublic", resource.IsPublic);
-                    writer.Write("isEmbedded", resource.IsEmbedded);
                     writer.WriteKey("content");
                     WriteResourceContent(writer, resource, cancellationToken);
                     writer.WriteObjectEnd();
