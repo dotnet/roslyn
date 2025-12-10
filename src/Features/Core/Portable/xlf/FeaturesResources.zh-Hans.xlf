@@ -2359,7 +2359,7 @@ If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]
 
     \f	换页符 \u000C
     \n	换行符 \u000A
-    \rr	回车符 \u000D
+    \r	回车符 \u000D
     \t	制表符 \u0009
     \v	垂直制表符 \u000B
     \x85	省略号或下一行(NEL)字符(…) \u0085
