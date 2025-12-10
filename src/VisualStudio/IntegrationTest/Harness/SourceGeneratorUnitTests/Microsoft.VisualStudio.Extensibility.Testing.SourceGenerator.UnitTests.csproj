@@ -25,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" OutputItemType="CurrentContent" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" />
+    <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" OutputItemType="CurrentContent" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" />
   </ItemGroup>
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />

@@ -25,8 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
+    <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,7 +46,7 @@
     </None>
   </ItemGroup>
 
-  <Import Project="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems" Label="Shared" />
+  <Import Project="..\IntegrationTestsShared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems" Label="Shared" />
   <Import Project="..\..\..\..\..\src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 
 </Project>

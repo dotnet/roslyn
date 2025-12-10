@@ -62,7 +62,7 @@
     <EmbeddedResource Update="IntegrationTestServicePackage.resx" MergeWithCTO="true" ManifestResourceName="VSPackage" Generator="" />
   </ItemGroup>
 
-  <Import Project="..\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems" Label="Shared" />
+  <Import Project="..\IntegrationTestServiceShared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems" Label="Shared" />
 
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

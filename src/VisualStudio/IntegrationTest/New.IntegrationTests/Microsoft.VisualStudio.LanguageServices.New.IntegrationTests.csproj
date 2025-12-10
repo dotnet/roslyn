@@ -48,12 +48,12 @@
     <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
     <ProjectReference Include="..\..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj"
+    <ProjectReference Include="..\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"
                       SetTargetFramework="TargetFramework=netstandard2.0"
                       SkipGetTargetFrameworkProperties="true" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
+    <ProjectReference Include="..\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
     <ProjectReference Include="..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
   </ItemGroup>
   <ItemGroup>
