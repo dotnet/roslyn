@@ -50,7 +50,7 @@ csc /features:debug-determinism YourFile.cs
 This creates an additional output file (e.g., `MyAssembly.dll.key`) alongside your compiled assembly. The key file is a JSON document containing:
 - Compiler version and runtime information
 - All source file paths and content checksums
-- Referenced assemblies with their MVIDs
+- Referenced assemblies with their MVIDs (Module Version IDs)
 - Compilation options
 - Parse options
 - Emit options
@@ -92,7 +92,7 @@ The metadata dump shows detailed information about types, methods, fields, attri
 If your assembly contains embedded resources, verify they are identical:
 
 ```bash
-# Extract resources using ilasm/ildasm or .NET tools
+# Extract resources using ildasm or .NET tools
 # For example, using ildasm on Windows:
 ildasm /out=assembly1.il MyAssembly1.dll
 ildasm /out=assembly2.il MyAssembly2.dll
@@ -131,7 +131,7 @@ When debugging, look for these common issues:
 - **Absolute paths**: Use `/pathmap` to normalize file paths
 - **Timestamps**: Check if PDBs or other files embed build times
 - **Different compiler versions**: Verify same compiler version is used
-- **Different reference assembly versions**: Check MVIDs in `.key` files
+- **Different reference assembly versions**: Check MVIDs (Module Version IDs) in `.key` files
 - **Environment variables**: Variables like `%LIBPATH%` can affect output
 - **Source file encoding**: Ensure consistent encoding (UTF-8 with BOM recommended)
 - **Generator/analyzer differences**: Verify same versions are loaded
