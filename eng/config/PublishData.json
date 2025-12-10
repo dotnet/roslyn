@@ -211,9 +211,10 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.11",
+      "comment-about-vs-branch": "17.11 is currently not under VS servicing, but it is for the SDK.  17.11 optprof data is broken, so we pull from 17.10 instead",
+      "vsBranch": "rel/d17.10",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.11 P2]"
+      "insertionTitlePrefix": "[d17.11]"
     },
     "main": {
       "nugetKind": [

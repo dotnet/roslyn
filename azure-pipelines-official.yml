@@ -353,6 +353,7 @@ extends:
       dependsOn:
       - publish_using_darc
       displayName: Insert to VS
+      trigger: manual
 
       jobs:
       - job: insert
