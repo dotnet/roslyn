@@ -952,9 +952,6 @@ class Test
                 // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // void M(ref scoped readonly int p);
                 Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
-                // (1,19): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
-                // void M(ref scoped readonly int p);
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(1, 19),
                 // (1,19): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 // void M(ref scoped readonly int p);
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 19));

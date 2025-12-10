@@ -567,12 +567,9 @@ ref @scoped F4() { }";
                 // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // void F(ref scoped scoped R r) { }
                 Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
-                // (1,19): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (1,19): error CS1107: A parameter can only have one 'scoped' modifier
                 // void F(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(1, 19),
-                // (1,19): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // void F(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(1, 19),
                 // (1,26): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
                 // void F(ref scoped scoped R r) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 26));
@@ -1248,12 +1245,9 @@ ref @scoped F4() { }";
                 // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // (ref scoped scoped R r) => { }
                 Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
-                // (1,13): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (1,13): error CS1107: A parameter can only have one 'scoped' modifier
                 // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(1, 13),
-                // (1,13): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(1, 13),
                 // (1,20): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
                 // (ref scoped scoped R r) => { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 20),
