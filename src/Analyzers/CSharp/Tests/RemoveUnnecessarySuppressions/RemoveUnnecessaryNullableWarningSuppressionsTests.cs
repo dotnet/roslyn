@@ -185,4 +185,21 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 }
                 """,
         }.RunAsync();
+    [Fact]
+    public Task TestGetMethodReturnsNullable()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                using System.Reflection;
+
+                class C
+                {
+                    void M()
+                    {
+                        MethodInfo m = typeof(C).GetMethod("M")!;
+                    }
+                }
+                """,
+        }.RunAsync();
 }
