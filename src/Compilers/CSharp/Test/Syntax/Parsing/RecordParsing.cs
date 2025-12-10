@@ -1308,6 +1308,14 @@ class C
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
                     N(SyntaxKind.EmptyStatement);
                     {
                         N(SyntaxKind.SemicolonToken);

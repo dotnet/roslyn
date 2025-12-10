@@ -8630,12 +8630,10 @@ class A : B : C
                 // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
-{
 ").WithLocation(2, 15),
                 // (2,15): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"C
-{
 ").WithArguments("top-level statements", "9.0").WithLocation(2, 15),
                 // (2,15): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
                 // class A : B : C
@@ -8643,15 +8641,9 @@ class A : B : C
                 // (2,16): error CS1001: Identifier expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
-                // (2,16): error CS1003: Syntax error, ',' expected
+                // (2,16): error CS1002: ; expected
                 // class A : B : C
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
-                // (3,2): error CS1002: ; expected
-                // {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 16));
 
             var tree = UsingNode(text, TestOptions.Regular7_3,
                 // (2,13): error CS1514: { expected

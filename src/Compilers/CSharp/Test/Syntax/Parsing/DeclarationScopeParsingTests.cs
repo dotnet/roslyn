@@ -3706,6 +3706,43 @@ scoped ref readonly R x = M;
                                 N(SyntaxKind.IdentifierToken, "var");
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }

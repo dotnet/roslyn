@@ -798,21 +798,19 @@ class Test : Itest
                 // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
-{
 ").WithLocation(1, 16),
                 // (1,17): error CS1001: Identifier expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 17),
-                // (1,17): error CS1003: Syntax error, ',' expected
+                // (1,17): error CS1002: ; expected
                 // public class S.D 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 17),
-                // (2,2): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),
+                // (2,2): error CS1513: } expected
                 // {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -840,6 +838,14 @@ class Test : Itest
                             }
                         }
                         M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.PropertyDeclaration);
