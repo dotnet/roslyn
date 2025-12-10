@@ -12627,7 +12627,8 @@ done:
                     _pool.Free(modifiers);
                 }
 
-                if (this.ScanType() == ScanTypeFlags.NotType)
+                if (ShouldParseLambdaParameterType() &&
+                    this.ScanType() == ScanTypeFlags.NotType)
                 {
                     return false;
                 }
