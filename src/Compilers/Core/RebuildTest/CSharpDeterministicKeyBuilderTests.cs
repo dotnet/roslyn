@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""usings"": [],
-      ""ruleSet"": null
+      ""usings"": []
     },
     ""syntaxTrees"": [
       {
@@ -260,8 +259,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""usings"": [],
-      ""ruleSet"": null
+      ""usings"": []
     }}
   }},
   ""additionalTexts"": [],
@@ -462,8 +460,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""usings"": [],
-      ""ruleSet"": null
+      ""usings"": []
     },
     ""syntaxTrees"": [
       {
@@ -533,8 +530,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "localtime": null,
       "unsafe": false,
       "topLevelBinderFlags": "None",
-      "usings": [],
-      "ruleSet": null
+      "usings": []
     },
     "syntaxTrees": [
       {
@@ -622,37 +618,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 }
 """;
             AssertJsonSection(expected, key, "emitOptions.sourceLink");
-        }
-
-        [Fact]
-        public void RuleSet()
-        {
-            var syntaxTree = CSharpTestBase.Parse(
-                "",
-                filename: "file.cs",
-                checksumAlgorithm: HashAlgorithm);
-            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
-
-            var ruleSetContent = """
-                <?xml version="1.0" encoding="utf-8"?>
-                <RuleSet Name="Test" ToolsVersion="14.0">
-                </RuleSet>
-                """;
-            var ruleSetText = SourceText.From(ruleSetContent, Encoding.UTF8, SourceHashAlgorithm.Sha256);
-            var ruleSetChecksum = GetChecksum(ruleSetText);
-
-            var key = compilation.GetDeterministicKey(
-                ruleSetText: ruleSetText,
-                options: DeterministicKeyOptions.IgnoreToolVersions);
-
-            var expected = $$"""
-"ruleSet": {
-  "checksum": "{{ruleSetChecksum}}",
-  "checksumAlgorithm": "Sha256",
-  "encodingName": "Unicode (UTF-8)"
-}
-""";
-            AssertJsonSection(expected, key, "compilation.options.ruleSet");
         }
 
         [Fact]

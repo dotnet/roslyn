@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             SourceText? sourceLinkText = null,
-            SourceText? ruleSetText = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
@@ -75,7 +74,6 @@ namespace Microsoft.CodeAnalysis
                 pathMap,
                 emitOptions,
                 sourceLinkText,
-                ruleSetText,
                 resources,
                 options,
                 cancellationToken);

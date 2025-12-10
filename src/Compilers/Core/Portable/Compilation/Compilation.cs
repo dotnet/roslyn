@@ -204,12 +204,11 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             SourceText? sourceLinkText = null,
-            SourceText? ruleSetText = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkText, ruleSetText, resources, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkText, resources, options);
         }
 
         internal string GetDeterministicKey(
@@ -219,7 +218,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             SourceText? sourceLinkText = null,
-            SourceText? ruleSetText = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
             => GetDeterministicKey(
@@ -233,7 +231,6 @@ namespace Microsoft.CodeAnalysis
                 pathMap,
                 emitOptions,
                 sourceLinkText,
-                ruleSetText,
                 resources,
                 options);
 
