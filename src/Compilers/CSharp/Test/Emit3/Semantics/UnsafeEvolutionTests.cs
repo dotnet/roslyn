@@ -2894,9 +2894,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
     }
 
-    /// <summary>
-    /// No attribute is synthesized for local functions.
-    /// </summary>
     [Fact]
     public void RequiresUnsafeAttribute_LocalFunction()
     {
@@ -2912,36 +2909,124 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
+        var m1 = "C.<M>g__M1|0_0";
+        var m2 = "C.<M>g__M2|0_1";
+
         CompileAndVerify(source,
             options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: validate)
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [m1, m2]))
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: validate)
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: [m1],
+                expectedSafeSymbols: [m2]))
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All),
             verify: Verification.Skipped,
-            symbolValidator: validate)
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [m1, m2]))
+            .VerifyDiagnostics();
+
+        CreateCompilation([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (6,21): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //         unsafe void M1() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M1").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(6, 21));
+    }
+
+    /// <summary>
+    /// Lambdas cannot be marked <see langword="unsafe"/>. If that changes, we should synthesize the attribute similarly to <see cref="RequiresUnsafeAttribute_LocalFunction"/>.
+    /// </summary>
+    [Fact]
+    public void RequiresUnsafeAttribute_Lambda()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    var lam1 = unsafe () => { };
+                    var lam2 = () => { };
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,20): error CS1525: Invalid expression term 'unsafe'
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(5, 20),
+            // (5,20): error CS1002: ; expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(5, 20),
+            // (5,20): error CS0106: The modifier 'unsafe' is not valid for this item
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "unsafe").WithArguments("unsafe").WithLocation(5, 20),
+            // (5,28): error CS8124: Tuple must contain at least two elements.
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 28),
+            // (5,30): error CS1001: Identifier expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 30),
+            // (5,30): error CS1003: Syntax error, ',' expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 30),
+            // (5,33): error CS1002: ; expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 33));
+
+        source = """
+            class C
+            {
+                void M()
+                {
+                    var lam = () => { };
+                }
+            }
+            """;
+
+        var lam = "C.<>c.<M>b__0_0";
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [lam]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [lam]))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
             verify: Verification.Skipped,
-            symbolValidator: validate)
-            .VerifyDiagnostics();
-
-        static void validate(ModuleSymbol m)
-        {
-            VerifyRequiresUnsafeAttribute(
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
                 m,
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: [],
-                expectedSafeSymbols: ["C.<M>g__M1|0_0", "C.<M>g__M2|0_1"]);
-        }
+                expectedSafeSymbols: [lam]))
+            .VerifyDiagnostics();
     }
 
     [Fact]

@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBuilder.EnsureIsReadOnlyAttributeExists();
             }
 
+            if (IsCallerUnsafe)
+            {
+                moduleBuilder.EnsureRequiresUnsafeAttributeExists();
+            }
+
             ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
 
             ParameterHelpers.EnsureParamCollectionAttributeExists(moduleBuilder, Parameters);
@@ -170,6 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (originalMethod.IsExtern)
             {
                 mods |= DeclarationModifiers.Extern;
+            }
+
+            if (originalMethod is LocalFunctionOrSourceMemberMethodSymbol { IsUnsafe: true })
+            {
+                mods |= DeclarationModifiers.Unsafe;
             }
 
             return mods;
