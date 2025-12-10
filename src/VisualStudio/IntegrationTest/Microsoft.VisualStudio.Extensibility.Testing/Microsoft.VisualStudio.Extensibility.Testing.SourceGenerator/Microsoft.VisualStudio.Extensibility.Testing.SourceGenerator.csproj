@@ -22,6 +22,11 @@
 
   <ItemGroup>
     <Compile Include="..\..\..\..\Dependencies\Contracts\NullableAttributes.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\IsExternalInit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests" />
   </ItemGroup>
 
   <Target Name="PackBuildOutputs" DependsOnTargets="ResolveProjectReferences;SatelliteDllsProjectOutputGroup;SatelliteDllsProjectOutputGroupDependencies">
