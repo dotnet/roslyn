@@ -46,6 +46,7 @@
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
       <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
     </ProjectReference>
+    <ProjectReference Include="..\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -56,7 +57,6 @@
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
-    <Compile Include="..\BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs"/>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BuildHost\Rpc\Readme.md" Link="Rpc\Readme.md" />
@@ -123,12 +123,7 @@
            Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
 
       <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if the PackagePath changes. -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
-               PackagePath="$([System.IO.Path]::Combine('contentFiles', 'any', 'any', '%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
-               CopyToOutputDirectory="PreserveNewest"
-               PackageCopyToOutput="true" />
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)" Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'" TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))" PackagePath="$([System.IO.Path]::Combine('contentFiles', 'any', 'any', '%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))" CopyToOutputDirectory="PreserveNewest" PackageCopyToOutput="true" />
     </ItemGroup>
   </Target>
 </Project>
