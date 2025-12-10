@@ -22003,22 +22003,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,10): error CS0177: The out parameter 'R' must be assigned to before control leaves the current method
+                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("R").WithLocation(3, 10),
-                // (3,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 16),
-                // (3,25): error CS1003: Syntax error, ',' expected
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(3, 25),
-                // (3,25): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(3, 25),
-                // (3,34): error CS1001: Identifier expected
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 34)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16));
 
             source =
 @"ref struct R
