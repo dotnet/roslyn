@@ -85,9 +85,9 @@ The metadata dump shows detailed information about types, methods, fields, attri
 
 ### 3. Compare Embedded Resources
 
-If your assembly contains embedded resources, verify they are identical. The recommended approach is to use ILSpy, which has an easy "Save" button to export resources from the DLL for comparison.
+If your assembly contains embedded resources, verify they are identical. The recommended approach is to use ILSpy, which has an easy "Save" button to export resources from the DLL for comparison. Other tools like dnSpy or `ildasm` can also be used to extract and inspect embedded resources.
 
-Alternatively, you can use `ildasm` to disassemble the DLL and extract the embedded `.res` files:
+Example using `ildasm` to disassemble and extract embedded `.res` files:
 
 ```bash
 # Disassemble and generate .res files
@@ -97,8 +97,6 @@ ildasm /out=assembly2.il MyAssembly2.dll
 # Compare the generated .res files
 diff assembly1.res assembly2.res
 ```
-
-You can also use tools like `dnSpy` to inspect embedded resources visually.
 
 ### 4. Binary Diff of the DLL
 
