@@ -222,10 +222,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 try
                 {
                     var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-                    var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-                        .ConfigureAwait(false);
+                    var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+                    var context = await editorRenameService.GetRenameContextAsync(
+                        this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken).ConfigureAwait(false);
                     smartRenameContext = context.SelectManyAsArray(kvp => kvp.Value.Select(t =>
                         new RenameContext(ContextKind: kvp.Key, SourceString: t.content, SourceFilePath: t.filePath)));
                     _semanticContextDelay = stopwatch.Elapsed;
