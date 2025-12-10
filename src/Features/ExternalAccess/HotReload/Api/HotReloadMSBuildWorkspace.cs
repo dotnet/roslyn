@@ -13,12 +13,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+
+using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 
@@ -28,7 +29,7 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
     private readonly MSBuildProjectLoader _loader;
     private readonly ProjectFileInfoProvider _projectGraphFileInfoProvider;
 
-    public HotReloadMSBuildWorkspace(ILogger logger, Func<string, ImmutableArray<ProjectInstance>> getProjectInstances)
+    public HotReloadMSBuildWorkspace(ILogger logger, Func<string, (ImmutableArray<MSB.Execution.ProjectInstance> instances, MSB.Evaluation.Project? project)> getBuildProjects)
         : base(MSBuildMefHostServices.DefaultServices, WorkspaceKind.MSBuild)
     {
         RegisterWorkspaceFailedHandler(args =>
@@ -42,7 +43,7 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
 
         _logger = logger;
         _loader = new MSBuildProjectLoader(this);
-        _projectGraphFileInfoProvider = new ProjectFileInfoProvider(getProjectInstances, _loader.ProjectFileExtensionRegistry);
+        _projectGraphFileInfoProvider = new ProjectFileInfoProvider(getBuildProjects, _loader.ProjectFileExtensionRegistry);
     }
 
     public async ValueTask<Solution> UpdateProjectConeAsync(string projectPath, CancellationToken cancellationToken)

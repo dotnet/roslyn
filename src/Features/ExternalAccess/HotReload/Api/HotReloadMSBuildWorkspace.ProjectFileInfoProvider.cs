@@ -10,22 +10,24 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal;
 using Microsoft.CodeAnalysis.MSBuild;
 
+using MSB = Microsoft.Build;
 using MSBuildHost = BuildHost::Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 
 internal sealed partial class HotReloadMSBuildWorkspace
 {
-    private sealed class ProjectFileInfoProvider(Func<string, ImmutableArray<ProjectInstance>> getProjectInstances, ProjectFileExtensionRegistry projectFileExtensionRegistry)
+    private sealed class ProjectFileInfoProvider(
+        Func<string, (ImmutableArray<MSB.Execution.ProjectInstance> instances, MSB.Evaluation.Project? project)> getBuildProjects,
+        ProjectFileExtensionRegistry projectFileExtensionRegistry)
         : IProjectFileInfoProvider
     {
         public Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
         {
-            var instances = getProjectInstances(projectPath);
+            var (instances, project) = getBuildProjects(projectPath);
 
             if (instances.IsEmpty ||
                 !projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
@@ -38,7 +40,7 @@ internal sealed partial class HotReloadMSBuildWorkspace
                 var reader = new MSBuildHost.ProjectInstanceReader(
                     MSBuildHost.ProjectCommandLineProvider.Create(languageName),
                     instance,
-                    project: null);
+                    project);
 
                 return reader.CreateProjectFileInfo().Convert();
             }));
@@ -46,6 +48,6 @@ internal sealed partial class HotReloadMSBuildWorkspace
 
         public Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
             => Task.FromResult(
-                getProjectInstances(projectPath).SelectAsArray(static instance => instance.GetPropertyValue(MSBuildHost.PropertyNames.TargetPath)));
+                getBuildProjects(projectPath).instances.SelectAsArray(static instance => instance.GetPropertyValue(MSBuildHost.PropertyNames.TargetPath)));
     }
 }
