@@ -40,14 +40,10 @@ When investigating determinism issues where the same code produces different out
 Build with `/p:Features="debug-determinism"` to generate a `.key` file that documents all inputs to the compiler:
 
 ```bash
-# For MSBuild projects
 dotnet build /p:Features="debug-determinism"
-
-# For direct compiler invocation
-csc /features:debug-determinism YourFile.cs
 ```
 
-This creates an additional output file (e.g., `MyAssembly.dll.key`) alongside your compiled assembly. The key file is a JSON document containing:
+This creates an additional output file (e.g., `MyAssembly.dll.key`) in the output directory (typically in the `obj` directory for intermediate builds). The key file is a JSON document containing:
 - Compiler version and runtime information
 - All source file paths and content checksums
 - Referenced assemblies with their MVIDs (Module Version IDs)
@@ -89,19 +85,20 @@ The metadata dump shows detailed information about types, methods, fields, attri
 
 ### 3. Compare Embedded Resources
 
-If your assembly contains embedded resources, verify they are identical:
+If your assembly contains embedded resources, verify they are identical. The recommended approach is to use ILSpy, which has an easy "Save" button to export resources from the DLL for comparison.
+
+Alternatively, you can use `ildasm` to disassemble the DLL and extract the embedded `.res` files:
 
 ```bash
-# Extract resources using ildasm or .NET tools
-# For example, using ildasm on Windows:
+# Disassemble and generate .res files
 ildasm /out=assembly1.il MyAssembly1.dll
 ildasm /out=assembly2.il MyAssembly2.dll
 
-# Then compare the .resources sections in the IL files
-diff assembly1.il assembly2.il
+# Compare the generated .res files
+diff assembly1.res assembly2.res
 ```
 
-Alternatively, use a tool like `ILSpy` or `dnSpy` to inspect and compare embedded resources visually.
+You can also use tools like `dnSpy` to inspect embedded resources visually.
 
 ### 4. Binary Diff of the DLL
 
