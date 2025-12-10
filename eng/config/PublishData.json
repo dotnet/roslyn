@@ -177,10 +177,11 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.8",
+      "comment-about-vs-branch": "17.8 is currently not under VS servicing, but it is for the SDK.  17.8 optprof data is broken, so we pull from 17.10 instead",
+      "vsBranch": "rel/d17.10",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.8P2]"
+      "insertionTitlePrefix": "[d17.8 - Abandon]"
     },
     "main": {
       "nugetKind": [
