@@ -9,7 +9,6 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis;
 
-// TODO2 rename file after review completes
 internal static class Feature
 {
     internal const string Strict = "strict";
