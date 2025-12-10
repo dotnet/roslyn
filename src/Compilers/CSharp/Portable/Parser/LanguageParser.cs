@@ -4968,15 +4968,18 @@ parse_member_name:;
             var seenScoped = false;
             while (true)
             {
+                // Normal keyword-modifier (in/out/ref/readonly/params/this).  Always safe to consume.
                 if (IsParameterModifierExcludingScoped(this.CurrentToken))
                 {
                     modifiers.Add(this.EatToken());
                     continue;
                 }
 
+                // 'scoped' modifier.  May be ambiguous with a type/identifier.  And has changed parsing rules between
+                // C#13/14 inside a lambda parameter list.
                 if (this.IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter))
                 {
-                    // First scoped is always considered the modifier.
+                    // First scoped-modifier is always considered the modifier.
                     if (!seenScoped)
                     {
                         seenScoped = true;
@@ -5002,7 +5005,8 @@ parse_member_name:;
                     }
                 }
 
-                break;
+                // Not a modifier.  We're done.
+                return;
             }
         }
 
