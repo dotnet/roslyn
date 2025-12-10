@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -153,6 +153,10 @@ namespace Microsoft.CodeAnalysis
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(!syntaxTrees.IsDefault);
+            Debug.Assert(!references.IsDefault);
+            Debug.Assert(!publicKey.IsDefault);
+
             additionalTexts = additionalTexts.NullToEmpty();
             analyzers = analyzers.NullToEmpty();
             generators = generators.NullToEmpty();

@@ -63,43 +63,10 @@ namespace Microsoft.CodeAnalysis
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
-            return GetDeterministicKey(
-                compilationOptions,
-                syntaxTrees.SelectAsArray(static t => SyntaxTreeKey.Create(t)),
-                references,
-                publicKey,
-                additionalTexts,
-                analyzers,
-                generators,
-                pathMap,
-                emitOptions,
-                sourceLinkText,
-                ruleSetFilePath,
-                resources,
-                options,
-                cancellationToken);
-        }
-
-        public static string GetDeterministicKey(
-            CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTreeKey> syntaxTrees,
-            ImmutableArray<MetadataReference> references,
-            ImmutableArray<byte> publicKey,
-            ImmutableArray<AdditionalText> additionalTexts = default,
-            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
-            ImmutableArray<ISourceGenerator> generators = default,
-            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
-            EmitOptions? emitOptions = null,
-            SourceText? sourceLinkText = null,
-            string? ruleSetFilePath = null,
-            ImmutableArray<ResourceDescription> resources = default,
-            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
-            CancellationToken cancellationToken = default)
-        {
             var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
             return keyBuilder.GetKey(
                 compilationOptions,
-                syntaxTrees,
+                syntaxTrees.SelectAsArray(static t => SyntaxTreeKey.Create(t)),
                 references,
                 publicKey,
                 additionalTexts,

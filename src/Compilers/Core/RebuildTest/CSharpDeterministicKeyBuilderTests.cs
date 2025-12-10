@@ -599,12 +599,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
 
             var sourceLinkContent = """
-                {
-                  "documents": {
-                    "/*": "https://raw.githubusercontent.com/test/repo/*"
-                  }
-                }
-                """;
+{
+  "documents": {
+    "/*": "https://raw.githubusercontent.com/test/repo/*"
+  }
+}
+""";
             var sourceLinkText = SourceText.From(sourceLinkContent, Encoding.UTF8, SourceHashAlgorithm.Sha256);
             var sourceLinkChecksum = GetChecksum(sourceLinkText);
 
@@ -614,12 +614,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 sourceLinkText: sourceLinkText,
                 options: DeterministicKeyOptions.IgnoreToolVersions);
 
-            var expected = $@"
-""sourceLink"": {{
-  ""checksum"": ""{sourceLinkChecksum}"",
-  ""checksumAlgorithm"": ""Sha256"",
-  ""encodingName"": ""Unicode (UTF-8)""
-}}";
+            var expected = $$"""
+"sourceLink": {
+  "checksum": "{{sourceLinkChecksum}}",
+  "checksumAlgorithm": "Sha256",
+  "encodingName": "Unicode (UTF-8)"
+}
+""";
             AssertJsonSection(expected, key, "emitOptions.sourceLink");
         }
 
@@ -637,8 +638,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 ruleSetFilePath: ruleSetPath,
                 options: DeterministicKeyOptions.IgnoreToolVersions);
 
-            var expected = @$"
-""ruleSetPath"": ""{ruleSetPath}""";
+            var expected = $"""
+"ruleSetPath": "{ruleSetPath}"
+""";
             AssertJsonSection(expected, key, "compilation.options.ruleSetPath");
         }
 
@@ -666,21 +668,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 isPublic: true);
 
             var key = compilation.GetDeterministicKey(
-                resources: ImmutableArray.Create(resource),
+                resources: [resource],
                 options: DeterministicKeyOptions.IgnoreToolVersions);
 
-            var expected = $@"
-""resources"": [
-  {{
-    ""resourceName"": ""TestResource"",
-    ""fileName"": null,
-    ""isPublic"": true,
-    ""isEmbedded"": true,
-    ""content"": {{
-      ""checksum"": ""{resourceChecksum}""
-    }}
-  }}
-]";
+            var expected = $$"""
+"resources": [
+  {
+    "resourceName": "TestResource",
+    "fileName": null,
+    "isPublic": true,
+    "isEmbedded": true,
+    "content": {
+      "checksum": "{{resourceChecksum}}"
+    }
+  }
+]
+""";
             AssertJsonSection(expected, key, "resources");
         }
     }
