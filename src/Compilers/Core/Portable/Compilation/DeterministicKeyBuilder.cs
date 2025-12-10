@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("generators");
             writeGenerators();
             writer.WriteKey("emitOptions");
-            WriteEmitOptions(writer, emitOptions, pathMap, sourceLinkText, options, cancellationToken);
+            WriteEmitOptions(writer, emitOptions, pathMap, sourceLinkText, options);
             writer.WriteKey("resources");
             writeResources();
 
@@ -430,8 +430,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? options,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             SourceText? sourceLinkText,
-            DeterministicKeyOptions deterministicKeyOptions,
-            CancellationToken cancellationToken)
+            DeterministicKeyOptions deterministicKeyOptions)
         {
             if (options is null)
             {
