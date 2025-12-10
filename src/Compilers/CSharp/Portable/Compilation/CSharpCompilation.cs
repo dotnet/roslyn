@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// in some cases even at the expense of full compatibility. Such differences typically arise when
         /// earlier versions of the compiler failed to enforce the full language specification.
         /// </summary>
-        internal bool FeatureStrictEnabled => Feature(FeatureFlag.Strict) != null;
+        internal bool FeatureStrictEnabled => HasFeature(FeatureFlag.Strict);
 
         /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
@@ -250,13 +250,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature(FeatureFlag.PEVerifyCompat) != null;
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || HasFeature(FeatureFlag.PEVerifyCompat);
 
         /// <summary>
         /// True when the "disable-length-based-switch" feature flag is set.
         /// When this flag is set, the compiler will not emit length-based switch for string dispatches.
         /// </summary>
-        internal bool FeatureDisableLengthBasedSwitch => Feature(FeatureFlag.DisableLengthBasedSwitch) != null;
+        internal bool FeatureDisableLengthBasedSwitch => HasFeature(FeatureFlag.DisableLengthBasedSwitch);
 
         /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
@@ -4810,7 +4810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_lazyEmitNullablePublicOnly.HasValue())
                 {
-                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey(FeatureFlag.NullablePublicOnly) == true;
+                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.HasFeature(FeatureFlag.NullablePublicOnly) == true;
                     _lazyEmitNullablePublicOnly = value.ToThreeState();
                 }
                 return _lazyEmitNullablePublicOnly.Value();

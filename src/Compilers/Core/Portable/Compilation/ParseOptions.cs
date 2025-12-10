@@ -126,6 +126,12 @@ namespace Microsoft.CodeAnalysis
             get;
         }
 
+        internal bool HasFeature(string featureFlag)
+        {
+            FeatureFlag.AssertValidFeatureFlag(featureFlag);
+            return Features.TryGetValue(featureFlag, out var value) && value is not null;
+        }
+
         /// <summary>
         /// Names of defined preprocessor symbols.
         /// </summary>

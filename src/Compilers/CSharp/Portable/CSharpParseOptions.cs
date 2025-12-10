@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// In this mode, ignored directives <c>#:</c> are allowed.
         /// </remarks>
-        internal bool FileBasedProgram => Features.ContainsKey(FeatureFlag.FileBasedProgram);
+        internal bool FileBasedProgram => HasFeature(FeatureFlag.FileBasedProgram);
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {
-                return Features.ContainsKey(featureFlag);
+                return HasFeature(featureFlag);
             }
             LanguageVersion availableVersion = LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
