@@ -141,30 +141,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-                // (1,6): error CS0177: The out parameter 'd' must be assigned to before control leaves the current method
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("d").WithLocation(1, 6),
-                // (1,6): warning CS8321: The local function 'F' is declared but never used
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
-                // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 12),
-                // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
-                // (1,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 29),
-                // (1,29): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 29),
-                // (1,47): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 47),
-                // (1,47): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 47));
+                langVersion == LanguageVersion.CSharp10
+                ? [
+                    // (1,6): error CS0177: The out parameter 'd' must be assigned to before control leaves the current method
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("d").WithLocation(1, 6),
+                    // (1,6): warning CS8321: The local function 'F' is declared but never used
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                    // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 12),
+                    // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                    // (1,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 29),
+                    // (1,29): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 29),
+                    // (1,47): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 47),
+                    // (1,47): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 47)]
+                : [
+                    // (1,6): error CS0177: The out parameter 'd' must be assigned to before control leaves the current method
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("d").WithLocation(1, 6),
+                    // (1,6): warning CS8321: The local function 'F' is declared but never used
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                    // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                    // (1,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 29),
+                    // (1,47): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 47)]);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -602,33 +620,54 @@ ref @scoped F4() { }";
             string source = "void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-                // (1,6): warning CS8321: The local function 'F' is declared but never used
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
-                // (1,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 8),
-                // (1,15): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 15),
-                // (1,29): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 29),
-                // (1,43): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 43),
-                // (1,43): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 43),
-                // (1,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 50),
-                // (1,60): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 60),
-                // (1,71): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 71));
+                langVersion == LanguageVersion.CSharp10
+                    ? [
+                        // (1,6): warning CS8321: The local function 'F' is declared but never used
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                        // (1,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 8),
+                        // (1,15): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 15),
+                        // (1,29): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 29),
+                        // (1,43): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 43),
+                        // (1,43): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 43),
+                        // (1,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 50),
+                        // (1,60): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 60),
+                        // (1,71): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 71)]
+                    : [
+                        // (1,6): warning CS8321: The local function 'F' is declared but never used
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                        // (1,15): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 15),
+                        // (1,29): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 29),
+                        // (1,43): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 43),
+                        // (1,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 50),
+                        // (1,71): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                        // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                        Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 71)]);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -663,20 +702,12 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "z");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
@@ -799,15 +830,7 @@ ref @scoped F4() { }";
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -903,15 +926,7 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.OutKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1046,15 +1061,24 @@ ref @scoped F4() { }";
             string source = "(ref scoped int a) => null";
             UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-                // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
-                // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
-                // (1,27): error CS1002: ; expected
-                // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
+                langVersion == LanguageVersion.CSharp10
+                ? [
+                    // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
+                    // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                    // (1,27): error CS1002: ; expected
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)]
+                : [
+                    // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                    // (1,27): error CS1002: ; expected
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)]);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -1090,15 +1114,24 @@ ref @scoped F4() { }";
             string source = "(in scoped int a) => null";
             UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-                // (1,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 5),
-                // (1,5): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 5),
-                // (1,26): error CS1002: ; expected
-                // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26));
+                langVersion == LanguageVersion.CSharp10
+                ? [
+                    // (1,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 5),
+                    // (1,5): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 5),
+                    // (1,26): error CS1002: ; expected
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26)]
+                : [
+                    // (1,5): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 5),
+                    // (1,26): error CS1002: ; expected
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26)]);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -1134,18 +1167,30 @@ ref @scoped F4() { }";
             string source = "(out scoped int a) => null";
             UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-                // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
-                // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
-                // (1,23): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "null").WithArguments("a").WithLocation(1, 23),
-                // (1,27): error CS1002: ; expected
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
+                langVersion == LanguageVersion.CSharp10
+                ? [
+                    // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
+                    // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                    // (1,23): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "null").WithArguments("a").WithLocation(1, 23),
+                    // (1,27): error CS1002: ; expected
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)]
+                : [
+                    // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                    // (1,23): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "null").WithArguments("a").WithLocation(1, 23),
+                    // (1,27): error CS1002: ; expected
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)]);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
