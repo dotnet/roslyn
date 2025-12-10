@@ -230,7 +230,14 @@ internal sealed class BuildHost : IBuildHost
     private int AddProjectFileTarget(Build.Evaluation.Project? project, string languageName, DiagnosticLog log)
     {
         Contract.ThrowIfNull(_buildManager);
-        var projectFile = new BuildableProjectFile(new ProjectFile(ProjectCommandLineProvider.Create(languageName), project), _buildManager, log);
+
+        var projectFile = new ProjectFile(
+            languageName,
+            project,
+            ProjectCommandLineProvider.Create(languageName),
+            _buildManager,
+            log);
+
         return _server.AddTarget(projectFile);
     }
 

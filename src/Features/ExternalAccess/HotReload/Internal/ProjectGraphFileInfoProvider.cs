@@ -32,8 +32,12 @@ internal sealed class ProjectGraphFileInfoProvider(ProjectGraph graph, ProjectFi
 
         return Task.FromResult(nodes.SelectAsArray(node =>
         {
-            var projectFile = new MSBuildHost.ProjectFile(MSBuildHost.ProjectCommandLineProvider.Create(languageName), project: null);
-            return projectFile.CreateProjectFileInfo(node.ProjectInstance).Convert();
+            var reader = new MSBuildHost.ProjectInstanceReader(
+                MSBuildHost.ProjectCommandLineProvider.Create(languageName),
+                node.ProjectInstance,
+                project: null);
+
+            return reader.CreateProjectFileInfo().Convert();
         }));
     }
 

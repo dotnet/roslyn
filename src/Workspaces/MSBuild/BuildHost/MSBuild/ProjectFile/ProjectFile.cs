@@ -14,263 +14,245 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class ProjectFile
+internal sealed class ProjectFile(
+    string language,
+    MSB.Evaluation.Project? project,
+    ProjectCommandLineProvider commandLineProvider,
+    ProjectBuildManager buildManager,
+    DiagnosticLog log) : IProjectFile
 {
-    private readonly ProjectCommandLineProvider _commandLineProvider;
-    public readonly MSB.Evaluation.Project? Project;
+    public string FilePath
+        => project?.FullPath ?? string.Empty;
 
-    private readonly string _projectDirectory;
-
-    public string FilePath => Project?.FullPath ?? string.Empty;
-
-    public ProjectFile(ProjectCommandLineProvider commandLineReader, MSB.Evaluation.Project? project)
-    {
-        _commandLineProvider = commandLineReader;
-        Project = project;
-        var directory = project?.DirectoryPath ?? string.Empty;
-        _projectDirectory = PathUtilities.EnsureTrailingSeparator(directory);
-    }
-
-    public string Language
-        => _commandLineProvider.Language;
-
-    public ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
-    {
-        var commandLineArgs = GetCommandLineArgs(project);
-
-        var outputFilePath = project.ReadPropertyString(PropertyNames.TargetPath);
-        if (!RoslynString.IsNullOrWhiteSpace(outputFilePath))
-        {
-            outputFilePath = GetAbsolutePathRelativeToProject(outputFilePath);
-        }
-
-        var outputRefFilePath = project.ReadPropertyString(PropertyNames.TargetRefPath);
-        if (!RoslynString.IsNullOrWhiteSpace(outputRefFilePath))
-        {
-            outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
-        }
-
-        var generatedFilesOutputDirectory = project.ReadPropertyString(PropertyNames.CompilerGeneratedFilesOutputPath);
-        generatedFilesOutputDirectory = RoslynString.IsNullOrWhiteSpace(generatedFilesOutputDirectory)
-            ? null
-            : GetAbsolutePathRelativeToProject(generatedFilesOutputDirectory);
-
-        var intermediateOutputFilePath = project.GetItems(ItemNames.IntermediateAssembly).FirstOrDefault()?.EvaluatedInclude;
-        if (!RoslynString.IsNullOrWhiteSpace(intermediateOutputFilePath))
-        {
-            intermediateOutputFilePath = GetAbsolutePathRelativeToProject(intermediateOutputFilePath);
-        }
-
-        var projectAssetsFilePath = project.ReadPropertyString(PropertyNames.ProjectAssetsFile);
-
-        // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
-        // by assigning the value of the project's root namespace to it. So various feature can choose to 
-        // use it for their own purpose.
-        // In the future, we might consider officially exposing "default namespace" for VB project 
-        // (e.g. through a <defaultnamespace> msbuild property)
-        var defaultNamespace = project.ReadPropertyString(PropertyNames.RootNamespace) ?? string.Empty;
-
-        var targetFramework = project.ReadPropertyString(PropertyNames.TargetFramework);
-        if (RoslynString.IsNullOrWhiteSpace(targetFramework))
-        {
-            targetFramework = null;
-        }
-
-        var targetFrameworkIdentifier = project.ReadPropertyString(PropertyNames.TargetFrameworkIdentifier);
-
-        var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
-
-        var docs = project.GetDocuments().SelectAsArray(
-            predicate: IsNotTemporaryGeneratedFile,
-            selector: MakeDocumentFileInfo);
-
-        var additionalDocs = project.GetAdditionalFiles()
-            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
-
-        var analyzerConfigDocs = project.GetEditorConfigFiles()
-            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
-
-        var packageReferences = project.GetPackageReferences();
-
-        var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
-        var contentFileInfo = GetContentFiles(project);
-
-        var fileGlobs = Project?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
-
-        return new ProjectFileInfo()
-        {
-            Language = Language,
-            FilePath = project.FullPath,
-            OutputFilePath = outputFilePath,
-            OutputRefFilePath = outputRefFilePath,
-            GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
-            IntermediateOutputFilePath = intermediateOutputFilePath,
-            DefaultNamespace = defaultNamespace,
-            TargetFramework = targetFramework,
-            TargetFrameworkIdentifier = targetFrameworkIdentifier,
-            TargetFrameworkVersion = targetFrameworkVersion,
-            ProjectAssetsFilePath = projectAssetsFilePath,
-            CommandLineArgs = commandLineArgs,
-            Documents = docs,
-            AdditionalDocuments = additionalDocs,
-            AnalyzerConfigDocuments = analyzerConfigDocs,
-            ProjectReferences = [.. project.GetProjectReferences()],
-            PackageReferences = packageReferences,
-            ProjectCapabilities = projectCapabilities,
-            ContentFilePaths = contentFileInfo,
-            FileGlobs = fileGlobs
-        };
-
-        static FileGlobs GetFileGlobs(MSB.Evaluation.GlobResult g)
-        {
-            return new FileGlobs(
-                Includes: [.. g.IncludeGlobs.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
-                Excludes: [.. g.Excludes.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
-                Removes: [.. g.Removes.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)]);
-        }
-    }
-
-    private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
-    {
-        var contentFiles = project
-            .GetItems(ItemNames.Content)
-            .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
-        return contentFiles;
-    }
-
-    private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
-    {
-        var commandLineArgs = _commandLineProvider.GetCompilerCommandLineArgs(project)
-            .SelectAsArray(item => item.ItemSpec);
-
-        if (commandLineArgs.Length == 0)
-        {
-            // We didn't get any command-line args, which likely means that the build
-            // was not successful. In that case, try to read the command-line args from
-            // the ProjectInstance that we have. This is a best effort to provide something
-            // meaningful for the user, though it will likely be incomplete.
-            commandLineArgs = _commandLineProvider.ReadCommandLineArgs(project);
-        }
-
-        return commandLineArgs;
-    }
-
-    private static bool IsNotTemporaryGeneratedFile(MSB.Framework.ITaskItem item)
-        => !Path.GetFileName(item.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal);
-
-    private DocumentFileInfo MakeDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
-    {
-        var filePath = GetDocumentFilePath(documentItem);
-        var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
-        var isLinked = IsDocumentLinked(documentItem);
-        var isGenerated = IsDocumentGenerated(documentItem);
-
-        var folders = GetRelativeFolders(documentItem);
-        return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
-    }
-
-    private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
-    {
-        var filePath = GetDocumentFilePath(documentItem);
-        var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
-        var isLinked = IsDocumentLinked(documentItem);
-        var isGenerated = IsDocumentGenerated(documentItem);
-
-        var folders = GetRelativeFolders(documentItem);
-        return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
-    }
-
-    private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
-    {
-        var linkPath = documentItem.GetMetadata(MetadataNames.Link);
-        if (!RoslynString.IsNullOrEmpty(linkPath))
-        {
-            return [.. PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar)];
-        }
-        else
-        {
-            var filePath = documentItem.ItemSpec;
-            var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-            var folders = relativePath == null ? [] : relativePath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
-            return folders;
-        }
-    }
+    public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems()
+        => [.. log];
 
     /// <summary>
-    /// Resolves the given path that is possibly relative to the project directory.
+    /// Gets project file information asynchronously. Note that this can produce multiple
+    /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
+    /// each target framework.
     /// </summary>
-    /// <remarks>
-    /// The resulting path is absolute but might not be normalized.
-    /// </remarks>
-    private string GetAbsolutePathRelativeToProject(string path)
+    public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
     {
-        // TODO (tomat): should we report an error when drive-relative path (e.g. "C:goo.cs") is encountered?
-        var absolutePath = FileUtilities.ResolveRelativePath(path, _projectDirectory) ?? path;
-        return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
+        if (project is null)
+        {
+            return [ProjectFileInfo.CreateEmpty(language, filePath: null)];
+        }
+
+        var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
+
+        return projectInstances.SelectAsArray(
+            instance => new ProjectInstanceReader(commandLineProvider, instance, project).CreateProjectFileInfo());
     }
 
-    private string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
-        => GetAbsolutePathRelativeToProject(documentItem.ItemSpec);
-
-    private static bool IsDocumentLinked(MSB.Framework.ITaskItem documentItem)
-        => !RoslynString.IsNullOrEmpty(documentItem.GetMetadata(MetadataNames.Link));
-
-    private IDictionary<string, MSB.Evaluation.ProjectItem>? _documents;
-
-    private bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
+    public void AddDocument(string filePath, string? logicalPath = null)
     {
-        if (_documents == null)
+        if (project is null)
         {
-            _documents = new Dictionary<string, MSB.Evaluation.ProjectItem>();
-            if (Project is null)
-            {
-                return false;
-            }
-
-            foreach (var item in Project.GetItems(ItemNames.Compile))
-            {
-                _documents[GetAbsolutePathRelativeToProject(item.EvaluatedInclude)] = item;
-            }
+            return;
         }
 
-        return !_documents.ContainsKey(GetAbsolutePathRelativeToProject(documentItem.ItemSpec));
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, filePath);
+
+        Dictionary<string, string>? metadata = null;
+        if (logicalPath != null && relativePath != logicalPath)
+        {
+            metadata = new Dictionary<string, string>
+            {
+                { MetadataNames.Link, logicalPath }
+            };
+
+            relativePath = filePath; // link to full path
+        }
+
+        project.AddItem(ItemNames.Compile, relativePath, metadata);
     }
 
-    private static string GetDocumentLogicalPath(MSB.Framework.ITaskItem documentItem, string projectDirectory)
+    public void RemoveDocument(string filePath)
     {
-        var link = documentItem.GetMetadata(MetadataNames.Link);
-        if (!RoslynString.IsNullOrEmpty(link))
+        if (project is null)
         {
-            // if a specific link is specified in the project file then use it to form the logical path.
-            return link;
+            return;
         }
-        else
+
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, filePath);
+
+        var items = project.GetItems(ItemNames.Compile);
+        var item = items.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                           || PathUtilities.PathsEqual(it.EvaluatedInclude, filePath));
+        if (item != null)
         {
-            var filePath = documentItem.ItemSpec;
-
-            if (!PathUtilities.IsAbsolute(filePath))
-            {
-                return filePath;
-            }
-
-            var normalizedPath = FileUtilities.TryNormalizeAbsolutePath(filePath);
-            if (normalizedPath == null)
-            {
-                return filePath;
-            }
-
-            // If the document is within the current project directory (or subdirectory), then the logical path is the relative path 
-            // from the project's directory.
-            if (normalizedPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
-            {
-                return normalizedPath[projectDirectory.Length..];
-            }
-            else
-            {
-                // if the document lies outside the project's directory (or subdirectory) then place it logically at the root of the project.
-                // if more than one document ends up with the same logical name then so be it (the workspace will survive.)
-                return PathUtilities.GetFileName(normalizedPath);
-            }
+            project.RemoveItem(item);
         }
+    }
+
+    public void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        var metadata = new Dictionary<string, string>();
+        if (!aliases.IsEmpty)
+            metadata.Add(MetadataNames.Aliases, string.Join(",", aliases));
+
+        if (hintPath is not null)
+            metadata.Add(MetadataNames.HintPath, hintPath);
+
+        project.AddItem(ItemNames.Reference, metadataReferenceIdentity, metadata);
+    }
+
+    public void RemoveMetadataReference(string shortAssemblyName, string fullAssemblyName, string filePath)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        var item = FindReferenceItem(shortAssemblyName, fullAssemblyName, filePath);
+        if (item != null)
+        {
+            project.RemoveItem(item);
+        }
+    }
+
+    private MSB.Evaluation.ProjectItem FindReferenceItem(string shortAssemblyName, string fullAssemblyName, string filePath)
+    {
+        Contract.ThrowIfNull(project, "The project was not loaded.");
+
+        var references = project.GetItems(ItemNames.Reference);
+        MSB.Evaluation.ProjectItem? item = null;
+
+        var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+        // check for short name match
+        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+        if (item is not null)
+            return item;
+
+        // check for full name match
+        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+        if (item is not null)
+            return item;
+
+        // check for file path match
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, filePath);
+
+        item = references.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
+                                                || PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                                || PathUtilities.PathsEqual(GetHintPath(it), filePath)
+                                                || PathUtilities.PathsEqual(GetHintPath(it), relativePath));
+
+        if (item is not null)
+            return item;
+
+        var partialName = shortAssemblyName + ",";
+        var items = references.Where(it => it.EvaluatedInclude.StartsWith(partialName, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (items.Count == 1)
+        {
+            return items[0];
+        }
+
+        throw new InvalidOperationException($"Unable to find reference item '{shortAssemblyName}'");
+    }
+
+    private static string GetHintPath(MSB.Evaluation.ProjectItem item)
+        => item.Metadata.FirstOrDefault(m => string.Equals(m.Name, MetadataNames.HintPath, StringComparison.OrdinalIgnoreCase))?.EvaluatedValue ?? string.Empty;
+
+    public void AddProjectReference(string projectName, ProjectFileReference reference)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        var metadata = new Dictionary<string, string>
+        {
+            { MetadataNames.Name, projectName }
+        };
+
+        if (!reference.Aliases.IsEmpty)
+        {
+            metadata.Add(MetadataNames.Aliases, string.Join(",", reference.Aliases));
+        }
+
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, reference.Path);
+        project.AddItem(ItemNames.ProjectReference, relativePath, metadata);
+    }
+
+    public void RemoveProjectReference(string projectName, string projectFilePath)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        var item = FindProjectReferenceItem(projectName, projectFilePath);
+        if (item != null)
+        {
+            project.RemoveItem(item);
+        }
+    }
+
+    private MSB.Evaluation.ProjectItem? FindProjectReferenceItem(string projectName, string projectFilePath)
+    {
+        if (project is null)
+        {
+            return null;
+        }
+
+        var references = project.GetItems(ItemNames.ProjectReference);
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, projectFilePath);
+
+        MSB.Evaluation.ProjectItem? item = null;
+
+        // find by project file path
+        item = references.First(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                   || PathUtilities.PathsEqual(it.EvaluatedInclude, projectFilePath));
+
+        // try to find by project name
+        item ??= references.First(it => string.Compare(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase) == 0);
+
+        return item;
+    }
+
+    public void AddAnalyzerReference(string fullPath)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, fullPath);
+        project.AddItem(ItemNames.Analyzer, relativePath);
+    }
+
+    public void RemoveAnalyzerReference(string fullPath)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        var relativePath = PathUtilities.GetRelativePath(project.DirectoryPath, fullPath);
+
+        var analyzers = project.GetItems(ItemNames.Analyzer);
+        var item = analyzers.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                                || PathUtilities.PathsEqual(it.EvaluatedInclude, fullPath));
+        if (item != null)
+        {
+            project.RemoveItem(item);
+        }
+    }
+
+    public void Save()
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        project.Save();
     }
 }
