@@ -32,7 +32,7 @@ internal sealed class VisualStudioMSBuildInstalled : ExecutionCondition
         {
             buildHostProcessManager = new BuildHostProcessManager();
 
-            var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetFramework, CancellationToken.None).Result;
+            var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetFramework, CancellationToken.None).Result;
 
             // HACK: for .NET Framework build hosts, we don't actually need the project path to determine whether there's a usable VS -- so we can pass any file name here.
             return buildHost.HasUsableMSBuildAsync("NonExistent.sln", CancellationToken.None).Result;
