@@ -10,7 +10,7 @@
       "version": "17.14.0"
     },
     "vswhere": "3.1.7",
-    "xcopy-msbuild": "17.14.16"
+    "xcopy-msbuild": "18.0.0"
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "11.0.0-beta.25608.6",
