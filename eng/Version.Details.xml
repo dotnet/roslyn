@@ -115,13 +115,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25609.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25603.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>4917b993548eac98a7e6b1b2840bb19ac55bc8f9</Sha>
+      <Sha>9851192f7f7a7ee352358cce2627160fd1f2a54e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25609.1">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25603.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>4917b993548eac98a7e6b1b2840bb19ac55bc8f9</Sha>
+      <Sha>9851192f7f7a7ee352358cce2627160fd1f2a54e</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
@@ -131,9 +131,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>9143e6eedf61cd823a6f33e8312fe210740c5def</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25609.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25603.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>4917b993548eac98a7e6b1b2840bb19ac55bc8f9</Sha>
+      <Sha>9851192f7f7a7ee352358cce2627160fd1f2a54e</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25161.2">
       <Uri>https://github.com/dotnet/arcade-services</Uri>
