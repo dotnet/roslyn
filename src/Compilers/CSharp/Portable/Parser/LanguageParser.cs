@@ -5649,6 +5649,8 @@ parse_member_name:;
                 // once the user adds the '='.
                 if (looksLikeVariableInitializer())
                 {
+                    Debug.Assert(this.CurrentToken.Kind != SyntaxKind.EqualsToken);
+
                     localFunction = null;
                     return _syntaxFactory.VariableDeclarator(
                         name,
