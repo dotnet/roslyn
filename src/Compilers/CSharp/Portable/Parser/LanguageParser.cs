@@ -4986,20 +4986,45 @@ parse_member_name:;
         {
             Debug.Assert(!(isFunctionPointerParameter && isLambdaParameter), "Can't be parsing parameters for both a function pointer and a lambda at the same time");
 
+            var seenScoped = false;
             while (true)
             {
                 if (IsParameterModifierExcludingScoped(this.CurrentToken))
                 {
                     modifiers.Add(this.EatToken());
+                    continue;
                 }
-                else if (this.IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter))
+
+                if (this.IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter))
                 {
-                    modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                    // First scoped is always considered the modifier.
+                    if (!seenScoped)
+                    {
+                        seenScoped = true;
+                        modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                        continue;
+                    }
+                    else
+                    {
+                        // If we've already seen `scoped` then we may have a situation like `scoped scoped`. This could be
+                        // duplicated modifier, or it could be that the second `scoped` is actually the identifier of a
+                        // lambda parameter.
+                        //
+                        // Places where it is an identifier are:
+                        //
+                        //      `(scoped scoped, ...) =>`
+                        //      `(scoped scoped) =>`
+                        //      `(scoped scoped = ...) =>`
+                        if (isLambdaParameter &&
+                            this.PeekToken(1).Kind is not (SyntaxKind.CommaToken or SyntaxKind.CloseParenToken or SyntaxKind.EqualsEqualsToken))
+                        {
+                            modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                            continue;
+                        }
+                    }
                 }
-                else
-                {
-                    break;
-                }
+
+                break;
             }
         }
 
@@ -10532,7 +10557,9 @@ done:
             if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
                 return false;
 
-            // In C# 14 we decided that within a lambda 'scoped' would *always* be a keyword.
+            // In C# 14 we decided that within a lambda 'scoped' would *always* be a modifier, not a type.
+            // so `scoped scoped` is `modifier-scoped identifier-scoped` not `type-scoped identifier-scoped`.
+            // Note: this only applies the modifier/type portion.  We still allow the identifier of a 
             if (isLambdaParameter && IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
                 return true;
 
