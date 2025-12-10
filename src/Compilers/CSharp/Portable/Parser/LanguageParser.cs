@@ -8495,12 +8495,6 @@ done:
             return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
         }
 
-        //private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
-        //{
-        //    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-        //    return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
-        //}
-
         private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
