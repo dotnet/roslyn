@@ -588,10 +588,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void SourceLink()
         {
-            var syntaxTree = CSharpTestBase.Parse(
-                "",
-                filename: "file.cs",
-                checksumAlgorithm: HashAlgorithm);
+            var syntaxTree = CSharpTestBase.Parse("", filename: "file.cs", checksumAlgorithm: SourceHashAlgorithms.Default);
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
 
             var sourceLinkContent = """
@@ -601,14 +598,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }
 }
 """;
-            var sourceLinkText = SourceText.From(sourceLinkContent, Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            var sourceLinkText = SourceText.From(sourceLinkContent, encoding: null, SourceHashAlgorithms.Default);
             var sourceLinkChecksum = GetChecksum(sourceLinkText);
 
-            var emitOptions = EmitOptions;
-            var key = compilation.GetDeterministicKey(
-                emitOptions: emitOptions,
-                sourceLinkText: sourceLinkText,
-                options: DeterministicKeyOptions.IgnoreToolVersions);
+            using var sourceLinkStream = new System.IO.MemoryStream(Encoding.UTF8.GetBytes(sourceLinkContent));
+            var key = compilation.GetDeterministicKey(emitOptions: EmitOptions, sourceLinkStream: sourceLinkStream, options: DeterministicKeyOptions.IgnoreToolVersions);
 
             var expected = $$"""
 "sourceLink": {
@@ -630,8 +624,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
 
             // Embedded public resource
-            var embeddedPublicContent = "Embedded public resource";
-            var embeddedPublicBytes = Encoding.UTF8.GetBytes(embeddedPublicContent);
+            var embeddedPublicBytes = Encoding.UTF8.GetBytes("Embedded public resource");
             string embeddedPublicChecksum;
             using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
             {
@@ -640,8 +633,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             }
 
             // Embedded non-public resource
-            var embeddedPrivateContent = "Embedded private resource";
-            var embeddedPrivateBytes = Encoding.UTF8.GetBytes(embeddedPrivateContent);
+            var embeddedPrivateBytes = Encoding.UTF8.GetBytes("Embedded private resource");
             string embeddedPrivateChecksum;
             using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
             {
@@ -665,9 +657,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                     isPublic: true)
             );
 
-            var key = compilation.GetDeterministicKey(
-                resources: resources,
-                options: DeterministicKeyOptions.IgnoreToolVersions);
+            var key = compilation.GetDeterministicKey(resources: resources, options: DeterministicKeyOptions.IgnoreToolVersions);
 
             var expected = $$"""
 "resources": [
@@ -676,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "fileName": null,
     "isPublic": true,
     "content": {
-      "checksum": "{{embeddedPublicChecksum}}"
+      "checksum": "{{embeddedPublicChecksum}}",
       "checksumAlgorithm": "Sha256",
       "encodingName": "Unicode (UTF-8)"
     }
@@ -686,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "fileName": null,
     "isPublic": false,
     "content": {
-      "checksum": "{{embeddedPrivateChecksum}}"
+      "checksum": "{{embeddedPrivateChecksum}}",
       "checksumAlgorithm": "Sha256",
       "encodingName": "Unicode (UTF-8)"
     }

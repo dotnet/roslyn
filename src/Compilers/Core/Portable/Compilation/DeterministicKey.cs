@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
-            SourceText? sourceLinkText = null,
+            Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                 generators,
                 pathMap,
                 emitOptions,
-                sourceLinkText,
+                sourceLinkStream,
                 resources,
                 options,
                 cancellationToken);

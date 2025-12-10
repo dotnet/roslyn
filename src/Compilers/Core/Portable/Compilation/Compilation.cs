@@ -203,12 +203,12 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
-            SourceText? sourceLinkText = null,
+            Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkText, resources, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options);
         }
 
         internal string GetDeterministicKey(
@@ -217,22 +217,24 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
-            SourceText? sourceLinkText = null,
+            Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
-            => GetDeterministicKey(
+        {
+            return GetDeterministicKey(
                 Options,
                 CommonSyntaxTrees,
-                ExternalReferences.Concat(DirectiveReferences),
+                References.AsImmutable(),
                 Assembly.Identity.PublicKey,
                 additionalTexts,
                 analyzers,
                 generators,
                 pathMap,
                 emitOptions,
-                sourceLinkText,
+                sourceLinkStream,
                 resources,
                 options);
+        }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {

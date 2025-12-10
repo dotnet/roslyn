@@ -1748,20 +1748,15 @@ namespace Microsoft.CodeAnalysis
             Stream? sourceLinkStream,
             ImmutableArray<ResourceDescription> resources)
         {
-            SourceText? sourceLinkText = null;
-            if (sourceLinkStream != null)
-            {
-                sourceLinkText = SourceText.From(sourceLinkStream, checksumAlgorithm: SourceHashAlgorithms.Default, encoding: null, canBeEmbedded: false);
-            }
-
             var key = compilation.GetDeterministicKey(
                 additionalTexts,
                 analyzers,
                 generators,
                 pathMap,
                 emitOptions,
-                sourceLinkText,
+                sourceLinkStream,
                 resources);
+
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             var bytes = Encoding.UTF8.GetBytes(key);

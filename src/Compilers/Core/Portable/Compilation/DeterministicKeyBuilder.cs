@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
-            SourceText? sourceLinkText,
+            Stream? sourceLinkStream,
             ImmutableArray<ResourceDescription> resources,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("generators");
             writeGenerators();
             writer.WriteKey("emitOptions");
-            WriteEmitOptions(writer, emitOptions, pathMap, sourceLinkText, options);
+            WriteEmitOptions(writer, emitOptions, pathMap, sourceLinkStream, options);
             writer.WriteKey("resources");
             writeResources();
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        private void WriteSourceText(JsonWriter writer, SourceText? sourceText)
+        private static void WriteSourceText(JsonWriter writer, SourceText? sourceText)
         {
             if (sourceText is null)
             {
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis
             JsonWriter writer,
             EmitOptions? options,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
-            SourceText? sourceLinkText,
+            Stream? sourceLinkStream,
             DeterministicKeyOptions deterministicKeyOptions)
         {
             if (options is null)
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
             writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
             writer.WriteKey("sourceLink");
-            WriteSourceText(writer, sourceLinkText);
+            writeSourceLink(writer, sourceLinkStream);
             writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
@@ -469,6 +469,15 @@ namespace Microsoft.CodeAnalysis
                 writer.Write("major", version.Major);
                 writer.Write("minor", version.Minor);
                 writer.WriteObjectEnd();
+            }
+
+            static void writeSourceLink(JsonWriter writer, Stream? sourceLinkStream)
+            {
+                SourceText? sourceText = sourceLinkStream is not null
+                    ? SourceText.From(sourceLinkStream, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default)
+                    : null;
+
+                WriteSourceText(writer, sourceText);
             }
         }
 
