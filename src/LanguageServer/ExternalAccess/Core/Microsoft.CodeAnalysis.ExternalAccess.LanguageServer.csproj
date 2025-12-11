@@ -3,13 +3,14 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer</PackageId>
     <PackageDescription>
-      A supporting package for the GitHub Copilot in Visual Studio Code.
+      A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
   </PropertyGroup>
 
@@ -22,10 +23,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\Copilot\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   
   <ItemGroup>
