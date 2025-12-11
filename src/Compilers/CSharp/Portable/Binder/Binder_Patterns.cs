@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
 
             // Don't need to worry about checked user-defined operators
-            Debug.Assert(!conversion.IsUserDefined || result == ConstantValue.False || result == ConstantValue.Bad);
+            Debug.Assert((!conversion.IsUserDefined && !conversion.IsUnion) || result == ConstantValue.False || result == ConstantValue.Bad);
 
             return result;
         }

@@ -979,6 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!conversion.Exists ||
                 conversion.IsUserDefined ||
+                conversion.IsUnion || // PROTOTYPE: Add coverage
                 conversion.IsIdentity && parameterType.SpecialType == SpecialType.System_Object && defaultExpression.Type.IsDynamic())
             {
                 // If we had no implicit conversion, or a user-defined conversion, report an error.

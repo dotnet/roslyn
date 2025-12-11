@@ -5299,6 +5299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NullLiteral:
                 case ConversionKind.DefaultLiteral:
                 case ConversionKind.MethodGroup:
+                case ConversionKind.Union:
                     // We've either replaced Dynamic with Object, or already bailed out with an error.
                     throw ExceptionUtilities.UnexpectedValue(conversionKind);
             }

@@ -3,3 +3,4 @@ Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.ini
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IUnionInterfaceName = "IUnion" -> string!
+Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool

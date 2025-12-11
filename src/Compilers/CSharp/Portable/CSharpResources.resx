@@ -8195,4 +8195,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsUnionConversion" xml:space="preserve">
+    <value>An expression tree may not contain a union conversion.</value>
+  </data>
 </root>

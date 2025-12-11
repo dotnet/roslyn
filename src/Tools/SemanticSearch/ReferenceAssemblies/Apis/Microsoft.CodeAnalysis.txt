@@ -1945,6 +1945,7 @@ Microsoft.CodeAnalysis.Operations.CommonConversion.get_IsImplicit
 Microsoft.CodeAnalysis.Operations.CommonConversion.get_IsNullable
 Microsoft.CodeAnalysis.Operations.CommonConversion.get_IsNumeric
 Microsoft.CodeAnalysis.Operations.CommonConversion.get_IsReference
+Microsoft.CodeAnalysis.Operations.CommonConversion.get_IsUnion
 Microsoft.CodeAnalysis.Operations.CommonConversion.get_IsUserDefined
 Microsoft.CodeAnalysis.Operations.CommonConversion.get_MethodSymbol
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation

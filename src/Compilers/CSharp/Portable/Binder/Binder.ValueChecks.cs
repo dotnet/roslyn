@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HasAnyErrors = logicalOperator.HasAnyErrors
                 };
 
-            public static MethodInvocationInfo FromUserDefinedConversion(MethodSymbol operatorMethod, BoundExpression operand, bool hasAnyErrors)
+            public static MethodInvocationInfo FromUserDefinedOrUnionConversion(MethodSymbol operatorMethod, BoundExpression operand, bool hasAnyErrors)
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(operatorMethod),
@@ -3912,7 +3912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
-                        (!conversion.Conversion.IsUserDefined ||
+                        ((!conversion.Conversion.IsUserDefined && !conversion.Conversion.IsUnion) ||
                         conversion.Conversion.Method.HasUnsupportedMetadata ||
                         conversion.Conversion.Method.RefKind == RefKind.None));
                     break;
@@ -4250,7 +4250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return CheckRefEscape(node, conversion.Operand, escapeTo, checkingReceiver, diagnostics);
                     }
 
-                    Debug.Assert(!conversion.Conversion.IsUserDefined ||
+                    Debug.Assert((!conversion.Conversion.IsUserDefined && !conversion.Conversion.IsUnion) ||
                         conversion.Conversion.Method.HasUnsupportedMetadata ||
                         conversion.Conversion.Method.RefKind == RefKind.None);
                     break;
@@ -4598,13 +4598,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-                    if (conversion.Conversion.IsUserDefined)
+                    if (conversion.Conversion is { IsUserDefined: true } or { IsUnion: true })
                     {
                         var operatorMethod = conversion.Conversion.Method;
                         Debug.Assert(operatorMethod is not null);
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromUserDefinedConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
+                            MethodInvocationInfo.FromUserDefinedOrUnionConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
                             isRefEscape: false);
                     }
 
@@ -5335,14 +5335,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-                    if (conversion.Conversion.IsUserDefined)
+                    if (conversion.Conversion is { IsUserDefined: true } or { IsUnion: true })
                     {
                         var operatorMethod = conversion.Conversion.Method;
                         Debug.Assert(operatorMethod is not null);
 
                         return CheckInvocationEscape(
                             conversion.Syntax,
-                            MethodInvocationInfo.FromUserDefinedConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
+                            MethodInvocationInfo.FromUserDefinedOrUnionConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,

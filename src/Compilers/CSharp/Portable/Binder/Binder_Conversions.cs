@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                        !conversion.IsSwitchExpression &&
                        !conversion.IsCollectionExpression &&
                        !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
-                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion));
+                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion)) &&
+                       (!conversion.IsUnion || filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion));
             }
 #endif
 
@@ -266,6 +267,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
                 }
 
+                if (conversion.IsUnion)
+                {
+                    // Union conversions are likely to be represented as multiple
+                    // BoundConversion instances so a ConversionGroup is necessary.
+                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
+                }
+
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
                 if (conversion.Kind == ConversionKind.DefaultLiteral)
                 {
@@ -439,6 +447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                         }
                     }
+                }
+                else if (conversion.IsUnion)
+                {
+                    // PROTOTYPE: Check language version
                 }
                 else if (conversion.IsInlineArray)
                 {
@@ -2164,6 +2176,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalConversion.ResetCompilerGenerated(source.WasCompilerGenerated);
 
             return finalConversion;
+        }
+
+        private BoundExpression CreateUnionConversion(
+            SyntaxNode syntax,
+            BoundExpression source,
+            Conversion conversion,
+            bool isCast,
+            ConversionGroup conversionGroup,
+            TypeSymbol destination,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(conversionGroup != null);
+            Debug.Assert(conversion.IsUnion);
+            Debug.Assert(conversion.IsValid);
+            Debug.Assert(conversion.BestUnionConversionAnalysis is object); // All valid union conversions have this populated
+
+            UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
+
+            Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
+            Debug.Assert(analysis.Operator.MethodKind == MethodKind.Constructor);
+            Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination, analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination, analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(analysis.TargetConversion.IsIdentity);
+
+            conversion.MarkUnderlyingConversionsChecked();
+
+            // Original expression --> conversion's "from" type
+            BoundExpression convertedOperand = CreateConversion(
+                syntax: source.Syntax,
+                source: source,
+                conversion: analysis.SourceConversion,
+                isCast: false,
+                conversionGroupOpt: conversionGroup,
+                wasCompilerGenerated: false,
+                destination: analysis.FromType,
+                diagnostics: diagnostics);
+
+            return new BoundConversion(
+                syntax,
+                convertedOperand,
+                conversion,
+                @checked: CheckOverflowAtRuntime,
+                explicitCastInCode: isCast,
+                conversionGroup,
+                constantValueOpt: ConstantValue.NotAvailable,
+                type: destination);
         }
 
         private BoundExpression CreateFunctionTypeConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)

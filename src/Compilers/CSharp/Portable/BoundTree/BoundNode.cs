@@ -454,12 +454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return boundConversion.Conversion;
                     }
 
-                    if (!boundConversion.Conversion.IsUserDefined)
+                    if (boundConversion.Conversion is not ({ IsUserDefined: true } or { IsUnion: true })) // PROTOTYPE: Add coverage
                     {
                         boundConversion = (BoundConversion)boundConversion.Operand;
                     }
 
-                    if (boundConversion.Conversion.IsUserDefined)
+                    if (boundConversion.Conversion is { IsUserDefined: true } or { IsUnion: true }) // PROTOTYPE: Add coverage
                     {
                         BoundConversion next;
 

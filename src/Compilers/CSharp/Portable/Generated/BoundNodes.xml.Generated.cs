@@ -17491,6 +17491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.UnconvertedInterpolatedString => PipelinePhase.InitialBinding,
                 BoundKind.InterpolatedStringHandlerPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.InterpolatedStringArgumentPlaceholder => PipelinePhase.LocalRewriting,
+                BoundKind.PatternWithUnionMatching => PipelinePhase.InitialBinding,
                 BoundKind.DeconstructionVariablePendingInference => PipelinePhase.LocalRewriting,
                 _ => PipelinePhase.Emit
             };

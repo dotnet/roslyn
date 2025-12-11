@@ -2441,7 +2441,7 @@
       InputType is LeftOfPendingConjunction.InputType ?? UnionType 
       NarrowedType is Pattern.NarrowedType
   -->
-  <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true">
+  <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- The Union type matched -->
     <Field Name="UnionType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>

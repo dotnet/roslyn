@@ -893,6 +893,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.Union:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsUnionConversion, node);
+                    }
+                    break;
+
                 default:
 
                     if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && (method.IsAbstract || method.IsVirtual) && method.IsStatic)

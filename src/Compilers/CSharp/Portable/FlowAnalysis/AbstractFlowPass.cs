@@ -3082,7 +3082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!conversion.IsUserDefined)
+            if (!conversion.IsUserDefined) // PROTOTYPE: Follow up
             {
                 return true;
             }

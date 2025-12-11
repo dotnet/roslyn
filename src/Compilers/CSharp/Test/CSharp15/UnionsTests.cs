@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4464,6 +4465,2497 @@ class Program
                 //         return u switch { { } => 1, null => 3 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 37)
                 );
+        }
+
+        [Fact]
+        public void UnionConversion_01_Implicit()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        /*<bind>*/ return 10; /*</bind>*/
+    }   
+
+    static S1 Test2()
+    {
+        System.Console.Write(""2-"");
+        return default;
+    }   
+
+    static S1 Test3()
+    {
+        System.Console.Write(""3-"");
+        return default(S1);
+    }   
+
+    static S1 Test4()
+    {
+        System.Console.Write(""4-"");
+        return null;
+    }   
+
+    static S1 Test5()
+    {
+        System.Console.Write(""5-"");
+        return ""11"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var ten = GetSyntax<LiteralExpressionSyntax>(tree, "10");
+
+            var symbolInfo = model.GetSymbolInfo(ten);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var typeInfo = model.GetTypeInfo(ten);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S1", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(ten);
+            Assert.True(conversion.Exists);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsImplicit);
+            Assert.False(conversion.IsExplicit);
+            Assert.Equal(ConversionKind.Union, conversion.Kind);
+            Assert.Equal(LookupResultKind.Viable, conversion.ResultKind);
+            Assert.True(conversion.IsUnion);
+            Assert.False(conversion.IsUserDefined);
+            AssertEx.Equal("S1..ctor(System.Int32 x)", conversion.Method.ToTestDisplayString());
+            AssertEx.Equal("S1..ctor(System.Int32 x)", conversion.MethodSymbol.ToTestDisplayString());
+            Assert.Null(conversion.BestUserDefinedConversionAnalysis);
+            Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
+            Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
+            Assert.NotNull(conversion.BestUnionConversionAnalysis);
+            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            Assert.True(conversion.UnderlyingConversions.IsDefault);
+            Assert.False(conversion.IsArrayIndex);
+            Assert.False(conversion.IsExtensionMethod);
+
+            CommonConversion commonConversion = conversion.ToCommonConversion();
+
+            Assert.True(commonConversion.Exists);
+            Assert.True(commonConversion.IsImplicit);
+            Assert.True(commonConversion.IsUnion);
+            Assert.False(commonConversion.IsUserDefined);
+            AssertEx.Equal("S1..ctor(System.Int32 x)", commonConversion.MethodSymbol.ToTestDisplayString());
+
+            VerifyOperationTreeForTest<ReturnStatementSyntax>(comp, """
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(System.Int32 x)) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: '10')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False, IsUnion: True) (MethodSymbol: S1..ctor(System.Int32 x))
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+""");
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldc.i4.s   10
+  IL_000c:  newobj     ""S1..ctor(int)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldstr      ""3-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldstr      ""4-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  newobj     ""S1..ctor(string)""
+  IL_0010:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldstr      ""5-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldstr      ""11""
+  IL_000f:  newobj     ""S1..ctor(string)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_02_Implicit_Class()
+        {
+            var src = @"
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return 10;
+    }   
+
+    static S1 Test2()
+    {
+        System.Console.Write(""2-"");
+        return default;
+    }   
+
+    static S1 Test3()
+    {
+        System.Console.Write(""3-"");
+        return default(S1);
+    }   
+
+    static S1 Test4()
+    {
+        System.Console.Write(""4-"");
+        return null;
+    }   
+
+    static S1 Test5()
+    {
+        System.Console.Write(""5-"");
+        return ""11"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-5-string {11}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldc.i4.s   10
+  IL_000c:  newobj     ""S1..ctor(int)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""3-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""4-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldstr      ""5-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldstr      ""11""
+  IL_000f:  newobj     ""S1..ctor(string)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_03_Cast()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return /*<bind>*/ (S1)10 /*</bind>*/;
+    }   
+
+    static S1 Test2()
+    {
+        System.Console.Write(""2-"");
+        return (S1)default;
+    }   
+
+    static S1 Test3()
+    {
+        System.Console.Write(""3-"");
+        return (S1)default(S1);
+    }   
+
+    static S1 Test4()
+    {
+        System.Console.Write(""4-"");
+        return (S1)null;
+    }   
+
+    static S1 Test5()
+    {
+        System.Console.Write(""5-"");
+        return (S1)""11"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var cast = GetSyntax<CastExpressionSyntax>(tree, "(S1)10");
+
+            var symbolInfo = model.GetSymbolInfo(cast);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            AssertEx.Equal("S1..ctor(System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            VerifyOperationTreeForTest<CastExpressionSyntax>(comp, """
+IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(System.Int32 x)) (OperationKind.Conversion, Type: S1) (Syntax: '(S1)10')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False, IsUnion: True) (MethodSymbol: S1..ctor(System.Int32 x))
+  Operand:
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+""");
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldc.i4.s   10
+  IL_000c:  newobj     ""S1..ctor(int)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldstr      ""3-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldstr      ""4-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  newobj     ""S1..ctor(string)""
+  IL_0010:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldstr      ""5-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldstr      ""11""
+  IL_000f:  newobj     ""S1..ctor(string)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_04_Cast_Class()
+        {
+            var src = @"
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return (S1)10;
+    }   
+
+    static S1 Test2()
+    {
+        System.Console.Write(""2-"");
+        return (S1)default;
+    }   
+
+    static S1 Test3()
+    {
+        System.Console.Write(""3-"");
+        return (S1)default(S1);
+    }   
+
+    static S1 Test4()
+    {
+        System.Console.Write(""4-"");
+        return (S1)null;
+    }   
+
+    static S1 Test5()
+    {
+        System.Console.Write(""5-"");
+        return (S1)""11"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-5-string {11}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldc.i4.s   10
+  IL_000c:  newobj     ""S1..ctor(int)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""3-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""4-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldstr      ""5-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldstr      ""11""
+  IL_000f:  newobj     ""S1..ctor(string)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_05_No_Lifted_Form()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        _value = x;
+    }
+    public S1(string x)
+    {
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static S1 Test1(int? x)
+    {
+        return x;
+    }   
+
+    static S1? Test2(int? y)
+    {
+        return y;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            // PROTOTYPE: Confirm that there are no lifted forms.
+
+            comp.VerifyDiagnostics(
+                // (20,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int?", "S1").WithLocation(20, 16),
+                // (25,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1?'
+                //         return y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int?", "S1?").WithLocation(25, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_06_No_Lifted_Form_Class()
+        {
+            var src = @"
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        _value = x;
+    }
+    public S1(string x)
+    {
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static S1 Test1(int? x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (20,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int?", "S1").WithLocation(20, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_07_Ambiguity_First_Declared_Wins()
+        {
+            var src1 = @"
+public struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x)
+    {
+        System.Console.Write(""C1"");
+        _value = x;
+    }
+    public S1(C2 x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+public struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S2(C2 x)
+    {
+        System.Console.Write(""C2"");
+        _value = x;
+    }
+    public S2(C1 x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+public class C1 { }
+public class C2 { }
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static S1 Test1()
+    {
+        return null;
+    }   
+
+    static S2 Test2()
+    {
+        return null;
+    }   
+}
+";
+            var comp = CreateCompilation([src1, src2, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "C1C2").VerifyDiagnostics();
+
+            comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "C1C2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_08_Standard_Conversion_For_Source_Allowed()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1(15);
+        Test1(16);
+    }
+
+    static S1 Test1(byte x1)
+    {
+        return x1;
+    }   
+
+    static S1 Test2(byte x2)
+    {
+        return (S1)x2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "int {15} int {16}").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var x1 = GetSyntax<IdentifierNameSyntax>(tree, "x1");
+
+            var symbolInfo = model.GetSymbolInfo(x1);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            AssertEx.Equal("System.Byte x1", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var typeInfo = model.GetTypeInfo(x1);
+            Assert.Equal("System.Byte", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S1", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(x1);
+            Assert.True(conversion.IsUnion);
+            Assert.False(conversion.IsUserDefined);
+            AssertEx.Equal("S1..ctor(System.Int32 x)", conversion.Method.ToTestDisplayString());
+            Assert.Null(conversion.BestUserDefinedConversionAnalysis);
+            Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
+            Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
+            Assert.NotNull(conversion.BestUnionConversionAnalysis);
+            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            Assert.True(conversion.UnderlyingConversions.IsDefault);
+
+            CommonConversion commonConversion = conversion.ToCommonConversion();
+
+            Assert.True(commonConversion.Exists);
+            Assert.True(commonConversion.IsImplicit);
+            Assert.True(commonConversion.IsUnion);
+            Assert.False(commonConversion.IsUserDefined);
+            AssertEx.Equal("S1..ctor(System.Int32 x)", commonConversion.MethodSymbol.ToTestDisplayString());
+
+            VerifyOperationTreeForNode(comp, model, GetSyntax<ReturnStatementSyntax>(tree, "return x1;"), """
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return x1;')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(System.Int32 x)) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'x1')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False, IsUnion: True) (MethodSymbol: S1..ctor(System.Int32 x))
+      Operand:
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand:
+            IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'x1')
+""");
+
+            var x2 = GetSyntax<IdentifierNameSyntax>(tree, "x2");
+
+            symbolInfo = model.GetSymbolInfo(x2);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            AssertEx.Equal("System.Byte x2", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            typeInfo = model.GetTypeInfo(x2);
+            Assert.Equal("System.Byte", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            conversion = model.GetConversion(x2);
+            Assert.True(conversion.IsNumeric);
+            Assert.False(conversion.IsUnion);
+            Assert.False(conversion.IsUserDefined);
+
+            var cast = GetSyntax<CastExpressionSyntax>(tree, "(S1)x2");
+
+            symbolInfo = model.GetSymbolInfo(cast);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            AssertEx.Equal("S1..ctor(System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            typeInfo = model.GetTypeInfo(cast);
+            Assert.Equal("S1", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S1", typeInfo.ConvertedType.ToTestDisplayString());
+
+            VerifyOperationTreeForNode(comp, model, GetSyntax<ReturnStatementSyntax>(tree, "return (S1)x2;"), """
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (S1)x2;')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(System.Int32 x)) (OperationKind.Conversion, Type: S1) (Syntax: '(S1)x2')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False, IsUnion: True) (MethodSymbol: S1..ctor(System.Int32 x))
+      Operand:
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand:
+            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'x2')
+""");
+        }
+
+        [Fact]
+        public void UnionConversion_09_NonStandard_Conversion_For_Source_Not_Allowed()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(C1 x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class C1
+{
+    public static implicit operator C1(byte x) => new C1();
+}
+
+class Program
+{
+    static S1 Test1(byte x)
+    {
+#line 100
+        return x;
+    }   
+
+    static S1 Test2(byte x)
+    {
+#line 200
+        return (S1)x;
+    }   
+
+    static C1 Test3(byte x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,16): error CS0029: Cannot implicitly convert type 'byte' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("byte", "S1").WithLocation(100, 16),
+                // (200,16): error CS0030: Cannot convert type 'byte' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S1)x").WithArguments("byte", "S1").WithLocation(200, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_10_Explicit_Conversion_For_Source_Not_Allowed()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1 Test1(long x)
+    {
+#line 100
+        return x;
+    }   
+    static S1 Test2(long x)
+    {
+#line 200
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,16): error CS0029: Cannot implicitly convert type 'long' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("long", "S1").WithLocation(100, 16),
+                // (200,16): error CS0030: Cannot convert type 'long' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S1)x").WithArguments("long", "S1").WithLocation(200, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_11_Not_Standard_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(S2 x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null;
+    public S2(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class C1
+{
+    public static implicit operator C1(S2 x) => new C1();
+}
+
+class Program
+{
+    static S1 Test1(int x)
+    {
+#line 100
+        return x;
+    }   
+
+    static C1 Test2(int x)
+    {
+#line 200
+        return x;
+    }   
+
+    static S1 Test3(int x)
+    {
+#line 300
+        return (S2)x;
+    }   
+
+    static C1 Test4(int x)
+    {
+#line 400
+        return (S2)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,16): error CS0029: Cannot implicitly convert type 'int' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int", "S1").WithLocation(100, 16),
+                // (200,16): error CS0029: Cannot implicitly convert type 'int' to 'C1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int", "C1").WithLocation(200, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_12_Implicit_UserDefined_Conversion_Wins()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static implicit operator S1(int x)
+    {
+        System.Console.Write(""implicit operator "");
+        return new S1(x.ToString());
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static S1 Test1()
+    {
+        return 10;
+    }   
+
+    static S1 Test2()
+    {
+        return (S1)20;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "implicit operator string {10} implicit operator string {20}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_13_Cast_Explicit_UserDefined_Conversion_Wins()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static explicit operator S1(int x)
+    {
+        System.Console.Write(""explicit operator "");
+        return new S1(x.ToString());
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test2();
+    }
+
+    static S1 Test2()
+    {
+        return (S1)20;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "explicit operator string {20}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_14_Explicit_UserDefined_Conversion_Loses()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static explicit operator S1(int x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1 Test1()
+    {
+        return 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_15_Cast_From_Base_Class_Not_Union_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(System.ValueType x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1()));
+    }
+
+    static S1 Test2(System.ValueType x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "S1").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  unbox.any  ""S1""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_16_Implicit_From_Base_Class_Union_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(System.ValueType x)
+    {
+        System.Console.Write(""System.ValueType "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1()));
+    }
+
+    static S1 Test2(System.ValueType x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "System.ValueType S1").VerifyDiagnostics();
+
+            // PROTOTYPE: Confirm that we are fine with this conversion behavior. See previous test as well.
+            //            Cast performs unboxing conversion, but implicit conversion performs union conversion.
+            //            Might be too confusing.
+            //            Note, language disallows user-defined conversions like that, see errors below.
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""S1..ctor(System.ValueType)""
+  IL_0006:  ret
+}
+");
+            var src2 = @"
+struct S1
+{
+    public static implicit operator S1(System.ValueType x)
+         => throw null;
+}
+struct S2
+{
+    public static explicit operator S2(System.ValueType x)
+         => throw null;
+}
+";
+            CreateCompilation(src2).VerifyDiagnostics(
+                // (4,37): error CS0553: 'S1.implicit operator S1(ValueType)': user-defined conversions to or from a base type are not allowed
+                //     public static implicit operator S1(System.ValueType x)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "S1").WithArguments("S1.implicit operator S1(System.ValueType)").WithLocation(4, 37),
+                // (9,37): error CS0553: 'S2.explicit operator S2(ValueType)': user-defined conversions to or from a base type are not allowed
+                //     public static explicit operator S2(System.ValueType x)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "S2").WithArguments("S2.explicit operator S2(System.ValueType)").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_17_Cast_From_Implemented_Interface_Not_Union_Conversion()
+        {
+            var src = @"
+struct S1 : I1, System.Runtime.CompilerServices.IUnion
+{
+    public S1(I1 x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+interface I1 { }
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1()));
+    }
+
+    static S1 Test2(I1 x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "S1").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  unbox.any  ""S1""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_18_Implicit_From_Implemented_Interface_Union_Conversion()
+        {
+            var src = @"
+struct S1 : I1, System.Runtime.CompilerServices.IUnion
+{
+    public S1(I1 x)
+    {
+        System.Console.Write(""I1 "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+interface I1 { }
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1()));
+    }
+
+    static S1 Test2(I1 x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1").VerifyDiagnostics();
+
+            // PROTOTYPE: Confirm that we are fine with this conversion behavior. See previous test as well.
+            //            Cast performs unboxing conversion, but implicit conversion performs union conversion.
+            //            Might be too confusing.
+            //            Note, language disallows user-defined conversions like that, see errors below.
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""S1..ctor(I1)""
+  IL_0006:  ret
+}
+");
+            var src2 = @"
+interface I1 { }
+
+struct S1 : I1
+{
+    public static implicit operator S1(I1 x)
+         => throw null;
+}
+struct S2 : I1
+{
+    public static explicit operator S2(I1 x)
+         => throw null;
+}
+";
+            CreateCompilation(src2).VerifyDiagnostics(
+                // (6,37): error CS0552: 'S1.implicit operator S1(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator S1(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "S1").WithArguments("S1.implicit operator S1(I1)").WithLocation(6, 37),
+                // (11,37): error CS0552: 'S2.explicit operator S2(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static explicit operator S2(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "S2").WithArguments("S2.explicit operator S2(I1)").WithLocation(11, 37)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_19_From_Not_Implemented_Interface_Union_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(I1 x)
+    {
+        System.Console.Write(""I1 "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+interface I1 { }
+
+struct S2 : I1;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2()));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S2()));
+    }
+
+    static S1 Test1(I1 x)
+    {
+        return x;
+    }   
+
+    static S1 Test2(I1 x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1 I1 S1").VerifyDiagnostics();
+
+            // PROTOTYPE: Confirm that we are fine with this conversion behavior.
+            //            Might be too confusing.
+            //            Note, language disallows user-defined conversions like that, see errors below.
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""S1..ctor(I1)""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""S1..ctor(I1)""
+  IL_0006:  ret
+}
+");
+            var src2 = @"
+interface I1 { }
+
+struct S1
+{
+    public static implicit operator S1(I1 x)
+         => throw null;
+}
+struct S2
+{
+    public static explicit operator S2(I1 x)
+         => throw null;
+}
+";
+            CreateCompilation(src2).VerifyDiagnostics(
+                // (6,37): error CS0552: 'S1.implicit operator S1(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator S1(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "S1").WithArguments("S1.implicit operator S1(I1)").WithLocation(6, 37),
+                // (11,37): error CS0552: 'S2.explicit operator S2(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static explicit operator S2(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "S2").WithArguments("S2.explicit operator S2(I1)").WithLocation(11, 37)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_20_From_Not_Implemented_Interface_Union_Conversion()
+        {
+            var src = @"
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(I1 x)
+    {
+        System.Console.Write(""I1 "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+interface I1 { }
+
+struct S2 : I1;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2()));
+    }
+
+    static S1 Test1(I1 x)
+    {
+        return x;
+    }   
+
+    static S1 Test2(I1 x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1").VerifyDiagnostics();
+
+            // PROTOTYPE: Confirm that we are fine with this conversion behavior.
+            //            Cast performs castclass conversion, but implicit conversion performs union conversion.
+            //            Might be too confusing.
+            //            Note, language disallows user-defined conversions like that, see errors below.
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""S1..ctor(I1)""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  castclass  ""S1""
+  IL_0006:  ret
+}
+");
+            var src2 = @"
+interface I1 { }
+
+class S1
+{
+    public static implicit operator S1(I1 x)
+         => throw null;
+}
+class S2
+{
+    public static explicit operator S2(I1 x)
+         => throw null;
+}
+";
+            CreateCompilation(src2).VerifyDiagnostics(
+                // (6,37): error CS0552: 'S1.implicit operator S1(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator S1(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "S1").WithArguments("S1.implicit operator S1(I1)").WithLocation(6, 37),
+                // (11,37): error CS0552: 'S2.explicit operator S2(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static explicit operator S2(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "S2").WithArguments("S2.explicit operator S2(I1)").WithLocation(11, 37)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_21_Through_Base_Class_Or_Interface()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(System.ValueType x)
+    {
+        System.Console.Write(""System.ValueType {"");
+        System.Console.Write(x.GetType());
+        System.Console.Write(' ');
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(System.IComparable x)
+    {
+        System.Console.Write(""System.IComparable {"");
+        System.Console.Write(x.GetType());
+        System.Console.Write(' ');
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test5();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return 10;
+    }   
+
+    static S1 Test5()
+    {
+        System.Console.Write(""5-"");
+        return ""11"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-System.ValueType {System.Int32 10} 5-System.IComparable {System.String 11}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldc.i4.s   10
+  IL_000c:  box        ""int""
+  IL_0011:  newobj     ""S1..ctor(System.ValueType)""
+  IL_0016:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldstr      ""5-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldstr      ""11""
+  IL_000f:  newobj     ""S1..ctor(System.IComparable)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_22_ExpressionTree()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static System.Linq.Expressions.Expression<System.Func<S1>> Test1(int x)
+    {
+        return () => x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (13,22): error CS9400: An expression tree may not contain a union conversion.
+                //         return () => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUnionConversion, "x").WithLocation(13, 22)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_23_ClassifyImplicitConversionFromType()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1(10);
+    }
+
+    static S1 Test1(int? x)
+    {
+        return x ?? new S1("""");
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_24_ClassifyConversionFromType()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new S1();
+        var y = (0, 123);
+        (var z, x) = y; 
+    }
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "int {123}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_25_ClassifyConversionFromTypeForCast_Implicit_UserDefined_Conversion_Wins()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static implicit operator S1(int x)
+    {
+        System.Console.Write(""implicit operator "");
+        return new S1(x.ToString());
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1(); 
+    }
+
+    static void Test1()
+    {
+        foreach (S1 y in new int[] { 10 })
+        {
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "implicit operator string {10}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_26_ClassifyConversionFromTypeForCast_Explicit_UserDefined_Conversion_Wins()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static explicit operator S1(int x)
+    {
+        System.Console.Write(""explicit operator "");
+        return new S1(x.ToString());
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test2();
+    }
+
+    static void Test2()
+    {
+        foreach (S1 y in new int[] { 20 })
+        {
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "explicit operator string {20}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_27_ClassifyConversionFromTypeForCast()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        foreach (S1 y in new int[] { 10 })
+        {
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_28_Under_Tuple_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(double x)
+    {
+        System.Console.Write(""double {"");
+        System.Console.Write((int)x);
+        System.Console.Write(""} "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1((0, 10));
+    }
+
+    static (int, S1) Test1((int, byte) x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "double {10}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, byte> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, byte>.Item1""
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""byte System.ValueTuple<int, byte>.Item2""
+  IL_000e:  conv.r8
+  IL_000f:  newobj     ""S1..ctor(double)""
+  IL_0014:  newobj     ""System.ValueTuple<int, S1>..ctor(int, S1)""
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_29_Not_Under_Nullable_Conversion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1? Test1(int x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            // PROTOTYPE: Do we want to adjust conversion rules to allow this case?
+
+            comp.VerifyDiagnostics(
+                // (13,16): error CS0029: Cannot implicitly convert type 'int' to 'S1?'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int", "S1?").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_30_In_Parameter()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(in int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+    }
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2(11);
+        Test3(12);
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return 10;
+    }   
+
+    static S1 Test2(int x)
+    {
+        System.Console.Write(""2-"");
+        return x;
+    }   
+
+    static S1 Test3(byte x)
+    {
+        System.Console.Write(""3-"");
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-int {11} 3-int {12}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldc.i4.s   10
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  newobj     ""S1..ctor(in int)""
+  IL_0014:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  newobj     ""S1..ctor(in int)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldstr      ""3-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldarg.0
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  newobj     ""S1..ctor(in int)""
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_31_Ambiguity_In_Vs_Val_First_Declared_Wins()
+        {
+            var src1 = @"
+public struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(in int x)
+    {
+        System.Console.Write(""In"");
+    }
+    public S1(int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+public struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x)
+    {
+        System.Console.Write(""Val"");
+    }
+    public S2(in int x) => throw null;
+    public S2(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static S1 Test1()
+    {
+        return 10;
+    }   
+
+    static S2 Test2()
+    {
+        return 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src1, src2, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "InVal").VerifyDiagnostics();
+
+            comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "InVal").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_32_No_Params_Expansion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(params int[] x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1 Test1(int x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS0030: Cannot convert type 'int' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S1)x").WithArguments("int", "S1").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_33_No_Optional()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(byte  x) => throw null;
+    public S1(string x) => throw null;
+    public S1(int x, object o = null) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1 Test1(int x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (14,16): error CS0030: Cannot convert type 'int' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S1)x").WithArguments("int", "S1").WithLocation(14, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_34_No_Non_Public()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(byte  x) => throw null;
+    public S1(string x) => throw null;
+    internal S1(int x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1 Test1(int x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (14,16): error CS0030: Cannot convert type 'int' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S1)x").WithArguments("int", "S1").WithLocation(14, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionConversion_35_No_Ref_Out([CombinatorialValues("ref", "out", "ref readonly")] string refModifier)
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(" + refModifier + @" int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static S1 Test1(int x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS0030: Cannot convert type 'int' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S1)x").WithArguments("int", "S1").WithLocation(13, 16)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStruct_Explicit()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = (S)100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return (S)200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = (S)x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return (S)x;
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return (S)x; // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = (S)x;
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = (S)x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = (S)300;
+                        return s; // 6
+                    }
+
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = (S)x;
+                        s = (S)100;
+                    }
+                }
+
+                ref struct S : System.Runtime.CompilerServices.IUnion
+                {
+                    public S(in int x) => throw null;
+                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                }
+                """;
+            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = (S)100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)100").WithArguments("S.S(in int)", "x").WithLocation(6, 13),
+                // (6,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = (S)100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return (S)200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)200").WithArguments("S.S(in int)", "x").WithLocation(12, 16),
+                // (12,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return (S)200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 19),
+                // (18,13): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = (S)x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)x").WithArguments("S.S(in int)", "x").WithLocation(18, 13),
+                // (18,16): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = (S)x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return (S)x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)x").WithArguments("S.S(in int)", "x").WithLocation(29, 16),
+                // (29,19): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return (S)x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 19),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStruct_Implicit()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x;
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x; // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x;
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = 300;
+                        return s; // 6
+                    }
+
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = x;
+                        s = 100;
+                    }
+                }
+
+                ref struct S : System.Runtime.CompilerServices.IUnion
+                {
+                    public S(in int x) => throw null;
+                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                }
+                """;
+            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100").WithArguments("S.S(in int)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200").WithArguments("S.S(in int)", "x").WithLocation(12, 16),
+                // (18,13): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int)", "x").WithLocation(18, 13),
+                // (29,16): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int)", "x").WithLocation(29, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStructArgument()
+        {
+            var source = """
+                class C
+                {
+                    S2 M1()
+                    {
+                        int x = 1;
+                        S1 s1 = (S1)x;
+                        return (S2)s1; // 1
+                    }
+                }
+
+                ref struct S1
+                {
+                    public static implicit operator S1(in int x) => throw null;
+                }
+
+                ref struct S2 : System.Runtime.CompilerServices.IUnion
+                {
+                    public S2(S1 s1) => throw null;
+                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                }
+                """;
+            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+                // (7,16): error CS8347: Cannot use a result of 'S2.S2(S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         return (S2)s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S2)s1").WithArguments("S2.S2(S1)", "s1").WithLocation(7, 16),
+                // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return (S2)s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_StandardImplicitConversion_Input()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x; // 4
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x; // 5
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x;
+                        return s; // 6
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x;
+                        return s; // 7
+                    }
+
+                    S M6()
+                    {
+                        S s = 300;
+                        return s; // 8
+                    }
+                }
+
+                ref struct S : System.Runtime.CompilerServices.IUnion
+                {
+                    public S(in int? x) => throw null;
+                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                }
+                """;
+            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100").WithArguments("S.S(in int?)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200").WithArguments("S.S(in int?)", "x").WithLocation(12, 16),
+                // (18,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int?)", "x").WithLocation(18, 13),
+                // (24,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(24, 16),
+                // (24,16): error CS8347: Cannot use a result of 'S.S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int?)", "x").WithLocation(24, 16),
+                // (29,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return x; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 5
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int?)", "x").WithLocation(29, 16),
+                // (35,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(35, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 8
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_Call()
+        {
+            var source = """
+                class C
+                {
+                    S M1(int x)
+                    {
+                        return M2(x);
+                    }
+
+                    S M2(S s) => s;
+                }
+
+                ref struct S : System.Runtime.CompilerServices.IUnion
+                {
+                    public S(in int x) => throw null;
+                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                }
+                """;
+            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+                // (5,16): error CS8347: Cannot use a result of 'C.M2(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(S)", "s").WithLocation(5, 16),
+                // (5,19): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //         return M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(5, 19),
+                // (5,19): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int)", "x").WithLocation(5, 19));
         }
     }
 }

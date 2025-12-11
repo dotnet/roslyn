@@ -516,6 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
                 Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, isChecked: false, ref useSiteInfo);
                 Debug.Assert(!conversion.IsUserDefined);
+                Debug.Assert(!conversion.IsUnion);
 
                 _diagnostics.Add(syntax, useSiteInfo);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)

@@ -5971,18 +5971,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false, isChecked: node.Checked) is { Exists: true } conversion)
                 {
                     Debug.Assert(!conversion.IsUserDefined);
+                    Debug.Assert(!conversion.IsUnion);
                     return (rightType, NullableFlowState.NotNull);
                 }
 
                 conversion = GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true, isChecked: node.Checked);
                 Debug.Assert(!conversion.IsUserDefined);
+                Debug.Assert(!conversion.IsUnion);
                 return (leftType, NullableFlowState.NotNull);
             }
 
             (TypeSymbol ResultType, NullableFlowState LeftState) getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true, isChecked: node.Checked);
-                if (conversion.IsUserDefined)
+                if (conversion.IsUserDefined) // PROTOTYPE: Confirm no special handling necessary or add it.
                 {
                     var conversionResult = VisitConversion(
                         conversionOpt: null,
@@ -7913,7 +7915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined })
+                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined }) // PROTOTYPE: Do we need to add special handling for Union conversions?
                         {
                             var argumentResultType = resultType.Type;
                             conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false, isChecked: conversionOpt?.Checked ?? false);
@@ -9254,6 +9256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
+
+                    case ConversionKind.Union: // PROTOTYPE: Follow up
                     default:
                         break;
                 }
@@ -9544,6 +9548,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitUserDefined:
                     return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, parameterOpt, reportTopLevelWarnings, reportRemainingWarnings, getDiagnosticLocation());
 
+                case ConversionKind.Union:
+                    resultState = NullableFlowState.NotNull;
+                    // PROTOTYPE: Track nullability of the underlying value.
+                    break;
+
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
                     resultState = getConversionResultState(operandType);
@@ -9590,7 +9599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Don't skip the node when it's a user-defined conversion, as identity conversions
                     // on top of user-defined conversions means that we're coming in from VisitUserDefinedConversion
                     // and that any warnings caught by this recursive call of VisitConversion won't be redundant.
-                    if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion())
+                    if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion()) // PROTOTYPE: Follow up
                     {
                         var explicitType = operandConversion.ConversionGroupOpt?.ExplicitType;
                         if (explicitType?.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything) == true)
@@ -11170,9 +11179,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
-                if (node.OperandConversion is BoundConversion { Conversion: var operandConversion } && operandConversion.IsUserDefined && operandConversion.Method?.ParameterCount == 1)
+                if (node.OperandConversion is BoundConversion { Conversion: ({ IsUserDefined: true } or { IsUnion: true }) and { Method.ParameterCount: 1 } operandConversion })
                 {
-                    targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations;
+                    if (operandConversion.IsUserDefined)
+                    {
+                        targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations;
+                    }
+                    else
+                    {
+                        targetTypeOfOperandConversion = TypeWithAnnotations.Create(operandConversion.Method.ContainingType, nullableAnnotation: NullableAnnotation.NotAnnotated); // PROTOTYPE: Add coverage
+                        // PROTOTYPE: Track something for the underlying value?
+                    }
                 }
                 else if (incrementOperator is object)
                 {
