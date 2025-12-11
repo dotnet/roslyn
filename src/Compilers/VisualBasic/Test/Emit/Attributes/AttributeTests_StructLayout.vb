@@ -1075,6 +1075,11 @@ End Structure
 <ExtendedLayout(ExtendedLayoutKind.CStruct)>
 Structure D
 End Structure
+
+<StructLayout(LayoutKind.Sequential)>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure E
+End Structure
 ]]></file></compilation>
 
             CreateEmptyCompilation(
@@ -1087,6 +1092,9 @@ Structure C
           ~
 BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
 Structure D
+          ~
+BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+Structure E
           ~
 ]]>)
         End Sub

@@ -1015,12 +1015,19 @@ partial struct C
                 {
                     public float f;
                 }
-
+                
                 [StructLayout(LayoutKind.Explicit)]
                 [ExtendedLayout(ExtendedLayoutKind.CStruct)]
                 struct D
                 {
                     [FieldOffset(0)]
+                    public float f;
+                }
+                
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                [StructLayout(LayoutKind.Sequential)]
+                struct E
+                {
                     public float f;
                 }
                 """;
@@ -1037,7 +1044,10 @@ partial struct C
                 Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "D").WithLocation(12, 8),
                 // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [FieldOffset(0)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6)
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
+                // (20,8): error CS9347: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // struct E
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "E").WithLocation(20, 8)
                 );
         }
 
