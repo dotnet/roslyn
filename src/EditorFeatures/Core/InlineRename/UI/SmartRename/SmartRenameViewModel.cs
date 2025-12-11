@@ -249,7 +249,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             this.IsInProgress = false;
         }
     }
-    #pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0618 // Type or member is obsolete
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
