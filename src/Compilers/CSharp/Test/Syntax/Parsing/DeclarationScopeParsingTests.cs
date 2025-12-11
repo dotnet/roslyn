@@ -5999,6 +5999,65 @@ scoped ref readonly var (a, b) = M;
                 // (1,16): error CS1073: Unexpected token 'in'
                 // (ref in int a, in int b) = M;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 16));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -6016,6 +6075,69 @@ scoped ref readonly var (a, b) = M;
                 // (1,24): error CS1073: Unexpected token 'params'
                 // (params ref int a, ref params int b) = M;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 24));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -6026,7 +6148,15 @@ scoped ref readonly var (a, b) = M;
                 (this ref int a, ref this int b) = M;
                 """;
 
-            UsingTree(source);
+            UsingTree(source,
+                // (1,2): error CS1073: Unexpected token 'this'
+                // (this ref int a, ref this int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 2),
+                // (1,22): error CS1073: Unexpected token 'this'
+                // (this ref int a, ref this int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 22));
+
+            EOF();
         }
 
         [Theory]
@@ -6352,39 +6482,28 @@ M(out ref readonly scoped int c);
                                 N(SyntaxKind.Argument);
                                 {
                                     N(SyntaxKind.OutKeyword);
-                                    N(SyntaxKind.RefExpression);
+                                    N(SyntaxKind.DeclarationExpression);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        M(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.RefType);
                                         {
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ReadOnlyKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
                                 }
-                                M(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -6430,35 +6549,27 @@ M(out ref scoped readonly int c);
                                 N(SyntaxKind.Argument);
                                 {
                                     N(SyntaxKind.OutKeyword);
-                                    N(SyntaxKind.RefExpression);
+                                    N(SyntaxKind.DeclarationExpression);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.RefType);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "scoped");
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
                                 }
-                                M(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -11140,12 +11251,11 @@ foreach (scoped ref int[M(out var b)] a in collection);
                 """;
 
             UsingTree(source,
-                // (1,6): error CS1073: Unexpected token 'in'
-                // (ref in int a, in int b) = M;
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 6),
-                // (1,16): error CS1073: Unexpected token 'in'
-                // (ref in int a, in int b) = M;
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 16));
+                // (1,14): error CS1073: Unexpected token 'in'
+                // foreach (ref in int a in b) ;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 14));
+
+            EOF();
         }
 
         [Fact]
@@ -11157,12 +11267,11 @@ foreach (scoped ref int[M(out var b)] a in collection);
                 """;
 
             UsingTree(source,
-                // (1,2): error CS1073: Unexpected token 'params'
-                // (params ref int a, ref params int b) = M;
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 2),
-                // (1,24): error CS1073: Unexpected token 'params'
-                // (params ref int a, ref params int b) = M;
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 24));
+                // (1,10): error CS1073: Unexpected token 'params'
+                // foreach (params ref int a in b) ;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 10));
+
+            EOF();
         }
 
         [Fact]
@@ -11173,7 +11282,12 @@ foreach (scoped ref int[M(out var b)] a in collection);
                 foreach (this ref int a in b) ;
                 """;
 
-            UsingTree(source);
+            UsingTree(source,
+                // (1,10): error CS1073: Unexpected token 'this'
+                // foreach (this ref int a in b) ;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 10));
+
+            EOF();
         }
 
         [Theory]

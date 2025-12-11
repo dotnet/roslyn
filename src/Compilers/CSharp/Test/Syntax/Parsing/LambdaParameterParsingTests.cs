@@ -586,36 +586,34 @@ class C {
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedExpression);
+                                            N(SyntaxKind.TupleExpression);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
-                                                M(SyntaxKind.IdentifierName);
+                                                N(SyntaxKind.Argument);
                                                 {
-                                                    M(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.DeclarationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "C");
+                                                        }
+                                                        N(SyntaxKind.SingleVariableDesignation);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "c");
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.Argument);
+                                                {
+                                                    M(SyntaxKind.IdentifierName);
+                                                    {
+                                                        M(SyntaxKind.IdentifierToken);
+                                                    }
                                                 }
                                                 M(SyntaxKind.CloseParenToken);
                                             }
                                         }
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "C");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "c");
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    M(SyntaxKind.VariableDeclarator);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                                 M(SyntaxKind.SemicolonToken);
