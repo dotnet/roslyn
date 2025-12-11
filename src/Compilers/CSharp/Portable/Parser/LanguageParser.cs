@@ -5521,13 +5521,14 @@ parse_member_name:;
                 name = this.AddError(name, ErrorCode.ERR_MultiTypeInDeclaration);
             }
 
+            localFunction = null;
             return this.CurrentToken.Kind switch
             {
-                SyntaxKind.EqualsToken when !isFixed => parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList: null, out localFunction),
+                SyntaxKind.EqualsToken when !isFixed => parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList: null),
                 SyntaxKind.LessThanToken => parseVariableDeclaratorWithLessThanToken(name, out localFunction),
                 SyntaxKind.OpenParenToken => parseVariableDeclaratorWithOpenParenToken(name, out localFunction),
-                SyntaxKind.OpenBracketToken => parseVariableDeclaratorWithOpenBracketToken(name, out localFunction),
-                _ => parseVariableDeclaratorDefault(name, out localFunction),
+                SyntaxKind.OpenBracketToken => parseVariableDeclaratorWithOpenBracketToken(name),
+                _ => parseVariableDeclaratorDefault(name),
             };
 
             // Can be called in two cases:
@@ -5536,7 +5537,7 @@ parse_member_name:;
             //      2. In the error recovery case for `x[] =`.  Specifically, when we do *not* have a fixed-size decl
             //         (as the brackets are legal there). 
             VariableDeclaratorSyntax parseNonFixedVariableDeclaratorWithEqualsToken(
-                SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
+                SyntaxToken name, BracketedArgumentListSyntax argumentList)
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsToken);
                 Debug.Assert(!isFixed, "Should never be called in the fixed-statement/fixed-size-buffer case");
@@ -5553,10 +5554,12 @@ parse_member_name:;
                     equals,
                     refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
 
-                localFunction = null;
                 return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
             }
 
+            // Called when we have `Id<`.  This could be the name of a local function, and will be parsed as such if
+            // local functions are allowed and this is the first declarator in the list.  Otherwise, we will just parse
+            // out 'Id' as the declarator name and handle the rest through error recovery.
             VariableDeclaratorSyntax parseVariableDeclaratorWithLessThanToken(SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
             {
                 if (allowLocalFunctions && isFirst)
@@ -5569,9 +5572,13 @@ parse_member_name:;
                     }
                 }
 
-                return parseVariableDeclaratorDefault(name, out localFunction);
+                localFunction = null;
+                return parseVariableDeclaratorDefault(name);
             }
 
+            // Called when we have `Id(`.  This could be the name of a local function, and will be parsed as such if
+            // local functions are allowed and this is the first declarator in the list.  Otherwise, we will treat this
+            // as if this was `Id(...)` and is a misplaced c-style value-constructor call which C# doesn't support.
             VariableDeclaratorSyntax parseVariableDeclaratorWithOpenParenToken(
                 SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
             {
@@ -5597,8 +5604,11 @@ parse_member_name:;
                 return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
             }
 
-            VariableDeclaratorSyntax parseVariableDeclaratorWithOpenBracketToken(
-                SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
+            // Called when we have `Id[`.  This can be legal in the fixed-size-buffer/fixed-statement cases, and we will
+            // parse that out as the size of the buffer to create. In all other cases, this is an error, and we will
+            // treat it as the user attempting a C-style array declaration, with the array info misplaced on the
+            // variable, instead of being on the type-declaration.
+            VariableDeclaratorSyntax parseVariableDeclaratorWithOpenBracketToken(SyntaxToken name)
             {
                 var saveTerm = _termState;
                 _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
@@ -5638,15 +5648,16 @@ parse_member_name:;
                     argumentList = this.AddError(argumentList, ErrorCode.ERR_CStyleArray);
                     // If we have "int x[] = new int[10];" then parse the initializer.
                     if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
-                        return parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList, out localFunction);
+                        return parseNonFixedVariableDeclaratorWithEqualsToken(name, argumentList);
                 }
 
-                localFunction = null;
                 return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
             }
 
-            VariableDeclaratorSyntax parseVariableDeclaratorDefault(
-                SyntaxToken name, out LocalFunctionStatementSyntax localFunction)
+            // Default case when we don't have `id =`, `id<`, `id(`, or `id[`.  Or when we have `id<` and decide we
+            // don't have a local function. Will definitely produce a declarator containing 'id', with varying error
+            // recovery strategies to deal with certain cases.
+            VariableDeclaratorSyntax parseVariableDeclaratorDefault(SyntaxToken name)
             {
                 // Note: it is ok that we do this work prior to the isConst/isFixed checks below.  If it looks like
                 // a variable initializer, that means we're missing at least an equals and we'll report that error
@@ -5656,7 +5667,6 @@ parse_member_name:;
                 {
                     Debug.Assert(this.CurrentToken.Kind != SyntaxKind.EqualsToken);
 
-                    localFunction = null;
                     return _syntaxFactory.VariableDeclarator(
                         name,
                         argumentList: null,
@@ -5680,11 +5690,10 @@ parse_member_name:;
                     }
                     else
                     {
-                        return parseVariableDeclaratorWithOpenBracketToken(name, out localFunction);
+                        return parseVariableDeclaratorWithOpenBracketToken(name);
                     }
                 }
 
-                localFunction = null;
                 return _syntaxFactory.VariableDeclarator(name, argumentList: null, initializer: null);
             }
 
