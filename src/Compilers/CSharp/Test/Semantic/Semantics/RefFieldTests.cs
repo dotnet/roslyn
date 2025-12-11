@@ -11327,18 +11327,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
-                // (6,26): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (6,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(6, 26),
                 // (7,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
                 Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 23),
-                // (7,30): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (7,30): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(7, 30),
-                // (7,30): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 30),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(7, 30),
                 // (8,19): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 19),
@@ -11365,21 +11362,18 @@ class Program
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (6,26): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (6,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(6, 26),
                 // (7,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
                 Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 23),
-                // (7,30): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (7,30): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(7, 30),
-                // (7,30): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 30),
-                // (8,26): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(7, 30),
+                // (8,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(8, 26));
         }
 
         [Fact]
@@ -22019,12 +22013,9 @@ public ref struct R
                 // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(ref scoped scoped R parameter)
                 Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16),
-                // (3,23): error CS9348: The 'scoped' modifier cannot immediately follow the 'scoped' modifier.
+                // (3,23): error CS1107: A parameter can only have one 'scoped' modifier
                 //     void M(ref scoped scoped R parameter)
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "scoped").WithArguments("scoped").WithLocation(3, 23),
-                // (3,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
-                //     void M(ref scoped scoped R parameter)
-                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 23));
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(3, 23));
 
             source =
 @"ref struct R

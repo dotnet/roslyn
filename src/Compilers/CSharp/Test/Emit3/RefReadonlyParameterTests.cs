@@ -2149,9 +2149,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (3,30): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
             //     public static void M(ref scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 30),
-            // (3,37): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
-            //     public static void M(ref scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(3, 37),
             // (3,37): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(ref scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37)
