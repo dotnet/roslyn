@@ -2529,7 +2529,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             if (callerLangVersion >= LanguageVersionFacts.CSharpNext)
             {
                 expectedDiagnostics.Add(
-                    // (2,1): error CS9502: Using 'C.M()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                    // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
                     // c.M();
                     Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M()").WithArguments("C.M()").WithLocation(2, 1));
             }
@@ -2567,7 +2567,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (2,1): error CS9502: Using 'C.M(string)' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+            // (2,1): error CS9502: 'C.M(string)' must be used in an unsafe context because it is marked as 'unsafe'
             // C.M("s");
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, @"C.M(""s"")").WithArguments("C.M(string)").WithLocation(2, 1));
     }
@@ -2592,7 +2592,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.M1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: Using 'C.M2()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (3,1): error CS9502: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.M2();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2()").WithArguments("C.M2()").WithLocation(3, 1),
             ]);
@@ -2639,10 +2639,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: [],
             expectedDiagnostics:
             [
-                // (1,1): error CS9502: Using 'E.M1(int)' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (1,1): error CS9502: 'E.M1(int)' must be used in an unsafe context because it is marked as 'unsafe'
                 // 123.M1();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "123.M1()").WithArguments("E.M1(int)").WithLocation(1, 1),
-                // (2,1): error CS9502: Using 'E.extension(int).M2()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (2,1): error CS9502: 'E.extension(int).M2()' must be used in an unsafe context because it is marked as 'unsafe'
                 // 123.M2();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "123.M2()").WithArguments("E.extension(int).M2()").WithLocation(2, 1),
             ]);
@@ -2675,7 +2675,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.M1", "C.M2"],
             expectedDiagnostics:
             [
-                // (4,1): error CS9502: Using 'C.M3()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (4,1): error CS9502: 'C.M3()' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.M3();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M3()").WithArguments("C.M3()").WithLocation(4, 1),
             ]);
@@ -2713,7 +2713,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9502: Using 'M1()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+            // (1,1): error CS9502: 'M1()' must be used in an unsafe context because it is marked as 'unsafe'
             // M1();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
     }
@@ -2739,10 +2739,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: Using 'C.P2' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
-                // (3,8): error CS9502: Using 'C.P2' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (3,8): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 8),
             ]);
@@ -2771,10 +2771,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: Using 'E.extension(int).P2' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (3,1): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe'
                 // x.P2 = x.P2 + 333;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 1),
-                // (3,8): error CS9502: Using 'E.extension(int).P2' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+                // (3,8): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe'
                 // x.P2 = x.P2 + 333;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 8),
             ]);
@@ -3317,7 +3317,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(sourceB, [refA],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9502: Using 'A.M()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe'
             // A.M();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A.M()").WithArguments("A.M()").WithLocation(1, 1));
     }
@@ -3365,7 +3365,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(sourceB, [refA],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9502: Using 'A.M()' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules
+            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe'
             // A.M();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A.M()").WithArguments("A.M()").WithLocation(1, 1));
     }

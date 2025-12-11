@@ -8191,7 +8191,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</comment>
   </data>
   <data name="ERR_UnsafeMemberOperation" xml:space="preserve">
-    <value>Using '{0}' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules</value>
+    <value>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</value>
     <comment>'unsafe' is a keyword, should not be localized.</comment>
   </data>
 </root>

@@ -2583,8 +2583,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>Using '{0}' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules</source>
-        <target state="new">Using '{0}' is only permitted in an unsafe context because it is marked as 'unsafe' under the updated memory safety rules</target>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
+        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe'</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
