@@ -3851,6 +3851,43 @@ scoped ref readonly R x = M;
                                 N(SyntaxKind.IdentifierToken, "var");
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -3959,9 +3996,21 @@ scoped ref readonly R x = M;
                 // (2,29): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
                 // (ref readonly scoped int c, var d) = M;
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 29),
-                // (2,33): error CS1003: Syntax error, ',' expected
+                // (2,33): error CS1002: ; expected
                 // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "d").WithLocation(2, 33),
+                // (2,34): error CS1001: Identifier expected
+                // (ref readonly scoped int c, var d) = M;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 34),
+                // (2,34): error CS1003: Syntax error, ',' expected
+                // (ref readonly scoped int c, var d) = M;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 34),
+                // (2,36): error CS1002: ; expected
+                // (ref readonly scoped int c, var d) = M;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(2, 36),
+                // (2,36): error CS1525: Invalid expression term '='
+                // (ref readonly scoped int c, var d) = M;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 36));
 
             N(SyntaxKind.CompilationUnit);
             {
