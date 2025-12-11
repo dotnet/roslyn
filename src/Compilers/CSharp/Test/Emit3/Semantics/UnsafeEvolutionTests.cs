@@ -2457,6 +2457,72 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
     }
 
+    // PROTOTYPE: Test all supported member kinds here.
+    [Fact]
+    public void Member_LangVersion()
+    {
+        var source = """
+            #pragma warning disable CS8321 // unused local function
+            unsafe void F() { }
+            class C
+            {
+                unsafe void M() { }
+                unsafe int P { get; set; }
+            }
+            """;
+
+        string[] safeSymbols = ["C"];
+        string[] unsafeSymbols = ["Program.<<Main>$>g__F|0_0", "C.M", "C.P", "C.get_P", "C.set_P"];
+
+        CompileAndVerify(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m =>
+            {
+                VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
+                VerifyRequiresUnsafeAttribute(
+                    m,
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols]);
+            })
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m =>
+            {
+                VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
+                VerifyRequiresUnsafeAttribute(
+                    m,
+                    includesAttributeDefinition: true,
+                    isSynthesized: true,
+                    expectedUnsafeSymbols: [.. unsafeSymbols],
+                    expectedSafeSymbols: [.. safeSymbols]);
+            })
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // unsafe void F() { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("updated memory safety rules").WithLocation(2, 13),
+            // (5,17): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe void M() { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("updated memory safety rules").WithLocation(5, 17),
+            // (6,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("updated memory safety rules").WithLocation(6, 12),
+            // (6,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(6, 20),
+            // (6,25): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(6, 25));
+    }
+
     // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
     // PROTOTYPE: Should some synthesized members be unsafe (like state machine methods that are declared unsafe)?
     [Theory, CombinatorialData]
@@ -2513,6 +2579,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     // (3,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
                     //     public unsafe void M() => System.Console.Write(111);
                     Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(3, 24));
+            }
+
+            if (apiUnsafe && apiUpdatedRules && callerUpdatedRules && callerLangVersion < LanguageVersionFacts.CSharpNext)
+            {
+                expectedDiagnostics.Add(
+                    // (3,24): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public unsafe void M() => System.Console.Write(111);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("updated memory safety rules").WithLocation(3, 24));
             }
         }
 
