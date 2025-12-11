@@ -662,7 +662,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (10,22): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
                 //         return [with(capacity: 3), x, y];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity").WithLocation(10, 22));
     }
 
     [Theory]
