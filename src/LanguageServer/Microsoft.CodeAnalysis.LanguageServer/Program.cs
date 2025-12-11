@@ -95,10 +95,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
 
-    // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
-    // 'automatic' for now.
     var globalOptionService = exportProvider.GetExportedValue<Microsoft.CodeAnalysis.Options.IGlobalOptionService>();
-    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, serverConfiguration.SourceGeneratorExecutionPreference);
+    logger.LogTrace("Source generator execution preference set to {preference}", serverConfiguration.SourceGeneratorExecutionPreference);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     if (serverConfiguration.ExtensionLogDirectory is not null)
@@ -258,6 +257,14 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => false,
     };
 
+    var sourceGeneratorExecutionOption = new Option<SourceGeneratorExecutionPreference>("--sourceGeneratorExecutionPreference")
+    {
+        Description = "Controls when source generators are executed.",
+        Required = false,
+        // Balanced mode requires additional client side support (to trigger refreshes), so by default run in automatic to ensure tool scenarios without client support run generators.
+        DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
+    };
+
     var rootCommand = new RootCommand()
     {
         debugOption,
@@ -274,7 +281,8 @@ static RootCommand CreateCommand()
         extensionLogDirectoryOption,
         serverPipeNameOption,
         useStdIoOption,
-        autoLoadProjectsOption
+        autoLoadProjectsOption,
+        sourceGeneratorExecutionOption,
     };
 
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -292,6 +300,7 @@ static RootCommand CreateCommand()
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
         var useStdIo = parseResult.GetValue(useStdIoOption);
         var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
+        var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -306,7 +315,8 @@ static RootCommand CreateCommand()
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,
             ExtensionLogDirectory: extensionLogDirectory,
-            AutoLoadProjects: autoLoadProjects);
+            AutoLoadProjects: autoLoadProjects,
+            SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
