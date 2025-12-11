@@ -2735,6 +2735,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_name_0_conflicts_with_an_existing_member_name">
+        <source>The name '{0}' conflicts with an existing member name.</source>
+        <target state="new">The name '{0}' conflicts with an existing member name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">Выделенный фрагмент содержит вызов локальной функции без ее объявления.</target>

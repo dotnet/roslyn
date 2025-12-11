@@ -60,4 +60,10 @@ internal abstract class FSharpInlineRenameInfo : IInlineRenameInfo
 
     public InlineRenameFileRenameInfo GetFileRenameInfo()
         => InlineRenameFileRenameInfo.NotAllowed;
+
+    bool IInlineRenameInfo.CheckDeclarationConflict(string replacementText, out string message)
+    {
+        message = null;
+        return false;
+    }
 }

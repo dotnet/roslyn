@@ -3055,6 +3055,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="You_must_rename_an_identifier" xml:space="preserve">
     <value>You must rename an identifier.</value>
   </data>
+  <data name="The_name_0_conflicts_with_an_existing_member_name" xml:space="preserve">
+    <value>The name '{0}' conflicts with an existing member name.</value>
+  </data>
   <data name="get_only_property" xml:space="preserve">
     <value>get-only property</value>
   </data>

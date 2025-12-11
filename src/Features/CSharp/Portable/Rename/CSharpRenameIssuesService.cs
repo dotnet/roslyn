@@ -53,6 +53,31 @@ internal sealed class CSharpRenameIssuesService : IRenameIssuesService
         return false;
     }
 
+    public bool CheckDeclarationConflict(
+        ISymbol symbol, string newName, [NotNullWhen(true)] out string? message)
+    {
+        message = null;
+
+        // Only check for members that have a containing type
+        if (symbol.ContainingType == null)
+            return false;
+
+        // Check if there's already a member with the new name in the same type
+        var existingMembers = symbol.ContainingType.GetMembers(newName);
+        foreach (var existingMember in existingMembers)
+        {
+            // Skip the symbol being renamed itself
+            if (SymbolEqualityComparer.Default.Equals(existingMember, symbol))
+                continue;
+
+            // Found a conflict
+            message = string.Format(FeaturesResources.The_name_0_conflicts_with_an_existing_member_name, newName);
+            return true;
+        }
+
+        return false;
+    }
+
     private static bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token)
     {
         var parent = token.Parent;

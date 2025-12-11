@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -172,6 +173,19 @@ internal abstract partial class AbstractEditorInlineRenameService
             }
 
             return InlineRenameFileRenameInfo.NotAllowed;
+        }
+
+        public bool CheckDeclarationConflict(string replacementText, [NotNullWhen(true)] out string? message)
+        {
+            var finalSymbolName = this.GetFinalSymbolName(replacementText);
+            var issuesService = this.Document.GetLanguageService<IRenameIssuesService>();
+            if (issuesService != null)
+            {
+                return issuesService.CheckDeclarationConflict(RenameSymbol, finalSymbolName, out message);
+            }
+
+            message = null;
+            return false;
         }
     }
 }
