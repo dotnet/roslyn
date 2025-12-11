@@ -259,9 +259,16 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     //
                     // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didClose
                     // > Note that a server’s ability to fulfill requests is independent of whether a text document is open or closed.
-                    if (!didGetLanguage && handler.MutatesSolutionState)
+                    if (!didGetLanguage)
                     {
-                        throw new InvalidOperationException($"Failed to get language for {work.MethodName}");
+                        if (handler.MutatesSolutionState)
+                        {
+                            throw new InvalidOperationException($"Failed to get language for {work.MethodName}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Could not get language for {work.MethodName}. Proceeding with default language handler.");
+                        }
                     }
 
                     // We now have the actual handler and language, so we can process the work item using the concrete types defined by the metadata.
