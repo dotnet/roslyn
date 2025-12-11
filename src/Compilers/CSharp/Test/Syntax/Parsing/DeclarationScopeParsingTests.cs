@@ -3716,21 +3716,9 @@ scoped ref readonly R x = M;
 (ref scoped int b, var c) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,2): error CS1073: Unexpected token 'ref'
                 // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 2),
-                // (2,13): error CS1026: ) expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(2, 13),
-                // (2,20): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 20),
-                // (2,24): error CS1003: Syntax error, ',' expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 24));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3792,21 +3780,9 @@ scoped ref readonly R x = M;
 (ref scoped a b, var c) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,2): error CS1073: Unexpected token 'ref'
                 // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 2),
-                // (2,13): error CS1026: ) expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "a").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "a").WithLocation(2, 13),
-                // (2,18): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 18),
-                // (2,22): error CS1003: Syntax error, ',' expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 22));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3940,27 +3916,12 @@ scoped ref readonly R x = M;
 (ref readonly scoped int c, var d) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,2): error CS1073: Unexpected token 'ref'
                 // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 2),
-                // (2,6): error CS1525: Invalid expression term 'readonly'
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 2),
+                // (2,6): error CS1073: Unexpected token 'readonly'
                 // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 6),
-                // (2,6): error CS1026: ) expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 6),
-                // (2,6): error CS1002: ; expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(2, 6),
-                // (2,6): error CS0106: The modifier 'readonly' is not valid for this item
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 6),
-                // (2,29): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 29),
-                // (2,33): error CS1003: Syntax error, ',' expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 6));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3968,45 +3929,50 @@ scoped ref readonly R x = M;
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
+                        N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.RefExpression);
+                            N(SyntaxKind.TupleExpression);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.ScopedType);
+                                        {
+                                            N(SyntaxKind.ScopedKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
+                                        }
+                                    }
                                 }
-                            }
-                            M(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "d");
+                                        }
+                                    }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.VariableDeclarator);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "c");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "M");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -4027,24 +3993,12 @@ scoped ref readonly R x = M;
 (ref scoped readonly int c, var d) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,2): error CS1073: Unexpected token 'ref'
                 // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 2),
-                // (2,13): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 2),
+                // (2,13): error CS1073: Unexpected token 'readonly'
                 // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(2, 13),
-                // (2,13): error CS0106: The modifier 'readonly' is not valid for this item
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 13),
-                // (2,29): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 29),
-                // (2,33): error CS1003: Syntax error, ',' expected
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 13));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5346,18 +5300,9 @@ scoped ref readonly R x = M;
 (scoped scoped var b, var c) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,9): error CS1026: ) expected
+                // (2,2): error CS1073: Unexpected token 'scoped'
                 // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(2, 9),
-                // (2,9): error CS1002: ; expected
-                // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(2, 9),
-                // (2,23): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 23),
-                // (2,27): error CS1003: Syntax error, ',' expected
-                // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 27));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9842,28 +9787,9 @@ foreach (ref scoped b in collection);
 foreach (ref scoped int b in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,1): error CS1073: Unexpected token 'in'
+                // (2,10): error CS1073: Unexpected token 'ref'
                 // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref scoped int b ").WithArguments("in").WithLocation(2, 1),
-                // (2,10): error CS1525: Invalid expression term 'ref'
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
-                // (2,21): error CS1515: 'in' expected
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "int").WithLocation(2, 21),
-                // (2,21): error CS0230: Type and identifier are both required in a foreach statement
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "int").WithLocation(2, 21),
-                // (2,21): error CS1525: Invalid expression term 'int'
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 21),
-                // (2,25): error CS1026: ) expected
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(2, 25),
-                // (2,27): error CS1002: ; expected
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 27)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 10));
 
             N(SyntaxKind.ForEachVariableStatement);
             {
@@ -9944,30 +9870,12 @@ foreach (ref readonly scoped c in collection);
 foreach (ref readonly scoped int c in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,10): error CS1525: Invalid expression term 'ref'
+                // (2,10): error CS1073: Unexpected token 'ref'
                 // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 10),
-                // (2,14): error CS1525: Invalid expression term 'readonly'
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 10),
+                // (2,14): error CS1073: Unexpected token 'readonly'
                 // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 14),
-                // (2,14): error CS1515: 'in' expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(2, 14),
-                // (2,14): error CS0230: Type and identifier are both required in a foreach statement
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(2, 14),
-                // (2,14): error CS1525: Invalid expression term 'readonly'
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 14),
-                // (2,14): error CS1026: ) expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 14),
-                // (2,14): error CS0106: The modifier 'readonly' is not valid for this item
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 14),
-                // (2,36): error CS1003: Syntax error, ',' expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 14));
 
             N(SyntaxKind.ForEachVariableStatement);
             {
@@ -10021,27 +9929,12 @@ foreach (ref readonly scoped int c in collection);
 foreach (ref scoped readonly int c in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,10): error CS1525: Invalid expression term 'ref'
+                // (2,10): error CS1073: Unexpected token 'ref'
                 // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
-                // (2,21): error CS1515: 'in' expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 10),
+                // (2,21): error CS1073: Unexpected token 'readonly'
                 // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(2, 21),
-                // (2,21): error CS0230: Type and identifier are both required in a foreach statement
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(2, 21),
-                // (2,21): error CS1525: Invalid expression term 'readonly'
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 21),
-                // (2,21): error CS1026: ) expected
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 21),
-                // (2,21): error CS0106: The modifier 'readonly' is not valid for this item
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 21),
-                // (2,36): error CS1003: Syntax error, ',' expected
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 21));
 
             N(SyntaxKind.ForEachVariableStatement);
             {
@@ -10855,22 +10748,9 @@ foreach (scoped scoped int a in collection);
 foreach (scoped scoped var b in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,1): error CS1073: Unexpected token 'in'
+                // (2,10): error CS1073: Unexpected token 'scoped'
                 // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (scoped scoped var b ").WithArguments("in").WithLocation(2, 1),
-                // (2,28): error CS1515: 'in' expected
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "b").WithLocation(2, 28),
-                // (2,30): error CS1026: ) expected
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(2, 30),
-                // (2,30): error CS1525: Invalid expression term 'in'
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(2, 30),
-                // (2,30): error CS1002: ; expected
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 30)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 10));
 
             N(SyntaxKind.ForEachStatement);
             {
