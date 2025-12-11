@@ -11837,6 +11837,33 @@ done:
                 var modifiers = _pool.Allocate();
                 ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
 
+                var seenRef = false;
+                var seenScoped = false;
+                for (int i = 0, n = modifiers.Count; i < n; i++)
+                {
+                    var modifier = (SyntaxToken)modifiers[i];
+                    if (modifier.Kind == SyntaxKind.ScopedKeyword && !seenScoped && !seenRef)
+                    {
+                        seenScoped = true;
+                    }
+                    else if (modifier.Kind == SyntaxKind.RefKeyword && !seenRef)
+                    {
+                        // Skip over an appropriate ref-readonly pair if present
+                        if (i + 1 < n && modifiers[i + 1].RawKind == (int)SyntaxKind.ReadOnlyKeyword)
+                            i++;
+
+                        seenRef = true;
+                    }
+                    else
+                    {
+                        // We're either seeing:
+                        // 1. An entirely disallowed modifier (like 'out').
+                        // 2. A duplicate modifier. (like `ref ref` or `scoped scoped`).
+                        // 3. An out of order modifier (like `ref scoped` instead of `scoped ref`).
+                        modifiers[i] = AddError(modifier, ErrorCode.ERR_UnexpectedToken, modifier.Text);
+                    }
+                }
+
                 var type = ParseType(mode);
 
                 // Walk the modifiers from inner to outer, building up a potential ref or scoped type.
@@ -11844,36 +11871,26 @@ done:
                 {
                     var modifier = (SyntaxToken)modifiers[i];
 
-                    // Once we have made a scoped-type, all additional outer modifiers are 
-                    if (type is not ScopedTypeSyntax)
+                    if (modifier.Kind == SyntaxKind.ScopedKeyword)
                     {
-                        if (modifier.Kind == SyntaxKind.ScopedKeyword)
-                        {
-                            type = _syntaxFactory.ScopedType(modifier, type);
-                            continue;
-                        }
-
-                        // Once we have built up one ref-type, we can't wrap it with another ref-type (only a
-                        // scoped-type can wrap a ref-type).
-                        if (type is not RefTypeSyntax)
-                        {
-                            if (modifier.Kind == SyntaxKind.ReadOnlyKeyword && i > 0 && modifiers[i - 1].RawKind == (int)SyntaxKind.RefKeyword)
-                            {
-                                var refKeyword = (SyntaxToken)modifiers[i - 1];
-                                type = _syntaxFactory.RefType(refKeyword, readOnlyKeyword: modifier, type);
-                                i--; // skip the ref and readonly keywords
-                                continue;
-                            }
-
-                            if (modifier.Kind == SyntaxKind.RefKeyword)
-                            {
-                                type = _syntaxFactory.RefType(modifier, readOnlyKeyword: null, type);
-                                continue;
-                            }
-                        }
+                        type = _syntaxFactory.ScopedType(modifier, type);
+                        continue;
                     }
 
-                    modifier = AddError(modifier, ErrorCode.ERR_UnexpectedToken, modifier.Text);
+                    if (modifier.Kind == SyntaxKind.ReadOnlyKeyword && i > 0 && modifiers[i - 1].RawKind == (int)SyntaxKind.RefKeyword)
+                    {
+                        var refKeyword = (SyntaxToken)modifiers[i - 1];
+                        type = _syntaxFactory.RefType(refKeyword, readOnlyKeyword: modifier, type);
+                        i--; // skip the ref and readonly keywords
+                        continue;
+                    }
+
+                    if (modifier.Kind == SyntaxKind.RefKeyword)
+                    {
+                        type = _syntaxFactory.RefType(modifier, readOnlyKeyword: null, type);
+                        continue;
+                    }
+
                     type = AddLeadingSkippedSyntax(type, modifier);
                 }
 
