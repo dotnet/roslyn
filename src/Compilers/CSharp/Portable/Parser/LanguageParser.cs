@@ -5539,7 +5539,7 @@ parse_member_name:;
                 SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsToken);
-                Debug.Assert(!isFixed, "Should only be called in the non fixed-statement/fixed-size-buffer case");
+                Debug.Assert(!isFixed, "Should never be called in the fixed-statement/fixed-size-buffer case");
 
                 var equals = this.EatToken();
 
