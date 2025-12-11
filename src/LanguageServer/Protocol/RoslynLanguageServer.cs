@@ -219,7 +219,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
 
         if (!lspWorkspaceManager.TryGetLanguageForUri(uri, out language))
         {
-            Logger.LogError($"Failed to get language for {uri} with language {language}");
+            Logger.LogDebug($"Failed to get language for {uri} with language {language}");
             return false;
         }
 
