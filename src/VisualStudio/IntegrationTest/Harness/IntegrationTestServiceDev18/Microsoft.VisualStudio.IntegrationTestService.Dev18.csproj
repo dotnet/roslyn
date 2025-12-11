@@ -8,6 +8,8 @@
     <AssemblyName>Microsoft.VisualStudio.IntegrationTestService</AssemblyName>
     <!-- Using specifc version of vssdk build tools. -->
     <NoWarn>$(NoWarn);NETSDK1023</NoWarn>
+    <!-- Localization is not needed for this test helper vsix - it is never presented to the user -->
+    <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
   <PropertyGroup>

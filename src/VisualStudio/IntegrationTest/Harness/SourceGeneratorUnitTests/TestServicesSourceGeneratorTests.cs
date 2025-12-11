@@ -175,7 +175,7 @@ namespace System.Diagnostics.CodeAnalysis
             documentation: XmlDocumentationProvider.CreateFromFile(Path.ChangeExtension(ExtensibilityTestingLibraryPath, ".xml")));
 
         [Fact]
-        public async Task TestGenerationForVS2022()
+        public async Task TestGenerationForVS18()
         {
             await new VerifyCS.Test
             {
