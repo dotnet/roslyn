@@ -5530,6 +5530,11 @@ parse_member_name:;
                 _ => parseVariableDeclaratorDefault(name, out localFunction),
             };
 
+            // Can be called in two cases:
+            //
+            //      1. After the `=` in a basic case like `x =`.  In this case, argumentList will be null.
+            //      2. In the error recovery case for `x[] =`.  Specifically, when we do *not* have a fixed-size decl
+            //         (as the brackets are legal there). 
             VariableDeclaratorSyntax parseNonFixedVariableDeclaratorWithEqualsToken(
                 SyntaxToken name, BracketedArgumentListSyntax argumentList, out LocalFunctionStatementSyntax localFunction)
             {
