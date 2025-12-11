@@ -2446,6 +2446,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InequalityOperatorInPatternNotSupported = 9345,
         ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
 
+        ERR_ScopedAfterInOutRefReadonly = 9347,
+        ERR_InvalidModifierAfterScoped = 9348,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
