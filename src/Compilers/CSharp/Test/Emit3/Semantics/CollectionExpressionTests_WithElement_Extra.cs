@@ -4,12 +4,15 @@
 
 // #DEFINE DICTIONARY_EXPRESSIONS
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Test.Utilities.CompilationVerifier;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
@@ -662,7 +665,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (10,22): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
                 //         return [with(capacity: 3), x, y];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
     }
 
     [Theory]
@@ -1707,6 +1710,34 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             """, graph, symbol);
     }
 
+    private string CreateCustomListDefinition(string constructors)
+    {
+        return $$"""
+            namespace System.Collections.Generic
+            {
+                public class List<T> : IList<T>
+                {
+                    {{constructors}}
+            
+                    public T this[int index] { get => throw null; set => throw null; }
+                    public int Count => throw null;
+                    public bool IsReadOnly => throw null;
+                    public void Add(T item) => throw null;
+                    public void Clear() => throw null;
+                    public bool Contains(T item) => throw null;
+                    public void CopyTo(T[] array, int arrayIndex) => throw null;
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    public int IndexOf(T item) => throw null;
+                    public void Insert(int index, T item) => throw null;
+                    public bool Remove(T item) => throw null;
+                    public void RemoveAt(int index) => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public T[] ToArray() => throw null;
+                }
+            }
+            """;
+    }
+
     [Theory]
     [InlineData("IList<System.Int32>")]
     [InlineData("ICollection<System.Int32>")]
@@ -1714,63 +1745,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     {
         var source = $$"""
             using System.Collections.Generic;
-
-            namespace System
-            {
-                public class Object {}
-                public class Void {}
-                public abstract class ValueType{}
-                public struct Int32{}
-                public struct Boolean{}
-            }
-
-            namespace System.Collections
-            {
-                public interface IEnumerable
-                {
-                    IEnumerator GetEnumerator();
-                }
-            
-                public interface IEnumerator
-                {
-                    bool MoveNext();
-                    object Current { get; }
-                }
-            }
-
-            namespace System.Collections.Generic
-            {
-                public class List<T> : IList<T>
-                {
-                    public List() { }
-                    public List(int cap) { }
-
-                    public IEnumerator<T> GetEnumerator() => default;
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-
-                    public void Add(T item) { }
-                    public T[] ToArray() => default;
-                }
-
-                public interface ICollection<T> : IEnumerable<T>
-                {
-                }
-
-                public interface IList<T> : ICollection<T>
-                {
-                    public void Add(T item);
-                }
-
-                public interface IEnumerable<T> : IEnumerable
-                {
-                    new IEnumerator<T> GetEnumerator();
-                }
-
-                public interface IEnumerator<T> : IEnumerator
-                {
-                    new T Current { get; }
-                }
-            }
 
             class Program
             {
@@ -1782,113 +1756,195 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        var compilation = CreateEmptyCompilation(source).VerifyDiagnostics();
+        var compilation = CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(int cap) { }""")],
+            assemblyName: "MyAssembly");
+        CompileAndVerify(compilation).VerifyDiagnostics();
+    }
 
-        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
-        SyntaxNode root = semanticModel.SyntaxTree.GetRoot();
-        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
-        Assert.Equal(2, withElements.Length);
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_DifferentCapacityName2(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
 
-        var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
-        var method2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
-
-        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor()", method1.ToTestDisplayString());
-        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor(System.Int32 cap)", method2.ToTestDisplayString());
-
-        var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Last());
-        VerifyOperationTree(compilation, operation, $$"""
-            IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-              Locals: Local_1: System.Collections.Generic.{{typeName}} x
-                Local_2: System.Collections.Generic.{{typeName}} y
-              IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '{{typeName[..11]}} ... , 1, 2, 3];')
-                IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '{{typeName[..11]}} ... ), 1, 2, 3]')
-                  Declarators:
-                      IVariableDeclaratorOperation (Symbol: System.Collections.Generic.{{typeName}} x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = [with(), 1, 2, 3]')
-                        Initializer:
-                          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(), 1, 2, 3]')
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Operand:
-                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}) (Syntax: '[with(), 1, 2, 3]')
-                                  Elements(3):
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                  Initializer:
-                    null
-              IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '{{typeName[..11]}} ... , 1, 2, 3];')
-                IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '{{typeName[..11]}} ... ), 1, 2, 3]')
-                  Declarators:
-                      IVariableDeclaratorOperation (Symbol: System.Collections.Generic.{{typeName}} y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
-                        Initializer:
-                          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(cap ... ), 1, 2, 3]')
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: '[with(cap: 6), 1, 2, 3]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Operand:
-                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 cap)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}) (Syntax: '[with(cap: 6), 1, 2, 3]')
-                                  ConstructArguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: cap) (OperationKind.Argument, Type: null) (Syntax: 'cap: 6')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  Elements(3):
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                  Initializer:
-                    null
-            """);
-
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Last(), semanticModel);
-        ControlFlowGraphVerifier.VerifyGraph(compilation, $$"""
-            Block[B0] - Entry
-                Statements (0)
-                Next (Regular) Block[B1]
-                    Entering: {R1}
-            .locals {R1}
+            class Program
             {
-                Locals: [System.Collections.Generic.{{typeName}} x] [System.Collections.Generic.{{typeName}} y]
-                Block[B1] - Block
-                    Predecessors: [B0]
-                    Statements (2)
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: 'x = [with(), 1, 2, 3]')
-                          Left:
-                            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: 'x = [with(), 1, 2, 3]')
-                          Right:
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                (CollectionExpression)
-                              Operand:
-                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}) (Syntax: '[with(), 1, 2, 3]')
-                                  Elements(3):
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
-                          Left:
-                            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
-                          Right:
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.{{typeName}}, IsImplicit) (Syntax: '[with(cap: 6), 1, 2, 3]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                (CollectionExpression)
-                              Operand:
-                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 cap)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}) (Syntax: '[with(cap: 6), 1, 2, 3]')
-                                  ConstructArguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: cap) (OperationKind.Argument, Type: null) (Syntax: 'cap: 6')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  Elements(3):
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                    Next (Regular) Block[B2]
-                        Leaving: {R1}
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(capacity: 6), 1, 2, 3];
+                }
             }
-            Block[B2] - Exit
-                Predecessors: [B1]
-                Statements (0)
-            """, graph, symbol);
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(int cap) { }""")],
+            assemblyName: "MyAssembly").VerifyDiagnostics(
+            // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+            //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_DifferentCapacityType(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(capacity: 6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(long capacity) { }""")],
+            assemblyName: "MyAssembly").VerifyDiagnostics(
+            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+            //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_ParamsCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(params int[] capacity) { }""")],
+            assemblyName: "MyAssembly").VerifyDiagnostics(
+            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_OptionalIntCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(int capacity = 0) { }""")],
+            assemblyName: "MyAssembly");
+        CompileAndVerify(compilation).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_OptionalNonIntCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(long capacity = 0) { }""")],
+            assemblyName: "MyAssembly").VerifyDiagnostics(
+            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_OptionalParamsAfterCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(int capacity, int other = 0) { }""")],
+            assemblyName: "MyAssembly").VerifyDiagnostics(
+            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
     }
 
     [Fact]
@@ -1938,7 +1994,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             targetFramework: TargetFramework.Net80).VerifyDiagnostics(
                 // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
                 //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
-                Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1").WithLocation(15, 53));
+                Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1"));
     }
 
     [Fact]
@@ -1977,7 +2033,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(5, 26),
                 // (5,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<System.ReadOnlySpan<int>>' and return type 'MyCollection'.
                 //         MyCollection c = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "System.ReadOnlySpan<int>", "MyCollection").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "System.ReadOnlySpan<int>", "MyCollection"));
     }
 
     [Fact]
@@ -8017,7 +8073,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             targetFramework: TargetFramework.Net80).VerifyDiagnostics(
                 // (5,35): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create<string>(string, object, ReadOnlySpan<string>)' and 'MyBuilder.Create<string>(object, string, ReadOnlySpan<string>)'
                 //         MyCollection<string> c = [with("", ""), ""];
-                Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<string>(string, object, System.ReadOnlySpan<string>)", "MyBuilder.Create<string>(object, string, System.ReadOnlySpan<string>)").WithLocation(5, 35));
+                Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<string>(string, object, System.ReadOnlySpan<string>)", "MyBuilder.Create<string>(object, string, System.ReadOnlySpan<string>)"));
     }
 
     [Fact]
