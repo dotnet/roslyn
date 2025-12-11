@@ -6156,6 +6156,67 @@ scoped ref readonly var (a, b) = M;
                 // (this ref int a, ref this int b) = M;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 22));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -11255,6 +11316,37 @@ foreach (scoped ref int[M(out var b)] a in collection);
                 // foreach (ref in int a in b) ;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 14));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -11271,6 +11363,37 @@ foreach (scoped ref int[M(out var b)] a in collection);
                 // foreach (params ref int a in b) ;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 10));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -11287,6 +11410,37 @@ foreach (scoped ref int[M(out var b)] a in collection);
                 // foreach (this ref int a in b) ;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 10));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
