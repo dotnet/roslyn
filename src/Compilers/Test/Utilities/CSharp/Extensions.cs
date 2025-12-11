@@ -231,6 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return members;
         }
 
+        public static ImmutableArray<Symbol> GetMembersByQualifiedName(this NamespaceOrTypeSymbol container, string qualifiedName)
+            => GetMembers(container, qualifiedName, lastContainer: out _);
+
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {
             var parts = SplitMemberName(qualifiedName);

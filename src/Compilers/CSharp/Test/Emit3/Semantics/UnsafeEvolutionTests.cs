@@ -23,7 +23,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         string caller,
         object[] expectedUnsafeSymbols,
         object[] expectedSafeSymbols,
-        params DiagnosticDescription[] expectedDiagnostics)
+        DiagnosticDescription[] expectedDiagnostics)
     {
         CreateCompilation([lib, caller],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
@@ -43,10 +43,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
 
-        var libLegacy = CreateCompilation(lib,
-            options: TestOptions.UnsafeReleaseDll)
+        var libLegacy = CompileAndVerify(lib,
+            options: TestOptions.UnsafeReleaseDll,
+            symbolValidator: module =>
+            {
+                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
+                VerifyRequiresUnsafeAttribute(
+                    module,
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: [.. expectedUnsafeSymbols, .. expectedSafeSymbols]);
+            })
             .VerifyDiagnostics()
-            .EmitToImageReference();
+            .GetImageReference();
 
         CreateCompilation(caller, [libLegacy],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
@@ -62,6 +71,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .SelectMany(block => block.GetMembers(memberName))
             .SingleOrDefault()
             ?? throw new InvalidOperationException($"Cannot find '{containerName}.{memberName}'.");
+    }
+
+    private static Func<ModuleSymbol, Symbol> Overload(string qualifiedName, int parameterCount)
+    {
+        return module => module.GlobalNamespace
+            .GetMembersByQualifiedName(qualifiedName)
+            .OfType<MethodSymbol>()
+            .SingleOrDefault(m => m.Parameters.Length == parameterCount)
+            ?? throw new InvalidOperationException($"Cannot find '{qualifiedName}' with {parameterCount} parameters.");
     }
 
     private static void VerifyMemorySafetyRulesAttribute(
@@ -2627,23 +2645,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_OverloadResolution()
     {
-        var source = """
-            C.M(1);
-            C.M("s");
-            _ = nameof(C.M);
-
-            class C
-            {
-                public static void M(int x) { }
-                public static unsafe void M(string s) { }
-            }
-            """;
-        CreateCompilation(source,
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (2,1): error CS9502: 'C.M(string)' must be used in an unsafe context because it is marked as 'unsafe'
-            // C.M("s");
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, @"C.M(""s"")").WithArguments("C.M(string)").WithLocation(2, 1));
+        CompileAndVerify(
+            lib: """
+                public class C
+                {
+                    public static void M() { }
+                    public static unsafe void M(int x) { }
+                }
+                """,
+            caller: """
+                C.M();
+                C.M(1);
+                _ = nameof(C.M);
+                unsafe { C.M(1); }
+                """,
+            expectedUnsafeSymbols: [Overload("C.M", 1)],
+            expectedSafeSymbols: ["C", Overload("C.M", 0)],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.M(int)' must be used in an unsafe context because it is marked as 'unsafe'
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M(1)").WithArguments("C.M(int)").WithLocation(2, 1),
+            ]);
     }
 
     [Fact]
