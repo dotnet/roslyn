@@ -270,6 +270,7 @@
   <Folder Name="/LanguageServer/ExternalAccess/">
     <Project Path="src/LanguageServer/ExternalAccess/CompilerDeveloperSDK/Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Copilot/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/VisualDiagnostics/Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
   </Folder>
   <Folder Name="/Scripting/">
