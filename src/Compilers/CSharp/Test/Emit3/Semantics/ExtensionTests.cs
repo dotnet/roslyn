@@ -5168,6 +5168,7 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("o").WithLocation(8, 41)
             );
     }
+
     [Fact]
     public void ExtensionParameterInStaticContext_WithDifferentContexts()
     {
