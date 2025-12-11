@@ -186,7 +186,7 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 """,
         }.RunAsync();
     // [Fact] -- Disabled due to failure in CI (likely due to TargetFramework differences in nullability annotations)
-    public Task TestGetMethodReturnsNullable()
+    private static Task TestGetMethodReturnsNullable()
         => new VerifyCS.Test
         {
             TestCode = """
