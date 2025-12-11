@@ -1719,7 +1719,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     public T this[int index] { get => throw null; set => throw null; }
                     public int Count => throw null;
                     public bool IsReadOnly => throw null;
-                    public void Add(T item) => throw null;
+                    public void Add(T item) { }
                     public void Clear() => throw null;
                     public bool Contains(T item) => throw null;
                     public void CopyTo(T[] array, int arrayIndex) => throw null;
@@ -1755,9 +1755,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var compilation = CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(int cap) { }""")],
-            assemblyName: "MyAssembly");
-        CompileAndVerify(compilation).VerifyDiagnostics();
+            CreateCustomListDefinition("""public List() { System.Console.Write("empty "); } public List(int cap) { System.Console.Write(cap); }""")],
+            options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: "empty 6").VerifyDiagnostics();
     }
 
     [Theory]
@@ -1873,9 +1873,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var compilation = CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(int capacity = 0) { }""")],
-            assemblyName: "MyAssembly");
-        CompileAndVerify(compilation).VerifyDiagnostics();
+            CreateCustomListDefinition("""public List() { System.Console.Write("empty "); } public List(int capacity = 0) { System.Console.Write(capacity); }""")],
+            options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: "empty 6").VerifyDiagnostics();
     }
 
     [Theory]
