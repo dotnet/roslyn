@@ -509,21 +509,15 @@ class C {
      void Goo() {
           System.Func<int, int> f = (out C c,
 ",
-                // (4,38): error CS1525: Invalid expression term 'out'
+                // (4,38): error CS1073: Unexpected token 'out'
                 //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
-                // (4,38): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,46): error CS1733: Expected expression
                 //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
-                // (4,38): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1026: ) expected
                 //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
-                // (4,42): error CS1002: ; expected
-                //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
-                // (4,46): error CS1001: Identifier expected
-                //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 46),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 46),
                 // (4,46): error CS1002: ; expected
                 //           System.Func<int, int> f = (out C c,
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 46),
@@ -533,6 +527,7 @@ class C {
                 // (4,46): error CS1513: } expected
                 //           System.Func<int, int> f = (out C c,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 46));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

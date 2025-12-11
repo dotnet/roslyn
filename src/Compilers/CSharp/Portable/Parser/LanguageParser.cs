@@ -9762,15 +9762,14 @@ done:
         //
         private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, bool permitTupleDesignation)
         {
-            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, out var isScoped)
-                ? this.ParseDeclarationExpression(mode, isScoped)
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation)
+                ? this.ParseDeclarationExpression(mode)
                 : this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation, out bool isScoped)
+        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation)
         {
             Debug.Assert(mode is ParseTypeMode.Normal or ParseTypeMode.FirstElementOfPossibleTupleLiteral or ParseTypeMode.AfterTupleComma);
-            isScoped = false;
 
             if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
             {
@@ -9780,39 +9779,12 @@ done:
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
-            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
-            {
-                this.EatToken();
-                if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
-                {
-                    switch (mode)
-                    {
-                        case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                            if (this.PeekToken(1).Kind == SyntaxKind.CommaToken)
-                            {
-                                isScoped = true;
-                                return true;
-                            }
-                            break;
-
-                        case ParseTypeMode.AfterTupleComma:
-                            if (this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
-                            {
-                                isScoped = true;
-                                return true;
-                            }
-                            break;
-
-                        default:
-                            // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
-                            // There we err on the side of accepting a declaration.
-                            isScoped = true;
-                            return true;
-                    }
-                }
-
-                resetPoint.Reset();
-            }
+            // Consume all possible parameter modifiers.  While only 'ref/readonly/scoped' are legal (as part of a
+            // ref-type/scoped-type declaration, this allows us to recover from more error scenarios where people
+            // think that perhaps 'in' is allowed, or are confused about the order of modifiers allowed here.
+            var modifiers = _pool.Allocate();
+            ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
+            _pool.Free(modifiers);
 
             bool typeIsVar = IsVarType();
             SyntaxToken lastTokenOfType;
@@ -11445,7 +11417,7 @@ done:
                 }
 
                 if (this.IsPossibleDeconstructionLeft(precedence))
-                    return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
+                    return ParseDeclarationExpression(ParseTypeMode.Normal);
 
                 // Not a unary operator - get a primary expression.
                 return this.ParsePrimaryExpression(precedence);
@@ -11839,16 +11811,47 @@ done:
 
 #nullable disable
 
-        private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
+        private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode)
         {
-            var scopedKeyword = isScoped
-                ? EatContextualToken(SyntaxKind.ScopedKeyword)
-                : null;
-
-            var type = this.ParseType(mode);
             return _syntaxFactory.DeclarationExpression(
-                scopedKeyword == null ? type : _syntaxFactory.ScopedType(scopedKeyword, type),
+                parseTypeForDeclarationExpression(),
                 ParseDesignation(forPattern: false));
+
+            TypeSyntax parseTypeForDeclarationExpression()
+            {
+                var modifiers = _pool.Allocate();
+                ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
+
+                var type = ParseType(mode);
+                for (int i = modifiers.Count - 1; i >= 0; i--)
+                {
+                    var modifier = (SyntaxToken)modifiers[i];
+                    if (modifier.Kind == SyntaxKind.ScopedKeyword)
+                    {
+                        type = _syntaxFactory.ScopedType(modifier, type);
+                        continue;
+                    }
+
+                    if (modifier.Kind == SyntaxKind.ReadOnlyKeyword && i > 0 && modifiers[i - 1].RawKind == (int)SyntaxKind.RefKeyword)
+                    {
+                        var refKeyword = (SyntaxToken)modifiers[i - 1];
+                        type = _syntaxFactory.RefType(refKeyword, readOnlyKeyword: modifier, type);
+                        i--; // skip the ref and readonly keywords
+                        continue;
+                    }
+
+                    if (modifier.Kind == SyntaxKind.RefKeyword)
+                    {
+                        type = _syntaxFactory.RefType(modifier, readOnlyKeyword: null, type);
+                        continue;
+                    }
+
+                    modifier = AddError(modifier, ErrorCode.ERR_UnexpectedToken, modifier.Text);
+                    type = AddLeadingSkippedSyntax(type, modifier);
+                }
+
+                return type;
+            }
         }
 
         private ExpressionSyntax ParseThrowExpression()
@@ -11932,7 +11935,7 @@ done:
                                 }
                                 else if (this.IsPossibleDeconstructionLeft(precedence))
                                 {
-                                    return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
+                                    return ParseDeclarationExpression(ParseTypeMode.Normal);
                                 }
                                 else if (IsCurrentTokenFieldInKeywordContext() && PeekToken(1).Kind != SyntaxKind.ColonColonToken)
                                 {
