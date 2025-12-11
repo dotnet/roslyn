@@ -2351,6 +2351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var binder = this.GetBinder(node);
+                Debug.Assert(binder.Flags == this.Flags);
                 if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
                 {
                     result = binder.BindNameofOperatorInternal(node, diagnostics);
