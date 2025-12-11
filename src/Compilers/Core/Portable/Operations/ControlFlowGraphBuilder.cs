@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 AppendNewBlock(lazyFallThrough);
 
                 var constantValue = ConstantValue.Create(stopValue);
-                SyntaxNode leftSyntax = (lazyFallThrough!.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
+                SyntaxNode leftSyntax = (lazyFallThrough.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
                 AddStatement(new FlowCaptureOperation(captureId, leftSyntax, new LiteralOperation(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true)));
 
                 AppendNewBlock(labEnd);

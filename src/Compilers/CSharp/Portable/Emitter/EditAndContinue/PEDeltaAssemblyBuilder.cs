@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override SymbolChanges? EncSymbolChanges => _changes;
         public override EmitBaseline PreviousGeneration => _changes.DefinitionMap.Baseline;
         public override bool FieldRvaSupported => _options.EmitFieldRva;
+        public override bool MethodImplSupported => _options.MethodImplEntriesSupported;
 
         internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
         {

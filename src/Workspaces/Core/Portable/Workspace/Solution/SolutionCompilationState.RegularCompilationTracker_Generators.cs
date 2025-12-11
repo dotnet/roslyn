@@ -106,6 +106,7 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
+            var projectId = this.ProjectState.Id;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
@@ -114,14 +115,23 @@ internal sealed partial class SolutionCompilationState
             // We're going to be making multiple calls over to OOP.  No point in resyncing data multiple times.  Keep a
             // single connection, and keep this solution instance alive (and synced) on both sides of the connection
             // throughout the calls.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the connection.  All subsequent
+            // uses of this connection must do that aas well. This ensures that all calls will see the same exact
+            // snapshot on the OOP side, which is necessary for the GetSourceGeneratedDocumentInfoAsync and
+            // GetContentsAsync calls to see the exact same data and return sensible results.
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
-            using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            using var _ = await RemoteKeepAliveSession.CreateAsync(
+                compilationState, projectId, cancellationToken).ConfigureAwait(false);
 
             // First, grab the info from our external host about the generated documents it has for this project.  Note:
             // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
             // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
             // any overlaid 'frozen' source generated documents.
-            var projectId = this.ProjectState.Id;
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures the call to GetContentsAsync below sees the exact same solution
+            // instance as this call.
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
@@ -191,6 +201,10 @@ internal sealed partial class SolutionCompilationState
             // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
             // side reflects that by asking for the real source generated docs, and *not* any overlaid 'frozen' source
             // generated documents.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures that we see the exact same solution instance on the OOP side as the
+            // call to GetSourceGeneratedDocumentInfoAsync above.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,

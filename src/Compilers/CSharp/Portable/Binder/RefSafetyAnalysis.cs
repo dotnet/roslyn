@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     visitArguments(nodeAndInvocationInfo.call, in nodeAndInvocationInfo.methodInvocationInfo);
                 }
-                while (calls.TryPop(out nodeAndInvocationInfo!));
+                while (calls.TryPop(out nodeAndInvocationInfo));
 
                 calls.Free();
             }

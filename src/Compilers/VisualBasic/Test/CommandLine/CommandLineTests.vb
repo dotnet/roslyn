@@ -1863,6 +1863,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName)
 
+            parsedArgs = DefaultParse({"/CodePage:1252", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(1252, parsedArgs.Encoding.CodePage)
+
             ' errors 
             parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("0"))
