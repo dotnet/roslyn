@@ -21156,6 +21156,25 @@ class Program
         {
             comp2.VerifyDiagnostics();
         }
+
+        if (refKind != "ref")
+        {
+            verifier = CompileAndVerify(comp2);
+            verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  dup
+  IL_0003:  initobj    "S1"
+  IL_0009:  ldc.i4.0
+  IL_000a:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
     }
 
     [Fact]

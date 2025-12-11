@@ -1612,12 +1612,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (op1)
                     {
-                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.IsExtensionBlockMember():
-                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet } property when propSet.IsExtensionBlockMember():
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, property.ReceiverOpt, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
                             handleExtensionSetter(in methodInvocationInfo);
                             return;
                         case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
-                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
+                            methodInvocationInfo = MethodInvocationInfo.FromCallParts(indexerSet, indexer.ReceiverOpt, args: [.. indexer.Arguments, op2], receiverIsSubjectToCloning: ThreeState.Unknown);
                             handleExtensionSetter(in methodInvocationInfo);
                             return;
                     }

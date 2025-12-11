@@ -4616,7 +4616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckExtensionMembers(ImmutableArray<Symbol> members, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
+        private void CheckExtensionMembers(ImmutableArray<Symbol> members, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
         {
             foreach (var member in members)
             {
@@ -4625,15 +4625,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            static void checkExtensionMember(Symbol member, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
+            void checkExtensionMember(Symbol member, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
             {
                 if (!IsAllowedExtensionMember(member, languageVersion))
                 {
-                    if (member is PropertySymbol)
+                    if (member is PropertySymbol property)
                     {
-                        diagnostics.Add(new CSDiagnostic(
-                            new CSDiagnosticInfo(ErrorCode.ERR_ExtensionDisallowsIndexerMember, new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureExtensionIndexers.RequiredVersion())),
-                            member.GetFirstLocation()));
+                        Debug.Assert(property.IsIndexer);
+                        MessageID.IDS_FeatureExtensionIndexers.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, member.GetFirstLocation());
                     }
                     else
                     {
@@ -4643,7 +4642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool IsAllowedExtensionMemberInCSharp14(Symbol member)
+        internal static bool IsAllowedExtensionMember(Symbol member, LanguageVersion languageVersion)
         {
             switch (member.Kind)
             {
@@ -4670,12 +4669,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case SymbolKind.Property:
-                    if (!((PropertySymbol)member).IsIndexer)
+                    if (member is PropertySymbol { IsIndexer: true })
                     {
-                        return true;
+                        return MessageID.IDS_FeatureExtensionIndexers.RequiredVersion() <= languageVersion;
                     }
 
-                    break;
+                    return true;
 
                 case SymbolKind.Field:
                 case SymbolKind.Event:
@@ -4684,21 +4683,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
-            }
-
-            return false;
-        }
-
-        internal static bool IsAllowedExtensionMember(Symbol member, LanguageVersion languageVersion)
-        {
-            if (IsAllowedExtensionMemberInCSharp14(member))
-            {
-                return true;
-            }
-
-            if (member is PropertySymbol property)
-            {
-                return MessageID.IDS_FeatureExtensionIndexers.RequiredVersion() <= languageVersion;
             }
 
             return false;

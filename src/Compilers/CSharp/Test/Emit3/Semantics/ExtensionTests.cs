@@ -2405,9 +2405,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
+            // (5,13): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 13));
 
         comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
         comp.VerifyEmitDiagnostics();
@@ -27193,14 +27193,15 @@ static class E
     }
 }
 """;
+        // PROTOTYPE confirm whether extension `this[int]` indexer should contribute to implicit Index indexer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
+            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[int i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
@@ -27241,12 +27242,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "c[^1]").WithArguments("extension indexers").WithLocation(2, 5),
-            // (10,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[System.Index i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(10, 20));
+            // (10,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(10, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
@@ -27276,6 +27274,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE confirm whether extension `Slice(int, int)` method should contribute to implicit Range indexer
         DiagnosticDescription[] expectedDiagnostics = [
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
@@ -27373,12 +27372,9 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "c[1..^1]").WithArguments("extension indexers").WithLocation(2, 5),
-            // (13,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
+            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[System.Range r] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
@@ -27460,14 +27456,15 @@ static class E
     }
 }
 """;
+        // PROTOTYPE confirm whether extension `this[int]` indexer should contribute to implicit Index indexer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C() is [1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
-            // (12,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
+            // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[int i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(12, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
@@ -27498,28 +27495,12 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.., 1]").WithArguments("extension indexers").WithLocation(1, 16),
-            // (12,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
+            // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(12, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
-
-        src = """
-_ = new C() is [.., 1];
-
-class C
-{
-    public int Length => 3;
-    public int this[System.Index i] => throw null;
-}
-""";
-
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -27588,6 +27569,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE confirm whether extension `Slice(int, int)` method should contribute to implicit Range indexer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
@@ -27618,12 +27600,9 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, ".. var x").WithArguments("extension indexers").WithLocation(1, 20),
-            // (13,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[System.Range r] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(13, 20));
+            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.Skipped).VerifyDiagnostics();
@@ -41894,35 +41873,17 @@ public static class Extensions
 
 class Program
 {
-    static void Main()
-    {
-        var e = Test();
-        System.Console.Write(e.Compile().Invoke("1", "2"));
-        System.Console.Write(": ");
-        System.Console.Write(e);
-    }
-
     static Expression<Func<object, string, string>> Test()
     {
         return (o, s) => o[s];
     }
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (8,23): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public string this[string s] => o + s;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(8, 23),
-            // (24,26): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (16,26): error CS9296: An expression tree may not contain an extension property or indexer access
             //         return (o, s) => o[s];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[s]").WithArguments("extension indexers").WithLocation(24, 26)
-            );
-
-        comp = CreateCompilation(src, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
-
-        comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: @"12: (o, s) => get_Item(o, s)").VerifyDiagnostics();
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "o[s]").WithLocation(16, 26));
     }
 
     [Fact]
@@ -42189,6 +42150,33 @@ class Program
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: @"1: () => Convert(System.String M(System.String).CreateDelegate(System.Func`2[System.String,System.String], null)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Func`2)" : ")")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTrees_11_InstanceIndexer()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<object>> e = () => new object() { [""] = "" };
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string this[string s] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (4,51): error CS8074: An expression tree lambda may not contain a dictionary initializer.
+            // Expression<Func<object>> e = () => new object() { [""] = "" };
+            Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""""]").WithLocation(4, 51),
+            // (4,51): error CS9296: An expression tree may not contain an extension property or indexer access
+            // Expression<Func<object>> e = () => new object() { [""] = "" };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, @"[""""]").WithLocation(4, 51));
     }
 
     [Fact]
@@ -45867,16 +45855,16 @@ static class E
 
     public static void Test1(S s)
     {
-        var x = new S {  field = stackalloc int[10] };
+        var x = new S { field = stackalloc int[10] };
         s[0] = x;
         E.set_Item(s, 0, x);
-        s = x[0];
-        s = e.get_Item(x, 0);
+        s = x[0]; // 1, 2
+        s = E.get_Item(x, 0); // 3, 4
 
-        s[1.0] = x;
-        E.set_Item(ref s, 1.0, x);
-        s = x[1.0];
-        s = E.get_Item(ref x, 1.0);
+        s[1.0] = x; // 5, 6
+        E.set_Item(ref s, 1.0, x); // 7, 8
+        s = x[1.0]; // 9, 10
+        s = E.get_Item(ref x, 1.0); // 11, 12
     }
 }
 """;
@@ -45884,33 +45872,41 @@ static class E
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (25,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = x[0];
+            //         s = x[0]; // 1, 2
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(25, 13),
             // (25,13): error CS8347: Cannot use a result of 'E.extension(S).this[int]' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = x[0];
+            //         s = x[0]; // 1, 2
             Diagnostic(ErrorCode.ERR_EscapeCall, "x[0]").WithArguments("E.extension(S).this[int]", "s").WithLocation(25, 13),
-            // (26,13): error CS0103: The name 'e' does not exist in the current context
-            //         s = e.get_Item(x, 0);
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(26, 13),
+            // (26,13): error CS8347: Cannot use a result of 'E.get_Item(S, int)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Item(x, 0); // 3, 4
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(x, 0)").WithArguments("E.get_Item(S, int)", "s").WithLocation(26, 13),
+            // (26,24): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Item(x, 0); // 3, 4
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 24),
+            // (28,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[double].set' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         s[1.0] = x; // 5, 6
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "s[1.0] = x").WithArguments("E.extension(ref S).this[double].set", "value").WithLocation(28, 9),
+            // (28,18): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s[1.0] = x; // 5, 6
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 18),
             // (29,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, double, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
-            //         E.set_Item(ref s, 1.0, x);
+            //         E.set_Item(ref s, 1.0, x); // 7, 8
             Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, 1.0, x)").WithArguments("E.set_Item(ref S, double, S)", "value").WithLocation(29, 9),
             // (29,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.set_Item(ref s, 1.0, x);
+            //         E.set_Item(ref s, 1.0, x); // 7, 8
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 32),
             // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = x[1.0];
+            //         s = x[1.0]; // 9, 10
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
             // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).this[double]' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = x[1.0];
+            //         s = x[1.0]; // 9, 10
             Diagnostic(ErrorCode.ERR_EscapeCall, "x[1.0]").WithArguments("E.extension(ref S).this[double]", "s").WithLocation(30, 13),
             // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
+            //         s = E.get_Item(ref x, 1.0); // 11, 12
             Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
             // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
-        );
+            //         s = E.get_Item(ref x, 1.0); // 11, 12
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
@@ -45938,16 +45934,16 @@ static class E
 
     public static void Test1(S s)
     {
-        var x = new S {  field = stackalloc int[10] };
-        s[0] = x;
-        E.get_Item(s, 0) = x;
+        var x = new S { field = stackalloc int[10] };
+        s[0] = x; // 1
+        E.get_Item(s, 0) = x; // 2
         s = x[0];
         s = E.get_Item(x, 0);
 
-        s[1.0] = x;
-        E.get_Item(ref s, 1.0) = x;
-        s = x[1.0];
-        s = E.get_Item(ref x, 1.0);
+        s[1.0] = x; // 3
+        E.get_Item(ref s, 1.0) = x; // 4
+        s = x[1.0]; // 5, 6
+        s = E.get_Item(ref x, 1.0); // 7, 8
     }
 }
 """;
@@ -45955,30 +45951,29 @@ static class E
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (23,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s[0] = x;
+            //         s[0] = x; // 1
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 16),
             // (24,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.get_Item(s, 0) = x;
+            //         E.get_Item(s, 0) = x; // 2
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 28),
             // (28,18): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s[1.0] = x;
+            //         s[1.0] = x; // 3
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 18),
             // (29,34): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.get_Item(ref s, 1.0) = x;
+            //         E.get_Item(ref s, 1.0) = x; // 4
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 34),
             // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = x[1.0];
+            //         s = x[1.0]; // 5, 6
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
             // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).this[double]' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = x[1.0];
+            //         s = x[1.0]; // 5, 6
             Diagnostic(ErrorCode.ERR_EscapeCall, "x[1.0]").WithArguments("E.extension(ref S).this[double]", "s").WithLocation(30, 13),
             // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
+            //         s = E.get_Item(ref x, 1.0); // 7, 8
             Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
             // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
-        );
+            //         s = E.get_Item(ref x, 1.0); // 7, 8
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28));
     }
 
     [Fact]
@@ -51884,7 +51879,10 @@ static class E
             "extension -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1",
             "Attr4 -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j] { get; set; }",
             "Attr5 -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].get",
-            "Attr6 -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].set"],
+            "Attr6 -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].set",
+            "this -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j] { get; set; }",
+            "get -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].get",
+            "set -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].set"],
             analyzer._results.ToArray());
     }
 
@@ -51903,6 +51901,9 @@ static class E
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.IdentifierName);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.IndexerDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.GetAccessorDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.SetAccessorDeclaration);
 
             void handle(SyntaxNodeAnalysisContext context)
             {
@@ -51917,6 +51918,8 @@ static class E
                     ExtensionBlockDeclarationSyntax => "extension",
                     MethodDeclarationSyntax method => method.Identifier.ValueText,
                     PropertyDeclarationSyntax property => property.Identifier.ValueText,
+                    IndexerDeclarationSyntax indexer => indexer.ThisKeyword.ValueText,
+                    AccessorDeclarationSyntax accessor => accessor.Keyword.ValueText,
                     _ => context.Node.ToString()
                 };
 

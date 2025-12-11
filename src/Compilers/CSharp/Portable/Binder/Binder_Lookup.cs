@@ -196,11 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             singleLookupResults.Free();
         }
 
-        private void LookupAllNewExtensionMembersInSingleBinder(LookupResult result, string? name,
+        private void LookupExtensionBlockIndexersInSingleBinder(LookupResult result, string? name,
                 int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(name == WellKnownMemberNames.Indexer);
             var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
-            EnumerateAllNewExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder, ref useSiteInfo);
+
+            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateExtensionBlockMembersInSingleBinder(
+                singleLookupResults, name, arity, options, originalBinder, trackImplementationsToShadow: false, ref useSiteInfo);
+
+            Debug.Assert(implementationsToShadow is null);
             foreach (var singleLookupResult in singleLookupResults)
             {
                 result.MergeEqual(singleLookupResult);
@@ -213,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
             // 1. Collect new extension members
-            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateAllNewExtensionMembersInSingleBinder(result, name, arity, options, originalBinder, ref useSiteInfo);
+            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateExtensionBlockMembersInSingleBinder(
+                result, name, arity, options, originalBinder, trackImplementationsToShadow: true, ref useSiteInfo);
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -236,7 +242,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             implementationsToShadow?.Free();
         }
 
-        private PooledHashSet<MethodSymbol>? EnumerateAllNewExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result, string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private PooledHashSet<MethodSymbol>? EnumerateExtensionBlockMembersInSingleBinder(
+            ArrayBuilder<SingleLookupResult> result,
+            string? name,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder,
+            bool trackImplementationsToShadow,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
@@ -254,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(resultOfThisMember.Symbol is not null);
                 result.Add(resultOfThisMember);
 
-                if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                if (trackImplementationsToShadow &&
+                    candidate is MethodSymbol { IsStatic: false } shadows &&
                     shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
                 {
                     implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();

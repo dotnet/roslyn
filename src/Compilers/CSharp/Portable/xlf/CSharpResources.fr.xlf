@@ -808,8 +808,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="new">An expression tree may not contain an extension property access</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -860,11 +860,6 @@
       <trans-unit id="ERR_ExtensionBlockCollision">
         <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
         <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExtensionDisallowsIndexerMember">
-        <source>Extension indexers are not allowed. Please use language version {0} or greater to allow.</source>
-        <target state="new">Extension indexers are not allowed. Please use language version {0} or greater to allow.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">

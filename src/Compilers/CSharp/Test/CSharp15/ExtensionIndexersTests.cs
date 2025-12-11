@@ -23,14 +23,10 @@ public class ExtensionIndexersTests : CompilingTestBase
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
     }
 
-    [Fact]
-    public void LangVer_01()
+    [Theory, CombinatorialData]
+    public void LangVer_01(bool useCompilationReference)
     {
-        var src = """
-object o = new object();
-o[0] = 1;
-_ = o[2];
-
+        var libSrc = """
 public static class E
 {
     extension(object o)
@@ -43,21 +39,31 @@ public static class E
     }
 }
 """;
+        var libComp = CreateCompilation(libSrc);
+        var libRef = AsReference(libComp, useCompilationReference);
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+        var src = """
+object o = new object();
+o[0] = 1;
+_ = o[2];
+""";
+
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
             // (2,1): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // o[0] = 1;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[0]").WithArguments("extension indexers").WithLocation(2, 1),
             // (3,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = o[2];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[2]").WithArguments("extension indexers").WithLocation(3, 5),
-            // (9,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[2]").WithArguments("extension indexers").WithLocation(3, 5));
+
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+
+        CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+            // (5,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(9, 20));
-
-        CreateCompilation(src, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-
-        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 20));
     }
 
     [Fact]
@@ -181,26 +187,6 @@ public static class E
     }
 
     [Fact]
-    public void Declaration_06()
-    {
-        // parameter name conflict with extension parameter
-        var src = """
-public static class E
-{
-    extension(object o)
-    {
-        public int this[object o] => throw null;
-    }
-}
-""";
-
-        CreateCompilation(src).VerifyEmitDiagnostics(
-            // (5,32): error CS9290: 'o': a parameter, local variable, or local function cannot have the same name as an extension parameter
-            //         public int this[object o] => throw null;
-            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "o").WithArguments("o").WithLocation(5, 32));
-    }
-
-    [Fact]
     public void Declaration_07()
     {
         // parameter name conflict with extension type parameter
@@ -289,28 +275,6 @@ public static class E
 
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "43").VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Declaration_11()
-    {
-        var src = """
-public static class E
-{
-    extension(int)
-    {
-        public int this[int j]
-        {
-            set { }
-        }
-    }
-}
-""";
-
-        CreateCompilation(src).VerifyEmitDiagnostics(
-            // (5,20): error CS9303: 'this[]': cannot declare instance members in an extension block with an unnamed receiver parameter
-            //         public int this[int j]
-            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "this").WithArguments("this[]").WithLocation(5, 20));
     }
 
     [Fact]
@@ -735,7 +699,6 @@ public static class E
     [Fact]
     public void Indexing_09()
     {
-        // Color Color receiver
         var src = """
 C.M(new C());
 
@@ -1060,7 +1023,7 @@ class C
     [Fact]
     public void Indexing_19()
     {
-        // inaccessible
+        // inaccessible, file-scope
         var src = """
 var o = new object();
 _ = o[42];
@@ -1942,6 +1905,7 @@ _ = 42[43];
             // (1,5): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             // _ = 42[43];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "42[43]").WithArguments("int").WithLocation(1, 5));
+        // PROTOTYPE verify candidates from GetMemberGroup
     }
 
     [Fact(Skip = "PROTOTYPE existing crash")]
@@ -2015,6 +1979,79 @@ namespace N
             // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             // _ = 42[new C()];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "42[new C()]").WithArguments("int").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void Indexing_53()
+    {
+        // convert receiver, struct
+        var src = """
+S s = new S();
+s[0] = 1;
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int i]
+        {
+            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+struct S { }
+""";
+
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "set(0, 1)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var setterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[0]");
+        var typeInfo = model.GetTypeInfo(setterAccess.Expression);
+        AssertEx.Equal("S", typeInfo.Type.ToTestDisplayString());
+        AssertEx.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString());
+
+        // receiver is boxed
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "S"
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       "void E.set_Item(object, int, int)"
+  IL_0015:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Indexing_54()
+    {
+        // inaccessible, private
+        var src = """
+var o = new object();
+_ = o[42];
+
+static class E
+{
+    extension(object o)
+    {
+        private int this[int a] => throw null;
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // _ = o[42];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "o[42]").WithArguments("object").WithLocation(2, 5));
     }
 
     [Fact]
@@ -2404,6 +2441,45 @@ class C { }
     }
 
     [Fact]
+    public void ObjectInitializer_02()
+    {
+        // boxed receiver
+        var src = """
+var c = new S() { [0] = 1 };
+
+static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { set { System.Console.Write($"set({i}, {value}) "); } }
+    }
+}
+
+struct S { }
+""";
+
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "set(0, 1)").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       24 (0x18)
+  .maxstack  4
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloc.0
+  IL_0009:  dup
+  IL_000a:  box        "S"
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       "void E.set_Item(object, int, int)"
+  IL_0016:  pop
+  IL_0017:  ret
+}
+""");
+    }
+
+    [Fact]
     public void WithInitializer_01()
     {
         var src = """
@@ -2420,6 +2496,7 @@ public static class E
 public struct S { }
 """;
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (1,24): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             // var c = new S() with { [0] = 1 };
@@ -2437,6 +2514,8 @@ public struct S
 }
 """;
 
+        // The first diagnostic is unexpected
+        // Tracked by https://github.com/dotnet/roslyn/issues/81666
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (1,24): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             // var c = new S() with { [0] = 1 };
@@ -2446,15 +2525,13 @@ public struct S
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 1").WithLocation(1, 24));
     }
 
-    [Fact]
-    public void ListPattern_01()
+    [Theory, CombinatorialData]
+    public void ListPattern_01(bool useCompilationReference)
     {
-        var src = """
-_ = new C() is [.., 1];
+        var libSrc = """
+public class C { }
 
-class C { }
-
-static class E
+public static class E
 {
     extension(C c)
     {
@@ -2463,36 +2540,155 @@ static class E
     }
 }
 """;
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net70);
+        var libRef = AsReference(libComp, useCompilationReference);
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+        var src = """
+_ = new C() is [.., 1];
+""";
+
+        var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // _ = new C() is [.., 1];
             Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("C").WithLocation(1, 16),
             // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.., 1]").WithArguments("extension indexers").WithLocation(1, 16),
-            // (10,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(10, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.., 1]").WithArguments("extension indexers").WithLocation(1, 16));
 
         // PROTOTYPE where should extension Length/Count count?
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // _ = new C() is [.., 1];
             Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("C").WithLocation(1, 16));
+
+        comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [.., 1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("C").WithLocation(1, 16),
+            // (8,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(8, 20));
     }
 
     [Fact]
-    public void SpreadPattern_01()
+    public void ListPattern_02()
     {
+        // boxed receiver
         var src = """
-_ = new C() is [_, .. var x];
+_ = new S() is [.., 1];
 
-class C { }
+public struct S
+{
+    public int Length => 3;
+}
 
-static class E
+public static class E
+{
+    extension(object o)
+    {
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: "^1").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "int S.Length.get"
+  IL_000f:  ldc.i4.1
+  IL_0010:  blt.s      IL_0029
+  IL_0012:  ldloc.0
+  IL_0013:  box        "S"
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  newobj     "System.Index..ctor(int, bool)"
+  IL_001f:  call       "int E.get_Item(object, System.Index)"
+  IL_0024:  ldc.i4.1
+  IL_0025:  ceq
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ListPattern_03()
+    {
+        // nullable value type receiver
+        var src = """
+System.Console.Write(E.Test(null)); 
+System.Console.Write(E.Test(new S()));
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E
+{
+    public static bool Test(S? s)
+    {
+        return s is [.., 1];
+    }
+
+    extension(object o)
+    {
+        public int this[System.Index i] { get { System.Console.Write($" {i} "); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: "False ^1 False").VerifyDiagnostics();
+        verifier.VerifyIL("E.Test", """
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (S V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "readonly bool S?.HasValue.get"
+  IL_0007:  brfalse.s  IL_0031
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       "readonly S S?.GetValueOrDefault()"
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       "int S.Length.get"
+  IL_0018:  ldc.i4.1
+  IL_0019:  blt.s      IL_0031
+  IL_001b:  ldloc.0
+  IL_001c:  box        "S"
+  IL_0021:  ldc.i4.1
+  IL_0022:  ldc.i4.1
+  IL_0023:  newobj     "System.Index..ctor(int, bool)"
+  IL_0028:  call       "int E.get_Item(object, System.Index)"
+  IL_002d:  ldc.i4.1
+  IL_002e:  ceq
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
+}
+""");
+    }
+
+    [Theory, CombinatorialData]
+    public void SpreadPattern_01(bool useCompilationReference)
+    {
+        var libSrc = """
+public class C { }
+
+public static class E
 {
     extension(C c)
     {
@@ -2502,8 +2698,14 @@ static class E
     }
 }
 """;
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net70);
+        var libRef = AsReference(libComp, useCompilationReference);
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+        var src = """
+_ = new C() is [_, .. var x];
+""";
+
+        var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // _ = new C() is [_, .. var x];
@@ -2513,35 +2715,90 @@ static class E
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
             // (1,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, ".. var x").WithArguments("extension indexers").WithLocation(1, 20),
-            // (10,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(10, 20),
-            // (11,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(11, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, ".. var x").WithArguments("extension indexers").WithLocation(1, 20));
 
         // PROTOTYPE where should extension Length/Count count?
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16));
+
+        comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16),
+            // (8,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(8, 20),
+            // (9,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(9, 20));
     }
 
     [Fact]
-    public void ConditionalAssignment_01()
+    public void SpreadPattern_02()
     {
+        // boxed receiver
         var src = """
-C c = null;
-c?[42] = 0;
+_ = new S() is [_, .. var x];
 
-c = new C();
-c?[43] = 100;
+public struct S
+{
+    public int Length => 3;
+}
 
-class C { }
+public static class E
+{
+    extension(object o)
+    {
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
+    }
+}
+""";
 
-static class E
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: "1..^0").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "int S.Length.get"
+  IL_000f:  ldc.i4.1
+  IL_0010:  blt.s      IL_0034
+  IL_0012:  ldloc.0
+  IL_0013:  box        "S"
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldc.i4.0
+  IL_001a:  newobj     "System.Index..ctor(int, bool)"
+  IL_001f:  ldc.i4.0
+  IL_0020:  ldc.i4.1
+  IL_0021:  newobj     "System.Index..ctor(int, bool)"
+  IL_0026:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_002b:  call       "int E.get_Item(object, System.Range)"
+  IL_0030:  pop
+  IL_0031:  ldc.i4.1
+  IL_0032:  br.s       IL_0035
+  IL_0034:  ldc.i4.0
+  IL_0035:  pop
+  IL_0036:  ret
+}
+""");
+    }
+
+    [Theory, CombinatorialData]
+    public void ConditionalAssignment_01(bool useCompilationReference)
+    {
+        var libSrc = """
+public class C { }
+
+public static class E
 {
     extension(C c)
     {
@@ -2552,39 +2809,84 @@ static class E
     }
 }
 """;
+        var libComp = CreateCompilation(libSrc);
+        var libRef = AsReference(libComp, useCompilationReference);
 
-        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
+        var src = """
+C c = null;
+c?[42] = 0;
+
+c = new C();
+c?[43] = 100;
+""";
+
+        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (2,3): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // c?[42] = 0;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "[42]").WithArguments("extension indexers").WithLocation(2, 3),
             // (5,3): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // c?[43] = 100;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 3),
-            // (13,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 3));
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
         comp.VerifyEmitDiagnostics();
 
-        comp = CreateCompilation(src);
+        comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "set_Item(43 100)").VerifyDiagnostics();
+
+        comp = CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[int i]
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(7, 20));
     }
 
     [Fact]
-    public void ConditionalAccess_01()
+    public void ConditionalAssignment_02()
     {
+        // nullable value type receiver
         var src = """
-C c = null;
-System.Console.Write(c?[42] is null);
+E.Test(null, 42, 0);
+E.Test(new S(), 43, 100);
 
-c = new C();
-System.Console.Write(c?[43] is 100);
+public struct S { }
 
-class C { }
+public static class E
+{
+    public static void Test(S? s, int index, int value)
+    {
+        s?[index] = value;
+    }
 
-static class E
+    extension(S s)
+    {
+        public int this[int i]
+        {
+            set { System.Console.WriteLine($"set_Item({i} {value})"); }
+        }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (10,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         s?[index] = value;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[index]").WithLocation(10, 11));
+
+        //var verifier = CompileAndVerify(comp, expectedOutput: "set_Item(43 100)").VerifyDiagnostics();
+        //verifier.VerifyIL("E.Test", "");
+    }
+
+    [Theory, CombinatorialData]
+    public void ConditionalAccess_01(bool useCompilationReference)
+    {
+        var libSrc = """
+public class C { }
+
+public static class E
 {
     extension(C c)
     {
@@ -2596,23 +2898,89 @@ static class E
 }
 """;
 
-        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
+        var libComp = CreateCompilation(libSrc);
+        var libRef = AsReference(libComp, useCompilationReference);
+
+        var src = """
+C c = null;
+System.Console.Write(c?[42] is null);
+
+c = new C();
+System.Console.Write(c?[43] is 100);
+""";
+
+        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (2,24): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // System.Console.Write(c?[42] is null);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "[42]").WithArguments("extension indexers").WithLocation(2, 24),
             // (5,24): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // System.Console.Write(c?[43] is null);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 24),
-            // (13,20): error CS9500: Extension indexers are not allowed. Please use language version preview or greater to allow.
-            //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsIndexerMember, "this").WithArguments("preview").WithLocation(13, 20));
+            // System.Console.Write(c?[43] is 100);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 24));
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
         comp.VerifyEmitDiagnostics();
 
-        comp = CreateCompilation(src);
+        comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "True get_Item(43) True").VerifyDiagnostics();
+
+        comp = CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[int i]
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(7, 20));
+    }
+
+    [Fact]
+    public void ConditionalAccess_02()
+    {
+        // nullable value type receiver
+        var src = """
+System.Console.Write(E.Test(null, 42) is null);
+
+System.Console.Write(E.Test(new S(), 43) is 100);
+
+public struct S { }
+
+public static class E
+{
+    public static int? Test(S? s, int index)
+    {
+        return s?[index];
+    }
+
+    extension(S s)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($" get_Item({i}) "); return 100; }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "True get_Item(43) True").VerifyDiagnostics();
+        verifier.VerifyIL("E.Test", """
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (int? V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "bool S?.HasValue.get"
+  IL_0007:  brtrue.s   IL_0013
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    "int?"
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+  IL_0013:  ldarga.s   V_0
+  IL_0015:  call       "S S?.GetValueOrDefault()"
+  IL_001a:  ldarg.1
+  IL_001b:  call       "int E.get_Item(S, int)"
+  IL_0020:  newobj     "int?..ctor(int)"
+  IL_0025:  ret
+} 
+""");
     }
 
     [Fact]
@@ -4861,17 +5229,23 @@ static class E
         var src = """
 dynamic d = new object();
 _ = new object()[d];
+_ = new object().M(d);
 
 static class E
 {
     extension(object o)
     {
-        public int this[object o2] { get { System.Console.Write("ran"); return 10; } }
+        public int this[object o2] { get => 0; }
+        public void M(object o2) { }
     }
 }
 """;
+        // PROTOTYPE extension indexer access with dynamic argument should be disallowed
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.Skipped).VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+            // _ = new object().M(d);
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M(d)").WithArguments("object", "M").WithLocation(3, 5));
     }
 
     [Fact]
@@ -4923,7 +5297,7 @@ static class E
     [Fact]
     public void CheckAndCoerceArguments_01()
     {
-        // Irregular/legacy behavior for indexer arguments
+        // Irregular/legacy behavior for indexer arguments (we skip the safety check for usage of pointer types in indexer arguments)
         var libSrc = """
 public static unsafe class E
 {

@@ -2456,8 +2456,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
         //  5) Add message and '_Title' to CSharpResources.resx
-
-        // PROTOTYPE move to right position and renumber
-        ERR_ExtensionDisallowsIndexerMember = 9500, // PROTOTYPE add to UpgradeProject
     }
 }

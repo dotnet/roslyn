@@ -8971,7 +8971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
+        private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundIndexerAccess? extensionIndexerAccess)
         {
             if (left.Kind == BoundKind.BaseReference)
             {
@@ -9016,7 +9016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder binder,
                 ExtensionScope scope,
                 BindingDiagnosticBag diagnostics,
-                out BoundExpression? extensionIndexerAccess)
+                out BoundIndexerAccess? extensionIndexerAccess)
             {
                 Debug.Assert(receiver.Type is not null);
                 Debug.Assert(lookupResult.IsClear);
@@ -9024,11 +9024,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 1. gather candidates
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
-                scope.Binder.LookupAllNewExtensionMembersInSingleBinder(
-                    lookupResult, WellKnownMemberNames.Indexer, arity: 0, LookupOptions.AllMethodsOnArityZero,
+                scope.Binder.LookupExtensionBlockIndexersInSingleBinder(
+                    lookupResult, WellKnownMemberNames.Indexer, arity: 0, LookupOptions.Default,
                     originalBinder: binder, useSiteInfo: ref useSiteInfo);
 
-                if (!lookupResult.IsMultiViable || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property))
+                if (!lookupResult.IsMultiViable || lookupResult.Symbols.All(s => s is not PropertySymbol { IsIndexer: true }))
                 {
                     diagnostics.Add(syntax, useSiteInfo);
                     extensionIndexerAccess = null;
@@ -9074,7 +9074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<PropertySymbol>? properties = null;
                 foreach (var member in lookupResult.Symbols)
                 {
-                    if (member is PropertySymbol property)
+                    if (member is PropertySymbol { IsIndexer: true } property)
                     {
                         properties ??= ArrayBuilder<PropertySymbol>.GetInstance();
                         properties.Add(property);
@@ -10211,7 +10211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!lookupResult.IsMultiViable)
             {
-                if (TryBindExtensionIndexer(node, expr, analyzedArguments, diagnostics, out BoundExpression extensionIndexerAccess))
+                if (TryBindExtensionIndexer(node, expr, analyzedArguments, diagnostics, out BoundIndexerAccess extensionIndexerAccess))
                 {
                     indexerAccessExpression = extensionIndexerAccess;
                 }
@@ -10238,7 +10238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerGroup.Add((PropertySymbol)symbol);
                 }
 
-                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, diagnostics);
+                indexerAccessExpression = BindNonExtensionIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, diagnostics);
                 indexerGroup.Free();
             }
 
@@ -10304,7 +10304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // converting the ArrayBuilder to ImmutableArray. Avoid the extra copy.
             var properties = ArrayBuilder<PropertySymbol>.GetInstance();
             properties.AddRange(propertyGroup);
-            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, diagnostics);
+            var result = BindNonExtensionIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, diagnostics);
             properties.Free();
             return result;
         }
@@ -10354,7 +10354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        private BoundExpression BindIndexerOrIndexedPropertyAccess(
+        private BoundExpression BindNonExtensionIndexerOrIndexedPropertyAccess(
             SyntaxNode syntax,
             BoundExpression receiver,
             ArrayBuilder<PropertySymbol> propertyGroup,
@@ -10406,7 +10406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             if (!overloadResolutionResult.Succeeded)
             {
-                if (TryBindExtensionIndexer(syntax, receiver, analyzedArguments, diagnostics, out BoundExpression extensionIndexerAccess))
+                if (TryBindExtensionIndexer(syntax, receiver, analyzedArguments, diagnostics, out BoundIndexerAccess extensionIndexerAccess))
                 {
                     return extensionIndexerAccess;
                 }
@@ -10467,12 +10467,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return propertyAccess;
         }
 
-        private BoundExpression BindIndexerOrIndexedPropertyAccessContinued(SyntaxNode syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, MemberResolutionResult<PropertySymbol> resolutionResult)
+        private BoundIndexerAccess BindIndexerOrIndexedPropertyAccessContinued(SyntaxNode syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, MemberResolutionResult<PropertySymbol> resolutionResult)
         {
             PropertySymbol property = resolutionResult.Member;
 
             ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
-            ReportDiagnosticsIfDisallowedExtensionIndexer(diagnostics, property, syntax);
+            ReportIfDisallowedExtensionIndexer(diagnostics, property, syntax);
 
             // Make sure that the result of overload resolution is valid.
             var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
@@ -10487,8 +10487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
             }
 
-            bool isNewExtensionMember = property.IsExtensionBlockMember();
-            if (isNewExtensionMember)
+            if (property.IsExtensionBlockMember())
             {
                 receiver = CheckAndConvertExtensionReceiver(receiver, property.ContainingType.ExtensionParameter, diagnostics);
             }
@@ -10677,7 +10676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 analyzedArguments.Arguments.Add(intPlaceholder);
                                 var properties = ArrayBuilder<PropertySymbol>.GetInstance();
                                 properties.AddRange(property);
-                                indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
+                                indexerOrSliceAccess = BindNonExtensionIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
                                 properties.Free();
                                 analyzedArguments.Free();
                                 lookupResult.Free();

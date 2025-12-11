@@ -762,9 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void ReportDiagnosticsIfDisallowedExtensionIndexer(BindingDiagnosticBag diagnostics, PropertySymbol property, SyntaxNode syntax)
+        internal void ReportIfDisallowedExtensionIndexer(BindingDiagnosticBag diagnostics, PropertySymbol property, SyntaxNode syntax)
         {
-            if (property.IsExtensionBlockMember())
+            if (property.IsIndexer && property.IsExtensionBlockMember() && property.ContainingModule != Compilation.SourceModule)
             {
                 MessageID.IDS_FeatureExtensionIndexers.CheckFeatureAvailability(diagnostics, syntax);
             }

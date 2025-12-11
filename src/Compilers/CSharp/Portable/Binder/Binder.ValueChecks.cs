@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var setMethod = replace(SetMethod);
                 Symbol symbol = ReferenceEquals(Symbol, Method) && method is not null ? method : Symbol;
 
+                //Debug.Assert(SetMethod?.IsExtensionBlockMember() != true); // TODO2
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
                 return new MethodInfo(symbol, method, setMethod);
