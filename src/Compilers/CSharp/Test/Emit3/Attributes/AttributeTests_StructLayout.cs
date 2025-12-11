@@ -874,7 +874,7 @@ partial struct C
             CompileAndVerify(CreateEmptyCompilation(
                 source,
                 references: [ExtendedLayoutAttributeMinimalCoreLibrary]),
-                emitOptions: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.0.30319"),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.30319"),
                 symbolValidator: module =>
                 {
                     var type = module.GlobalNamespace.GetTypeMember("StructWithExtendedLayout");
@@ -951,7 +951,7 @@ partial struct C
                 CreateEmptyCompilation(
                     source,
                     references: [ExtendedLayoutAttributeMinimalCoreLibrary]),
-                emitOptions: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.0.30319"),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.30319"),
                 symbolValidator: module =>
                 {
                     Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("C").Layout.Kind);
