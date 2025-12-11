@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+                if (Arguments.ParseOptions.HasFeature(Feature.DebugDeterminism))
                 {
                     EmitDeterminismKey(
                         compilation,
