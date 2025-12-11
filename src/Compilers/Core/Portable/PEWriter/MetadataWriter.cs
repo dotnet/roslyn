@@ -881,7 +881,7 @@ namespace Microsoft.Cci
 
             if (genPar.AllowsRefLikeType)
             {
-                result |= MetadataHelpers.GenericParameterAttributesAllowByRefLike;
+                result |= GenericParameterAttributes.AllowByRefLike;
             }
 
             if (genPar.MustHaveDefaultConstructor)
@@ -1475,8 +1475,11 @@ namespace Microsoft.Cci
                     result |= TypeAttributes.ExplicitLayout;
                     break;
 
-                case MetadataHelpers.LayoutKindExtended:
-                    result |= MetadataHelpers.TypeAttributesExtendedLayout;
+                default:
+                    if (typeDef.Layout == LayoutKind.Extended)
+                    {
+                        result |= TypeAttributes.ExtendedLayout;
+                    }
                     break;
             }
 

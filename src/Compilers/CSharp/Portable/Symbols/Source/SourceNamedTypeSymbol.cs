@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1229,14 +1230,7 @@ next:;
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute))
             {
-                if (attribute.AttributeClass.ExtendedSpecialType != InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute)
-                {
-                    diagnostics.Add(ErrorCode.ERR_InvalidExtendedLayoutAttribute, arguments.AttributeSyntaxOpt.Name.Location);
-                }
-                else
-                {
-                    arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
-                }
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
             }
             else
             {
@@ -1523,7 +1517,7 @@ next:;
 
                 if (data is { HasExtendedLayoutAttribute: true })
                 {
-                    return new TypeLayout(MetadataHelpers.LayoutKindExtended, 0, alignment: 0);
+                    return new TypeLayout(LayoutKind.Extended, 0, alignment: 0);
                 }
 
                 if (data is { HasStructLayoutAttribute: true })
@@ -2001,6 +1995,14 @@ next:;
                 if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
+                }
+            }
+
+            if (TypeKind == TypeKind.Struct && HasExtendedLayoutAttribute)
+            {
+                if (!ContainingAssembly.RuntimeSupportsExtendedLayout)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, GetFirstLocation());
                 }
             }
 

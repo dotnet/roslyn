@@ -668,8 +668,6 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray14:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray15:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray16:
-                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute:
-                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:

@@ -924,7 +924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ExpectedWarningKeyword = 31218
         ERR_InvalidHashAlgorithmName = 31219
         ERR_StructLayoutAndExtendedLayout = 31220
-        ERR_InvalidExtendedLayoutAttribute = 31221
+        ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 31221
 
         '// NOTE: If you add any new errors that may be attached to a symbol during meta-import when it is marked as bad,
         '//       particularly if it applies to method symbols, please appropriately modify Bindable::ResolveOverloadingShouldSkipBadMember.

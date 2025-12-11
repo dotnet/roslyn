@@ -1352,10 +1352,10 @@ namespace Microsoft.CodeAnalysis
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,                           // DeclaringTypeId
                 0,                                                                                                          // Arity
-                1,                                                                                                          // Method Signature
-                (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                          // Return Type
-                (byte)SignatureTypeCode.TypeHandle,
-                (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind        // Argument: System.Runtime.InteropServices.ExtendedLayoutKind
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
+                    (byte)SignatureTypeCode.TypeHandle,
+                    (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]

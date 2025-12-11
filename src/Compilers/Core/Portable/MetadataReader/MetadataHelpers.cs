@@ -30,13 +30,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal const int UserStringHeapCapacity = 0xfffffe;
 
-        // https://github.com/dotnet/roslyn/issues/73548:
-        // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
-        // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
-        public const System.Reflection.GenericParameterAttributes GenericParameterAttributesAllowByRefLike = (System.Reflection.GenericParameterAttributes)0x0020;
+        extension(System.Reflection.GenericParameterAttributes)
+        {
+            // https://github.com/dotnet/roslyn/issues/73548:
+            // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
+            // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
+            public static System.Reflection.GenericParameterAttributes AllowByRefLike => (System.Reflection.GenericParameterAttributes)0x0020;
+        }
 
-        public const System.Reflection.TypeAttributes TypeAttributesExtendedLayout = (System.Reflection.TypeAttributes)0x0018;
-        public const System.Runtime.InteropServices.LayoutKind LayoutKindExtended = (System.Runtime.InteropServices.LayoutKind)1;
+        extension(System.Reflection.TypeAttributes)
+        {
+            public static System.Reflection.TypeAttributes ExtendedLayout => (System.Reflection.TypeAttributes)0x0018;
+        }
+
+        extension(System.Runtime.InteropServices.LayoutKind)
+        {
+            public static System.Runtime.InteropServices.LayoutKind Extended => (System.Runtime.InteropServices.LayoutKind)1;
+        }
 
         public const char DotDelimiter = '.';
         public const string DotDelimiterString = ".";

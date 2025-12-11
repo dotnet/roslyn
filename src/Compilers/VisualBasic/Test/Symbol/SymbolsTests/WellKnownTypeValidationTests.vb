@@ -591,9 +591,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
-                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
-                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -693,9 +691,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
-                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
-                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

@@ -1746,9 +1746,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim diagnostics As BindingDiagnosticBag = Nothing
-            If Me.HasStructLayoutAttribute AndAlso Me.HasExtendedLayoutAttribute Then
+
+            If HasExtendedLayoutAttribute And Not ContainingAssembly.RuntimeSupportsExtendedLayout Then
                 diagnostics = BindingDiagnosticBag.GetInstance()
-                diagnostics.Add(ERRID.ERR_StructLayoutAndExtendedLayout, TypeDeclaration.Declarations(0).Location)
+                diagnostics.Add(ERRID.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, GetFirstLocation(), Me)
+            End If
+
+            If HasStructLayoutAttribute AndAlso HasExtendedLayoutAttribute Then
+                If diagnostics Is Nothing Then
+                    diagnostics = BindingDiagnosticBag.GetInstance()
+                End If
+                diagnostics.Add(ERRID.ERR_StructLayoutAndExtendedLayout, GetFirstLocation())
             End If
 
             If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
@@ -2346,12 +2354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute) Then
-
-                    If attrData.AttributeClass.ExtendedSpecialType = InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute Then
-                        arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExtendedLayoutAttribute = True
-                    Else
-                        diagnostics.Add(ERRID.ERR_InvalidExtendedLayoutAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
-                    End If
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExtendedLayoutAttribute = True
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
@@ -2526,7 +2529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim data = GetDecodedWellKnownAttributeData()
 
                 If data IsNot Nothing AndAlso data.HasExtendedLayoutAttribute Then
-                    Return New TypeLayout(MetadataHelpers.LayoutKindExtended, 0, alignment:=0)
+                    Return New TypeLayout(MetadataHelpers.get_Extended(), 0, alignment:=0)
                 End If
 
                 If data IsNot Nothing AndAlso data.HasStructLayoutAttribute Then

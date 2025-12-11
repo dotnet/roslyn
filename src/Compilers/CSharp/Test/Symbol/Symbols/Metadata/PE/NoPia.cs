@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -1424,30 +1425,154 @@ public class Derived : Base, I2
         [Fact]
         public void ExtendedLayoutAttribute()
         {
-            var corlibExtendedSource = """
-            namespace System.Runtime.InteropServices;
-            #pragma warning disable CS9113
-
-            [AttributeUsage(AttributeTargets.Struct)]
-            public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
-
-            [AttributeUsage(AttributeTargets.Assembly)]
-            public sealed class PrimaryInteropAssemblyAttribute(int major, int minor): Attribute;
-
-            [AttributeUsage(AttributeTargets.Assembly)]
-            public sealed class GuidAttribute(string guid) : Attribute;
-
-            public enum ExtendedLayoutKind
+            var coreLibSource = """
+            #pragma warning disable 0169,9113
+            namespace System
             {
-                CStruct,
-                CUnion
+                public class Object
+                {
+                }
+
+                public abstract class ValueType : Object
+                {
+                }
+
+                public abstract class Enum : ValueType
+                {
+                }
+
+                public class Attribute : Object
+                {
+                }
+            
+                public struct Void
+                {
+                }
+
+                public enum AttributeTargets
+                {
+                    Assembly = 0x0001,
+                    Module = 0x0002,
+                    Class = 0x0004,
+                    Struct = 0x0008,
+                    Enum = 0x0010,
+                    Constructor = 0x0020,
+                    Method = 0x0040,
+                    Property = 0x0080,
+                    Field = 0x0100,
+                    Event = 0x0200,
+                    Interface = 0x0400,
+                    Parameter = 0x0800,
+                    Delegate = 0x1000,
+                    ReturnValue = 0x2000,
+                    GenericParameter = 0x4000,
+
+                    All = Assembly | Module | Class | Struct | Enum | Constructor |
+                                    Method | Property | Field | Event | Interface | Parameter |
+                                    Delegate | ReturnValue | GenericParameter
+                }
+
+                [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+                public sealed class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+                    public AttributeUsageAttribute(AttributeTargets validOn, bool allowMultiple, bool inherited) {}
+                    public bool Inherited { get; set; }
+                    public bool AllowMultiple { get; set; }
+                }
+
+                public struct UInt16
+                {
+                    private ushort m_value;
+                }
+
+                public struct Int32
+                {
+                    private int m_value;
+                }
+
+                public struct Boolean
+                {
+                    private bool m_value;
+                }
+
+            #pragma warning disable 0661, 0660
+                [StructLayout(LayoutKind.Sequential)]
+                public class String
+                {
+            #pragma warning disable 169, 649
+                        private int _stringLength;
+                        private char _firstChar;
+
+            #pragma warning restore
+
+                    public int Length
+                    {
+                        get
+                        {
+                            return _stringLength;
+                        }
+                    }
+                }
             }
 
-            [System.AttributeUsage(System.AttributeTargets.Delegate | System.AttributeTargets.Enum | System.AttributeTargets.Interface | System.AttributeTargets.Struct, AllowMultiple=false, Inherited=false)]
-            public sealed class TypeIdentifierAttribute(string scope, string identifier) : Attribute;
+            namespace System.Runtime.InteropServices
+            {
+                [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+                public sealed class StructLayoutAttribute(LayoutKind kind): Attribute
+                {
+                    public StructLayoutAttribute(ushort kind) : this((LayoutKind)kind){}
+                }
+
+                public enum LayoutKind
+                {
+                    Sequential = 0,
+                    Extended = 1,
+                    Explicit = 2, 
+                    Auto = 3
+                }
+
+                [AttributeUsage(AttributeTargets.Field, Inherited = false)]
+                public sealed class FieldOffsetAttribute : Attribute
+                {
+                    public FieldOffsetAttribute(int offset)
+                    {
+                    }
+                    public int Value { get { return 0; } }
+                }
+
+                [AttributeUsage(AttributeTargets.Struct)]
+                public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+
+                public enum ExtendedLayoutKind
+                {
+                    CStruct,
+                    CUnion
+                }
+            
+                [AttributeUsage(AttributeTargets.Assembly)]
+                public sealed class PrimaryInteropAssemblyAttribute(int major, int minor): Attribute;
+            
+                [AttributeUsage(AttributeTargets.Assembly)]
+                public sealed class GuidAttribute(string guid) : Attribute;
+            
+                [System.AttributeUsage(System.AttributeTargets.Delegate | System.AttributeTargets.Enum | System.AttributeTargets.Interface | System.AttributeTargets.Struct, AllowMultiple=false, Inherited=false)]
+                public sealed class TypeIdentifierAttribute(string scope, string identifier) : Attribute;
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Struct)]
+                public sealed class InlineArrayAttribute(int repeat): Attribute;
+            }
             """;
 
-            var minimalCoreLibReference = MinimalCoreLibBuilder.Create(corlibExtendedSource).ToMetadataReference();
+            var minimalCoreLibReference = CSharpCompilation.Create(
+                "System.Private.CoreLib",
+                [
+                    CSharpSyntaxTree.ParseText(coreLibSource, new CSharpParseOptions(LanguageVersion.Preview))
+                ],
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).ToMetadataReference();
 
             var sourcePIA =
 @"using System.Runtime.InteropServices;
@@ -1503,7 +1628,7 @@ public class Derived : C
                 var s = compilationDerived.GetTypeByMetadataName("S");
                 var baseF1 = compilationDerived.GetTypeByMetadataName("C").GetMember<MethodSymbol>("F1");
                 Assert.Same(s, baseF1.Parameters[0].Type);
-                Assert.Equal(MetadataHelpers.LayoutKindExtended, s.Layout.Kind);
+                Assert.Equal(LayoutKind.Extended, s.Layout.Kind);
                 Assert.NotNull(s.GetAttribute(compilationDerived.GetTypeByMetadataName("System.Runtime.InteropServices.ExtendedLayoutAttribute")).AttributeConstructor);
                 compilationDerived.VerifyDiagnostics();
             }
