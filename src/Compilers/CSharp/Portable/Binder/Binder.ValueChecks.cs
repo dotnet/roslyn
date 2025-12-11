@@ -4763,11 +4763,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.Type?.IsRefLikeType != true)
                 return SafeContext.CallingMethod;
 
-            // A non-empty collection expression (either has elements and/or has a with(...) element) with span type may
-            // be stored on the stack. In those cases the expression may have local scope.
+            // An empty collection expression (so no elements or `with(...)` arguments ) does not need to be stored on
+            // the stack, as it has no way to capture anything local that could leak out.  So it is safe to return to
+            // the caller.
             if (!expr.HasWithElement && expr.Elements.IsEmpty)
                 return SafeContext.CallingMethod;
 
+            // Otherwise, we need to do deeper analysis to decide if this collection expression can escape, or if it has
+            // to stay local.
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
             switch (collectionTypeKind)
             {
