@@ -8387,7 +8387,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"), targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.PEVerifyCompat), targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -13465,7 +13465,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13529,7 +13529,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13605,7 +13605,7 @@ ref struct RR
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13676,7 +13676,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -15158,7 +15158,7 @@ class Enumerator2<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -27925,7 +27925,7 @@ ref struct R<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -27985,7 +27985,7 @@ ref struct R<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)

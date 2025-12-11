@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular14 = Regular.WithLanguageVersion(LanguageVersion.CSharp14);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularPreviewWithDocumentationComments = RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose);
-        public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature("UseLegacyStrongNameProvider");
+        public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature(Feature.UseLegacyStrongNameProvider);
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
         public static readonly CSharpParseOptions WithCovariantReturns = Regular.WithLanguageVersion(MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion());
         public static readonly CSharpParseOptions WithoutCovariantReturns = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Preview).WithFeatures(s_experimentalFeatures);
-
-        // Enable pattern-switch translation even for switches that use no new syntax. This is used
-        // to help ensure compatibility of the semantics of the new switch binder with the old switch
-        // binder, so that we may eliminate the old one in the future.
-        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
 
         public static readonly CSharpParseOptions RegularWithoutRecursivePatterns = Regular7_3;
         public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular8;
@@ -106,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(Feature.Strict, "true") }));
         }
 
         public static CSharpParseOptions WithPEVerifyCompatFeature(this CSharpParseOptions options)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("peverify-compat", "true") }));
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(Feature.PEVerifyCompat, "true") }));
         }
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
@@ -131,19 +126,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithNullablePublicOnly(this CSharpParseOptions options)
         {
-            return options.WithFeature("nullablePublicOnly");
+            return options.WithFeature(Feature.NullablePublicOnly);
         }
 
         public static CSharpParseOptions WithNoRefSafetyRulesAttribute(this CSharpParseOptions options)
         {
-            return options.WithFeature("noRefSafetyRulesAttribute");
+            return options.WithFeature(Feature.NoRefSafetyRulesAttribute);
         }
 
         public static CSharpParseOptions WithDisableLengthBasedSwitch(this CSharpParseOptions options)
         {
-            return options.WithFeature("disable-length-based-switch");
+            return options.WithFeature(Feature.DisableLengthBasedSwitch);
         }
 
+        /// <remarks>Known feature flags should use <see cref="Feature"/></remarks>
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
