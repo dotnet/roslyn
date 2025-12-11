@@ -1800,6 +1800,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 {
                     {{typeName}} x = [with(), 1, 2, 3];
                     {{typeName}} y = [with(capacity: 6), 1, 2, 3];
+                    {{typeName}} z = [with(6), 1, 2, 3];
                 }
             }
             """;
@@ -1807,15 +1808,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         CreateCompilation([
             source,
             CreateCustomListDefinition("""public List() { } public List(long capacity) { }""")]).VerifyDiagnostics(
-            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
-            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-            //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
-            // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
-            //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
+                // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"),
+                // (9,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (9,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
     }
 
     [Theory]
@@ -1864,15 +1871,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 {
                     {{typeName}} x = [with(), 1, 2, 3];
                     {{typeName}} y = [with(6), 1, 2, 3];
+                    {{typeName}} z = [with(capacity: 5), 1, 2, 3];
                 }
             }
             """;
 
         var compilation = CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { System.Console.Write("empty "); } public List(int capacity = 0) { System.Console.Write(capacity); }""")],
+            CreateCustomListDefinition("""public List() { System.Console.Write("empty "); } public List(int capacity = 0) { System.Console.Write(capacity + " "); }""")],
             options: TestOptions.ReleaseExe);
-        CompileAndVerify(compilation, expectedOutput: "empty 6").VerifyDiagnostics();
+        CompileAndVerify(compilation, expectedOutput: "empty 6 5").VerifyDiagnostics();
     }
 
     [Theory]
@@ -1889,6 +1897,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 {
                     {{typeName}} x = [with(), 1, 2, 3];
                     {{typeName}} y = [with(6), 1, 2, 3];
+                    {{typeName}} z = [with(capacity: 6), 1, 2, 3];
                 }
             }
             """;
@@ -1896,15 +1905,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         CreateCompilation([
             source,
             CreateCustomListDefinition("""public List() { } public List(long capacity = 0) { }""")]).VerifyDiagnostics(
-            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
-            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
-            // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
-            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
+                // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"),
+                // (9,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> z = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (9,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> z = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
     }
 
     [Theory]
@@ -1919,8 +1934,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             {
                 static void Main()
                 {
-                    {{typeName}} x = [with(), 1, 2, 3];
-                    {{typeName}} y = [with(6), 1, 2, 3];
+                    {{typeName}} a = [with(), 1, 2, 3];
+                    {{typeName}} b = [with(6), 1, 2, 3];
+                    {{typeName}} c = [with(capacity: 6), 1, 2, 3];
+                    {{typeName}} d = [with(6, 0), 1, 2, 3];
+                    {{typeName}} e = [with(capacity: 6, other: 0), 1, 2, 3];
+                    {{typeName}} f = [with(other: 6, capacity: 0), 1, 2, 3];
                 }
             }
             """;
@@ -1928,15 +1947,39 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         CreateCompilation([
             source,
             CreateCustomListDefinition("""public List() { } public List(int capacity, int other = 0) { }""")]).VerifyDiagnostics(
-            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
-            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
-            // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
-            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
+                // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> a = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> b = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+                //         ICollection<System.Int32> b = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"),
+                // (9,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> c = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (9,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> c = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"),
+                // (10,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> d = [with(6, 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6, 0), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (10,40): error CS1729: 'List<int>' does not contain a constructor that takes 2 arguments
+                //         ICollection<System.Int32> d = [with(6, 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "2"),
+                // (11,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> e = [with(capacity: 6, other: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6, other: 0), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (11,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> e = [with(capacity: 6, other: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"),
+                // (12,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> f = [with(other: 6, capacity: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(other: 6, capacity: 0), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (12,45): error CS1739: The best overload for 'List' does not have a parameter named 'other'
+                //         ICollection<System.Int32> f = [with(other: 6, capacity: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "other").WithArguments("List", "other"));
     }
 
     [Fact]
