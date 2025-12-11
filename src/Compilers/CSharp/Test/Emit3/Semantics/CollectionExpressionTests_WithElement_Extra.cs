@@ -1707,7 +1707,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             """, graph, symbol);
     }
 
-    private string CreateCustomListDefinition(string constructors)
+    private static string CreateCustomListDefinition(string constructors)
     {
         return $$"""
             namespace System.Collections.Generic
@@ -1780,8 +1780,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(int cap) { }""")],
-            assemblyName: "MyAssembly").VerifyDiagnostics(
+            CreateCustomListDefinition("""public List() { } public List(int cap) { }""")]).VerifyDiagnostics(
             // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
             //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
@@ -1807,8 +1806,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(long capacity) { }""")],
-            assemblyName: "MyAssembly").VerifyDiagnostics(
+            CreateCustomListDefinition("""public List() { } public List(long capacity) { }""")]).VerifyDiagnostics(
             // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
             //         ICollection<System.Int32> x = [with(), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
@@ -1840,8 +1838,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(params int[] capacity) { }""")],
-            assemblyName: "MyAssembly").VerifyDiagnostics(
+            CreateCustomListDefinition("""public List() { } public List(params int[] capacity) { }""")]).VerifyDiagnostics(
             // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
             //         ICollection<System.Int32> x = [with(), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
@@ -1898,8 +1895,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(long capacity = 0) { }""")],
-            assemblyName: "MyAssembly").VerifyDiagnostics(
+            CreateCustomListDefinition("""public List() { } public List(long capacity = 0) { }""")]).VerifyDiagnostics(
             // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
             //         ICollection<System.Int32> x = [with(), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
@@ -1931,8 +1927,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         CreateCompilation([
             source,
-            CreateCustomListDefinition("""public List() { } public List(int capacity, int other = 0) { }""")],
-            assemblyName: "MyAssembly").VerifyDiagnostics(
+            CreateCustomListDefinition("""public List() { } public List(int capacity, int other = 0) { }""")]).VerifyDiagnostics(
             // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
             //         ICollection<System.Int32> x = [with(), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
