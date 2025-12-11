@@ -5636,6 +5636,26 @@ parse_member_name:;
                     break;
 
                 default:
+                    Debug.Assert(argumentList is null);
+                    Debug.Assert(initializer is null);
+
+                    // Note: it is ok that we do this work prior to the isConst/isFixed checks below.  If it looks like
+                    // a variable initializer, that means we're missing at least an equals and we'll report that error
+                    // here.  So it's fine to not report the other errors related to const/fixed as they can be fixed up
+                    // once the user adds the '='.
+                    if (looksLikeVariableInitializer())
+                    {
+                        Debug.Assert(this.CurrentToken.Kind != SyntaxKind.EqualsToken);
+
+                        localFunction = null;
+                        return _syntaxFactory.VariableDeclarator(
+                            name,
+                            argumentList: null,
+                            _syntaxFactory.EqualsValueClause(
+                                this.EatToken(SyntaxKind.EqualsToken),
+                                this.ParseVariableInitializer()));
+                    }
+
                     if (isConst)
                     {
                         name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);  // Error here for missing constant initializers
@@ -5658,6 +5678,47 @@ parse_member_name:;
 
             localFunction = null;
             return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
+
+            bool looksLikeVariableInitializer()
+            {
+                // Note: this check is redundant, as CanStartExpression will return false for an equals-token. However,
+                // we want to guarantee that this always holds true, and thus the caller will *always* report an error
+                // when trying to consume the equals token.  That ensures that we it's then ok to skip other syntax
+                // errors that are reported with variable declarators.
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                    return false;
+
+                // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
+                // treat it as a missing '=' and parse the initializer.
+                //
+                // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
+                //
+                //      Type t1 t2 t3
+                //      Type t1 t2,
+                //      Type t1 t2 = ...
+                //      Type t1 t2;
+                //      Type t1 t2)    // likely an incorrect tuple.
+                var shouldParseAsNextDeclarator =
+                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind is SyntaxKind.IdentifierToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
+                if (shouldParseAsNextDeclarator)
+                    return false;
+
+                if (ContainsErrorDiagnostic(name))
+                    return false;
+
+                if (!CanStartExpression())
+                    return false;
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                var initializer = this.ParseExpressionCore();
+
+                // If we see a type following, then prefer to view this as a declarator for the next variable.
+                if (initializer is TypeSyntax)
+                    return false;
+
+                return !ContainsErrorDiagnostic(initializer);
+            }
         }
 
         // Is there a local function after an eaten identifier?
