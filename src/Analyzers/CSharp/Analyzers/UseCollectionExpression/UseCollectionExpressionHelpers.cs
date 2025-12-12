@@ -620,6 +620,8 @@ internal static class UseCollectionExpressionHelpers
 
         CollectionElementSyntax CreateElement(ExpressionSyntax expression)
         {
+            // Enable when dictionary-expressions come online.
+#if false
             if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
             {
                 // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
@@ -653,6 +655,9 @@ internal static class UseCollectionExpressionHelpers
             {
                 return ExpressionElement(expression);
             }
+#else
+            return ExpressionElement(expression);
+#endif
         }
     }
 
