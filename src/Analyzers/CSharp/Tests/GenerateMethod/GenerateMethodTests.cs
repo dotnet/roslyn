@@ -10765,6 +10765,8 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             """);
     }
 
+    // Enable when dictionary-expressions come online.
+#if false
     [Fact]
     public async Task GenerateInDictionaryExpressionKey()
     {
@@ -10834,6 +10836,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             }
             """);
     }
+#endif
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public Task GenerateIntoTopLevelProgramWithPartialType()
