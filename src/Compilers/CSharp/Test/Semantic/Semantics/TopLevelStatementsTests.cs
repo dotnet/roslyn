@@ -10158,9 +10158,12 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // int this[int x] => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "this").WithLocation(3, 5)
+                // (3,24): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(3, 24),
+                // (3,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(3, 33)
                 );
         }
 
