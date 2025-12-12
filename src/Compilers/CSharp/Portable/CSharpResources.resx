@@ -699,8 +699,8 @@
   <data name="ERR_NamespaceUnexpected" xml:space="preserve">
     <value>A namespace cannot directly contain members such as fields, methods or statements</value>
   </data>
-  <data name="ERR_GlobalNamespaceUnexpected" xml:space="preserve">
-    <value>The global namespace cannot directly contain members such as fields or properties</value>
+  <data name="ERR_CompilationUnitUnexpected" xml:space="preserve">
+    <value>A compilation unit cannot directly contain members such as fields, methods or properties</value>
   </data>
   <data name="ERR_NoSuchMember" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}'</value>

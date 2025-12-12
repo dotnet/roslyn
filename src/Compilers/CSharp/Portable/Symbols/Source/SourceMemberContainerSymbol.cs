@@ -5844,9 +5844,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var parentSyntax = member.Parent;
                     var errorCode = parentSyntax.IsKind(SyntaxKind.CompilationUnit)
-                        && parentSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement))
-                            ? ErrorCode.ERR_GlobalNamespaceUnexpected
-                            : ErrorCode.ERR_NamespaceUnexpected;
+                        ? ErrorCode.ERR_CompilationUnitUnexpected
+                        : ErrorCode.ERR_NamespaceUnexpected;
                     diagnostics.Add(errorCode, new SourceLocation(locationSyntax));
                 }
             }
