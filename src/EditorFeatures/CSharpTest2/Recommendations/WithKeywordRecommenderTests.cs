@@ -13,25 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-<<<<<<< HEAD
-    public async Task TestNotAfterWith()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-            @"var q = goo with $$"));
-    }
-
-    [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
-            @"$$");
-    }
-
-    [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
-=======
     public Task TestNotAfterWith()
         => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo with $$"));
@@ -44,136 +25,26 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotAfterClass_Interactive()
         => VerifyAbsenceAsync(SourceCodeKind.Script,
->>>>>>> upstream/features/collection-expression-arguments
             """
             class C { }
             $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
-=======
 
     [Fact]
     public Task TestNotAfterGlobalStatement_Interactive()
         => VerifyAbsenceAsync(SourceCodeKind.Script,
->>>>>>> upstream/features/collection-expression-arguments
             """
             System.Console.WriteLine();
             $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
-=======
 
     [Fact]
     public Task TestNotAfterGlobalVariableDeclaration_Interactive()
         => VerifyAbsenceAsync(SourceCodeKind.Script,
->>>>>>> upstream/features/collection-expression-arguments
             """
             int i = 0;
             $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
-@"using Goo = $$");
-    }
-
-    [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
-@"global using Goo = $$");
-    }
-
-    [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
-    }
-
-    [Fact]
-    public async Task TestAfterExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
-@"var q = goo $$"));
-    }
-
-    [Fact]
-    public async Task TestAfterDottedName()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
-@"var q = goo.Current $$"));
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
-    public async Task TestNotAfterVarInForLoop()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-@"for (var $$"));
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-    public async Task TestNotBeforeFirstStringHole()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-            """
-            var x = "\{0}$$\{1}\{2}"
-            """));
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-    public async Task TestNotBetweenStringHoles()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-            """
-            var x = "\{0}\{1}$$\{2}"
-            """));
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-    public async Task TestNotAfterStringHoles()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-            """
-            var x = "\{0}\{1}\{2}$$"
-            """));
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-    public async Task TestAfterLastStringHole()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
-@"var x = ""\{0}\{1}\{2}"" $$"));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")]
-    public async Task TestNotWithinNumericLiteral()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
-@"var x = .$$0;"));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-    public async Task TestNotAfterAsync()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact]
     public Task TestNotInUsingAlias()
@@ -239,7 +110,6 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
     public Task TestNotAfterAsync()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             using System;
 
@@ -255,19 +125,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-    public async Task TestNotAfterMethodReference()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
     public Task TestNotAfterMethodReference()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             using System;
 
@@ -275,19 +136,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 void M() {
                     var v = Console.WriteLine $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-    public async Task TestNotAfterAnonymousMethod()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
     public Task TestNotAfterAnonymousMethod()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             using System;
 
@@ -295,19 +147,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 void M() {
                     Action a = delegate { } $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-    public async Task TestNotAfterLambda1()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
     public Task TestNotAfterLambda1()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             using System;
 
@@ -315,19 +158,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 void M() {
                     Action b = (() => 0) $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-    public async Task TestNotAfterLambda2()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
     public Task TestNotAfterLambda2()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             using System;
 
@@ -335,19 +169,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 void M() {
                     Action b = () => {} $$
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
-    public async Task TestMissingAfterNumericLiteral()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
     public Task TestMissingAfterNumericLiteral()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             class C
             {
@@ -357,19 +182,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
-    public async Task TestMissingAfterNumericLiteralAndDot()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
     public Task TestMissingAfterNumericLiteralAndDot()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             class C
             {
@@ -379,19 +195,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
-    public async Task TestMissingAfterNumericLiteralDotAndSpace()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
     public Task TestMissingAfterNumericLiteralDotAndSpace()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             class C
             {
@@ -401,19 +208,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
-    public async Task TestMissingInCaseClause1()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
     public Task TestMissingInCaseClause1()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             class A
             {
@@ -431,19 +229,10 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
-    public async Task TestMissingInCaseClause2()
-    {
-        await VerifyAbsenceAsync(
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
     public Task TestMissingInCaseClause2()
         => VerifyAbsenceAsync(
->>>>>>> upstream/features/collection-expression-arguments
             """
             namespace N
             {
@@ -464,69 +253,6 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-<<<<<<< HEAD
-    }
-
-    [Fact]
-    public async Task TestInCollectionExpression1()
-    {
-        await VerifyKeywordAsync(
-            """
-            var v = [$$];
-            """);
-    }
-
-    [Fact]
-    public async Task TestInCollectionExpression2()
-    {
-        await VerifyKeywordAsync(
-            """
-            var v = [$$, 1];
-            """);
-    }
-
-    [Fact]
-    public async Task TestInCollectionExpression3()
-    {
-        await VerifyAbsenceAsync(
-            """
-            var v = [1, $$];
-            """);
-    }
-
-    [Fact]
-    public async Task TestInCollectionExpression4()
-    {
-        await VerifyAbsenceAsync(
-            """
-            var v = [1, $$
-            """);
-    }
-
-    [Fact]
-    public async Task TestInCollectionExpression5()
-    {
-        await VerifyKeywordAsync(
-            """
-            void M()
-            {
-                Goo([$$
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task TestInCollectionExpression6()
-    {
-        await VerifyKeywordAsync(
-            """
-            void M()
-            {
-                Goo([$$]);
-            }
-            """);
-    }
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78800")]
     public Task TestAfterReturnExpression()
@@ -542,5 +268,52 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 public int RandomValue() => 0;
             }
             """);
->>>>>>> upstream/features/collection-expression-arguments
+
+    [Fact]
+    public Task TestInCollectionExpression1()
+        => VerifyKeywordAsync(
+            """
+            var v = [$$];
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression2()
+        => VerifyKeywordAsync(
+            """
+            var v = [$$, 1];
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression3()
+        => VerifyAbsenceAsync(
+            """
+            var v = [1, $$];
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression4()
+        => VerifyAbsenceAsync(
+            """
+            var v = [1, $$
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression5()
+        => VerifyKeywordAsync(
+            """
+            void M()
+            {
+                Goo([$$
+            }
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression6()
+        => VerifyKeywordAsync(
+            """
+            void M()
+            {
+                Goo([$$]);
+            }
+            """);
 }
