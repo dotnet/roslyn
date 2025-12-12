@@ -5989,6 +5989,8 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
+    // Enable when dictionary-expressions come online.
+#if false
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public Task TestKeyValuePair1_CSharp14()
         => new VerifyCS.Test
@@ -6413,5 +6415,6 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
+#endif
 }
 
