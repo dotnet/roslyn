@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -21,18 +22,20 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class RemoteEditAndContinueServiceTests
+public sealed class RemoteEditAndContinueServiceTests
 {
     private static string Inspect(DiagnosticData d)
         => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
             $" {d.Message}";
+
+    private static IEnumerable<string> Inspect(ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projects)
+        => projects.Select(kvp => $"{kvp.Key}: [{string.Join(", ", kvp.Value.Select(p => p.ToString()))}]");
 
     [Theory, CombinatorialData]
     public async Task Proxy(TestHost testHost)
@@ -126,11 +129,9 @@ public class RemoteEditAndContinueServiceTests
 
         IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
-        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
+        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, reportDiagnostics) =>
         {
             Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
-            AssertEx.Equal(new[] { documentId }, captureMatchingDocuments);
-            Assert.False(captureAllMatchingDocuments);
             Assert.True(reportDiagnostics);
 
             remoteDebuggeeModuleMetadataProvider = debuggerService;
@@ -145,16 +146,14 @@ public class RemoteEditAndContinueServiceTests
                 GetActiveStatementsImpl = () => [as1]
             },
             sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [documentId],
-            captureAllMatchingDocuments: false,
             reportDiagnostics: true,
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         Contract.ThrowIfNull(sessionProxy);
 
         // BreakStateChanged
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };
@@ -173,12 +172,16 @@ public class RemoteEditAndContinueServiceTests
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
+        var runningProjects1 = new Dictionary<ProjectId, RunningProjectOptions>
+        {
+            { project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = true } }
+        }.ToImmutableDictionary();
+
         mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>
         {
             var project = solution.GetRequiredProject(projectId);
             Assert.Equal("proj", project.Name);
-            AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
-            AssertEx.Equal([project.Id], runningProjects);
+            AssertEx.SetEqual(runningProjects1, runningProjects);
 
             var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
                 module: moduleId1,
@@ -209,14 +212,14 @@ public class RemoteEditAndContinueServiceTests
                 Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = [],
                 SyntaxError = syntaxError,
-                ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = [project.Id],
+                ProjectsToRebuild = [projectId],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(projectId, [projectId]),
+                ProjectsToRedeploy = [projectId]
             };
         };
 
-        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, runningProjects: [project.Id], activeStatementSpanProvider, CancellationToken.None);
+        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, runningProjects1, activeStatementSpanProvider, CancellationToken.None);
         AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(results.SyntaxError!));
 
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
@@ -238,6 +241,10 @@ public class RemoteEditAndContinueServiceTests
         Assert.Equal(instructionId1.Method.Method, activeStatements.Method);
         Assert.Equal(instructionId1.ILOffset, activeStatements.ILOffset);
         Assert.Equal(span1, activeStatements.NewSpan.ToLinePositionSpan());
+
+        AssertEx.SequenceEqual([projectId], results.ProjectsToRebuild);
+        AssertEx.SequenceEqual([$"{projectId}: [{projectId}]"], Inspect(results.ProjectsToRestart));
+        AssertEx.SequenceEqual([projectId], results.ProjectsToRedeploy);
 
         // CommitSolutionUpdate
 

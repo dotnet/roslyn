@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// fashion over the languages. Helpers in this type should only be one of the following forms:
 /// <list type="bullet">
 /// <item>
-/// 'IsXXX' where 'XXX' exactly matches one of the same named syntax (node, token, trivia, list, etc.) constructs that 
-/// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These 'checking' 
-/// methods should never fail.  For non leaf node types this should be implemented as a typecheck ('is' in C#, 'typeof ... is'
-/// in VB).  For leaf nodes, this should be implemented by deffering to <see cref="ISyntaxKinds"/> to check against the 
-/// raw kind of the node.
+/// 'IsXXX' where 'XXX' exactly matches one of the same named syntax (node, token, trivia, list, etc.) constructs that
+/// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These
+/// 'checking' methods should never fail.  For non leaf node types this should be implemented as a type-check ('is' in
+/// C#, 'typeof ... is' in VB).  For leaf nodes, this should be implemented by deferring to <see cref="ISyntaxKinds"/>
+/// to check against the raw kind of the node.
 /// </item>
 /// <item>
 /// 'GetPartsOfXXX(SyntaxNode node, out SyntaxNode/SyntaxToken part1, ...)' where 'XXX' one of the same named Syntax constructs
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// </item>
 /// <item>
 /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
-/// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionsyntax.Expression in both C# and
+/// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionSyntax.Expression in both C# and
 /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
 /// For nodes that only have a single child, these functions can stay here.  For nodes with multiple children, these should migrate
 /// to <see cref="ISyntaxFactsExtensions"/> and be built off of 'GetPartsOfXXX'.
@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// </item>
 /// <item>
 /// Functions which are effectively specific to a single feature are are just trying to find a place to place complex
-/// feature logic in a place such that it can run over VB or C#.  For example, a function to determine if a position
-/// is on the 'header' of a node.  a 'header' is a not a well defined syntax concept that can be trivially asked of
-/// nodes in either language.  It is an excapsulation of a feature (or set of features) level idea that should be in
-/// its own dedicated service.
+/// feature logic in a place such that it can run over VB or C#.  For example, a function to determine if a position is
+/// on the 'header' of a node.  a 'header' is a not a well defined syntax concept that can be trivially asked of nodes
+/// in either language.  It is an encapsulation of a feature (or set of features) level idea that should be in its own
+/// dedicated service.
 /// </item>
 /// <item>
 /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on SyntaxGenerator or
 /// some other feature specific service.
 /// </item>
 /// <item>
-/// Functions that a single item when one language may allow for multiple.  For example 'GetIdentifierOfVariableDeclarator'.
-/// In VB a VariableDeclarator can itself have several names, so calling code must be written to check for that and handle
-/// it apropriately.  Functions like this make it seem like that doesn't need to be considered, easily allowing for bugs
-/// to creep in.
+/// Functions that a single item when one language may allow for multiple.  For example
+/// 'GetIdentifierOfVariableDeclarator'. In VB a VariableDeclarator can itself have several names, so calling code must
+/// be written to check for that and handle it appropriately.  Functions like this make it seem like that doesn't need
+/// to be considered, easily allowing for bugs to creep in.
 /// </item>
 /// <item>
 /// Abbreviating or otherwise changing the names that C# and VB share here.  For example use 'ObjectCreationExpression'
@@ -101,6 +101,7 @@ internal interface ISyntaxFacts
     bool SupportsKeyValuePairElement(ParseOptions options);
     bool SupportsLocalFunctionDeclaration(ParseOptions options);
     bool SupportsNotPattern(ParseOptions options);
+    bool SupportsNullConditionalAssignment(ParseOptions options);
     bool SupportsRecord(ParseOptions options);
     bool SupportsRecordStruct(ParseOptions options);
     bool SupportsTargetTypedConditionalExpression(ParseOptions options);
@@ -173,7 +174,6 @@ internal interface ISyntaxFacts
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeclaration([NotNullWhen(true)] SyntaxNode? node);
-    bool IsTypeDeclaration(SyntaxNode node);
 
     bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
 
@@ -238,7 +238,7 @@ internal interface ISyntaxFacts
     ///     1) new With { .a = 1, .b = .a      .a refers to the anonymous type
     ///     2) With obj : .m                   .m refers to the obj type
     ///     3) new T() With { .a = 1, .b = .a  'a refers to the T type
-    /// If `allowImplicitTarget` is set to true, the returned node will be set to approperiate node, otherwise, it will return null.
+    /// If `allowImplicitTarget` is set to true, the returned node will be set to appropriate node, otherwise, it will return null.
     /// This parameter has no affect on C# node.
     /// </param>
     SyntaxNode? GetLeftSideOfDot(SyntaxNode? node, bool allowImplicitTarget = false);
@@ -332,6 +332,7 @@ internal interface ISyntaxFacts
 
     bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
+    bool IsAnonymousObjectMemberDeclaratorNameIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression);
 
     bool IsDirective([NotNullWhen(true)] SyntaxNode? node);
@@ -365,6 +366,8 @@ internal interface ISyntaxFacts
 
     bool IsThisConstructorInitializer(SyntaxToken token);
     bool IsBaseConstructorInitializer(SyntaxToken token);
+    bool HasImplicitBaseConstructorInitializer(SyntaxNode constructorDeclaration);
+
     bool IsQueryKeyword(SyntaxToken token);
     bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsIdentifierStartCharacter(char c);
@@ -418,10 +421,10 @@ internal interface ISyntaxFacts
     // Violation.  This is a feature level API.
     void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
 
+    SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode typeDeclaration);
+    SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode typeDeclaration);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
-    // Violation.  This is a feature level API.
-    bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
     // Violation.  This is a feature level API.
     TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
@@ -441,9 +444,6 @@ internal interface ISyntaxFacts
     /// </summary>
     // Violation.  This is a feature level API.
     SyntaxNode? TryGetBindableParent(SyntaxToken token);
-
-    // Violation.  This is a feature level API.
-    IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
@@ -500,6 +500,7 @@ internal interface ISyntaxFacts
 
     bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsBaseNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
+    bool IsTypeDeclaration(SyntaxNode node);
     bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -539,6 +540,7 @@ internal interface ISyntaxFacts
     void GetPartsOfImplicitObjectCreationExpression(SyntaxNode node, out SyntaxToken keyword, out SyntaxNode argumentList, out SyntaxNode? initializer);
     void GetPartsOfParameter(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode? @default);
     void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
+    void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken);
     void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);
     void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right);
     void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);

@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
-internal class CSharpDeclarationComparer : IComparer<SyntaxNode>
+internal sealed class CSharpDeclarationComparer : IComparer<SyntaxNode>
 {
     private static readonly Dictionary<SyntaxKind, int> s_kindPrecedenceMap = new(SyntaxFacts.EqualityComparer)
     {

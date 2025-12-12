@@ -6,25 +6,19 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace;
+
+internal sealed class CSharpWhitespaceSettingsProviderFactory(
+    IThreadingContext threadingContext,
+    Workspace workspace,
+    IGlobalOptionService globalOptions) : ILanguageSettingsProviderFactory<Setting>
 {
-    internal sealed class CSharpWhitespaceSettingsProviderFactory : ILanguageSettingsProviderFactory<Setting>
+    public ISettingsProvider<Setting> GetForFile(string filePath)
     {
-        private readonly Workspace _workspace;
-        private readonly IGlobalOptionService _globalOptions;
-
-        public CSharpWhitespaceSettingsProviderFactory(Workspace workspace, IGlobalOptionService globalOptions)
-        {
-            _workspace = workspace;
-            _globalOptions = globalOptions;
-        }
-
-        public ISettingsProvider<Setting> GetForFile(string filePath)
-        {
-            var updaterService = new OptionUpdater(_workspace, filePath);
-            return new CSharpWhitespaceSettingsProvider(filePath, updaterService, _workspace, _globalOptions);
-        }
+        var updaterService = new OptionUpdater(workspace, filePath);
+        return new CSharpWhitespaceSettingsProvider(threadingContext, filePath, updaterService, workspace, globalOptions);
     }
 }

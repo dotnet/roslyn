@@ -2400,7 +2400,7 @@ public static class E
             var typeInfo = model.GetTypeInfo(memberAccess);
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
-            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            // https://github.com/dotnet/roslyn/issues/52870 GetSymbolInfo() should return resolved method from method group.
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             AssertEx.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
@@ -2418,42 +2418,118 @@ z();
 
 public class C
 {
-    public void M(C c) { } // ignored
+    public void M(C c) { } // ignored for unique signature
 }
 
 public static class E
 {
-    public static void M(this C c) { }
+    public static void M(this C c) { } // ignored for unique signature
 }
 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyDiagnostics(
-                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
-                // System.Action x = C.M;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
-                // (4,9): error CS8917: The delegate type could not be inferred.
-                // var z = C.M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
-                );
-
+            verify(comp);
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
+            verify(comp);
+
+            source = """
+System.Action x = C.M;
+x();
+
+var z = C.M;
+z();
+
+public class C
+{
+    public void M() { } // ignored for unique signature
+}
+""";
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'C.M()'
                 // System.Action x = C.M;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("C.M()").WithLocation(1, 19),
                 // (4,9): error CS8917: The delegate type could not be inferred.
                 // var z = C.M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
-                );
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9));
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
-            var typeInfo = model.GetTypeInfo(memberAccess);
-            Assert.Null(typeInfo.Type);
-            Assert.True(typeInfo.ConvertedType!.IsErrorType());
-            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            AssertEx.Equal(["void C.M(C c)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            static void verify(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // System.Action x = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
+                    // (4,9): error CS8917: The delegate type could not be inferred.
+                    // var z = C.M;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9));
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+                var typeInfo1 = model.GetTypeInfo(memberAccess1);
+                Assert.Null(typeInfo1.Type);
+                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+                var typeInfo2 = model.GetTypeInfo(memberAccess2);
+                Assert.Null(typeInfo2.Type);
+                Assert.True(typeInfo2.ConvertedType!.IsErrorType());
+                Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeReceiver_2(bool useCSharp13)
+        {
+            // Extension methods are ignored on type receiver
+            var source = """
+System.Action x = C.M;
+x();
+
+var z = C.M;
+z();
+
+public class C { }
+
+public static class E
+{
+    public static void M(this C c) { } // ignored for unique signature
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // System.Action x = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
+                    // (4,9): error CS8917: The delegate type could not be inferred.
+                    // var z = C.M;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9));
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+                var typeInfo1 = model.GetTypeInfo(memberAccess1);
+                Assert.Null(typeInfo1.Type);
+                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+                var typeInfo2 = model.GetTypeInfo(memberAccess2);
+                Assert.Null(typeInfo2.Type);
+                Assert.True(typeInfo2.ConvertedType!.IsErrorType());
+                Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+            }
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2916,9 +2992,7 @@ public class C
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
             Assert.Equal("void C.M<System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-
-            AssertEx.Equal(["void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)"],
-                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -3042,9 +3116,7 @@ static class E2
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<object>");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-
-            AssertEx.Equal(["void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)"],
-                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData]
@@ -3516,12 +3588,12 @@ class B
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0308: The non-generic method 'Program.F0(object)' cannot be used with type arguments
+                // (12,13): error CS0305: Using the generic method 'Program.F0<T>(object)' requires 1 type arguments
                 //         d = F0<int, object>;
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F0<int, object>").WithArguments("Program.F0(object)", "method").WithLocation(12, 13),
-                // (13,13): error CS0308: The non-generic method 'Program.F1(object)' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "F0<int, object>").WithArguments("Program.F0<T>(object)", "method", "1").WithLocation(12, 13),
+                // (13,13): error CS0305: Using the generic method 'Program.F1<T, U>(object)' requires 2 type arguments
                 //         d = F1<int>;
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F1<int>").WithArguments("Program.F1(object)", "method").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_BadArity, "F1<int>").WithArguments("Program.F1<T, U>(object)", "method", "2").WithLocation(13, 13),
                 // (14,13): error CS8917: The delegate type could not be inferred.
                 //         d = F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 13));
@@ -10707,12 +10779,12 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (10,13): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'method group'
+                // (10,15): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, Delegate)' and 'C.operator +(C, Expression)'
                 //         _ = c + Main;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c + Main").WithArguments("+", "C", "method group").WithLocation(10, 13),
-                // (11,13): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'lambda expression'
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, System.Delegate)", "C.operator +(C, System.Linq.Expressions.Expression)").WithLocation(10, 15),
+                // (11,15): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, Delegate)' and 'C.operator +(C, Expression)'
                 //         _ = c + (() => 1);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, System.Delegate)", "C.operator +(C, System.Linq.Expressions.Expression)").WithLocation(11, 15)
             };
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -12119,7 +12191,7 @@ class Program
                 var stmt = SyntaxFactory.ParseStatement(text);
                 Assert.True(model.TryGetSpeculativeSemanticModel(position, stmt, out model));
                 var expr = ((ExpressionStatementSyntax)stmt).Expression;
-                var type = model!.GetTypeInfo(expr).Type;
+                var type = model.GetTypeInfo(expr).Type;
                 Assert.Equal(expectedDelegateType, type.ToTestDisplayString());
             }
 
@@ -19391,6 +19463,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 			int32[] ys
                 		) cil managed 
                 	{
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
                 		// Method begins at RVA 0x20b0
                 		// Code size 1 (0x1)
                 		.maxstack 8
@@ -19448,6 +19524,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 			01 00 00 00
                 		)
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
                 		// Method begins at RVA 0x2067
                 		// Code size 1 (0x1)
                 		.maxstack 8

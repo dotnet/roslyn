@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -46,7 +45,6 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
 
         var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
         var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
-        var compilation = semanticModel.Compilation;
 
         var placementOption = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -61,7 +59,7 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
                 cancellationToken =>
                 {
                     var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                    var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, placementOption, cancellationToken);
+                    var newRoot = addImportService.AddImport(semanticModel, root, diagnosticNode, aliasDirective, syntaxGenerator, placementOption, cancellationToken);
                     return Task.FromResult(document.WithSyntaxRoot(newRoot));
                 },
                 title));
@@ -132,8 +130,7 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
            // Arity: Aliases can only name closed constructed types. (See also proposal https://github.com/dotnet/csharplang/issues/1239)
            // Aliasing as a closed constructed type is possible but would require to remove the type arguments from the diagnosed node.
            // It is unlikely that the user wants that and so generic types are not supported.
-           symbolInfo.CandidateSymbols.All(symbol => symbol.IsKind(SymbolKind.NamedType) &&
-                                                     symbol.GetArity() == 0);
+           symbolInfo.CandidateSymbols.All(symbol => symbol is INamedTypeSymbol { Arity: 0 });
 
     private sealed class SortSystemFirstComparer : IComparer<string>
     {

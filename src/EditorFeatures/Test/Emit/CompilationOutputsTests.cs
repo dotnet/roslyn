@@ -12,9 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Emit.UnitTests;
 
-public class CompilationOutputsTests
+public sealed class CompilationOutputsTests
 {
-    private class TestCompilationOutputs : CompilationOutputs
+    private sealed class TestCompilationOutputs : CompilationOutputs
     {
         private readonly Func<Stream?>? _openAssemblyStream;
         private readonly Func<Stream?>? _openPdbStream;

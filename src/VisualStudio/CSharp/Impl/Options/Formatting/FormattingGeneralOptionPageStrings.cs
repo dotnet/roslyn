@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+internal static class FormattingGeneralOptionPageStrings
 {
-    internal static class FormattingGeneralOptionPageStrings
-    {
-        public static string General => CSharpVSResources.General;
-    }
+    public static string General => CSharpVSResources.General;
 }

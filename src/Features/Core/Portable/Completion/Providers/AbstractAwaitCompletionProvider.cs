@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -56,16 +57,13 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     }
 
     protected abstract int GetAsyncKeywordInsertionPosition(SyntaxNode declaration);
-    protected abstract TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
+    protected abstract Task<TextChange?> GetReturnTypeChangeAsync(Solution solution, SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
 
     protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position);
 
     protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
     protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
     protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-
-    protected virtual bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-        => syntaxContext.IsAwaitKeywordContext;
 
     private static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
     {
@@ -89,7 +87,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
         var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var isAwaitKeywordContext = IsAwaitKeywordContext(syntaxContext);
+        var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext;
         var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
         if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
             return;
@@ -99,16 +97,16 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
         using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
 
-        builder.Add(KeyValuePairUtil.Create(Position, position.ToString()));
-        builder.Add(KeyValuePairUtil.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
+        builder.Add(KeyValuePair.Create(Position, position.ToString()));
+        builder.Add(KeyValuePair.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
 
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
-            builder.Add(KeyValuePairUtil.Create(MakeContainerAsync, string.Empty));
+            builder.Add(KeyValuePair.Create(MakeContainerAsync, string.Empty));
 
         if (isAwaitKeywordContext)
         {
-            builder.Add(KeyValuePairUtil.Create(AddAwaitAtCurrentPosition, string.Empty));
+            builder.Add(KeyValuePair.Create(AddAwaitAtCurrentPosition, string.Empty));
             var properties = builder.ToImmutableAndClear();
 
             context.AddItem(CreateCompletionItem(
@@ -133,7 +131,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // add the `awaitf` option to do the same, but also add .ConfigureAwait(false);
-                properties = properties.Add(KeyValuePairUtil.Create(AppendConfigureAwait, string.Empty));
+                properties = properties.Add(KeyValuePair.Create(AppendConfigureAwait, string.Empty));
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitfDisplayText, _awaitfFilterText,
                     string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
@@ -194,7 +192,8 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
             // Try to fixup the return type to be task-like if needed.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var returnTypeChange = GetReturnTypeChange(semanticModel, declaration, cancellationToken);
+            var returnTypeChange = await GetReturnTypeChangeAsync(
+                document.Project.Solution, semanticModel, declaration, cancellationToken).ConfigureAwait(false);
             var addImportsChanges = returnTypeChange == null
                 ? []
                 : await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(

@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
-internal class NameMetadata
+internal sealed class NameMetadata
 {
     public string? Name { get; }
 

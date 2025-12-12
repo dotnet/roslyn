@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentSyncRegistrationOptions : NotebookDocumentSyncOptions, IStaticRegistrationOptions
+internal sealed class NotebookDocumentSyncRegistrationOptions : NotebookDocumentSyncOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// The id used to register the request. The id can be used to deregister the request again.

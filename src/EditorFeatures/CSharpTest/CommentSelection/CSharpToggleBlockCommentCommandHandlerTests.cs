@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
+public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
 {
     [WpfFact]
     public void AddComment_CommentMarkerStringBeforeSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -34,9 +32,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -46,16 +42,11 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;*/|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     [WpfFact]
     public void AddComment_DirectiveWithCommentInsideSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -67,9 +58,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -81,16 +70,11 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;*/|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     [WpfFact]
     public void AddComment_MarkerInsideSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -100,9 +84,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -112,16 +94,11 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;*/|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     [WpfFact]
     public void AddComment_CloseCommentMarkerStringInSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -131,9 +108,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -143,16 +118,11 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;*/|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     [WpfFact]
     public void AddComment_CommentMarkerStringAfterSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -162,9 +132,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     string s = '*/';
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -174,16 +142,11 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     string s = '*/';
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     [WpfFact]
     public void RemoveComment_CommentMarkerStringNearSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -194,9 +157,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;*/|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -207,16 +168,11 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     var k = 3;|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     [WpfFact]
     public void RemoveComment_CommentMarkerStringInSelection()
-    {
-        var markup =
-            """
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -224,9 +180,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     [|/*string s = '/*';*/|]
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -234,10 +188,7 @@ public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleComment
                     [|string s = '/*';|]
                 }
             }
-            """;
-
-        ToggleComment(markup, expected);
-    }
+            """);
 
     internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace)
     {

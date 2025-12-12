@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -21,47 +20,14 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 
-[Export(typeof(SettingsEditorFactory))]
 [Guid(SettingsEditorFactoryGuidString)]
-internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory4, IDisposable
+internal sealed class SettingsEditorFactory() : IVsEditorFactory, IVsEditorFactory4
 {
     public static readonly Guid SettingsEditorFactoryGuid = new(SettingsEditorFactoryGuidString);
     public const string SettingsEditorFactoryGuidString = "68b46364-d378-42f2-9e72-37d86c5f4468";
     public const string Extension = ".editorconfig";
 
-    private readonly ISettingsAggregator _settingsDataProviderFactory;
-    private readonly VisualStudioWorkspace _workspace;
-    private readonly IWpfTableControlProvider _controlProvider;
-    private readonly ITableManagerProvider _tableMangerProvider;
-    private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;
-    private readonly IThreadingContext _threadingContext;
     private ServiceProvider? _vsServiceProvider;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SettingsEditorFactory(VisualStudioWorkspace workspace,
-                                 IWpfTableControlProvider controlProvider,
-                                 ITableManagerProvider tableMangerProvider,
-                                 IVsEditorAdaptersFactoryService vsEditorAdaptersFactoryService,
-                                 IThreadingContext threadingContext)
-    {
-        _settingsDataProviderFactory = workspace.Services.GetRequiredService<ISettingsAggregator>();
-        _workspace = workspace;
-        _controlProvider = controlProvider;
-        _tableMangerProvider = tableMangerProvider;
-        _vsEditorAdaptersFactoryService = vsEditorAdaptersFactoryService;
-        _threadingContext = threadingContext;
-    }
-
-    public void Dispose()
-    {
-        if (_vsServiceProvider is not null)
-        {
-            _vsServiceProvider.Dispose();
-            _vsServiceProvider = null;
-        }
-    }
-
     public int CreateEditorInstance(uint grfCreateDoc,
                                     string filePath,
                                     string pszPhysicalView,
@@ -81,14 +47,18 @@ internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory
         pgrfCDW = 0;
         pbstrEditorCaption = null;
 
-        if (!_workspace.CurrentSolution.Projects.Any(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic))
+        Assumes.NotNull(_vsServiceProvider);
+
+        var componentModel = (IComponentModel)_vsServiceProvider.GetService(typeof(SComponentModel));
+        var workspace = componentModel.GetService<VisualStudioWorkspace>();
+        if (!workspace.CurrentSolution.Projects.Any(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic))
         {
             // If there are no VB or C# projects loaded in the solution (so an editorconfig file in a C++ project) then we want their
             // editorfactory to present the file instead of use showing ours
             return VSConstants.VS_E_UNSUPPORTEDFORMAT;
         }
 
-        if (!_workspace.CurrentSolution.Projects.Any(p => p.AnalyzerConfigDocuments.Any(editorconfig => StringComparer.OrdinalIgnoreCase.Equals(editorconfig.FilePath, filePath))))
+        if (!workspace.CurrentSolution.Projects.Any(p => p.AnalyzerConfigDocuments.Any(editorconfig => StringComparer.OrdinalIgnoreCase.Equals(editorconfig.FilePath, filePath))))
         {
             // If the user is simply opening an editorconfig file that does not apply to the current solution we just want to show the text view
             return VSConstants.VS_E_UNSUPPORTEDFORMAT;
@@ -100,11 +70,11 @@ internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory
             return VSConstants.E_INVALIDARG;
         }
 
+        var threadingContext = componentModel.GetService<IThreadingContext>();
         IVsTextLines? textBuffer = null;
         if (punkDocDataExisting == IntPtr.Zero)
         {
-            Assumes.NotNull(_vsServiceProvider);
-            if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(_threadingContext.JoinableTaskFactory, out var localRegistry))
+            if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(threadingContext.JoinableTaskFactory, out var localRegistry))
             {
                 var textLinesGuid = typeof(IVsTextLines).GUID;
                 _ = localRegistry.CreateInstance(typeof(VsTextBufferClass).GUID, null, ref textLinesGuid, 1 /*CLSCTX_INPROC_SERVER*/, out var ptr);
@@ -119,7 +89,7 @@ internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory
 
                 if (textBuffer is IObjectWithSite objectWithSite)
                 {
-                    var oleServiceProvider = _vsServiceProvider.GetService<IOleServiceProvider>(_threadingContext.JoinableTaskFactory);
+                    var oleServiceProvider = _vsServiceProvider.GetService<IOleServiceProvider>(threadingContext.JoinableTaskFactory);
                     objectWithSite.SetSite(oleServiceProvider);
                 }
             }
@@ -138,15 +108,20 @@ internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory
             throw new InvalidOperationException("unable to acquire text buffer");
         }
 
+        var settingsDataProviderFactory = workspace.Services.GetRequiredService<ISettingsAggregator>();
+        var tableManagerProvider = componentModel.GetService<ITableManagerProvider>();
+        var controlProvider = componentModel.GetService<IWpfTableControlProvider>();
+        var vsEditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+
         // Create the editor
-        var newEditor = new SettingsEditorPane(_vsEditorAdaptersFactoryService,
-                                               _threadingContext,
-                                               _settingsDataProviderFactory,
-                                               _controlProvider,
-                                               _tableMangerProvider,
+        var newEditor = new SettingsEditorPane(vsEditorAdaptersFactoryService,
+                                               threadingContext,
+                                               settingsDataProviderFactory,
+                                               controlProvider,
+                                               tableManagerProvider,
                                                filePath,
                                                textBuffer,
-                                               _workspace);
+                                               workspace);
         ppunkDocView = Marshal.GetIUnknownForObject(newEditor);
         ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
         pbstrEditorCaption = "";
@@ -155,6 +130,7 @@ internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory
 
     public int SetSite(IOleServiceProvider psp)
     {
+        // We don't dispose this (as we aren't disposable), but that's fine as it's disposer only clears a field.
         _vsServiceProvider = new ServiceProvider(psp);
         return VSConstants.S_OK;
     }

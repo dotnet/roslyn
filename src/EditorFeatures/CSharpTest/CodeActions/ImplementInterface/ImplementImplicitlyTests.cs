@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
+public sealed class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
 {
     private const int SingleMember = 0;
     private const int SameInterface = 1;
@@ -30,9 +30,8 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
         => FlattenActions(actions);
 
     [Fact]
-    public async Task TestSingleMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSingleMember()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); void Goo2(); }
             interface IBar { void Bar(); }
@@ -59,12 +58,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 void IBar.Bar() { }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestSameInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSameInterface()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); void Goo2(); }
             interface IBar { void Bar(); }
@@ -91,12 +88,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 void IBar.Bar() { }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestAllInterfaces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAllInterfaces()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); void Goo2(); }
             interface IBar { void Bar(); }
@@ -123,12 +118,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public void Bar() { }
             }
             """, index: AllInterfaces);
-    }
 
     [Fact]
-    public async Task TestProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestProperty()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { int Goo1 { get; } }
 
@@ -145,12 +138,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public int Goo1 { get { } }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestEvent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEvent()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { event Action E; }
 
@@ -167,12 +158,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public event Action E { add { } remove { } }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestNotOnImplicitMember()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnImplicitMember()
+        => TestMissingAsync(
             """
             interface IGoo { void Goo1(); }
 
@@ -181,26 +170,20 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public void [||]Goo1() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnUnboundExplicitImpl()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnUnboundExplicitImpl()
+        => TestMissingAsync(
             """
             class C : IGoo
             {
                 void IGoo.[||]Goo1() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCollision()
-    {
-        // Currently we don't do anything special here.  But we just test here to make sure we
-        // don't blow up here.
-        await TestInRegularAndScriptAsync(
+    public Task TestCollision()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); }
 
@@ -221,12 +204,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 private void Goo1() { }
             }
             """, index: SingleMember);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48027")]
-    public async Task TestSingleMemberAndContainingTypeHasNoInterface()
-    {
-        await TestMissingAsync(
+    public Task TestSingleMemberAndContainingTypeHasNoInterface()
+        => TestMissingAsync(
             """
             using System;
             using System.Collections;
@@ -239,12 +220,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPreserveReadOnly()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPreserveReadOnly()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); }
 
@@ -261,12 +240,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public readonly void Goo1() { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70232")]
-    public async Task TestMissingWhenAlreadyContainingImpl()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestMissingWhenAlreadyContainingImpl()
+        => TestInRegularAndScriptAsync("""
             interface I
             {
                 event System.EventHandler Click;
@@ -291,12 +268,10 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public event System.EventHandler Click
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
-    public async Task TestPropertyEvent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPropertyEvent()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             
@@ -317,5 +292,4 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 public event Action E { add { } remove { } };
             }
             """, index: SingleMember);
-    }
 }

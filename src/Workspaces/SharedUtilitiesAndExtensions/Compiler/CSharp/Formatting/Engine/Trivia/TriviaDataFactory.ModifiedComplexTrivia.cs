@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
     private sealed class ModifiedComplexTrivia : TriviaDataWithList
     {

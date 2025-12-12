@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -145,8 +146,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvi
                 return default;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                CSharpSyntaxFormatting.Instance, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 

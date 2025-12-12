@@ -11,12 +11,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
+public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
 {
     [Fact]
-    public async Task FixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -49,12 +48,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -87,5 +84,4 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 }

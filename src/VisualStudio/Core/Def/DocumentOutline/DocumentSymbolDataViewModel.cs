@@ -28,20 +28,17 @@ internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEqu
     /// </summary>
     public ImageMoniker ImageMoniker => Data.Glyph.GetImageMoniker();
 
-    private bool _isExpanded = true;
-    private bool _isSelected = false;
-
     public bool IsExpanded
     {
-        get => _isExpanded;
-        set => SetProperty(ref _isExpanded, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = true;
 
     public bool IsSelected
     {
-        get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = false;
 
     public DocumentSymbolDataViewModel(
         DocumentSymbolData data,
@@ -51,8 +48,8 @@ internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEqu
         Children = children;
     }
 
-    private static readonly PropertyChangedEventArgs _isExpandedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsExpanded));
-    private static readonly PropertyChangedEventArgs _isSelectedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsSelected));
+    private static readonly PropertyChangedEventArgs _isExpandedPropertyChangedEventArgs = new(nameof(IsExpanded));
+    private static readonly PropertyChangedEventArgs _isSelectedPropertyChangedEventArgs = new(nameof(IsSelected));
 
     private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, propertyName switch

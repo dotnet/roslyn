@@ -9,104 +9,102 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using VSLangProj140;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+/// <summary>
+/// This class is responsible for showing an add analyzer dialog to the user and adding the analyzer
+/// that is selected by the user in the dialog.
+/// </summary>
+[Export]
+internal sealed class AnalyzerReferenceManager : IVsReferenceManagerUser
 {
-    /// <summary>
-    /// This class is responsible for showing an add analyzer dialog to the user and adding the analyzer
-    /// that is selected by the user in the dialog.
-    /// </summary>
-    [Export]
-    internal class AnalyzerReferenceManager : IVsReferenceManagerUser
+    private readonly IServiceProvider _serviceProvider;
+    private IVsReferenceManager? _referenceManager;
+    private readonly AnalyzerItemsTracker _tracker;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AnalyzerReferenceManager(
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        AnalyzerItemsTracker analyzerItemsTracker)
     {
-        private readonly IServiceProvider _serviceProvider;
-        private IVsReferenceManager? _referenceManager;
-        private readonly AnalyzerItemsTracker _tracker;
+        _serviceProvider = serviceProvider;
+        _tracker = analyzerItemsTracker;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerReferenceManager(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            AnalyzerItemsTracker analyzerItemsTracker)
+    /// <summary>
+    /// Show the add analyzer dialog.
+    /// </summary>
+    public void ShowDialog()
+    {
+        var referenceManager = GetReferenceManager();
+        if (referenceManager != null &&
+            _tracker.SelectedHierarchy != null)
         {
-            _serviceProvider = serviceProvider;
-            _tracker = analyzerItemsTracker;
+            referenceManager.ShowReferenceManager(this,
+                                                  SolutionExplorerShim.Add_Analyzer,
+                                                  null,
+                                                  VSConstants.FileReferenceProvider_Guid,
+                                                  fForceShowDefaultProvider: false);
         }
+    }
 
-        /// <summary>
-        /// Show the add analyzer dialog.
-        /// </summary>
-        public void ShowDialog()
+    /// <summary>
+    /// Called by the ReferenceManagerDialog to apply the user selection of references.
+    /// </summary>
+    public void ChangeReferences(uint operation, IVsReferenceProviderContext changedContext)
+    {
+        var referenceOperation = (__VSREFERENCECHANGEOPERATION)operation;
+
+        // The items selected in Solution Explorer should correspond to exactly one
+        // IVsHierarchy, otherwise we shouldn't have even tried to show the dialog.
+        Contract.ThrowIfNull(_tracker.SelectedHierarchy);
+        if (_tracker.SelectedHierarchy.TryGetProject(out var project))
         {
-            var referenceManager = GetReferenceManager();
-            if (referenceManager != null &&
-                _tracker.SelectedHierarchy != null)
+
+            if (project.Object is VSProject3 vsproject)
             {
-                referenceManager.ShowReferenceManager(this,
-                                                      SolutionExplorerShim.Add_Analyzer,
-                                                      null,
-                                                      VSConstants.FileReferenceProvider_Guid,
-                                                      fForceShowDefaultProvider: false);
-            }
-        }
-
-        /// <summary>
-        /// Called by the ReferenceManagerDialog to apply the user selection of references.
-        /// </summary>
-        public void ChangeReferences(uint operation, IVsReferenceProviderContext changedContext)
-        {
-            var referenceOperation = (__VSREFERENCECHANGEOPERATION)operation;
-
-            // The items selected in Solution Explorer should correspond to exactly one
-            // IVsHierarchy, otherwise we shouldn't have even tried to show the dialog.
-            Contract.ThrowIfNull(_tracker.SelectedHierarchy);
-            if (_tracker.SelectedHierarchy.TryGetProject(out var project))
-            {
-
-                if (project.Object is VSProject3 vsproject)
+                foreach (IVsReference reference in changedContext.References)
                 {
-                    foreach (IVsReference reference in changedContext.References)
-                    {
-                        var path = reference.FullPath;
+                    var path = reference.FullPath;
 
-                        switch (referenceOperation)
-                        {
-                            case __VSREFERENCECHANGEOPERATION.VSREFERENCECHANGEOPERATION_ADD:
-                                vsproject.AnalyzerReferences.Add(path);
-                                break;
-                            case __VSREFERENCECHANGEOPERATION.VSREFERENCECHANGEOPERATION_REMOVE:
-                                vsproject.AnalyzerReferences.Remove(path);
-                                break;
-                            default:
-                                break;
-                        }
+                    switch (referenceOperation)
+                    {
+                        case __VSREFERENCECHANGEOPERATION.VSREFERENCECHANGEOPERATION_ADD:
+                            vsproject.AnalyzerReferences.Add(path);
+                            break;
+                        case __VSREFERENCECHANGEOPERATION.VSREFERENCECHANGEOPERATION_REMOVE:
+                            vsproject.AnalyzerReferences.Remove(path);
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
         }
+    }
 
-        /// <summary>
-        /// Called by the ReferenceManagerDialog to determine what contexts to show in the UI.
-        /// </summary>
-        public Array GetProviderContexts()
+    /// <summary>
+    /// Called by the ReferenceManagerDialog to determine what contexts to show in the UI.
+    /// </summary>
+    public Array GetProviderContexts()
+    {
+        // Return just the File provider context so that just the browse tab shows up.
+        var context = (IVsFileReferenceProviderContext)GetReferenceManager().CreateProviderContext(VSConstants.FileReferenceProvider_Guid);
+        context.BrowseFilter = string.Format("{0} (*.dll)\0*.dll\0", SolutionExplorerShim.Analyzer_Files);
+        return new[] { context };
+    }
+
+    private IVsReferenceManager GetReferenceManager()
+    {
+        if (_referenceManager == null)
         {
-            // Return just the File provider context so that just the browse tab shows up.
-            var context = (IVsFileReferenceProviderContext)GetReferenceManager().CreateProviderContext(VSConstants.FileReferenceProvider_Guid);
-            context.BrowseFilter = string.Format("{0} (*.dll)\0*.dll\0", SolutionExplorerShim.Analyzer_Files);
-            return new[] { context };
+            _referenceManager = _serviceProvider.GetService(typeof(SVsReferenceManager)) as IVsReferenceManager;
+            Assumes.Present(_referenceManager);
         }
 
-        private IVsReferenceManager GetReferenceManager()
-        {
-            if (_referenceManager == null)
-            {
-                _referenceManager = _serviceProvider.GetService(typeof(SVsReferenceManager)) as IVsReferenceManager;
-                Assumes.Present(_referenceManager);
-            }
-
-            return _referenceManager;
-        }
+        return _referenceManager;
     }
 }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Text.Json.Serialization;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -14,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class FileDelete
+internal sealed class FileDelete
 {
     /// <summary>
     /// A <c>file://</c> URI for the location of the file/folder being deleted.
@@ -22,5 +21,5 @@ internal class FileDelete
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri { get; set; }
+    public DocumentUri Uri { get; set; }
 }

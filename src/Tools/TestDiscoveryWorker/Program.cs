@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using Mono.Options;
 using Xunit;
 using Xunit.Abstractions;
@@ -80,7 +78,7 @@ try
                 discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
 
     var testsToWrite = new HashSet<string>();
-    await foreach (var fullyQualifiedName in sink.GetTestCaseNamesAsync())
+    await foreach (var fullyQualifiedName in sink.GetTestCaseNamesAsync().ConfigureAwait(false))
     {
         testsToWrite.Add(fullyQualifiedName);
     }

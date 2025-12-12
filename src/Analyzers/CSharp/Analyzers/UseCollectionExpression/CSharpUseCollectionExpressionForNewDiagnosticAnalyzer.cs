@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -54,7 +53,7 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
 
         var symbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
         if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [var constructorParameter] } ||
-            constructorParameter.Type.Name != nameof(IEnumerable<int>))
+            constructorParameter.Type.Name != nameof(IEnumerable<>))
         {
             return;
         }

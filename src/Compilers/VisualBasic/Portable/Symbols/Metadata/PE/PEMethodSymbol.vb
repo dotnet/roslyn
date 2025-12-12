@@ -641,7 +641,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.IsCustomAttributesPopulated Then
                 Dim attributeData As ImmutableArray(Of VisualBasicAttributeData) = Nothing
                 Dim containingPEModuleSymbol = DirectCast(ContainingModule(), PEModuleSymbol)
-                containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, attributeData)
+                Dim checkForRequiredMembers = MethodKind = MethodKind.Constructor AndAlso
+                                              HasSetsRequiredMembers = False AndAlso
+                                              (Me.ContainingType.HasAnyDeclaredRequiredMembers OrElse Not Me.ContainingType.AllRequiredMembers.IsEmpty)
+
+                If checkForRequiredMembers Then
+                    Dim compilerFeatureRequiredDiagnostic As DiagnosticInfo = Nothing
+                    DeriveCompilerFeatureRequiredUseSiteInfo(compilerFeatureRequiredDiagnostic)
+
+                    Dim discard1 As CustomAttributeHandle = Nothing
+                    Dim discard2 As CustomAttributeHandle = Nothing
+                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(
+                        Me.Handle,
+                        filteredOutAttribute1:=discard1,
+                        filterOut1:=If(compilerFeatureRequiredDiagnostic Is Nothing, AttributeDescription.CompilerFeatureRequiredAttribute, Nothing),
+                        filteredOutAttribute2:=discard2,
+                        filterOut2:=If(ObsoleteAttributeData Is Nothing, AttributeDescription.ObsoleteAttribute, Nothing))
+
+                Else
+                    containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, attributeData)
+                End If
                 Debug.Assert(Not attributeData.IsDefault)
                 If Not attributeData.IsEmpty Then
                     attributeData = InterlockedOperations.Initialize(AccessUncommonFields()._lazyCustomAttributes, attributeData)

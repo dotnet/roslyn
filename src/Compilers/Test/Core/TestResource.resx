@@ -758,15 +758,6 @@ namespace ConsoleApplication1
             List&lt;int&gt; i = null;
             int c = i.Count;
         }
-
-        static void DictionaryExpressions&lt;K, V&gt;(K k, V v, KeyValuePair&lt;K, V&gt; e, IEnumerable&lt;KeyValuePair&lt;K, V&gt;&gt; s)
-        {
-            IDictionary&lt;K, V&gt; d;
-            d = [e];
-            d = [.. s];
-            d = [k:v];
-            d = [with()];
-        }
     }
 }
 
@@ -884,6 +875,27 @@ class RawStringLiterals
     public const string MultiLine = """
                                     Multi line
                                     """;
+}
+
+static class Extensions
+{
+  extension(int)
+  {
+    public static void M() { }
+    public static int P => 0;
+  }
+}
+
+record R(int X)
+{
+  public R CloneMe() => this with { X = 0 };
+}
+
+class CollectionExpressions
+{
+  static int[] X = [0];
+  static int[] Y = [..X];
+  static int[] X = [with()];
 }
 
 #line 6

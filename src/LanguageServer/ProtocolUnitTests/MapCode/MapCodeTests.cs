@@ -20,10 +20,10 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapping;
 
-public class MapCodeTests : AbstractLanguageServerProtocolTests
+public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 {
     [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp, layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
-    private class TestMapCodeService : IMapCodeService
+    private sealed class TestMapCodeService : IMapCodeService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -48,7 +48,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
     }
 
     private static ClientCapabilities CreateClientCapabilities(bool supportDocumentChanges)
-        => new LSP.ClientCapabilities
+        => new()
         {
             Workspace = new LSP.WorkspaceClientCapabilities
             {
@@ -76,23 +76,9 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             """;
 
         var codeBlock = @"Console.WriteLine(string.Join("", "", args));";
-
-        var expected = """
-            namespace ConsoleApp1
-            {
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine(string.Join(", ", args));
-                    }
-                }
-            }
-            """;
-
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
-        var documentUri = ranges.Single().Uri;
+        var documentUri = ranges.Single().DocumentUri;
         var mapCodeParams = new LSP.VSInternalMapCodeParams()
         {
             Mappings =
@@ -119,7 +105,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.DocumentChanges);
 
             var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
-            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
+            Assert.Equal(textDocumentEdits.TextDocument.DocumentUri, mapCodeParams.Mappings.Single().TextDocument!.DocumentUri);
 
             edits = [.. textDocumentEdits.Edits.Select(e => e.Unify())];
         }
@@ -128,13 +114,24 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.Changes);
             Assert.Null(results.DocumentChanges);
 
-            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
+            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri.GetRequiredParsedUri()), out edits));
         }
 
         AssertEx.NotNull(edits);
 
         var documentText = await document.GetTextAsync();
         var actualText = ApplyTextEdits(edits, documentText);
-        Assert.Equal(expected, actualText);
+        Assert.Equal("""
+            namespace ConsoleApp1
+            {
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine(string.Join(", ", args));
+                    }
+                }
+            }
+            """, actualText);
     }
 }

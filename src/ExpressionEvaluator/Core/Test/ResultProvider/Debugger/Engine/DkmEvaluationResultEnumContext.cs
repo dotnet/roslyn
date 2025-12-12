@@ -9,8 +9,6 @@
 
 #endregion
 
-using System;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.CallStack;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation

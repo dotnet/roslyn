@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle;
@@ -92,7 +91,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
                     ? new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutable())
                     : nestedActions.Single();
 
-                result.Add(new CodeFix(project, resultCodeAction, diagnostic));
+                result.Add(new CodeFix(resultCodeAction, [diagnostic]));
             }
         }
 
@@ -122,7 +121,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
             {
                 foreach (var enumValue in Enum.GetValues(t))
                 {
-                    AddCodeActionWithOptionValue(defaultValue, enumValue!);
+                    AddCodeActionWithOptionValue(defaultValue, enumValue);
                 }
             }
 

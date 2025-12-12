@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ContextVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
+public sealed class ContextVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
 {
     internal override Type GetArgumentProviderType()
         => typeof(ContextVariableArgumentProvider);
@@ -22,20 +22,20 @@ public class ContextVariableArgumentProviderTests : AbstractCSharpArgumentProvid
     [InlineData("int?")]
     public async Task TestLocalVariable(string type)
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        {type} arg = default;
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    {{type}} arg = default;
+                    this.Target($$);
+                }
 
-    void Target({type} arg)
-    {{
-    }}
-}}
-";
+                void Target({{type}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "arg");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
@@ -46,20 +46,20 @@ class C
         [CombinatorialValues("string", "bool", "int?")] string type,
         [CombinatorialValues("out", "ref", "in")] string modifier)
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        {type} arg;
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    {{type}} arg;
+                    this.Target($$);
+                }
 
-    void Target({modifier} {type} arg)
-    {{
-    }}
-}}
-";
+                void Target({{modifier}} {{type}} arg)
+                {
+                }
+            }
+            """;
 
         var generatedModifier = modifier switch
         {
@@ -77,19 +77,19 @@ class C
     [InlineData("int?")]
     public async Task TestParameter(string type)
     {
-        var markup = $@"
-class C
-{{
-    void Method({type} arg)
-    {{
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method({{type}} arg)
+                {
+                    this.Target($$);
+                }
 
-    void Target({type} arg)
-    {{
-    }}
-}}
-";
+                void Target({{type}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "arg");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
@@ -103,22 +103,22 @@ class C
     [InlineData("int", "int?")]
     public async Task TestInstanceVariable(string fieldType, string parameterType)
     {
-        var markup = $@"
-using System.Collections.Generic;
-class C
-{{
-    {fieldType} arg;
+        var markup = $$"""
+            using System.Collections.Generic;
+            class C
+            {
+                {{fieldType}} arg;
 
-    void Method()
-    {{
-        this.Target($$);
-    }}
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target({parameterType} arg)
-    {{
-    }}
-}}
-";
+                void Target({{parameterType}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "arg");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
@@ -130,24 +130,24 @@ class C
     [InlineData("I")]
     public async Task TestThisInstance(string parameterType)
     {
-        var markup = $@"
-using System.Collections.Generic;
-interface I {{ }}
+        var markup = $$"""
+            using System.Collections.Generic;
+            interface I { }
 
-class B {{ }}
+            class B { }
 
-class C : B, I
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+            class C : B, I
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target({parameterType} arg)
-    {{
-    }}
-}}
-";
+                void Target({{parameterType}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "this");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
@@ -156,51 +156,43 @@ class C : B, I
     [Theory]
     [InlineData("object")]
     [InlineData("string")]
-    public async Task TestThisInstanceNotProvided1(string parameterType)
-    {
-        var markup = $@"
-using System.Collections.Generic;
-interface I {{ }}
+    public Task TestThisInstanceNotProvided1(string parameterType)
+        => VerifyDefaultValueAsync($$"""
+            using System.Collections.Generic;
+            interface I { }
 
-class B {{ }}
+            class B { }
 
-class C : B, I
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+            class C : B, I
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target({parameterType} arg)
-    {{
-    }}
-}}
-";
-
-        await VerifyDefaultValueAsync(markup, null);
-    }
+                void Target({{parameterType}} arg)
+                {
+                }
+            }
+            """, null);
 
     [Fact]
-    public async Task TestThisInstanceNotProvided2()
-    {
-        var markup = $@"
-using System.Collections.Generic;
+    public Task TestThisInstanceNotProvided2()
+        => VerifyDefaultValueAsync($$"""
+            using System.Collections.Generic;
 
-class C
-{{
-    static void Method()
-    {{
-        Target($$);
-    }}
+            class C
+            {
+                static void Method()
+                {
+                    Target($$);
+                }
 
-    static void Target(C arg)
-    {{
-    }}
-}}
-";
-
-        await VerifyDefaultValueAsync(markup, null);
-    }
+                static void Target(C arg)
+                {
+                }
+            }
+            """, null);
 
     // Note: The current implementation checks for exact type match for primitive types. If this changes, some of
     // these tests may need to be updated to account for the new behavior.
@@ -210,22 +202,18 @@ class C
     [InlineData("bool", "bool?")]
     [InlineData("bool", "int")]
     [InlineData("int", "object")]
-    public async Task TestMismatchType(string parameterType, string valueType)
-    {
-        var markup = $@"
-class C
-{{
-    void Method({valueType} arg)
-    {{
-        this.Target($$);
-    }}
+    public Task TestMismatchType(string parameterType, string valueType)
+        => VerifyDefaultValueAsync($$"""
+            class C
+            {
+                void Method({{valueType}} arg)
+                {
+                    this.Target($$);
+                }
 
-    void Target({parameterType} arg)
-    {{
-    }}
-}}
-";
-
-        await VerifyDefaultValueAsync(markup, null);
-    }
+                void Target({{parameterType}} arg)
+                {
+                }
+            }
+            """, null);
 }

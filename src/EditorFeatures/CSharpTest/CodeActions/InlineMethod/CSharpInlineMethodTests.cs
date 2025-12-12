@@ -5,28 +5,30 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
-public class CSharpInlineMethodTests
+public sealed class CSharpInlineMethodTests
 {
-    private class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
+    private sealed class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
     {
         private const string Marker = "##";
 
         public static async Task TestInRegularScriptsInDifferentFilesAsync(
-            string initialMarkUpForFile1,
-            string initialMarkUpForFile2,
-            string expectedMarkUpForFile1,
-            string expectedMarkUpForFile2,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForFile1,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForFile2,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForFile1,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForFile2,
             List<DiagnosticResult> diagnosticResults = null,
             bool keepInlinedMethod = true)
         {
@@ -58,8 +60,8 @@ public class CSharpInlineMethodTests
         }
 
         public static async Task TestInRegularAndScriptInTheSameFileAsync(
-            string initialMarkUp,
-            string expectedMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUp,
             List<DiagnosticResult> diagnosticResults = null,
             bool keepInlinedMethod = true)
         {
@@ -83,10 +85,10 @@ public class CSharpInlineMethodTests
         }
 
         public static async Task TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
-            string initialMarkUpForCaller,
-            string initialMarkUpForCallee,
-            string expectedMarkUpForCaller,
-            string expectedMarkUpForCallee,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForCaller,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForCallee,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForCaller,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForCallee,
             List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
             List<DiagnosticResult> diagnosticResultsWhenRemoveInlinedMethod = null)
         {
@@ -119,8 +121,8 @@ public class CSharpInlineMethodTests
         }
 
         public static async Task TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-            string initialMarkUp,
-            string expectedMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUp,
             List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
             List<DiagnosticResult> diagnosticResultsWhenRemoveInlinedMethod = null)
         {
@@ -608,7 +610,8 @@ public class CSharpInlineMethodTests
                     System.Console.WriteLine(10 + m + ("Hello" ?? ""));
                 }
             }
-            """, """
+            """,
+            """
             public partial class TestClass
             {##
                 private void Callee(int i, int j = 100, string k = null)
@@ -961,34 +964,34 @@ public class CSharpInlineMethodTests
     [Fact]
     public Task TestInlineMethodWithNoElementInParamsArray()
         => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                """
-                public class TestClass
+            """
+            public class TestClass
+            {
+                private void Caller()
                 {
-                    private void Caller()
-                    {
-                        Cal[||]lee();
-                    }
-
-                    private void Callee(params int[] x)
-                    {
-                        System.Console.WriteLine(x.Length);
-                    }
+                    Cal[||]lee();
                 }
-                """,
-                """
-                public class TestClass
+
+                private void Callee(params int[] x)
                 {
-                    private void Caller()
-                    {
-                        System.Console.WriteLine((new int[] { }).Length);
-                    }
-                ##
-                    private void Callee(params int[] x)
-                    {
-                        System.Console.WriteLine(x.Length);
-                    }
-                ##}
-                """);
+                    System.Console.WriteLine(x.Length);
+                }
+            }
+            """,
+            """
+            public class TestClass
+            {
+                private void Caller()
+                {
+                    System.Console.WriteLine((new int[] { }).Length);
+                }
+            ##
+                private void Callee(params int[] x)
+                {
+                    System.Console.WriteLine(x.Length);
+                }
+            ##}
+            """);
 
     [Fact]
     public Task TestInlineMethodWithParamsArray()
@@ -1344,7 +1347,8 @@ public class CSharpInlineMethodTests
                     return i + 1;
                 }
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public void Caller(int j)
@@ -1414,7 +1418,8 @@ public class CSharpInlineMethodTests
                     return i + 1;
                 }
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public void Caller(int? i)
@@ -1441,7 +1446,8 @@ public class CSharpInlineMethodTests
 
                 private System.Func<int, int, int> Callee() => (i, j) => i + j;
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public System.Func<int, int, int> Caller()
@@ -1917,43 +1923,44 @@ public class CSharpInlineMethodTests
             // Await can't be used in non-async method.
             DiagnosticResult.CompilerError("CS4032").WithSpan(6, 33, 6, 56).WithArguments("int")
         };
+
         return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                       """
-                       using System.Threading.Tasks;
-                       public class TestClass
-                       {
-                           public int Caller()
-                           {
-                               var x = Cal[||]lee();
-                               return 1;
-                           }
+            """
+            using System.Threading.Tasks;
+            public class TestClass
+            {
+                public int Caller()
+                {
+                    var x = Cal[||]lee();
+                    return 1;
+                }
 
-                           private async Task<int> Callee()
-                           {
-                               return await Task.FromResult(await SomeCalculation());
-                           }
+                private async Task<int> Callee()
+                {
+                    return await Task.FromResult(await SomeCalculation());
+                }
 
-                           private async Task<int> SomeCalculation() => await Task.FromResult(10);
-                       }
-                       """,
-                       """
-                       using System.Threading.Tasks;
-                       public class TestClass
-                       {
-                           public int Caller()
-                           {
-                               var x = Task.FromResult(await SomeCalculation());
-                               return 1;
-                           }
-                       ##
-                           private async Task<int> Callee()
-                           {
-                               return await Task.FromResult(await SomeCalculation());
-                           }
-                       ##
-                           private async Task<int> SomeCalculation() => await Task.FromResult(10);
-                       }
-                       """, diagnosticResultsWhenKeepInlinedMethod: diagnostic, diagnosticResultsWhenRemoveInlinedMethod: diagnostic);
+                private async Task<int> SomeCalculation() => await Task.FromResult(10);
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            public class TestClass
+            {
+                public int Caller()
+                {
+                    var x = Task.FromResult(await SomeCalculation());
+                    return 1;
+                }
+            ##
+                private async Task<int> Callee()
+                {
+                    return await Task.FromResult(await SomeCalculation());
+                }
+            ##
+                private async Task<int> SomeCalculation() => await Task.FromResult(10);
+            }
+            """, diagnosticResultsWhenKeepInlinedMethod: diagnostic, diagnosticResultsWhenRemoveInlinedMethod: diagnostic);
     }
 
     [Fact]
@@ -2428,24 +2435,24 @@ public class CSharpInlineMethodTests
             private int SomeInt() => 10;
         }
         """,
-            """
-            public class TestClass
+        """
+        public class TestClass
+        {
+            private void Calller()
             {
-                private void Calller()
+                try
                 {
-                    try
-                    {
-                    }
-                    catch (System.Exception e) when (SomeInt() == 1)
-                    {
-                    }
                 }
-            ##
-                private bool Callee(System.Exception e, int i) => i == 1;
-            ##
-                private int SomeInt() => 10;
+                catch (System.Exception e) when (SomeInt() == 1)
+                {
+                }
             }
-            """);
+        ##
+            private bool Callee(System.Exception e, int i) => i == 1;
+        ##
+            private int SomeInt() => 10;
+        }
+        """);
 
     [Fact]
     public Task TestInlineMethodWithinYieldReturnStatement()
@@ -3069,7 +3076,8 @@ public class CSharpInlineMethodTests
                     return () => 1;
                 }
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3102,7 +3110,8 @@ public class CSharpInlineMethodTests
                     return async () => await Task.CompletedTask;
                 }
             }
-            """, """
+            """,
+            """
             using System;
             using System.Threading.Tasks;
             public class TestClass
@@ -3136,7 +3145,8 @@ public class CSharpInlineMethodTests
                     return async () => { return await Task.FromResult(100); };
                 }
             }
-            """, """
+            """,
+            """
             using System;
             using System.Threading.Tasks;
             public class TestClass
@@ -3168,7 +3178,8 @@ public class CSharpInlineMethodTests
                     return 1;
                 }
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public void Caller()
@@ -3204,7 +3215,8 @@ public class CSharpInlineMethodTests
                     return l?.Next?.Next?.Next?.Next?.ToString();
                 }
             }
-            """, """
+            """,
+            """
             public class LinkedList
             {
                 public LinkedList Next { get; }
@@ -3246,7 +3258,8 @@ public class CSharpInlineMethodTests
                     return l?.ToString();
                 }
             }
-            """, """
+            """,
+            """
             public class LinkedList
             {
                 public LinkedList Next { get; }
@@ -3288,7 +3301,8 @@ public class CSharpInlineMethodTests
                     return l?.Next.ToString();
                 }
             }
-            """, """
+            """,
+            """
             public class LinkedList
             {
                 public LinkedList Next { get; }
@@ -3325,7 +3339,8 @@ public class CSharpInlineMethodTests
                     throw new Exception();
                 }
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3354,7 +3369,8 @@ public class CSharpInlineMethodTests
 
                 private string Callee() => throw new Exception();
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3380,7 +3396,8 @@ public class CSharpInlineMethodTests
 
                 private string Callee() => throw new Exception();
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3403,7 +3420,8 @@ public class CSharpInlineMethodTests
 
                 private string Callee() => throw new Exception();
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3429,7 +3447,8 @@ public class CSharpInlineMethodTests
                     throw new Exception();
                 }
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3460,7 +3479,8 @@ public class CSharpInlineMethodTests
                     return c = 1000;
                 }
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public void Caller(bool a)
@@ -3491,7 +3511,8 @@ public class CSharpInlineMethodTests
                     return a ? c + 1000 : c + 10000;
                 }
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public void Caller(bool a)
@@ -3521,7 +3542,8 @@ public class CSharpInlineMethodTests
                     return a ? c + 1000 : c + 10000;
                 }
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public int Caller(bool a) => a ? SomeInt() + 1000 : SomeInt() + 10000;
@@ -3550,7 +3572,8 @@ public class CSharpInlineMethodTests
 
                 private void Callee(out int i) => i = 1;
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 public void Caller() => i = 1;
@@ -3570,7 +3593,8 @@ public class CSharpInlineMethodTests
 
                 private int Callee() => i + 1;
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 private const int i = 10;
@@ -3590,7 +3614,8 @@ public class CSharpInlineMethodTests
 
                 private int Callee() => i + 1;
             }
-            """, """
+            """,
+            """
             public class TestClass
             {
                 private const int i = 10;
@@ -3619,7 +3644,8 @@ public class CSharpInlineMethodTests
 
                 private void Callee(out int i) => i = 1;
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3646,7 +3672,8 @@ public class CSharpInlineMethodTests
 
                 private void Callee(out int i) => i = 1;
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3672,7 +3699,8 @@ public class CSharpInlineMethodTests
 
                 private void Callee(out int i) => i = 1;
             }
-            """, """
+            """,
+            """
             using System;
             public class TestClass
             {
@@ -3697,36 +3725,37 @@ public class CSharpInlineMethodTests
             }
         }
         """,
-            """
-            public partial class TestClass
-            {
-                partial void Callee();
+        """
+        public partial class TestClass
+        {
+            partial void Callee();
 
-                partial void Callee()
-                {
-                    System.Console.WriteLine("10");
-                }
-            }
-            """,
-            """
-            public partial class TestClass
+            partial void Callee()
             {
-                void Caller()
-                {
-                    System.Console.WriteLine("10");
-                }
+                System.Console.WriteLine("10");
             }
-            """, """
-            public partial class TestClass
+        }
+        """,
+        """
+        public partial class TestClass
+        {
+            void Caller()
             {
-                partial void Callee();
-            ##
-                partial void Callee()
-                {
-                    System.Console.WriteLine("10");
-                }
-            ##}
-            """);
+                System.Console.WriteLine("10");
+            }
+        }
+        """,
+        """
+        public partial class TestClass
+        {
+            partial void Callee();
+        ##
+            partial void Callee()
+            {
+                System.Console.WriteLine("10");
+            }
+        ##}
+        """);
 
     [Fact]
     public Task TestForExtendedPartialMethod1()
@@ -3740,36 +3769,37 @@ public class CSharpInlineMethodTests
             }
         }
         """,
-            """
-            public partial class TestClass
-            {
-                private partial void Callee();
+        """
+        public partial class TestClass
+        {
+            private partial void Callee();
 
-                private partial void Callee()
-                {
-                    System.Console.WriteLine("10");
-                }
-            }
-            """,
-            """
-            public partial class TestClass
+            private partial void Callee()
             {
-                void Caller()
-                {
-                    System.Console.WriteLine("10");
-                }
+                System.Console.WriteLine("10");
             }
-            """, """
-            public partial class TestClass
+        }
+        """,
+        """
+        public partial class TestClass
+        {
+            void Caller()
             {
-                private partial void Callee();
+                System.Console.WriteLine("10");
+            }
+        }
+        """,
+        """
+        public partial class TestClass
+        {
+            private partial void Callee();
 
-                private partial void Callee()
-                {
-                    System.Console.WriteLine("10");
-                }
+            private partial void Callee()
+            {
+                System.Console.WriteLine("10");
             }
-            """, keepInlinedMethod: true);
+        }
+        """, keepInlinedMethod: true);
 
     [Fact]
     public Task TestForPartialMethod2()
@@ -3793,25 +3823,25 @@ public class CSharpInlineMethodTests
             }
         }
         """,
-            """
-            public partial class TestClass
+        """
+        public partial class TestClass
+        {
+            partial void Caller()
             {
-                partial void Caller()
-                {
-                    System.Console.WriteLine("10");
-                }
+                System.Console.WriteLine("10");
             }
-            public partial class TestClass
-            {
-                partial void Caller();
-                partial void Callee();
+        }
+        public partial class TestClass
+        {
+            partial void Caller();
+            partial void Callee();
 
-                partial void Callee()
-                {
-                    System.Console.WriteLine("10");
-                }
+            partial void Callee()
+            {
+                System.Console.WriteLine("10");
             }
-            """, keepInlinedMethod: true);
+        }
+        """, keepInlinedMethod: true);
 
     [Fact]
     public Task TestForExtendedPartialMethod2()
@@ -3835,23 +3865,104 @@ public class CSharpInlineMethodTests
             }
         }
         """,
-            """
-            public partial class TestClass
+        """
+        public partial class TestClass
+        {
+            private partial void Caller()
             {
-                private partial void Caller()
-                {
-                    System.Console.WriteLine("10");
-                }
+                System.Console.WriteLine("10");
             }
-            public partial class TestClass
-            {
-                private partial void Caller();
-                private partial void Callee();
+        }
+        public partial class TestClass
+        {
+            private partial void Caller();
+            private partial void Callee();
 
-                private partial void Callee()
-                {
-                    System.Console.WriteLine("10");
-                }
+            private partial void Callee()
+            {
+                System.Console.WriteLine("10");
             }
-            """, keepInlinedMethod: true);
+        }
+        """, keepInlinedMethod: true);
+
+    [Fact]
+    public Task TestForMultipleFieldsInFieldDeclaration()
+        => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
+        """
+        static class C
+        {
+            static readonly object A = [||]M(),
+                                   B = M();
+
+            private static object M() => null!;
+        }
+        """,
+        """
+        static class C
+        {
+            static readonly object A = null!,
+                                   B = M();
+
+            private static object M() => null!;
+        }
+        """, keepInlinedMethod: true);
+
+    [Fact]
+    public Task TestForMultipleFieldsInFieldDeclaration2()
+        => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
+        """
+        static class C
+        {
+            static readonly object A = M(),
+                                   B = [||]M();
+
+            private static object M() => null!;
+        }
+        """,
+        """
+        static class C
+        {
+            static readonly object A = M(),
+                                   B = null!;
+
+            private static object M() => null!;
+        }
+        """, keepInlinedMethod: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81406")]
+    public Task TestInlineRecursiveCall()
+        => new TestVerifier
+        {
+            TestCode =
+                """
+                class C
+                {
+                    private void M()
+                    {
+                        System.Console.WriteLine();
+                        [||]M();
+                    }
+
+                    private void N()
+                    {
+                        M();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    private void M()
+                    {
+                        System.Console.WriteLine();
+                        M();
+                    }
+
+                    private void N()
+                    {
+                        M();
+                    }
+                }
+                """,
+        }.RunAsync();
 }

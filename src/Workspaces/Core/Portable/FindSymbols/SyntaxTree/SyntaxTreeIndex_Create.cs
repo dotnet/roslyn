@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -42,6 +41,7 @@ internal sealed partial class SyntaxTreeIndex
     {
         var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
         var ignoreCase = !syntaxFacts.IsCaseSensitive;
+        var partialKeywordKind = syntaxFacts.SyntaxKinds.PartialKeyword;
         var isCaseSensitive = !ignoreCase;
 
         GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
@@ -61,7 +61,8 @@ internal sealed partial class SyntaxTreeIndex
             var containsUsingStatement = false;
             var containsQueryExpression = false;
             var containsThisConstructorInitializer = false;
-            var containsBaseConstructorInitializer = false;
+            var containsExplicitBaseConstructorInitializer = false;
+            var containsImplicitBaseConstructorInitializer = false;
             var containsElementAccess = false;
             var containsIndexerMemberCref = false;
             var containsDeconstruction = false;
@@ -75,6 +76,7 @@ internal sealed partial class SyntaxTreeIndex
             var containsAttribute = false;
             var containsDirective = root.ContainsDirectives;
             var containsPrimaryConstructorBaseType = false;
+            var containsPartialClass = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -107,6 +109,9 @@ internal sealed partial class SyntaxTreeIndex
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
                         containsPrimaryConstructorBaseType = containsPrimaryConstructorBaseType || syntaxFacts.IsPrimaryConstructorBaseType(node);
+                        containsPartialClass = containsPartialClass || IsPartialClass(node);
+                        containsImplicitBaseConstructorInitializer = containsImplicitBaseConstructorInitializer ||
+                            (syntaxFacts.IsConstructorDeclaration(node) && syntaxFacts.HasImplicitBaseConstructorInitializer(node));
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
@@ -118,7 +123,7 @@ internal sealed partial class SyntaxTreeIndex
                         var token = (SyntaxToken)current;
 
                         containsThisConstructorInitializer = containsThisConstructorInitializer || syntaxFacts.IsThisConstructorInitializer(token);
-                        containsBaseConstructorInitializer = containsBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
+                        containsExplicitBaseConstructorInitializer = containsExplicitBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
                         containsGlobalKeyword = containsGlobalKeyword || syntaxFacts.IsGlobalNamespaceKeyword(token);
 
                         if (syntaxFacts.IsIdentifier(token))
@@ -188,7 +193,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsUsingStatement,
                     containsQueryExpression,
                     containsThisConstructorInitializer,
-                    containsBaseConstructorInitializer,
+                    containsExplicitBaseConstructorInitializer,
+                    containsImplicitBaseConstructorInitializer,
                     containsElementAccess,
                     containsIndexerMemberCref,
                     containsDeconstruction,
@@ -201,7 +207,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsCollectionInitializer,
                     containsAttribute,
                     containsDirective,
-                    containsPrimaryConstructorBaseType),
+                    containsPrimaryConstructorBaseType,
+                    containsPartialClass),
                 aliasInfo,
                 interceptsLocationInfo);
         }
@@ -210,6 +217,21 @@ internal sealed partial class SyntaxTreeIndex
             Free(ignoreCase, identifiers, escapedIdentifiers);
             StringLiteralHashSetPool.ClearAndFree(stringLiterals);
             LongLiteralHashSetPool.ClearAndFree(longLiterals);
+        }
+
+        bool IsPartialClass(SyntaxNode node)
+        {
+            if (!syntaxFacts.IsClassDeclaration(node))
+                return false;
+
+            var modifiers = syntaxFacts.GetModifiers(node);
+            foreach (var modifier in modifiers)
+            {
+                if (modifier.RawKind == partialKeywordKind)
+                    return true;
+            }
+
+            return false;
         }
     }
 

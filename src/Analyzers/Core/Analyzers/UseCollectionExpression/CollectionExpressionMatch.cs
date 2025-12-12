@@ -14,7 +14,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionExpression;
 /// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
 /// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see
 /// what form it is.</param>
+/// <param name="UseCast">Whether we need to cast the expression in <paramref name="Node"/> to the appropriate element type.</param>
 internal readonly record struct CollectionMatch<TMatchNode>(
     TMatchNode Node,
     bool UseSpread,
+<<<<<<< HEAD
     bool UseKeyValue) where TMatchNode : SyntaxNode;
+=======
+    bool UseCast = false) where TMatchNode : SyntaxNode;
+>>>>>>> upstream/features/collection-expression-arguments

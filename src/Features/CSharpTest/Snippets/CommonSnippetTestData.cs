@@ -8,8 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
 public static class CommonSnippetTestData
 {
-    public static TheoryData<string> IntegerTypes => new()
-    {
+    public static TheoryData<string> IntegerTypes => [
         "byte",
         "sbyte",
         "short",
@@ -20,32 +19,29 @@ public static class CommonSnippetTestData
         "ulong",
         "nint",
         "nuint",
-    };
+    ];
 
-    public static TheoryData<string> NotIntegerTypesWithoutLengthOrCountProperty => new()
-    {
+    public static TheoryData<string> NotIntegerTypesWithoutLengthOrCountProperty => [
         "object",
         "System.DateTime",
         "System.Action",
-    };
+    ];
 
-    public static TheoryData<string> AllAccessibilityModifiers => new()
-    {
+    public static TheoryData<string> AllAccessibilityModifiers => [
         "public",
         "private",
         "protected",
         "internal",
         "private protected",
         "protected internal",
-    };
+    ];
 
-    public static TheoryData<string> CommonEnumerableTypes => new()
-    {
+    public static TheoryData<string> CommonEnumerableTypes => [
         "string",
         "System.Collections.Generic.List<int>",
         "int[]",
         "System.Collections.Generic.IEnumerable<int>",
         "System.Collections.ArrayList",
         "System.Collections.IEnumerable",
-    };
+    ];
 }

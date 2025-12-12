@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Roslyn.Test.Utilities;
 using Xunit;
 

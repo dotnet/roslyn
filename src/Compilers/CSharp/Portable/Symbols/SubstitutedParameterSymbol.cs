@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal SubstitutedParameterSymbol(PropertySymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
+            this((Symbol)containingSymbol, map, originalParameter)
+        {
+        }
+
+        internal SubstitutedParameterSymbol(NamedTypeSymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
             this((Symbol)containingSymbol, map, originalParameter)
         {
         }
@@ -68,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -120,5 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return Roslyn.Utilities.Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
         }
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

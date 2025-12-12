@@ -4,25 +4,24 @@
 
 using System;
 
-namespace Roslyn.Text.Adornments
+namespace Roslyn.Text.Adornments;
+
+//
+// Summary:
+//     The layout style for a Microsoft.VisualStudio.Text.Adornments.ContainerElement.
+[Flags]
+internal enum ContainerElementStyle
 {
     //
     // Summary:
-    //     The layout style for a Microsoft.VisualStudio.Text.Adornments.ContainerElement.
-    [Flags]
-    internal enum ContainerElementStyle
-    {
-        //
-        // Summary:
-        //     Contents are end-to-end, and wrapped when the control becomes too wide.
-        Wrapped = 0x0,
-        //
-        // Summary:
-        //     Contents are stacked vertically.
-        Stacked = 0x1,
-        //
-        // Summary:
-        //     Additional padding above and below content.
-        VerticalPadding = 0x2
-    }
+    //     Contents are end-to-end, and wrapped when the control becomes too wide.
+    Wrapped = 0x0,
+    //
+    // Summary:
+    //     Contents are stacked vertically.
+    Stacked = 0x1,
+    //
+    // Summary:
+    //     Additional padding above and below content.
+    VerticalPadding = 0x2
 }

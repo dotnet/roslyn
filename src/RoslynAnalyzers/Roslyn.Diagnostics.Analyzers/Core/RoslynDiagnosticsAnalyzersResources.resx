@@ -1,0 +1,418 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="UseSpecializedCollectionsEmptyEnumerableTitle" xml:space="preserve">
+    <value>Use 'SpecializedCollections.EmptyEnumerable()'</value>
+  </data>
+  <data name="UseSpecializedCollectionsEmptyEnumerableDescription" xml:space="preserve">
+    <value>#N/A</value>
+  </data>
+  <data name="UseSpecializedCollectionsEmptyEnumerableMessage" xml:space="preserve">
+    <value>Use 'SpecializedCollections.EmptyEnumerable()'</value>
+  </data>
+  <data name="UseSpecializedCollectionsSingletonEnumerableTitle" xml:space="preserve">
+    <value>Use 'SpecializedCollections.SingletonEnumerable()'</value>
+  </data>
+  <data name="UseSpecializedCollectionsSingletonEnumerableDescription" xml:space="preserve">
+    <value>#N/A</value>
+  </data>
+  <data name="UseSpecializedCollectionsSingletonEnumerableMessage" xml:space="preserve">
+    <value>Use 'SpecializedCollections.SingletonEnumerable()'</value>
+  </data>
+  <data name="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle" xml:space="preserve">
+    <value>Invoke the correct property to ensure correct use site diagnostics</value>
+  </data>
+  <data name="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription" xml:space="preserve">
+    <value>#N/A</value>
+  </data>
+  <data name="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage" xml:space="preserve">
+    <value>Invoke the correct property to ensure correct use site diagnostics</value>
+  </data>
+  <data name="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle" xml:space="preserve">
+    <value>Do not use generic 'CodeAction.Create' to create 'CodeAction'</value>
+  </data>
+  <data name="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription" xml:space="preserve">
+    <value>#N/A</value>
+  </data>
+  <data name="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage" xml:space="preserve">
+    <value>Do not use generic 'CodeAction.Create' to create 'CodeAction'</value>
+  </data>
+  <data name="OverrideObjectEqualsObjectWhenImplementingIequatableTitle" xml:space="preserve">
+    <value>Override 'Object.Equals(object)' when implementing 'IEquatable'</value>
+  </data>
+  <data name="OverrideObjectEqualsObjectWhenImplementingIequatableDescription" xml:space="preserve">
+    <value>#N/A</value>
+  </data>
+  <data name="OverrideObjectEqualsObjectWhenImplementingIequatableMessage" xml:space="preserve">
+    <value>Override 'Object.Equals(object)' when implementing 'IEquatable'</value>
+  </data>
+  <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle" xml:space="preserve">
+    <value>'SymbolDeclaredEvent' must be generated for source symbols</value>
+  </data>
+  <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription" xml:space="preserve">
+    <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</value>
+  </data>
+  <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage" xml:space="preserve">
+    <value>'SymbolDeclaredEvent' must be generated for source symbols</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFTitle" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFDescription" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF.</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFMessage" xml:space="preserve">
+    <value>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle" xml:space="preserve">
+    <value>Parts exported with MEFv2 must be marked with 'SharedAttribute'</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription" xml:space="preserve">
+    <value>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage" xml:space="preserve">
+    <value>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorDescription" xml:space="preserve">
+    <value>Exported parts should be marked with 'ImportingConstructorAttribute'.</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorMessage" xml:space="preserve">
+    <value>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorTitle" xml:space="preserve">
+    <value>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteDescription" xml:space="preserve">
+    <value>Importing constructor should be marked with 'ObsoleteAttribute'.</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteMessage" xml:space="preserve">
+    <value>Importing constructor should be marked with 'ObsoleteAttribute'</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteTitle" xml:space="preserve">
+    <value>Importing constructor should be marked with 'ObsoleteAttribute'</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableDescription" xml:space="preserve">
+    <value>Test exports should not be discoverable.</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableMessage" xml:space="preserve">
+    <value>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableTitle" xml:space="preserve">
+    <value>Test exports should not be discoverable</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor" xml:space="preserve">
+    <value>Explicitly define the importing constructor</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute" xml:space="preserve">
+    <value>Add 'ImportingConstructor' attribute</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor" xml:space="preserve">
+    <value>Make constructor public</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse" xml:space="preserve">
+    <value>Set 'ObsoleteAttribute.Error' to 'true'</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription" xml:space="preserve">
+    <value>Use correct 'ObsoleteAttribute' message.</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute" xml:space="preserve">
+    <value>Add 'ObsoleteAttribute'</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription" xml:space="preserve">
+    <value>Configure 'ObsoleteAttribute' for importing constructor.</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingError" xml:space="preserve">
+    <value>Set 'ObsoleteAttribute.Error' to 'true'</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableCodeFix" xml:space="preserve">
+    <value>Apply 'PartNotDiscoverableAttribute'</value>
+  </data>
+  <data name="FixNumberedComments" xml:space="preserve">
+    <value>Fix numbered comments</value>
+  </data>
+  <data name="PreferNullLiteralDescription" xml:space="preserve">
+    <value>Use 'null' instead of 'default' for nullable types.</value>
+  </data>
+  <data name="PreferNullLiteralMessage" xml:space="preserve">
+    <value>Use 'null' instead of 'default' for nullable types</value>
+  </data>
+  <data name="PreferNullLiteralTitle" xml:space="preserve">
+    <value>Prefer null literal</value>
+  </data>
+  <data name="PreferNullLiteralCodeFix" xml:space="preserve">
+    <value>Use 'null' instead of 'default'</value>
+  </data>
+  <data name="RelaxTestNamingSuppressorJustification" xml:space="preserve">
+    <value>Asynchronous test methods do not require the 'Async' suffix</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsDescription" xml:space="preserve">
+    <value>Defaultable types should have defaultable fields.</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsMessage" xml:space="preserve">
+    <value>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsTitle" xml:space="preserve">
+    <value>Defaultable types should have defaultable fields</value>
+  </data>
+  <data name="DoNotCopyValueDescription" xml:space="preserve">
+    <value>Do not copy value.</value>
+  </data>
+  <data name="DoNotCopyValueMessage" xml:space="preserve">
+    <value>Do not copy value</value>
+  </data>
+  <data name="DoNotCopyValueTitle" xml:space="preserve">
+    <value>Do not copy value</value>
+  </data>
+  <data name="DoNotCopyValueNoBoxingDescription" xml:space="preserve">
+    <value>Do not box non-copyable value types.</value>
+  </data>
+  <data name="DoNotCopyValueNoBoxingMessage" xml:space="preserve">
+    <value>Do not box non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueUnsupportedUseDescription" xml:space="preserve">
+    <value>Unsupported use of non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueUnsupportedUseMessage" xml:space="preserve">
+    <value>Unsupported use of non-copyable type '{0}' in '{1}' operation</value>
+  </data>
+  <data name="DoNotCopyValueNoUnboxingDescription" xml:space="preserve">
+    <value>Do not unbox non-copyable value types.</value>
+  </data>
+  <data name="DoNotCopyValueNoUnboxingMessage" xml:space="preserve">
+    <value>Do not unbox non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueAvoidNullableWrapperDescription" xml:space="preserve">
+    <value>Avoid nullable wrapper.</value>
+  </data>
+  <data name="DoNotCopyValueAvoidNullableWrapperMessage" xml:space="preserve">
+    <value>Do not wrap non-copyable type '{0}' in '{1}' operation</value>
+  </data>
+  <data name="DoNotCallGetTestAccessorDescription" xml:space="preserve">
+    <value>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</value>
+  </data>
+  <data name="DoNotCallGetTestAccessorMessage" xml:space="preserve">
+    <value>Do not call 'GetTestAccessor()' from production code</value>
+  </data>
+  <data name="DoNotCallGetTestAccessorTitle" xml:space="preserve">
+    <value>Do not call 'GetTestAccessor()'</value>
+  </data>
+  <data name="CreateTestAccessorDescription" xml:space="preserve">
+    <value>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</value>
+  </data>
+  <data name="CreateTestAccessorMessage" xml:space="preserve">
+    <value>Create test accessor</value>
+  </data>
+  <data name="CreateTestAccessorTitle" xml:space="preserve">
+    <value>Create test accessor</value>
+  </data>
+  <data name="ExposeMemberForTestingDescription" xml:space="preserve">
+    <value>Expose member for testing.</value>
+  </data>
+  <data name="ExposeMemberForTestingMessage" xml:space="preserve">
+    <value>Expose member for testing</value>
+  </data>
+  <data name="ExposeMemberForTestingTitle" xml:space="preserve">
+    <value>Expose member for testing</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeDescription" xml:space="preserve">
+    <value>Avoid the 'Opt' suffix in a nullable-enabled code.</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeMessage" xml:space="preserve">
+    <value>Avoid the 'Opt' suffix in a nullable-enabled code</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeTitle" xml:space="preserve">
+    <value>Avoid the 'Opt' suffix</value>
+  </data>
+  <data name="Place_statement_on_following_line" xml:space="preserve">
+    <value>Place statement on following line</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeCodeFixTitle" xml:space="preserve">
+    <value>Remove the 'Opt' suffix</value>
+  </data>
+  <data name="NamedTypeFullNameNotNullSuppressorJustification" xml:space="preserve">
+    <value>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</value>
+  </data>
+  <data name="TemporaryArrayAsRefDescription" xml:space="preserve">
+    <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</value>
+    <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="TemporaryArrayAsRefMessage" xml:space="preserve">
+    <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</value>
+    <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="TemporaryArrayAsRefTitle" xml:space="preserve">
+    <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</value>
+    <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="DoNotCopyValueNoAssignValueFromReferenceDescription" xml:space="preserve">
+    <value>Cannot assign a value from a reference to a non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoAssignValueFromReferenceMessage" xml:space="preserve">
+    <value>Cannot assign a value from a reference to non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueNoReturnValueFromReferenceDescription" xml:space="preserve">
+    <value>Cannot return a value from a reference to a non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoReturnValueFromReferenceMessage" xml:space="preserve">
+    <value>Cannot return a value from a reference to non-copyable type '{0}'</value>
+  </data>
+  <data name="ApplyTraitToContainingType" xml:space="preserve">
+    <value>Apply trait to containing type</value>
+  </data>
+  <data name="AddSharedAttribute" xml:space="preserve">
+    <value>Add 'Shared' attribute</value>
+    <comment>{Locked="Shared"}</comment>
+  </data>
+  <data name="DoNotCopyValueNoFieldOfCopyableTypeDescription" xml:space="preserve">
+    <value>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoFieldOfCopyableTypeMessage" xml:space="preserve">
+    <value>Copyable field '{1}' cannot have non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueNoAutoPropertyDescription" xml:space="preserve">
+    <value>Auto-properties always copy values, so they cannot be declared with non-copyable types.</value>
+  </data>
+  <data name="DoNotCopyValueNoAutoPropertyMessage" xml:space="preserve">
+    <value>Auto-property '{1}' cannot have non-copyable type '{0}'</value>
+  </data>
+  <data name="Run iterations" xml:space="preserve">
+    <value>Run iterations</value>
+  </data>
+  <data name="DoNotCapturePrimaryConstructorParametersTitle" xml:space="preserve">
+    <value>Do not capture primary constructor parameters</value>
+  </data>
+  <data name="DoNotCapturePrimaryConstructorParametersMessage" xml:space="preserve">
+    <value>Primary constructor parameter '{0}' should not be implicitly captured</value>
+  </data>
+  <data name="DoNotCapturePrimaryConstructorParametersDescription" xml:space="preserve">
+    <value>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertTitle" xml:space="preserve">
+    <value>Do not use interpolated strings with 'Debug.Assert'</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertMessage" xml:space="preserve">
+    <value>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertDescription" xml:space="preserve">
+    <value>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertCodeFix" xml:space="preserve">
+    <value>Use 'RoslynDebug.Assert'.</value>
+  </data>
+</root>

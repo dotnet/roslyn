@@ -22,6 +22,9 @@ parameters:
 - name: OptionalTitlePrefix
   type: string
   default: '[PR Validation]'
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
 - name: InsertToolset
   type: boolean
   default: true
@@ -98,7 +101,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -150,39 +153,19 @@ extends:
           displayName: Disable Real-time Monitoring
           
         - task: Powershell@2
+          name: SetOriginalBuildNumber
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
           inputs:
             targetType: inline
             script: |
               $originalBuildNumber = "$(Build.BuildNumber)".Split(' - ')[0]
+              Write-Host "##vso[task.setvariable variable=OutputOriginalBuildNumber;isoutput=true;isreadonly=true]$originalBuildNumber"
               Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$originalBuildNumber"
 
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
-
-        - task: Powershell@2
-          name: FancyBuild
-          displayName: Setting FancyBuild.BuildNumber
-          inputs:
-            targetType: inline
-            script: |
-              $pull_request = Invoke-RestMethod -Uri "https://api.github.com/repos/dotnet/roslyn/pulls/${{ parameters.PRNumber }}" `
-              -Headers @{
-                "Accept" = "application/vnd.github+json";
-                "X-GitHub-Api-Version" = "2022-11-28"
-              }
-              $buildNumberName = "$(OriginalBuildNumber) - $($pull_request.user.login) - '$($pull_request.title)'"
-              $buildNumberName = $buildNumberName -replace '["/:<>\|?@*]','_'
-              # Maximum buildnumber length is 255 chars and we are going to append to the end to ensure we have space.
-              if ($buildNumberName.Length -GT 253) {
-                $buildNumberName = $buildNumberName.Substring(0, 253)
-              }
-              # Avoid ever ending the BuildNumber with a `.` by always appending to it.
-              $buildNumberName += ' #'
-              Write-Host "##vso[task.setvariable variable=BuildNumber;isoutput=true;isreadonly=true]$buildNumberName"
-              Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
         - task: Powershell@2
           displayName: Tag PR validation build
@@ -200,6 +183,25 @@ extends:
             filePath: 'eng\setup-pr-validation.ps1'
             arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
+
+        - task: Powershell@2
+          name: FancyBuild
+          displayName: Setting FancyBuild.BuildNumber
+          inputs:
+            targetType: inline
+            script: |
+              $authorName = git log -1 --pretty=format:"%an" ${{ parameters.CommitSHA }}
+
+              $buildNumberName = "$(OriginalBuildNumber) - $($authorName) - '${{ parameters.PRNumber }}'"
+              $buildNumberName = $buildNumberName -replace '["/:<>\|?@*]','_'
+              # Maximum buildnumber length is 255 chars and we are going to append to the end to ensure we have space.
+              if ($buildNumberName.Length -GT 253) {
+                $buildNumberName = $buildNumberName.Substring(0, 253)
+              }
+              # Avoid ever ending the BuildNumber with a `.` by always appending to it.
+              $buildNumberName += ' #'
+              Write-Host "##vso[task.setvariable variable=BuildNumber;isoutput=true;isreadonly=true]$buildNumberName"
+              Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(OriginalBuildNumber)"
           displayName: Setting VisualStudio.DropName variable
@@ -223,9 +225,8 @@ extends:
 
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: test
             zipSources: false
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
         - task: PowerShell@2
           displayName: Build
@@ -242,13 +243,13 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(OriginalBuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
-                       /p:DotNetSignType=$(SignType)
+                       /p:DotNetSignType=test
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
@@ -261,7 +262,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
+            arguments: '-configuration $(BuildConfiguration) -prValidation'
           condition: succeeded()
 
         - task: PublishTestResults@2
@@ -287,22 +288,59 @@ extends:
           pool:
             name: VSEngSS-MicroBuild2022-1ES
 
+    - stage: publish
+      displayName: Publish
+      dependsOn:
+      - build
+      jobs:
+      - job: publishDarc
+        displayName: Publish using darc
+        pool:
+          name: VSEngSS-MicroBuild2022-1ES
+        steps:
+        - checkout: none
+        # Make BarBuildId available.
+        - template: /eng/common/templates/post-build/setup-maestro-vars.yml@self
+
+        - powershell: |
+            $versionEndpoint = 'https://maestro.dot.net/api/assets/darc-version?api-version=2019-01-16'
+            $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
+            $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --add-source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
+          displayName: Install darc tool
+
+        - task: AzureCLI@2
+          inputs:
+            azureSubscription: "Darc: Maestro Production"
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: $(Agent.ToolsDirectory)\darc\darc add-build-to-channel --id $(BARBuildId) --channel ".NET Internal Tooling" --publishing-infra-version 3 --ci --azdev-pat $(System.AccessToken)
+          displayName: Add build to .NET Internal Tooling
+
     - stage: insert
       dependsOn:
       - build
-      - publish_using_darc
+      - publish
       displayName: Insert to VS
 
       jobs:
       - job: insert
         variables:
           FancyBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['FancyBuild.BuildNumber']]
+          OriginalBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['SetOriginalBuildNumber.OutputOriginalBuildNumber']]
         displayName: Insert to VS
         pool:
           name: VSEngSS-MicroBuild2022-1ES
         steps:
         - download: current
           artifact: VSSetup
+
+        # RIT looks at the build number and cannot handle the fancy build version.
+        # While in normal scenarios this is already set to the original number, we reset it again here in case this is a re-run.
+        - powershell: Write-Host "##vso[build.updatebuildnumber]$(OriginalBuildNumber)"
+          displayName: Reset BuildNumber
+          condition: succeeded()
+
         - powershell: |
             $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
             Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
@@ -319,22 +357,12 @@ extends:
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: ${{ parameters.OptionalTitlePrefix }}
             sourceBranch: $(ComponentBranchName)
-            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             retainInsertedBuild: false
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
         # Arcade is done so we can set BuildNumber back
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
           displayName: Reset BuildNumber
           condition: succeeded()
-
-    # Use post-build to publish symbol packages.
-    - template: /eng/common/templates-official/post-build/post-build.yml@self
-      parameters:
-        publishingInfraVersion: 3
-        # Symbol validation is not entirely reliable as of yet, so should be turned off until
-        # https://github.com/dotnet/arcade/issues/2871 is resolved.
-        enableSymbolValidation: false
-        enableSigningValidation: false
-        enableSourceLinkValidation: false
-        SDLValidationParameters: false

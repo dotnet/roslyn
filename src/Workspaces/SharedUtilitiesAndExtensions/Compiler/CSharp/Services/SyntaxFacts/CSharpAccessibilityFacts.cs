@@ -3,19 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Diagnostics.CodeAnalysis;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpAccessibilityFacts : IAccessibilityFacts
+internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
 {
     public static readonly IAccessibilityFacts Instance = new CSharpAccessibilityFacts();
 
@@ -46,9 +40,10 @@ internal class CSharpAccessibilityFacts : IAccessibilityFacts
                 return true;
 
             case SyntaxKind.VariableDeclaration:
+                return declaration.Parent is BaseFieldDeclarationSyntax;
+
             case SyntaxKind.VariableDeclarator:
-                var declarationKind = GetDeclarationKind(declaration);
-                return declarationKind is DeclarationKind.Field or DeclarationKind.Event;
+                return declaration.Parent is VariableDeclarationSyntax { Parent: BaseFieldDeclarationSyntax };
 
             case SyntaxKind.ConstructorDeclaration:
                 // Static constructor can't have accessibility
@@ -100,10 +95,10 @@ internal class CSharpAccessibilityFacts : IAccessibilityFacts
         return accessibility;
     }
 
-    public static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault)
+    public static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out Modifiers modifiers, out bool isDefault)
     {
         accessibility = Accessibility.NotApplicable;
-        modifiers = DeclarationModifiers.None;
+        modifiers = Modifiers.None;
         isDefault = false;
 
         foreach (var token in modifierList)
@@ -127,182 +122,28 @@ internal class CSharpAccessibilityFacts : IAccessibilityFacts
 
             modifiers |= token.Kind() switch
             {
-                SyntaxKind.AbstractKeyword => DeclarationModifiers.Abstract,
-                SyntaxKind.NewKeyword => DeclarationModifiers.New,
-                SyntaxKind.OverrideKeyword => DeclarationModifiers.Override,
-                SyntaxKind.VirtualKeyword => DeclarationModifiers.Virtual,
-                SyntaxKind.StaticKeyword => DeclarationModifiers.Static,
-                SyntaxKind.AsyncKeyword => DeclarationModifiers.Async,
-                SyntaxKind.ConstKeyword => DeclarationModifiers.Const,
-                SyntaxKind.ReadOnlyKeyword => DeclarationModifiers.ReadOnly,
-                SyntaxKind.SealedKeyword => DeclarationModifiers.Sealed,
-                SyntaxKind.UnsafeKeyword => DeclarationModifiers.Unsafe,
-                SyntaxKind.PartialKeyword => DeclarationModifiers.Partial,
-                SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
-                SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
-                SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
-                SyntaxKind.FileKeyword => DeclarationModifiers.File,
-                SyntaxKind.RequiredKeyword => DeclarationModifiers.Required,
-                _ => DeclarationModifiers.None,
+                SyntaxKind.AbstractKeyword => Modifiers.Abstract,
+                SyntaxKind.NewKeyword => Modifiers.New,
+                SyntaxKind.OverrideKeyword => Modifiers.Override,
+                SyntaxKind.VirtualKeyword => Modifiers.Virtual,
+                SyntaxKind.StaticKeyword => Modifiers.Static,
+                SyntaxKind.AsyncKeyword => Modifiers.Async,
+                SyntaxKind.ConstKeyword => Modifiers.Const,
+                SyntaxKind.ReadOnlyKeyword => Modifiers.ReadOnly,
+                SyntaxKind.SealedKeyword => Modifiers.Sealed,
+                SyntaxKind.UnsafeKeyword => Modifiers.Unsafe,
+                SyntaxKind.PartialKeyword => Modifiers.Partial,
+                SyntaxKind.RefKeyword => Modifiers.Ref,
+                SyntaxKind.VolatileKeyword => Modifiers.Volatile,
+                SyntaxKind.ExternKeyword => Modifiers.Extern,
+                SyntaxKind.FileKeyword => Modifiers.File,
+                SyntaxKind.RequiredKeyword => Modifiers.Required,
+                SyntaxKind.FixedKeyword => Modifiers.Fixed,
+                _ => Modifiers.None,
             };
 
             isDefault |= token.Kind() == SyntaxKind.DefaultKeyword;
         }
-    }
-
-    public static DeclarationKind GetDeclarationKind(SyntaxNode declaration)
-    {
-        switch (declaration.Kind())
-        {
-            case SyntaxKind.ClassDeclaration:
-            case SyntaxKind.RecordDeclaration:
-                return DeclarationKind.Class;
-            case SyntaxKind.StructDeclaration:
-            case SyntaxKind.RecordStructDeclaration:
-                return DeclarationKind.Struct;
-            case SyntaxKind.InterfaceDeclaration:
-                return DeclarationKind.Interface;
-            case SyntaxKind.EnumDeclaration:
-                return DeclarationKind.Enum;
-            case SyntaxKind.DelegateDeclaration:
-                return DeclarationKind.Delegate;
-
-            case SyntaxKind.MethodDeclaration:
-                return DeclarationKind.Method;
-            case SyntaxKind.OperatorDeclaration:
-                return DeclarationKind.Operator;
-            case SyntaxKind.ConversionOperatorDeclaration:
-                return DeclarationKind.ConversionOperator;
-            case SyntaxKind.ConstructorDeclaration:
-                return DeclarationKind.Constructor;
-            case SyntaxKind.DestructorDeclaration:
-                return DeclarationKind.Destructor;
-
-            case SyntaxKind.PropertyDeclaration:
-                return DeclarationKind.Property;
-            case SyntaxKind.IndexerDeclaration:
-                return DeclarationKind.Indexer;
-            case SyntaxKind.EventDeclaration:
-                return DeclarationKind.CustomEvent;
-            case SyntaxKind.EnumMemberDeclaration:
-                return DeclarationKind.EnumMember;
-            case SyntaxKind.CompilationUnit:
-                return DeclarationKind.CompilationUnit;
-            case SyntaxKind.NamespaceDeclaration:
-            case SyntaxKind.FileScopedNamespaceDeclaration:
-                return DeclarationKind.Namespace;
-            case SyntaxKind.UsingDirective:
-                return DeclarationKind.NamespaceImport;
-            case SyntaxKind.Parameter:
-                return DeclarationKind.Parameter;
-
-            case SyntaxKind.ParenthesizedLambdaExpression:
-            case SyntaxKind.SimpleLambdaExpression:
-                return DeclarationKind.LambdaExpression;
-
-            case SyntaxKind.FieldDeclaration:
-                var fd = (FieldDeclarationSyntax)declaration;
-                if (fd.Declaration != null && fd.Declaration.Variables.Count == 1)
-                {
-                    // this node is considered the declaration if it contains only one variable.
-                    return DeclarationKind.Field;
-                }
-                else
-                {
-                    return DeclarationKind.None;
-                }
-
-            case SyntaxKind.EventFieldDeclaration:
-                var ef = (EventFieldDeclarationSyntax)declaration;
-                if (ef.Declaration != null && ef.Declaration.Variables.Count == 1)
-                {
-                    // this node is considered the declaration if it contains only one variable.
-                    return DeclarationKind.Event;
-                }
-                else
-                {
-                    return DeclarationKind.None;
-                }
-
-            case SyntaxKind.LocalDeclarationStatement:
-                var ld = (LocalDeclarationStatementSyntax)declaration;
-                if (ld.Declaration != null && ld.Declaration.Variables.Count == 1)
-                {
-                    // this node is considered the declaration if it contains only one variable.
-                    return DeclarationKind.Variable;
-                }
-                else
-                {
-                    return DeclarationKind.None;
-                }
-
-            case SyntaxKind.VariableDeclaration:
-                {
-                    var vd = (VariableDeclarationSyntax)declaration;
-                    if (vd.Variables.Count == 1 && vd.Parent == null)
-                    {
-                        // this node is the declaration if it contains only one variable and has no parent.
-                        return DeclarationKind.Variable;
-                    }
-                    else
-                    {
-                        return DeclarationKind.None;
-                    }
-                }
-
-            case SyntaxKind.VariableDeclarator:
-                {
-                    var vd = declaration.Parent as VariableDeclarationSyntax;
-
-                    // this node is considered the declaration if it is one among many, or it has no parent
-                    if (vd == null || vd.Variables.Count > 1)
-                    {
-                        if (ParentIsFieldDeclaration(vd))
-                        {
-                            return DeclarationKind.Field;
-                        }
-                        else if (ParentIsEventFieldDeclaration(vd))
-                        {
-                            return DeclarationKind.Event;
-                        }
-                        else
-                        {
-                            return DeclarationKind.Variable;
-                        }
-                    }
-
-                    break;
-                }
-
-            case SyntaxKind.AttributeList:
-                var list = (AttributeListSyntax)declaration;
-                if (list.Attributes.Count == 1)
-                {
-                    return DeclarationKind.Attribute;
-                }
-
-                break;
-
-            case SyntaxKind.Attribute:
-                if (declaration.Parent is not AttributeListSyntax parentList || parentList.Attributes.Count > 1)
-                {
-                    return DeclarationKind.Attribute;
-                }
-
-                break;
-
-            case SyntaxKind.GetAccessorDeclaration:
-                return DeclarationKind.GetAccessor;
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.InitAccessorDeclaration:
-                return DeclarationKind.SetAccessor;
-            case SyntaxKind.AddAccessorDeclaration:
-                return DeclarationKind.AddAccessor;
-            case SyntaxKind.RemoveAccessorDeclaration:
-                return DeclarationKind.RemoveAccessor;
-        }
-
-        return DeclarationKind.None;
     }
 
     public static SyntaxTokenList GetModifierTokens(SyntaxNode declaration)
@@ -318,13 +159,4 @@ internal class CSharpAccessibilityFacts : IAccessibilityFacts
             AnonymousFunctionExpressionSyntax anonymous => anonymous.Modifiers,
             _ => default,
         };
-
-    public static bool ParentIsFieldDeclaration([NotNullWhen(true)] SyntaxNode? node)
-        => node?.Parent.IsKind(SyntaxKind.FieldDeclaration) ?? false;
-
-    public static bool ParentIsEventFieldDeclaration([NotNullWhen(true)] SyntaxNode? node)
-        => node?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) ?? false;
-
-    public static bool ParentIsLocalDeclarationStatement([NotNullWhen(true)] SyntaxNode? node)
-        => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
 }

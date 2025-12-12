@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-internal class RemoveSinkWhenDisposed : IDisposable
+internal sealed class RemoveSinkWhenDisposed : IDisposable
 {
     private readonly List<ITableDataSink> _tableSinks;
     private readonly ITableDataSink _sink;

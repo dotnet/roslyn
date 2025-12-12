@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UseThrowExpression;
 namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseThrowExpressionDiagnosticAnalyzer()
+internal sealed class CSharpUseThrowExpressionDiagnosticAnalyzer()
     : AbstractUseThrowExpressionDiagnosticAnalyzer(CSharpCodeStyleOptions.PreferThrowExpression)
 {
     protected override ISemanticFacts SemanticFacts

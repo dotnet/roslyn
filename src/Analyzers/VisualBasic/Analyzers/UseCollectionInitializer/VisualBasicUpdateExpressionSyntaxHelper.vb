@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Public Shared ReadOnly Instance As New VisualBasicUpdateExpressionSyntaxHelper()
 
-        Public Sub GetPartsOfForeachStatement(statement As StatementSyntax, ByRef awaitKeyword As SyntaxToken, ByRef identifier As SyntaxToken, ByRef expression As ExpressionSyntax, ByRef statements As IEnumerable(Of StatementSyntax)) Implements IUpdateExpressionSyntaxHelper(Of ExpressionSyntax, StatementSyntax).GetPartsOfForeachStatement
+        Public Sub GetPartsOfForeachStatement(semanticModel As SemanticModel, statement As StatementSyntax, ByRef awaitKeyword As SyntaxToken, ByRef identifier As SyntaxToken, ByRef expression As ExpressionSyntax, ByRef statements As IEnumerable(Of StatementSyntax), ByRef needsCast As Boolean) Implements IUpdateExpressionSyntaxHelper(Of ExpressionSyntax, StatementSyntax).GetPartsOfForeachStatement
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Sub

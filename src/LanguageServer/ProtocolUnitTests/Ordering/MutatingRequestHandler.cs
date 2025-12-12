@@ -9,36 +9,35 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(MutatingRequestHandler)), PartNotDiscoverable, Shared]
+[Method(MethodName)]
+internal sealed class MutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(MutatingRequestHandler)), PartNotDiscoverable, Shared]
-    [Method(MethodName)]
-    internal class MutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
+    public const string MethodName = nameof(MutatingRequestHandler);
+    private const int Delay = 100;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public MutatingRequestHandler()
     {
-        public const string MethodName = nameof(MutatingRequestHandler);
-        private const int Delay = 100;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MutatingRequestHandler()
+    public bool MutatesSolutionState => true;
+    public bool RequiresLSPSolution => true;
+
+    public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+    {
+        var response = new TestResponse
         {
-        }
+            StartTime = DateTime.UtcNow
+        };
 
-        public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => true;
+        await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
-        public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
-        {
-            var response = new TestResponse
-            {
-                StartTime = DateTime.UtcNow
-            };
+        response.EndTime = DateTime.UtcNow;
 
-            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
-
-            response.EndTime = DateTime.UtcNow;
-
-            return response;
-        }
+        return response;
     }
 }

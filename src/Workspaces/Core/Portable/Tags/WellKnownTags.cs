@@ -57,6 +57,8 @@ public static class WellKnownTags
     internal const string AddReference = nameof(AddReference);
     internal const string NuGet = nameof(NuGet);
     internal const string TargetTypeMatch = nameof(TargetTypeMatch);
+
+    internal const string Copilot = nameof(Copilot);
 }
 
 internal static class WellKnownTagArrays
@@ -112,7 +114,10 @@ internal static class WellKnownTagArrays
     internal static readonly ImmutableArray<string> ModulePrivate = [WellKnownTags.Module, WellKnownTags.Private];
     internal static readonly ImmutableArray<string> ModuleInternal = [WellKnownTags.Module, WellKnownTags.Internal];
     internal static readonly ImmutableArray<string> Folder = [WellKnownTags.Folder];
-    internal static readonly ImmutableArray<string> Operator = [WellKnownTags.Operator];
+    internal static readonly ImmutableArray<string> OperatorPublic = [WellKnownTags.Operator, WellKnownTags.Public];
+    internal static readonly ImmutableArray<string> OperatorProtected = [WellKnownTags.Operator, WellKnownTags.Protected];
+    internal static readonly ImmutableArray<string> OperatorPrivate = [WellKnownTags.Operator, WellKnownTags.Private];
+    internal static readonly ImmutableArray<string> OperatorInternal = [WellKnownTags.Operator, WellKnownTags.Internal];
     internal static readonly ImmutableArray<string> Parameter = [WellKnownTags.Parameter];
     internal static readonly ImmutableArray<string> PropertyPublic = [WellKnownTags.Property, WellKnownTags.Public];
     internal static readonly ImmutableArray<string> PropertyProtected = [WellKnownTags.Property, WellKnownTags.Protected];

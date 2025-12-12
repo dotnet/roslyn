@@ -2,11 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
-Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -57,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                composition:=EditorTestCompositions.EditorFeaturesWpf)
+                composition:=EditorTestCompositions.EditorFeatures)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
@@ -216,50 +215,6 @@ End Class
                 session.Cancel()
             End Using
         End Sub
-
-        <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function TypingTabDuringRename(host As RenameTestHost) As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                                class $$Goo
-                                {
-                                    Goo f;
-                                }
-                            </Document>
-                    </Project>
-                </Workspace>, host)
-
-                ' This test specifically matters for the case where a user is typing in the editor
-                ' and is not intended to test the rename flyout tab behavior
-                Dim optionsService = workspace.GetService(Of IGlobalOptionService)()
-                optionsService.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, False)
-
-                Dim view = workspace.Documents.Single().GetTextView()
-                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-
-                Dim commandHandler = CreateCommandHandler(workspace)
-
-                Dim session = StartSession(workspace)
-
-                ' TODO: should we make tab wait instead?
-                Await WaitForRename(workspace)
-
-                ' Unfocus the dashboard
-                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, RenameDashboard)
-                dashboard.ShouldReceiveKeyboardNavigation = False
-
-                commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Tab should not have been passed to the editor."),
-                                              Utilities.TestCommandExecutionContext.Create())
-
-                Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLineNumber())
-
-                session.Cancel()
-            End Using
-        End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1057,20 +1012,21 @@ partial class [|Program|]
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
                                               Sub() editorOperations.InsertText("B"), Utilities.TestCommandExecutionContext.Create())
 
-                ' Now save the document, which should commit Rename
+                ' Now save the document
                 commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
                 Await VerifyTagsAreCorrect(workspace)
 
-                ' Rename session was indeed committed and is no longer active
-                Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
+                ' Rename session was not commited and is active
+                ' If we were to try and async rename it could finish after the save command so the workspace would still be dirty.
+                Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
             End Using
         End Function
 
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesUpDuringRename(host As RenameTestHost)
-            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+            VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New MoveSelectedLinesUpCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1080,7 +1036,7 @@ partial class [|Program|]
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesDownDuringRename(host As RenameTestHost)
-            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+            VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New MoveSelectedLinesDownCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1090,7 +1046,7 @@ partial class [|Program|]
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ReorderParametersDuringRename(host As RenameTestHost)
-            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+            VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New ReorderParametersCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1100,7 +1056,7 @@ partial class [|Program|]
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RemoveParametersDuringRename(host As RenameTestHost)
-            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+            VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New RemoveParametersCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1110,7 +1066,7 @@ partial class [|Program|]
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExtractInterfaceDuringRename(host As RenameTestHost)
-            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+            VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New ExtractInterfaceCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1120,7 +1076,7 @@ partial class [|Program|]
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EncapsulateFieldDuringRename(host As RenameTestHost)
-            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+            VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New EncapsulateFieldCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1150,7 +1106,7 @@ partial class [|Program|]
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CutDuringRename_OutsideIdentifier(host As RenameTestHost)
-            VerifySessionCommittedAfterCutPasteOutsideIdentifier(
+            VerifySessionNotCommittedAfterCutPasteOutsideIdentifier(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1160,14 +1116,16 @@ partial class [|Program|]
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub PasteDuringRename_OutsideIdentifier(host As RenameTestHost)
-            VerifySessionCommittedAfterCutPasteOutsideIdentifier(
+            VerifySessionNotCommittedAfterCutPasteOutsideIdentifier(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
-        Private Shared Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(host As RenameTestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+        Private Shared Sub VerifyCommandDoesNotCommitRenameSessionAndExecuteCommand(
+                host As RenameTestHost,
+                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1200,9 +1158,9 @@ class [|C$$|]
                 Dim commandInvokedString = "/*Command Invoked*/"
                 executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
 
-                ' Verify rename session was committed.
+                ' Verify rename session was not committed because the scenarios are not supported in async rename.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Assert.Contains("D f", view.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Contains("C f", view.TextBuffer.CurrentSnapshot.GetText())
 
                 ' Verify the command was routed to the editor.
                 Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())
@@ -1241,7 +1199,9 @@ class [|C$$|]
             End Using
         End Function
 
-        Private Shared Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(host As RenameTestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+        Private Shared Sub VerifySessionNotCommittedAfterCutPasteOutsideIdentifier(
+                host As RenameTestHost,
+                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1279,9 +1239,9 @@ class [|C$$|]
 
                 executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
 
-                ' Verify rename session was committed
+                ' If a user cuts/pastes outside the identifier then that cancels the rename operation as it is not supported in async rename.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Assert.Contains("D f", view.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Contains("C f", view.TextBuffer.CurrentSnapshot.GetText())
                 Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub

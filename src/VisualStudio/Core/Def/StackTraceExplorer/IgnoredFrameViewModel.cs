@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class IgnoredFrameViewModel : FrameViewModel
+internal sealed class IgnoredFrameViewModel : FrameViewModel
 {
     private readonly IgnoredFrame _frame;
 
@@ -25,7 +25,7 @@ internal class IgnoredFrameViewModel : FrameViewModel
 
     protected override IEnumerable<Inline> CreateInlines()
     {
-        var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.ToString());
+        var run = MakeClassifiedRun(ClassificationTypeNames.Comment, _frame.ToString());
         yield return run;
     }
 }

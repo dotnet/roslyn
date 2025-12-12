@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
 [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-internal class CSharpOrganizeUsingsNewDocumentFormattingProvider : INewDocumentFormattingProvider
+internal sealed class CSharpOrganizeUsingsNewDocumentFormattingProvider : INewDocumentFormattingProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

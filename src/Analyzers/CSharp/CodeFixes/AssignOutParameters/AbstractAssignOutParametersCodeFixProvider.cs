@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -112,8 +111,7 @@ internal abstract class AbstractAssignOutParametersCodeFixProvider : SyntaxEdito
 
             var outParameters = parameterList.Parameters
                 .Select(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken))
-                .Where(p => p.RefKind == RefKind.Out)
-                .ToImmutableArray();
+                .WhereAsArray(p => p.RefKind == RefKind.Out);
 
             var distinctExprsOrStatements = group.Select(t => t.exprOrStatement).Distinct();
             foreach (var exprOrStatement in distinctExprsOrStatements)

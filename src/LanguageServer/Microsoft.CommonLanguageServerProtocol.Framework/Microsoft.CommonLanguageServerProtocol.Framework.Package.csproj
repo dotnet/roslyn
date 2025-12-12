@@ -25,19 +25,5 @@
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="contentFiles\.editorconfig" />
-  </ItemGroup>
-  
-  <!--
-    Includes the .editorconfig file in the package at the contentFiles root.
-    This ensures analyzers do not run against source content from the nuget package.
-  -->
-  <ItemGroup>
-    <Content Include="contentFiles\.editorconfig">
-      <Pack>true</Pack>
-      <PackagePath>contentFiles\cs\$(TargetFramework)\</PackagePath>
-    </Content>
-  </ItemGroup>
   <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

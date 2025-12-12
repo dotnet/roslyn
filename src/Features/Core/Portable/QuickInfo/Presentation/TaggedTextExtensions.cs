@@ -6,8 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo.Presentation;
 
@@ -59,6 +59,14 @@ internal static class TaggedTextExtensions
 
                 case TextTags.ContainerEnd:
                     // We're finished processing inline elements. Break out and let the caller continue
+
+                    // Documentation formatting may add an extra LineBreak after ContainerEnd to separate
+                    // elements in LSP scenarios. During rendering, we consume this extra LineBreak to
+                    // prevent double spacing, since each line is already rendered on its own line.
+                    if (taggedTexts is [var head, ..] && head.Tag == TextTags.LineBreak)
+                    {
+                        taggedTexts = taggedTexts[1..];
+                    }
                     done = true;
                     break;
 

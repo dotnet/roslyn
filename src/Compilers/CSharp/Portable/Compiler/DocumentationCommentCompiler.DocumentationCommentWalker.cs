@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Do this for the diagnostics, even if it won't be written.
                     BindingDiagnosticBag diagnostics = diagnose ? _diagnostics : BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: _diagnostics.AccumulatesDependencies);
-                    string docCommentId = GetDocumentationCommentId(cref, binder, diagnostics);
+                    string docCommentId = GetEscapedDocumentationCommentId(cref, binder, diagnostics);
 
                     if (!diagnose)
                     {

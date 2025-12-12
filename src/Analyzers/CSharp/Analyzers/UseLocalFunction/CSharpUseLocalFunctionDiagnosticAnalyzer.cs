@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 ///     }
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseLocalFunctionDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
@@ -277,8 +277,7 @@ internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeSty
                     }
                     else if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
                     {
-                        if (memberAccessExpression.Parent is InvocationExpressionSyntax explicitInvocationExpression &&
-                            memberAccessExpression.Name.Identifier.ValueText == WellKnownMemberNames.DelegateInvokeName)
+                        if (memberAccessExpression is { Parent: InvocationExpressionSyntax explicitInvocationExpression, Name.Identifier.ValueText: WellKnownMemberNames.DelegateInvokeName })
                         {
                             references.Add(explicitInvocationExpression.GetLocation());
                         }
@@ -350,9 +349,7 @@ internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeSty
     {
         // Type t = null;
         // t = <anonymous function>
-        if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
-            assignment.Parent is ExpressionStatementSyntax expressionStatement &&
-            expressionStatement.Parent is BlockSyntax block)
+        if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Parent: ExpressionStatementSyntax { Parent: BlockSyntax block } expressionStatement } assignment)
         {
             if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
             {

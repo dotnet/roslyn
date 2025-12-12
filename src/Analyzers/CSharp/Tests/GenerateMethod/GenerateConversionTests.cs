@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
@@ -20,338 +18,356 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 public sealed class GenerateConversionTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateConversionCodeFixProvider());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionGenericClass()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void Test(int[] a)
-    {
-        C<int> x1 = [|1|];
-    }
-}
+    public Task TestGenerateImplicitConversionGenericClass()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C<int> x1 = [|1|];
+                }
+            }
 
-class C<T>
-{
-}",
-@"using System;
+            class C<T>
+            {
+            }
+            """,
+            """
+            using System;
 
-class Program
-{
-    void Test(int[] a)
-    {
-        C<int> x1 = 1;
-    }
-}
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C<int> x1 = 1;
+                }
+            }
 
-class C<T>
-{
-    public static implicit operator C<T>(int v)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class C<T>
+            {
+                public static implicit operator C<T>(int v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionClass()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void Test(int[] a)
-    {
-        C x1 = [|1|];
-    }
-}
+    public Task TestGenerateImplicitConversionClass()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C x1 = [|1|];
+                }
+            }
 
-class C
-{
-}",
-@"using System;
+            class C
+            {
+            }
+            """,
+            """
+            using System;
 
-class Program
-{
-    void Test(int[] a)
-    {
-        C x1 = 1;
-    }
-}
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C x1 = 1;
+                }
+            }
 
-class C
-{
-    public static implicit operator C(int v)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class C
+            {
+                public static implicit operator C(int v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestGenerateImplicitConversionClass_CodeStyle()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void Test(int[] a)
-    {
-        C x1 = [|1|];
-    }
-}
+    public Task TestGenerateImplicitConversionClass_CodeStyle()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C x1 = [|1|];
+                }
+            }
 
-class C
-{
-}",
-@"using System;
+            class C
+            {
+            }
+            """,
+            """
+            using System;
 
-class Program
-{
-    void Test(int[] a)
-    {
-        C x1 = 1;
-    }
-}
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C x1 = 1;
+                }
+            }
 
-class C
-{
-    public static implicit operator C(int v) => throw new NotImplementedException();
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionAwaitExpression()
-    {
-        await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class Program
-{
-    async void Test()
-    {
-        var a = Task.FromResult(1);
-        Program x1 = [|await a|];
-    }
-}",
-@"using System;
-using System.Threading.Tasks;
-
-class Program
-{
-    async void Test()
-    {
-        var a = Task.FromResult(1);
-        Program x1 = await a;
-    }
-
-    public static implicit operator Program(int v)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class C
+            {
+                public static implicit operator C(int v) => throw new NotImplementedException();
+            }
+            """,
+            new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionTargetTypeNotInSource()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Digit
-{
-    public Digit(double d)
-    {
-        val = d;
-    }
+    public Task TestGenerateImplicitConversionAwaitExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
 
-    public double val;
-}
+            class Program
+            {
+                async void Test()
+                {
+                    var a = Task.FromResult(1);
+                    Program x1 = [|await a|];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Digit dig = new Digit(7);
-        double num = [|dig|];
-    }
-}",
-@"using System;
+            class Program
+            {
+                async void Test()
+                {
+                    var a = Task.FromResult(1);
+                    Program x1 = await a;
+                }
 
-class Digit
-{
-    public Digit(double d)
-    {
-        val = d;
-    }
-
-    public double val;
-
-    public static implicit operator double(Digit v)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        Digit dig = new Digit(7);
-        double num = dig;
-    }
-}");
-    }
+                public static implicit operator Program(int v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionGenericClass()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void Test(int[] a)
-    {
-        C<int> x1 = [|(C<int>)1|];
-    }
-}
+    public Task TestGenerateImplicitConversionTargetTypeNotInSource()
+        => TestInRegularAndScriptAsync(
+            """
+            class Digit
+            {
+                public Digit(double d)
+                {
+                    val = d;
+                }
 
-class C<T>
-{
-}",
-@"using System;
+                public double val;
+            }
 
-class Program
-{
-    void Test(int[] a)
-    {
-        C<int> x1 = (C<int>)1;
-    }
-}
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Digit dig = new Digit(7);
+                    double num = [|dig|];
+                }
+            }
+            """,
+            """
+            using System;
 
-class C<T>
-{
-    public static explicit operator C<T>(int v)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class Digit
+            {
+                public Digit(double d)
+                {
+                    val = d;
+                }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionClass()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void Test(int[] a)
-    {
-        C x1 = [|(C)1|];
-    }
-}
+                public double val;
 
-class C
-{
-}",
-@"using System;
+                public static implicit operator double(Digit v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
 
-class Program
-{
-    void Test(int[] a)
-    {
-        C x1 = (C)1;
-    }
-}
-
-class C
-{
-    public static explicit operator C(int v)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Digit dig = new Digit(7);
+                    double num = dig;
+                }
+            }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionAwaitExpression()
-    {
-        await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+    public Task TestGenerateExplicitConversionGenericClass()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C<int> x1 = [|(C<int>)1|];
+                }
+            }
 
-class Program
-{
-    async void Test()
-    {
-        var a = Task.FromResult(1);
-        Program x1 = [|(Program)await a|];
-    }
-}",
-@"using System;
-using System.Threading.Tasks;
+            class C<T>
+            {
+            }
+            """,
+            """
+            using System;
 
-class Program
-{
-    async void Test()
-    {
-        var a = Task.FromResult(1);
-        Program x1 = (Program)await a;
-    }
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C<int> x1 = (C<int>)1;
+                }
+            }
 
-    public static explicit operator Program(int v)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class C<T>
+            {
+                public static explicit operator C<T>(int v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionTargetTypeNotInSource()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Digit
-{
-    public Digit(double d)
-    {
-        val = d;
-    }
+    public Task TestGenerateExplicitConversionClass()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C x1 = [|(C)1|];
+                }
+            }
 
-    public double val;
-}
+            class C
+            {
+            }
+            """,
+            """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Digit dig = new Digit(7);
-        double num = [|(double)dig|];
-    }
-}",
-@"using System;
+            class Program
+            {
+                void Test(int[] a)
+                {
+                    C x1 = (C)1;
+                }
+            }
 
-class Digit
-{
-    public Digit(double d)
-    {
-        val = d;
-    }
+            class C
+            {
+                public static explicit operator C(int v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 
-    public double val;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
+    public Task TestGenerateExplicitConversionAwaitExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
 
-    public static explicit operator double(Digit v)
-    {
-        throw new NotImplementedException();
-    }
-}
+            class Program
+            {
+                async void Test()
+                {
+                    var a = Task.FromResult(1);
+                    Program x1 = [|(Program)await a|];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Digit dig = new Digit(7);
-        double num = (double)dig;
-    }
-}");
-    }
+            class Program
+            {
+                async void Test()
+                {
+                    var a = Task.FromResult(1);
+                    Program x1 = (Program)await a;
+                }
+
+                public static explicit operator Program(int v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
+    public Task TestGenerateExplicitConversionTargetTypeNotInSource()
+        => TestInRegularAndScriptAsync(
+            """
+            class Digit
+            {
+                public Digit(double d)
+                {
+                    val = d;
+                }
+
+                public double val;
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Digit dig = new Digit(7);
+                    double num = [|(double)dig|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Digit
+            {
+                public Digit(double d)
+                {
+                    val = d;
+                }
+
+                public double val;
+
+                public static explicit operator double(Digit v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Digit dig = new Digit(7);
+                    double num = (double)dig;
+                }
+            }
+            """);
 }

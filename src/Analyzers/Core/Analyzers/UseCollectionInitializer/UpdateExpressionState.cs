@@ -21,55 +21,45 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 /// </summary>
 internal readonly struct UpdateExpressionState<
     TExpressionSyntax,
-    TStatementSyntax>
+    TStatementSyntax>(
+    SemanticModel semanticModel,
+    ISyntaxFacts syntaxFacts,
+    TExpressionSyntax startExpression,
+    SyntaxNodeOrToken valuePattern,
+    ISymbol? initializedSymbol)
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
 {
     private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames =
     [
-        (nameof(List<int>.AddRange), isLinq: false),
+        (nameof(List<>.AddRange), isLinq: false),
         (nameof(Enumerable.Concat), isLinq: true),
         (nameof(Enumerable.Append), isLinq: true),
     ];
 
-    public readonly SemanticModel SemanticModel;
-    public readonly ISyntaxFacts SyntaxFacts;
+    public readonly SemanticModel SemanticModel = semanticModel;
+    public readonly ISyntaxFacts SyntaxFacts = syntaxFacts;
 
     /// <summary>
     /// The original object-creation or collection-builder-creation expression.
     /// </summary>
-    public readonly TExpressionSyntax StartExpression;
+    public readonly TExpressionSyntax StartExpression = startExpression;
 
     /// <summary>
     /// The statement containing <see cref="StartExpression"/>
     /// </summary>
-    public readonly TStatementSyntax? ContainingStatement;
+    public readonly TStatementSyntax? ContainingStatement = startExpression.FirstAncestorOrSelf<TStatementSyntax>();
 
     /// <summary>
     /// The name of the value being mutated.  It is whatever the new object-creation or collection-builder is assigned to.
     /// </summary>
-    public readonly SyntaxNodeOrToken ValuePattern;
+    public readonly SyntaxNodeOrToken ValuePattern = valuePattern;
 
     /// <summary>
     /// If a different symbol was initialized (for example, a field rather than a local) this will be that symbol.  This
     /// only applies to the object-creation case.
     /// </summary>
-    public readonly ISymbol? InitializedSymbol;
-
-    public UpdateExpressionState(
-        SemanticModel semanticModel,
-        ISyntaxFacts syntaxFacts,
-        TExpressionSyntax startExpression,
-        SyntaxNodeOrToken valuePattern,
-        ISymbol? initializedSymbol)
-    {
-        SemanticModel = semanticModel;
-        SyntaxFacts = syntaxFacts;
-        StartExpression = startExpression;
-        ContainingStatement = startExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
-        ValuePattern = valuePattern;
-        InitializedSymbol = initializedSymbol;
-    }
+    public readonly ISymbol? InitializedSymbol = initializedSymbol;
 
     public IEnumerable<TStatementSyntax> GetSubsequentStatements()
         => ContainingStatement is null
@@ -263,8 +253,7 @@ internal readonly struct UpdateExpressionState<
         // values)`  If the former, we only allow a single argument.  If the latter, we can allow multiple
         // expressions.  The former will be converted to a spread element.  The latter will be added
         // individually.
-        var method = this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() as IMethodSymbol;
-        if (method is null)
+        if (this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() is not IMethodSymbol method)
             return false;
 
         if (method.Parameters.Length != 1)
@@ -427,7 +416,7 @@ internal readonly struct UpdateExpressionState<
             return TryAnalyzeExpressionStatement(statement);
 
         if (SyntaxFacts.IsForEachStatement(statement))
-            return TryAnalyzeForeachStatement(statement);
+            return TryAnalyzeForeachStatement(this.SemanticModel, statement);
 
         if (SyntaxFacts.IsIfStatement(statement))
             return TryAnalyzeIfStatement(statement);
@@ -457,9 +446,12 @@ internal readonly struct UpdateExpressionState<
             return null;
         }
 
-        CollectionMatch<SyntaxNode>? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
+        CollectionMatch<SyntaxNode>? TryAnalyzeForeachStatement(
+            SemanticModel semanticModel, TStatementSyntax foreachStatement)
         {
-            syntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var awaitKeyword, out var identifier, out _, out var foreachStatements);
+            syntaxHelper.GetPartsOfForeachStatement(
+                semanticModel, foreachStatement,
+                out var awaitKeyword, out var identifier, out _, out var foreachStatements, out var needsCast);
             if (awaitKeyword != default)
                 return null;
 
@@ -482,7 +474,11 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
+<<<<<<< HEAD
                 return new(foreachStatement, UseSpread: true, useKeyValue);
+=======
+                return new(foreachStatement, UseSpread: true, needsCast);
+>>>>>>> upstream/features/collection-expression-arguments
             }
 
             return null;

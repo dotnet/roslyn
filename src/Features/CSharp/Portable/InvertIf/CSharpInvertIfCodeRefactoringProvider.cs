@@ -25,7 +25,12 @@ using static SyntaxFactory;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIfCodeRefactoringProvider<
-    SyntaxKind, StatementSyntax, IfStatementSyntax, StatementSyntax>
+    SyntaxKind,
+    StatementSyntax,
+    IfStatementSyntax,
+    StatementSyntax,
+    DirectiveTriviaSyntax,
+    IfDirectiveTriviaSyntax>
 {
     protected override string GetTitle()
         => CSharpFeaturesResources.Invert_if;
@@ -37,6 +42,9 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
 
     protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
+        => ifNode.Condition;
+
+    protected override SyntaxNode GetCondition(IfDirectiveTriviaSyntax ifNode)
         => ifNode.Condition;
 
     protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>Enables the FormattingOptions.OtherOptions JsonExtensionData to be strongly typed</summary>
-internal class FormattingOptionsConverter : JsonConverter<FormattingOptions>
+internal sealed class FormattingOptionsConverter : JsonConverter<FormattingOptions>
 {
     public override FormattingOptions? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

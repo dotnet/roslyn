@@ -11,9 +11,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class TextLoaderTests
+public sealed class TextLoaderTests
 {
-    private class LoaderNoOverride1 : TextLoader
+    private sealed class LoaderNoOverride1 : TextLoader
     {
     }
 
@@ -42,25 +42,25 @@ public class TextLoaderTests
             => Task.FromResult((TextAndVersion?)null!);
     }
 
-    private class LoaderNoOverride3 : LoaderNoOverrideBase
+    private sealed class LoaderNoOverride3 : LoaderNoOverrideBase
     {
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => Task.FromResult((TextAndVersion?)null!);
     }
 
-    private class LoaderNoOverride4 : LoaderNoOverrideBase
+    private sealed class LoaderNoOverride4 : LoaderNoOverrideBase
     {
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId)
             => base.LoadTextAndVersionAsync(workspace, documentId);
     }
 
-    private class LoaderNoOverride5 : LoaderNoOverrideBase
+    private sealed class LoaderNoOverride5 : LoaderNoOverrideBase
     {
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, ref DocumentId? documentId, CancellationToken cancellationToken)
            => Task.FromResult((TextAndVersion?)null!);
     }
 
-    private class LoaderNoOverride6 : LoaderNoOverrideBase
+    private sealed class LoaderNoOverride6 : LoaderNoOverrideBase
     {
         public override Task<TextAndVersion> LoadTextAndVersionAsync<T>(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => Task.FromResult((TextAndVersion?)null!);
@@ -86,7 +86,7 @@ public class TextLoaderTests
             => Task.FromResult(Value);
     }
 
-    private class LoaderOverridesObsolete2 : LoaderOverridesObsolete
+    private sealed class LoaderOverridesObsolete2 : LoaderOverridesObsolete
     {
         public static new readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
@@ -95,7 +95,7 @@ public class TextLoaderTests
             => Task.FromResult(Value);
     }
 
-    private class LoaderOverridesNew : TextLoader
+    private sealed class LoaderOverridesNew : TextLoader
     {
         public static readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 

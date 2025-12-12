@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -72,22 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO: move more functionality into here, making these symbols more lazy
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            // do not generate attributes for members of compiler-generated types:
-            if (ContainingType.IsImplicitlyDeclared)
-            {
-                return;
-            }
-
-            var compilation = this.DeclaringCompilation;
-
-            AddSynthesizedAttribute(ref attributes,
-                compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-        }
-
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return _typeParameters; }
@@ -144,8 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    inheritAttributes ? p as SourceComplexParameterSymbolBase : null));
+                    baseParameterForAttributes: inheritAttributes ? p : null,
+                    isParams: this is SynthesizedClosureMethod && p.IsParams));
             }
+
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
@@ -154,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
                 }
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -203,6 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return this.TypeMap.SubstituteCustomModifiers(this.BaseMethod.OriginalDefinition.RefCustomModifiers); }
         }
 
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;

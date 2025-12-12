@@ -20,19 +20,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
 [Method(Methods.WorkspaceDiagnosticName)]
-internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>, IDisposable
+internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
+    LspWorkspaceManager workspaceManager,
+    LspWorkspaceRegistrationService registrationService,
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IGlobalOptionService globalOptions)
+    : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>(
+        workspaceManager, registrationService, diagnosticSourceManager, diagnosticRefresher, globalOptions), IDisposable
 {
-    public PublicWorkspacePullDiagnosticsHandler(
-        LspWorkspaceManager workspaceManager,
-        LspWorkspaceRegistrationService registrationService,
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticSourceManager diagnosticSourceManager,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions)
-        : base(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
-    {
-    }
-
     protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 
@@ -43,7 +39,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
             [
                 new WorkspaceFullDocumentDiagnosticReport
                 {
-                    Uri = identifier.Uri,
+                    Uri = identifier.DocumentUri,
                     Items = diagnostics,
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
@@ -59,7 +55,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
             [
                 new WorkspaceFullDocumentDiagnosticReport
                 {
-                    Uri = identifier.Uri,
+                    Uri = identifier.DocumentUri,
                     Items = [],
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
@@ -89,14 +85,14 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
-        return diagnosticsParams.PreviousResultId.Select(id => new PreviousPullResult
+        return diagnosticsParams.PreviousResultId.SelectAsArray(id => new PreviousPullResult
         {
             PreviousResultId = id.Value,
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = id.Uri
+                DocumentUri = id.Uri
             }
-        }).ToImmutableArray();
+        });
     }
 
     internal override TestAccessor GetTestAccessor() => new(this);

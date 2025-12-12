@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -59,7 +58,7 @@ internal sealed partial class RemoteWorkspace : Workspace
             assetProvider,
             solutionChecksum,
             updatePrimaryBranch: true,
-            implementation: static _ => ValueTaskFactory.FromResult(false),
+            implementation: static _ => ValueTask.FromResult(false),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -341,7 +340,7 @@ internal sealed partial class RemoteWorkspace : Workspace
             CancellationToken cancellationToken)
         {
             var (solution, _) = await _remoteWorkspace.RunWithSolutionAsync(
-                assetProvider, solutionChecksum, updatePrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
+                assetProvider, solutionChecksum, updatePrimaryBranch, _ => ValueTask.FromResult(false), cancellationToken).ConfigureAwait(false);
             return solution;
         }
     }

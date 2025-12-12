@@ -31,7 +31,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
 
         var textDocumentIdentifier = new VSTextDocumentIdentifier
         {
-            Uri = typeScriptIdentifier.Value.Uri,
+            DocumentUri = new(typeScriptIdentifier.Value.Uri),
         };
 
         if (typeScriptIdentifier.Value.ProjectId != null)

@@ -23,12 +23,14 @@ public class BasicQuickInfo : AbstractEditorTest
     [IdeFact]
     public async Task QuickInfo1()
     {
-        await SetUpEditorAsync(@"
-''' <summary>Hello!</summary>
-Class Program
-    Sub Main(ByVal args As String$$())
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            ''' <summary>Hello!</summary>
+            Class Program
+                Sub Main(ByVal args As String$$())
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
         Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", quickInfo);
@@ -37,18 +39,22 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task International()
     {
-        await SetUpEditorAsync(@"
-''' <summary>
-''' This is an XML doc comment defined in code.
-''' </summary>
-Class العربية123
-    Shared Sub Goo()
-         Dim goo as العربية123$$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            ''' <summary>
+            ''' This is an XML doc comment defined in code.
+            ''' </summary>
+            Class العربية123
+                Shared Sub Goo()
+                     Dim goo as العربية123$$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-        Assert.Equal(@"Class TestProj.العربية123
-This is an XML doc comment defined in code.", quickInfo);
+        Assert.Equal("""
+            Class TestProj.العربية123
+            This is an XML doc comment defined in code.
+            """, quickInfo);
     }
 }

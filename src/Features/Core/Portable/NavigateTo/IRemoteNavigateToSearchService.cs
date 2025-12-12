@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -26,7 +25,7 @@ internal interface IRemoteNavigateToSearchService
 
     ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
 
-    public interface ICallback
+    interface ICallback
     {
         ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items);
         ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);

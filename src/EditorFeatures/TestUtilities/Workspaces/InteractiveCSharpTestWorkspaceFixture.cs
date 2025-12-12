@@ -7,24 +7,22 @@
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-{
-    public class InteractiveCSharpTestWorkspaceFixture : CSharpTestWorkspaceFixture
-    {
-        internal static EditorTestWorkspace CreateInteractiveWorkspace(string fileContent, TestComposition composition)
-        {
-            var workspaceDefinition = $@"
-<Workspace>
-    <Submission Language=""C#"" CommonReferences=""true"">
-<![CDATA[
-            {fileContent}]]>
-    </Submission>
-</Workspace>
-";
-            return EditorTestWorkspace.Create(XElement.Parse(workspaceDefinition), composition: composition, workspaceKind: WorkspaceKind.Interactive);
-        }
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
-        protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
-            => CreateInteractiveWorkspace(fileContent: "", composition);
+public sealed class InteractiveCSharpTestWorkspaceFixture : CSharpTestWorkspaceFixture
+{
+    internal static EditorTestWorkspace CreateInteractiveWorkspace(string fileContent, TestComposition composition)
+    {
+        return EditorTestWorkspace.Create(XElement.Parse($"""
+            <Workspace>
+                <Submission Language="C#" CommonReferences="true">
+            <![CDATA[
+                        {fileContent}]]>
+                </Submission>
+            </Workspace>
+            """), composition: composition, workspaceKind: WorkspaceKind.Interactive);
     }
+
+    protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
+        => CreateInteractiveWorkspace(fileContent: "", composition);
 }

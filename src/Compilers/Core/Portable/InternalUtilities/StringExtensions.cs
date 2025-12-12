@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,8 @@ namespace Roslyn.Utilities
 {
     internal static class StringExtensions
     {
+        private static readonly Func<char, char> s_toLower = char.ToLower;
+        private static readonly Func<char, char> s_toUpper = char.ToUpper;
         private static ImmutableArray<string> s_lazyNumerals;
         private static UTF8Encoding? s_lazyUtf8;
 
@@ -26,23 +30,11 @@ namespace Roslyn.Utilities
             }
 
             Debug.Assert(number >= 0);
-            return (number < numerals.Length) ? numerals[number] : number.ToString();
+            return (number < numerals.Length) ? numerals[number] : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public static string Join(this IEnumerable<string?> source, string separator)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (separator == null)
-            {
-                throw new ArgumentNullException(nameof(separator));
-            }
-
-            return string.Join(separator, source);
-        }
+            => string.Join(separator, source);
 
         public static bool LooksLikeInterfaceName(this string name)
         {
@@ -53,9 +45,6 @@ namespace Roslyn.Utilities
         {
             return name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
         }
-
-        private static readonly Func<char, char> s_toLower = char.ToLower;
-        private static readonly Func<char, char> s_toUpper = char.ToUpper;
 
         [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         public static string? ToPascalCase(
@@ -149,20 +138,20 @@ namespace Roslyn.Utilities
         }
 
         internal static string? GetWithoutAttributeSuffix(
-            this string name,
+            this string? name,
             bool isCaseSensitive)
         {
             return TryGetWithoutAttributeSuffix(name, isCaseSensitive, out var result) ? result : null;
         }
 
         internal static bool TryGetWithoutAttributeSuffix(
-            this string name,
+            this string? name,
             bool isCaseSensitive,
             [NotNullWhen(returnValue: true)] out string? result)
         {
             if (name.HasAttributeSuffix(isCaseSensitive))
             {
-                result = name.Substring(0, name.Length - AttributeSuffix.Length);
+                result = name[..^AttributeSuffix.Length];
                 return true;
             }
 
@@ -170,8 +159,11 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        internal static bool HasAttributeSuffix(this string name, bool isCaseSensitive)
+        internal static bool HasAttributeSuffix([NotNullWhen(true)] this string? name, bool isCaseSensitive)
         {
+            if (name is null)
+                return false;
+
             var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             return name.Length > AttributeSuffix.Length && name.EndsWith(AttributeSuffix, comparison);
         }
@@ -226,32 +218,6 @@ namespace Roslyn.Utilities
                 quoted = false;
                 return arg;
             }
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static char First(this string arg)
-        {
-            return arg[0];
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static char Last(this string arg)
-        {
-            return arg[arg.Length - 1];
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static bool All(this string arg, Predicate<char> predicate)
-        {
-            foreach (char c in arg)
-            {
-                if (!predicate(c))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public static int GetCaseInsensitivePrefixLength(this string string1, string string2)

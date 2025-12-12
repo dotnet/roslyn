@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -42,7 +41,9 @@ internal sealed partial class SolutionCompilationState
     public SolutionState SolutionState { get; }
 
     public bool PartialSemanticsEnabled { get; }
-    public TextDocumentStates<SourceGeneratedDocumentState>? FrozenSourceGeneratedDocumentStates { get; }
+    public TextDocumentStates<SourceGeneratedDocumentState> FrozenSourceGeneratedDocumentStates { get; }
+
+    public GeneratorDriverInitializationCache GeneratorDriverCache { get; }
 
     // Values for all these are created on demand.
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
@@ -53,7 +54,7 @@ internal sealed partial class SolutionCompilationState
     /// question quickly after computing for the first one.  Created on demand.
     /// </summary>
     private ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>? _unrootedSymbolToProjectId;
-    private static readonly Func<ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>> s_createTable = () => new ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>();
+    private static readonly Func<ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>> s_createTable = () => new();
 
     private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
@@ -62,7 +63,8 @@ internal sealed partial class SolutionCompilationState
         bool partialSemanticsEnabled,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap,
-        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates,
+        TextDocumentStates<SourceGeneratedDocumentState> frozenSourceGeneratedDocumentStates,
+        GeneratorDriverInitializationCache generatorDriverCreationCache,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         SolutionState = solution;
@@ -70,6 +72,7 @@ internal sealed partial class SolutionCompilationState
         _projectIdToTrackerMap = projectIdToTrackerMap;
         SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
+        GeneratorDriverCache = generatorDriverCreationCache;
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(static async (self, cancellationToken) =>
@@ -88,13 +91,15 @@ internal sealed partial class SolutionCompilationState
 
     public SolutionCompilationState(
         SolutionState solution,
-        bool partialSemanticsEnabled)
+        bool partialSemanticsEnabled,
+        GeneratorDriverInitializationCache generatorDriverCreationCache)
         : this(
               solution,
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Empty,
               sourceGeneratorExecutionVersionMap: SourceGeneratorExecutionVersionMap.Empty,
-              frozenSourceGeneratedDocumentStates: null)
+              generatorDriverCreationCache: generatorDriverCreationCache,
+              frozenSourceGeneratedDocumentStates: TextDocumentStates<SourceGeneratedDocumentState>.Empty)
     {
     }
 
@@ -108,8 +113,8 @@ internal sealed partial class SolutionCompilationState
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
         // Solution and SG version maps must correspond to the same set of projects.
-        Contract.ThrowIfFalse(this.SolutionState.ProjectStates
-            .Select(kvp => kvp.Key)
+        Contract.ThrowIfFalse(this.SolutionState.SortedProjectStates
+            .Select(static projectState => projectState.Id)
             .SetEquals(SourceGeneratorExecutionVersionMap.Map.Keys));
     }
 
@@ -117,17 +122,17 @@ internal sealed partial class SolutionCompilationState
         SolutionState newSolutionState,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         SourceGeneratorExecutionVersionMap? sourceGeneratorExecutionVersionMap = null,
-        Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default,
+        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates = null,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         sourceGeneratorExecutionVersionMap ??= SourceGeneratorExecutionVersionMap;
-        var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
+        frozenSourceGeneratedDocumentStates ??= FrozenSourceGeneratedDocumentStates;
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
             sourceGeneratorExecutionVersionMap == SourceGeneratorExecutionVersionMap &&
-            Equals(newFrozenSourceGeneratedDocumentStates, FrozenSourceGeneratedDocumentStates))
+            frozenSourceGeneratedDocumentStates == FrozenSourceGeneratedDocumentStates)
         {
             return this;
         }
@@ -137,7 +142,8 @@ internal sealed partial class SolutionCompilationState
             PartialSemanticsEnabled,
             projectIdToTrackerMap.Value,
             sourceGeneratorExecutionVersionMap,
-            newFrozenSourceGeneratedDocumentStates,
+            frozenSourceGeneratedDocumentStates,
+            GeneratorDriverCache,
             cachedFrozenSnapshot);
     }
 
@@ -779,12 +785,46 @@ internal sealed partial class SolutionCompilationState
             SolutionState.WithDocumentAttributes(documentId, arg, updateAttributes), documentId);
     }
 
+    /// <summary>
+    /// Creates a new solution instance with the documents specified updated to have the texts specified.
+    /// </summary>
+    /// <remarks>
+    /// This method supports updating ordinary documents and source generated documents.
+    /// </remarks>
     internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
-        => UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
-            texts,
+    {
+        var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
+
+        return UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
+            ordinaryDocuments,
+            sourceGeneratedDocuments,
             arg: mode,
             updateDocument: static (oldDocumentState, text, mode) =>
                 SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
+
+        (ImmutableArray<(DocumentId, SourceText)>,
+         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
+        {
+            if (!texts.Any(static t => t.documentId.IsSourceGenerated))
+                return (texts, []);
+
+            using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(capacity: texts.Length, out var ordinaryDocuments);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
+            foreach (var doc in texts)
+            {
+                if (!doc.documentId.IsSourceGenerated)
+                {
+                    ordinaryDocuments.Add(doc);
+                }
+                else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
+                {
+                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, doc.text, null));
+                }
+            }
+
+            return (ordinaryDocuments.ToImmutableAndClear(), sourceGeneratedDocuments.ToImmutableAndClear());
+        }
+    }
 
     private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
         => oldDocument.TryGetText(out var oldText) && text == oldText;
@@ -795,11 +835,12 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState, TDocumentData, TArg>(
         ImmutableArray<(DocumentId documentId, TDocumentData documentData)> documentsToUpdate,
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText? sourceText, SyntaxNode? syntaxNode)> sourceGeneratedDocuments,
         TArg arg,
         Func<TDocumentState, TDocumentData, TArg, TDocumentState> updateDocument)
         where TDocumentState : TextDocumentState
     {
-        return WithDocumentStatesOfMultipleProjects(
+        var state = WithDocumentStatesOfMultipleProjects(
             documentsToUpdate
                 .GroupBy(static d => d.documentId.ProjectId)
                 .Select(g =>
@@ -823,6 +864,8 @@ internal sealed partial class SolutionCompilationState
                     return (projectId, newDocumentStates.ToImmutableAndClear());
                 }),
             GetUpdateDocumentsTranslationAction);
+
+        return state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
     }
 
     /// <summary>
@@ -948,15 +991,44 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
+    /// <remarks>
+    /// This method supports updating ordinary documents and source generated documents.
+    /// </remarks>
     public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
+        var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
+
         return UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
-            syntaxRoots,
+            ordinaryDocuments,
+            sourceGeneratedDocuments,
             arg: mode,
             static (oldDocumentState, root, mode) =>
                 oldDocumentState.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == root
-                ? oldDocumentState
-                : oldDocumentState.UpdateTree(root, mode));
+                    ? oldDocumentState
+                    : oldDocumentState.UpdateTree(root, mode));
+
+        (ImmutableArray<(DocumentId, SyntaxNode)>,
+         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
+        {
+            if (!syntaxRoots.Any(static t => t.documentId.IsSourceGenerated))
+                return (syntaxRoots, []);
+
+            using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(capacity: syntaxRoots.Length, out var ordinaryDocuments);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
+            foreach (var doc in syntaxRoots)
+            {
+                if (!doc.documentId.IsSourceGenerated)
+                {
+                    ordinaryDocuments.Add(doc);
+                }
+                else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
+                {
+                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, null, doc.root));
+                }
+            }
+
+            return (ordinaryDocuments.ToImmutableAndClear(), sourceGeneratedDocuments.ToImmutableAndClear());
+        }
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
@@ -964,6 +1036,7 @@ internal sealed partial class SolutionCompilationState
     {
         return UpdateDocumentsInMultipleProjects<DocumentState, DocumentState, bool>(
             documentIdsAndStates,
+            sourceGeneratedDocuments: [],
             arg: forceEvenIfTreesWouldDiffer,
             static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
                 oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource && oldDocumentState.TreeSource == documentState.TreeSource
@@ -1277,7 +1350,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithoutFrozenSourceGeneratedDocuments()
     {
         // If there's nothing frozen, there's nothing to do.
-        if (FrozenSourceGeneratedDocumentStates == null)
+        if (FrozenSourceGeneratedDocumentStates.IsEmpty)
             return this;
 
         var projectIdsToUnfreeze = FrozenSourceGeneratedDocumentStates.States.Values
@@ -1296,10 +1369,6 @@ internal sealed partial class SolutionCompilationState
                 foreach (var projectId in projectIdsToUnfreeze)
                 {
                     Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
-                    // TODO(cyrusn): Is it possible to wrap an underlying tracker with multiple frozen document
-                    // compilation trackers?  Should we be unwrapping as much as we can here?  Or would that also be bad
-                    // given that we're basing what we want to unfreeze on the FrozenSourceGeneratedDocumentStates,
-                    // which may not represent those inner freezes.  Unclear.  There may be bugs here.
                     var replacingItemTracker = (WithFrozenSourceGeneratedDocumentsCompilationTracker)existingTracker;
                     trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
@@ -1312,7 +1381,7 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             this.SolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            frozenSourceGeneratedDocumentStates: null);
+            frozenSourceGeneratedDocumentStates: TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
     /// <summary>
@@ -1321,33 +1390,40 @@ internal sealed partial class SolutionCompilationState
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
     public SolutionCompilationState WithFrozenSourceGeneratedDocuments(
-        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText)> documents)
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText? sourceText, SyntaxNode? syntaxNode)> documents)
     {
-        // We won't support freezing multiple source generated documents more than once in a chain, simply because we have no need
-        // to support that; these solutions are created on demand when we need to operate on an open source generated document,
-        // and so those are always forks off the main solution. There's also a bit of a design question -- does calling this a second time
-        // leave the existing frozen documents in place, or replace them? It depends on the need, but until then we'll cross that bridge
-        // if/when we need it.
-        Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentStates == null, $"We shouldn't be calling {nameof(WithFrozenSourceGeneratedDocuments)} on a solution with frozen source generated documents.");
-
         if (documents.IsEmpty)
             return this;
 
         // We'll keep track if every document we're reusing is the exact same as the final generated output we already have
-        using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(documents.Length, out var documentStates);
-        foreach (var (documentIdentity, generationDateTime, sourceText) in documents)
+        using var _ = PooledDictionary<DocumentId, SourceGeneratedDocumentState>.GetInstance(out var documentStates);
+        foreach (var (documentIdentity, generationDateTime, sourceText, syntaxNode) in documents)
         {
+            Contract.ThrowIfTrue(sourceText is null && syntaxNode is null);
+            Contract.ThrowIfTrue(sourceText is not null && syntaxNode is not null);
+
             var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
             if (existingGeneratedState != null)
             {
                 var newGeneratedState = existingGeneratedState
-                    .WithText(sourceText)
                     .WithParseOptions(existingGeneratedState.ParseOptions)
                     .WithGenerationDateTime(generationDateTime);
 
+                if (sourceText != null)
+                {
+                    newGeneratedState = newGeneratedState.WithText(sourceText);
+                }
+                else
+                {
+                    Contract.ThrowIfNull(syntaxNode);
+                    newGeneratedState = newGeneratedState.WithSyntaxRoot(syntaxNode);
+                }
+
                 // If the content already matched, we can just reuse the existing state, so we don't need to track this one
                 if (newGeneratedState != existingGeneratedState)
-                    documentStates.Add(newGeneratedState);
+                {
+                    documentStates.Add(newGeneratedState.Id, newGeneratedState);
+                }
             }
             else
             {
@@ -1356,20 +1432,29 @@ internal sealed partial class SolutionCompilationState
                 var newGeneratedState = SourceGeneratedDocumentState.Create(
                     documentIdentity,
                     sourceText,
+                    syntaxNode,
                     projectState.ParseOptions!,
                     projectState.LanguageServices,
                     // Just compute the checksum from the source text passed in.
                     originalSourceTextChecksum: null,
                     generationDateTime);
-                documentStates.Add(newGeneratedState);
+
+                documentStates.Add(newGeneratedState.Id, newGeneratedState);
             }
+        }
+
+        // We also carry forward any previously frozen source generated documents that were not part of this freeze. This ensures multiple
+        // freezes are additive, and everything will be unfrozen correctly, without us needing to have a chain of compilation trackers
+        foreach (var (id, state) in FrozenSourceGeneratedDocumentStates.States)
+        {
+            documentStates.TryAdd(id, state);
         }
 
         // If every document we looked at matched what we've already generated, we have nothing new to do
         if (documentStates.Count == 0)
             return this;
 
-        var documentStatesByProjectId = documentStates.ToDictionary(static state => state.Id.ProjectId);
+        var documentStatesByProjectId = documentStates.Values.ToMultiDictionary(static state => state.Id.ProjectId);
         var newTrackerMap = CreateCompilationTrackerMap(
             [.. documentStatesByProjectId.Keys],
             this.SolutionState.GetProjectDependencyGraph(),
@@ -1385,7 +1470,12 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
+                    // We should never be wrapping a WithFrozenSourceGeneratedDocumentsCompilationTracker with another
+                    // WithFrozenSourceGeneratedDocumentsCompilationTracker.  If we do, that's a straight bug that
+                    // should fail immediately. So we either update the tracker we already have, or blind cast to find the bug.
+                    trackerMap[projectId] = existingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker existingWithFrozen
+                        ? existingWithFrozen.WithReplacementDocumentStates(new(documentStatesForProject))
+                        : new WithFrozenSourceGeneratedDocumentsCompilationTracker((RegularCompilationTracker)existingTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),
@@ -1396,20 +1486,14 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             this.SolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            frozenSourceGeneratedDocumentStates: new TextDocumentStates<SourceGeneratedDocumentState>(documentStates));
+            frozenSourceGeneratedDocumentStates: new TextDocumentStates<SourceGeneratedDocumentState>(documentStates.Values));
     }
 
-    public SolutionCompilationState WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
-    {
-        return this.Branch(
-            this.SolutionState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
-    }
+    public SolutionCompilationState WithNewWorkspaceFrom(Solution oldSolution)
+        => this.Branch(this.SolutionState.WithNewWorkspaceFrom(oldSolution));
 
     public SolutionCompilationState WithOptions(SolutionOptionSet options)
-    {
-        return this.Branch(
-            this.SolutionState.WithOptions(options));
-    }
+        => this.Branch(this.SolutionState.WithOptions(options));
 
     /// <summary>
     /// Updates entries in our <see cref="SourceGeneratorExecutionVersionMap"/> to the corresponding values in the
@@ -1447,6 +1531,11 @@ internal sealed partial class SolutionCompilationState
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
+
+            // Clear out the cache of any previously initialized GeneratorDriver. Otherwise we might reuse a
+            // driver which will not count as a new "run" in some of our unit tests. We have tests that very explicitly count
+            // and assert the number of invocations of a generator.
+            GeneratorDriverCache.EmptyCacheForProject(projectId);
         }
 
         if (!changed)
@@ -1463,12 +1552,12 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
-        var (newIdToProjectStateMap, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
+        var (sortedNewProjectStates, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
 
-        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
+        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, sortedNewProjectStates);
 
         var newState = this.SolutionState.Branch(
-            idToProjectStateMap: newIdToProjectStateMap,
+            projectStates: sortedNewProjectStates,
             dependencyGraph: dependencyGraph);
 
         var newCompilationState = this.Branch(
@@ -1480,21 +1569,25 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
-    private (ImmutableDictionary<ProjectId, ProjectState>, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
+    private (ImmutableArray<ProjectState> sortedProjectStates, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
     {
         // Loop until we have calculated the maps against a set of compilation trackers that hasn't changed during our calculation.
         while (true)
         {
             var originalProjectIdToTrackerMap = _projectIdToTrackerMap;
-            var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
             var newIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
+            var projectStateChanged = false;
+
+            using var _ = ArrayBuilder<ProjectState>.GetInstance(this.SolutionState.SortedProjectStates.Length, out var newSortedProjectStatesBuilder);
+            newSortedProjectStatesBuilder.AddRange(this.SolutionState.SortedProjectStates);
 
             // Used to track any new compilation trackers created in the loop. This is done to avoid allocations
             // from individually adding to the _projectIdToTrackerMap ImmutableSegmentedDictionary .
             var updatedIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
 
-            foreach (var projectId in this.SolutionState.ProjectIds)
+            for (var i = 0; i < newSortedProjectStatesBuilder.Count; i++)
             {
+                var projectId = newSortedProjectStatesBuilder[i].Id;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
@@ -1516,19 +1609,23 @@ internal sealed partial class SolutionCompilationState
                 if (oldTracker == newTracker)
                     continue;
 
-                Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
+                // Place the new project state in the same location as the old one. As these have the same ProjectId,
+                // the ordering requirements will still be maintained.
+                newSortedProjectStatesBuilder[i] = newTracker.ProjectState;
 
-                var newProjectState = newTracker.ProjectState;
-
-                newIdToProjectStateMapBuilder[projectId] = newProjectState;
                 newIdToTrackerMapBuilder[projectId] = newTracker;
+                projectStateChanged = true;
             }
 
             // Attempt to update _projectIdToTrackerMap to include all the newly created compilation trackers. If another thread has updated
             // it since we captured it, then we'll need to loop again to ensure we've operated on the latest compilation trackers.
             var updatedIdToTrackerMap = updatedIdToTrackerMapBuilder.ToImmutable();
             if (originalProjectIdToTrackerMap == RoslynImmutableInterlocked.InterlockedCompareExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMap, originalProjectIdToTrackerMap))
-                return (newIdToProjectStateMapBuilder.ToImmutable(), newIdToTrackerMapBuilder.ToImmutable());
+            {
+                var newProjectStates = projectStateChanged ? newSortedProjectStatesBuilder.ToImmutableAndClear() : this.SolutionState.SortedProjectStates;
+
+                return (newProjectStates, newIdToTrackerMapBuilder.ToImmutable());
+            }
         }
     }
 

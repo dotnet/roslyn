@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 

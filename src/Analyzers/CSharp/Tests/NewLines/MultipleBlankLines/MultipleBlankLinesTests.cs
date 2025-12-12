@@ -15,912 +15,792 @@ using Verify = CSharpCodeFixVerifier<
     CSharpMultipleBlankLinesDiagnosticAnalyzer,
     MultipleBlankLinesCodeFixProvider>;
 
-public class MultipleBlankLinesTests
+public sealed class MultipleBlankLinesTests
 {
     [Fact]
-    public async Task TestOneBlankLineAtTopOfFile()
-    {
-        var code =
-@"
-// comment";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAtTopOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAtTopOfFile()
-    {
-        var code =
-@"[||]
-
-// comment";
-        var fixedCode =
-@"
-// comment";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAtTopOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+            // comment
+            """,
+            FixedCode = """
+
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAtTopOfFile_NotWithOptionOff()
-    {
-        var code =
-@"
-
-// comment";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAtTopOfFile_NotWithOptionOff()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+
+
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.TrueWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineAtTopOfFile()
-    {
-        var code =
-@"[||]
-
-
-// comment";
-        var fixedCode =
-@"
-// comment";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineAtTopOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+            // comment
+            """,
+            FixedCode = """
+
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineAtTopOfFile()
-    {
-        var code =
-@"[||]
-
-
-
-// comment";
-        var fixedCode =
-@"
-// comment";
-
-        await new Verify.Test
+    public Task TestFourBlankLineAtTopOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+
+            // comment
+            """,
+            FixedCode = """
+
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineAtTopOfEmptyFile()
-    {
-        var code =
-@"
-";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAtTopOfEmptyFile()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLinesAtTopOfEmptyFile()
-    {
-        var code =
-@"[||]
-
-";
-        var fixedCode =
-@"
-";
-
-        await new Verify.Test
+    public Task TestTwoBlankLinesAtTopOfEmptyFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+            """,
+            FixedCode = """
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLinesAtTopOfEmptyFile()
-    {
-        var code =
-@"[||]
-
-
-";
-        var fixedCode =
-@"
-";
-
-        await new Verify.Test
+    public Task TestThreeBlankLinesAtTopOfEmptyFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+
+            """,
+            FixedCode = """
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLinesAtTopOfEmptyFile()
-    {
-        var code =
-@"[||]
-
-
-
-";
-        var fixedCode =
-@"
-";
-
-        await new Verify.Test
+    public Task TestFourBlankLinesAtTopOfEmptyFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+
+
+            """,
+            FixedCode = """
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineAtEndOfFile_1()
-    {
-        var code =
-@"class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestNoBlankLineAtEndOfFile_1()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineAtEndOfFile_2()
-    {
-        var code =
-@"class C
-{
-}
-";
-
-        await new Verify.Test
+    public Task TestNoBlankLineAtEndOfFile_2()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+            }
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineAtEndOfFile()
-    {
-        var code =
-@"class C
-{
-}
-
-";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAtEndOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+            }
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAtEndOfFile()
-    {
-        var code =
-@"class C
-{
-}
-[||]
-
-";
-        var fixedCode =
-@"class C
-{
-}
-
-";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAtEndOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+            }
+            [||]
+
+
+            """,
+            FixedCode = """
+            class C
+            {
+            }
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineAtEndOfFile()
-    {
-        var code =
-@"class C
-{
-}
-[||]
-
-
-";
-        var fixedCode =
-@"class C
-{
-}
-
-";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineAtEndOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+            }
+            [||]
+
+
+
+            """,
+            FixedCode = """
+            class C
+            {
+            }
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineAtEndOfFile()
-    {
-        var code =
-@"class C
-{
-}
-[||]
-
-
-
-";
-        var fixedCode =
-@"class C
-{
-}
-
-";
-
-        await new Verify.Test
+    public Task TestFourBlankLineAtEndOfFile()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+            }
+            [||]
+
+
+
+
+            """,
+            FixedCode = """
+            class C
+            {
+            }
+
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineBetweenTokens()
-    {
-        var code =
-@"class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestNoBlankLineBetweenTokens()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineBetweenTokens()
-    {
-        var code =
-@"class C
-{
-
-}";
-
-        await new Verify.Test
+    public Task TestOneBlankLineBetweenTokens()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineBetweenTokens()
-    {
-        var code =
-@"class C
-{
-[||]
-
-}";
-        var fixedCode =
-@"class C
-{
-
-}";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineBetweenTokens()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+            [||]
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineBetweenTokens()
-    {
-        var code =
-@"class C
-{
-[||]
-
-
-}";
-        var fixedCode =
-@"class C
-{
-
-}";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineBetweenTokens()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+            [||]
+
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineBetweenTokens()
-    {
-        var code =
-@"class C
-{
-[||]
-
-
-
-}";
-        var fixedCode =
-@"class C
-{
-
-}";
-
-        await new Verify.Test
+    public Task TestFourBlankLineBetweenTokens()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+            [||]
+
+
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineAfterComment()
-    {
-        var code =
-@"class C
-{
-    // comment
-}";
-
-        await new Verify.Test
+    public Task TestNoBlankLineAfterComment()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                // comment
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineAfterComment()
-    {
-        var code =
-@"class C
-{
-    // comment
-
-}";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAfterComment()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                // comment
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAfterComment()
-    {
-        var code =
-@"class C
-{
-    // comment
-[||]
-
-}";
-        var fixedCode =
-@"class C
-{
-    // comment
-
-}";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAfterComment()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+                // comment
+            [||]
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                // comment
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineAfterComment()
-    {
-        var code =
-@"class C
-{
-    // comment
-[||]
-
-
-}";
-        var fixedCode =
-@"class C
-{
-    // comment
-
-}";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineAfterComment()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+                // comment
+            [||]
+
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                // comment
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineAfterComment()
-    {
-        var code =
-@"class C
-{
-    // comment
-[||]
-
-
-}";
-        var fixedCode =
-@"class C
-{
-    // comment
-
-}";
-
-        await new Verify.Test
+    public Task TestFourBlankLineAfterComment()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+                // comment
+            [||]
+
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                // comment
+
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineAfterDirective()
-    {
-        var code =
-@"class C
-{
-    #nullable enable
-}";
-
-        await new Verify.Test
+    public Task TestNoBlankLineAfterDirective()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineAfterDirective()
-    {
-        var code =
-@"class C
-{
-    #nullable enable
-
-}";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAfterDirective()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                #nullable enable
+
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAfterDirective()
-    {
-        var code =
-@"class C
-{
-    #nullable enable
-[||]
-
-}";
-        var fixedCode =
-@"class C
-{
-    #nullable enable
-
-}";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAfterDirective()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            [||]
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                #nullable enable
+
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineAfterDirective()
-    {
-        var code =
-@"class C
-{
-    #nullable enable
-[||]
-
-
-}";
-        var fixedCode =
-@"class C
-{
-    #nullable enable
-
-}";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineAfterDirective()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            [||]
+
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                #nullable enable
+
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineAfterDirective()
-    {
-        var code =
-@"class C
-{
-    #nullable enable
-[||]
-
-
-}";
-        var fixedCode =
-@"class C
-{
-    #nullable enable
-
-}";
-
-        await new Verify.Test
+    public Task TestFourBlankLineAfterDirective()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            [||]
+
+
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                #nullable enable
+
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineAfterDocComment()
-    {
-        var code =
-@"
-/// <summary/>
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestNoBlankLineAfterDocComment()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+
+            /// <summary/>
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineAfterDocComment()
-    {
-        var code =
-@"
-/// <summary/>
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAfterDocComment()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+
+            /// <summary/>
+
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAfterDocComment()
-    {
-        var code =
-@"
-/// <summary/>
-[||]
-
-class C
-{
-}";
-        var fixedCode =
-@"
-/// <summary/>
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAfterDocComment()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+
+            /// <summary/>
+            [||]
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+
+            /// <summary/>
+
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineAfterDocComment()
-    {
-        var code =
-@"
-/// <summary/>
-[||]
-
-
-class C
-{
-}";
-        var fixedCode =
-@"
-/// <summary/>
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineAfterDocComment()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+
+            /// <summary/>
+            [||]
+
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+
+            /// <summary/>
+
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineAfterDocComment()
-    {
-        var code =
-@"
-/// <summary/>
-[||]
-
-
-
-class C
-{
-}";
-        var fixedCode =
-@"
-/// <summary/>
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestFourBlankLineAfterDocComment()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+
+            /// <summary/>
+            [||]
+
+
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+
+            /// <summary/>
+
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoBlankLineAllConstructs()
-    {
-        var code =
-@"/// <summary/>
-//
-#nullable enable
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestNoBlankLineAllConstructs()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+            /// <summary/>
+            //
+            #nullable enable
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOneBlankLineAllConstructs()
-    {
-        var code =
-@"
-/// <summary/>
-
-//
-
-#nullable enable
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestOneBlankLineAllConstructs()
+        => new Verify.Test
         {
-            TestCode = code,
+            TestCode = """
+
+            /// <summary/>
+
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoBlankLineAllConstructs()
-    {
-        var code =
-@"[||]
-
-/// <summary/>
-
-
-//
-
-
-#nullable enable
-
-
-class C
-{
-}";
-        var fixedCode =
-@"
-/// <summary/>
-
-//
-
-#nullable enable
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestTwoBlankLineAllConstructs()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+            /// <summary/>
+
+
+            //
+
+
+            #nullable enable
+
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+
+            /// <summary/>
+
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThreeBlankLineAllConstructs()
-    {
-        var code =
-@"[||]
-
-
-/// <summary/>
-
-
-
-//
-
-
-
-#nullable enable
-
-
-
-class C
-{
-}";
-        var fixedCode =
-@"
-/// <summary/>
-
-//
-
-#nullable enable
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestThreeBlankLineAllConstructs()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+            /// <summary/>
+
+
+
+            //
+
+
+
+            #nullable enable
+
+
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+
+            /// <summary/>
+
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFourBlankLineAllConstructs()
-    {
-        var code =
-@"[||]
-
-
-
-/// <summary/>
-
-
-
-
-//
-
-
-
-
-#nullable enable
-
-
-
-
-class C
-{
-}";
-        var fixedCode =
-@"
-/// <summary/>
-
-//
-
-#nullable enable
-
-class C
-{
-}";
-
-        await new Verify.Test
+    public Task TestFourBlankLineAllConstructs()
+        => new Verify.Test
         {
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            [||]
+
+
+
+            /// <summary/>
+
+
+
+
+            //
+
+
+
+
+            #nullable enable
+
+
+
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+
+            /// <summary/>
+
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 }

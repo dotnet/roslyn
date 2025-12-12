@@ -27,23 +27,6 @@ configuration:
 
     eventResponderTasks:
 
-    - description: Auto-approve auto-merge PRs
-      triggerOnOwnActions: false
-      if:
-      - payloadType: Pull_Request
-      - isPullRequest
-      - labelAdded:
-          label: auto-merge
-      - or:
-        - activitySenderHasPermission:
-            permission: Admin
-        - isActivitySender:
-            user: dotnet-bot
-            issueAuthor: False
-      then:
-      - approvePullRequest:
-          comment: Auto-approval
-
     - description: Auto-approve maestro PRs
       triggerOnOwnActions: false
       if:
@@ -72,6 +55,8 @@ configuration:
             branch: main
         - targetsBranch:
             branch: main-vs-deps
+        - targetsBranch:
+            branch: community
       - and:
         - isAction:
             action: Closed
@@ -80,7 +65,7 @@ configuration:
       - addMilestone:
           milestone: Next
 
-    - description: Auto-approve OneLoc PRs
+    - description: Auto-approve/merge OneLoc PRs
       triggerOnOwnActions: false
       if:
       - payloadType: Pull_Request
@@ -94,8 +79,10 @@ configuration:
       - isAction:
           action: Opened
       then:
-      - addLabel:
-          label: auto-merge
+      - approvePullRequest:
+          comment: Auto-approve
+      - enableAutoMerge:
+          mergeMethod: merge
 
     - description: Auto-approve/merge automated merge PRs
       triggerOnOwnActions: false
@@ -103,7 +90,7 @@ configuration:
       - payloadType: Pull_Request
       - isPullRequest
       - isActivitySender:
-          user: github-actions
+          user: github-actions[bot]
           issueAuthor: False
       - titleContains:
           pattern: "[automated] Merge branch"
@@ -113,8 +100,8 @@ configuration:
       then:
       - approvePullRequest:
           comment: Auto-approve
-      - addLabel:
-          label: auto-merge
+      - enableAutoMerge:
+          mergeMethod: merge
 
     - description: Remove "Need More Info" on comment
       triggerOnOwnActions: false
@@ -166,7 +153,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       then:
       - addLabel:
@@ -187,7 +174,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       - or:
         - isAction:
@@ -292,19 +279,38 @@ configuration:
       then:
       - closeIssue
 
-    - description: Remove "untriaged" label from issues when closed or added to a milestone
-      triggerOnOwnActions: false
+    - description: Add breaking change doc instructions to issue
       if:
       - payloadType: Issues
-      - or:
-        - isAction:
-            action: Closed
-        - isPartOfAnyMilestone
-      - hasLabel:
-          label: untriaged
+      - labelAdded:
+          label: breaking-change
       then:
-      - removeLabel:
-          label: untriaged
+      - addReply:
+          reply: >-
+            Refer to the [.NET SDK breaking change guidelines](https://github.com/dotnet/sdk/blob/main/documentation/project-docs/breaking-change-guidelines.md#required-process-for-all-net-sdk-breaking-changes)
+      
+    - description: Add breaking change instructions to PR.
+      if:
+      - payloadType: Pull_Request
+      - labelAdded:
+          label: breaking-change
+      then:
+      - addLabel:
+          label: needs-breaking-change-doc-created
+      - addReply:
+          reply: >-
+            Added `needs-breaking-change-doc-created` label because this PR has the `breaking-change` label. 
 
+
+            When you commit this breaking change:
+
+
+            1. [ ] Create and link to this PR and the issue a matching issue in the dotnet/docs repo using the [breaking change documentation template](https://aka.ms/dotnet/docs/new-breaking-change-issue), then remove this `needs-breaking-change-doc-created` label.
+
+            2. [ ] Ask a committer to mail the `.NET SDK Breaking Change Notification` email list.
+
+
+            You can refer to the [.NET SDK breaking change guidelines](https://github.com/dotnet/sdk/blob/main/documentation/project-docs/breaking-change-guidelines.md)
+      
 onFailure: 
 onSuccess:

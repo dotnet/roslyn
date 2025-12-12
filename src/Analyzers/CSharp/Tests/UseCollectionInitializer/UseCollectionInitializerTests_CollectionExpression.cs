@@ -7,7 +7,11 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+=======
+using Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
+>>>>>>> upstream/features/collection-expression-arguments
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,11 +26,10 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-public partial class UseCollectionInitializerTests_CollectionExpression
+public sealed partial class UseCollectionInitializerTests_CollectionExpression
 {
-    private static async Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
-    {
-        await new VerifyCS.Test
+    private static Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
@@ -34,15 +37,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             TestState = { OutputKind = outputKind }
         }.RunAsync();
-    }
 
     private static Task TestMissingInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode)
         => TestInRegularAndScriptAsync(testCode, testCode);
 
     [Fact]
-    public async Task TestNotOnVarVariableDeclarator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotOnVarVariableDeclarator()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -69,12 +70,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithConstructorArguments1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithConstructorArguments1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -86,12 +85,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithConstructorArguments2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithConstructorArguments2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -118,12 +115,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInField1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -140,12 +135,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 List<int> c = [];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInField2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -162,12 +155,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 List<int> c = [1, 2, 3];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInField3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -194,12 +185,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 ];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField4()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInField4()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class C
@@ -214,12 +203,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 List<int> c = [.. new[] { 1, 2, 3 }];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInField5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -236,12 +223,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 List<int> c = [];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInField6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -258,12 +243,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 List<int> c = [1, 2, 3];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInField7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInField7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -290,12 +273,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 ];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInArgument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInArgument1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -322,12 +303,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void X(List<int> list) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInArgument2_InterfacesOn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInArgument2_InterfacesOn()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -354,12 +333,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void X(IEnumerable<int> list) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInArgument2_InterfacesOff()
-    {
-        await new VerifyCS.Test
+    public Task TestInArgument2_InterfacesOff()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -381,12 +358,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -410,12 +385,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70172"), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
-    public async Task TestOnVariableDeclarator_If1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -441,12 +414,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_If2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -474,12 +445,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70172"), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
-    public async Task TestOnVariableDeclarator_If3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -507,12 +476,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_If4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -544,12 +511,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_If5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -583,12 +548,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_If6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -630,12 +593,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_If7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -665,12 +626,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_If8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_If8()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -708,14 +667,12 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/73879")]
     [InlineData("IList")]
     [InlineData("ICollection")]
-    public async Task TestOnVariableDeclaratorDifferentType_Interface_LooseMatch_MutableInterface(string collectionType)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclaratorDifferentType_Interface_LooseMatch_MutableInterface(string collectionType)
+        => TestInRegularAndScriptAsync(
             $$"""
             using System.Collections.Generic;
 
@@ -739,12 +696,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73879")]
-    public async Task TestOnVariableDeclaratorDifferentType_Interface_LooseMatch_ReadOnlyInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclaratorDifferentType_Interface_LooseMatch_ReadOnlyInterface()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -767,12 +722,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73879")]
-    public async Task TestOnVariableDeclaratorDifferentType_Interface_ExactlyMatch_MutableInterface()
-    {
-        await new VerifyCS.Test
+    public Task TestOnVariableDeclaratorDifferentType_Interface_ExactlyMatch_MutableInterface()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -804,12 +757,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73879")]
-    public async Task TestOnVariableDeclaratorDifferentType_Interface_ExactlyMatch_ReadOnlyInterface()
-    {
-        await new VerifyCS.Test
+    public Task TestOnVariableDeclaratorDifferentType_Interface_ExactlyMatch_ReadOnlyInterface()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -829,12 +780,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -860,12 +809,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach1_A()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach1_A()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -893,12 +840,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach1_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach1_B()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -930,12 +875,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach1_C()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach1_C()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -967,12 +910,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1000,12 +941,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1033,12 +972,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_Foreach4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_Foreach4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1066,12 +1003,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70388")]
-    public async Task TestOnVariableDeclarator_AwaitForeach1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_AwaitForeach1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1099,12 +1034,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_AddRange1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_AddRange1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1129,12 +1062,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnVariableDeclarator_AddRangeAndForeach1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnVariableDeclarator_AddRangeAndForeach1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1161,12 +1092,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexAccess1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIndexAccess1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -1191,12 +1120,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexAccess1_Foreach()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIndexAccess1_Foreach()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -1225,12 +1152,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexIndexAccess1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComplexIndexAccess1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1277,12 +1202,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexAccess2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIndexAccess2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -1309,12 +1232,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexAccess3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIndexAccess3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections;
 
@@ -1363,12 +1284,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void Add(int i) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexFollowedByInvocation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIndexFollowedByInvocation()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -1395,12 +1314,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInvocationFollowedByIndex()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationFollowedByIndex()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -1424,12 +1341,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithInterimStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithInterimStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1460,12 +1375,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonIEnumerable()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonIEnumerable()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1480,12 +1393,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void Add(int i) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonIEnumerableEvenWithAdd()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonIEnumerableEvenWithAdd()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1502,12 +1413,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithCreationArguments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithCreationArguments()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1531,12 +1440,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnAssignmentExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1562,12 +1469,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnRefAdd()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnRefAdd()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1588,12 +1493,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComplexInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1618,12 +1521,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnNamedArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnNamedArg()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1648,12 +1549,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithExistingInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1683,12 +1582,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializer_NoParens()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithExistingInitializer_NoParens()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1718,12 +1615,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializerWithComma()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithExistingInitializerWithComma()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1753,12 +1648,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithExistingInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1789,12 +1682,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1823,12 +1714,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections;
@@ -1881,12 +1770,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void Add(int i) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument3()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInDocument3()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1943,12 +1830,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -1975,12 +1860,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -2014,12 +1897,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -2057,12 +1938,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -2104,12 +1983,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -2155,13 +2032,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
-    public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class C
@@ -2194,12 +2069,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComplexInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2228,12 +2101,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16158")]
-    public async Task TestIncorrectAddName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIncorrectAddName()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2265,12 +2136,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
-    public async Task TestNestedCollectionInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNestedCollectionInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -2299,12 +2168,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-    public async Task TestWhenReferencedInInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenReferencedInInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2329,12 +2196,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-    public async Task TestWhenReferencedInInitializer_LocalVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenReferencedInInitializer_LocalVar()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2363,12 +2228,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-    public async Task TestWhenReferencedInInitializer_LocalVar2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWhenReferencedInInitializer_LocalVar2()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2393,12 +2256,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
-    public async Task TestWhenReferencedInInitializer_Assignment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenReferencedInInitializer_Assignment()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2429,12 +2290,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
-    public async Task TestWhenReferencedInInitializer_Assignment2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenReferencedInInitializer_Assignment2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -2463,12 +2322,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
-    public async Task TestFieldReference()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldReference()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2495,12 +2352,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17853")]
-    public async Task TestMissingForDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingForDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Dynamic;
 
@@ -2513,12 +2368,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-    public async Task TestMissingAcrossPreprocessorDirective()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingAcrossPreprocessorDirective()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2533,12 +2386,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-    public async Task TestAvailableInsidePreprocessorDirective()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAvailableInsidePreprocessorDirective()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2566,12 +2417,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
-    public async Task TestObjectInitializerAssignmentAmbiguity()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestObjectInitializerAssignmentAmbiguity()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2597,12 +2446,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
-    public async Task TestObjectInitializerCompoundAssignment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestObjectInitializerCompoundAssignment()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2628,12 +2475,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
-    public async Task TestKeepBlankLinesAfter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestKeepBlankLinesAfter()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2661,12 +2506,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23672")]
-    public async Task TestMissingWithExplicitImplementedAddMethod()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithExplicitImplementedAddMethod()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Dynamic;
@@ -2682,12 +2525,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
-    public async Task TestWhenReferencedInInitializerLeft()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenReferencedInInitializerLeft()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2716,12 +2557,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
-    public async Task TestWithIndexerInInitializerLeft()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithIndexerInInitializerLeft()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2750,12 +2589,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
-    public async Task TestWithImplicitObjectCreation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithImplicitObjectCreation()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2782,13 +2619,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
-    public async Task TestInTopLevelStatements()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInTopLevelStatements()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2801,12 +2636,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             List<int> list = [1];
 
             """, OutputKind.ConsoleApplication);
-    }
 
     [Fact]
-    public async Task TestUpdateExistingCollectionInitializerToExpression1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateExistingCollectionInitializerToExpression1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2829,12 +2662,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateExistingCollectionInitializerToExpression2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateExistingCollectionInitializerToExpression2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2863,12 +2694,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateExistingCollectionInitializerToExpression3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateExistingCollectionInitializerToExpression3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2897,12 +2726,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateExistingCollectionInitializerToExpression4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateExistingCollectionInitializerToExpression4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2933,12 +2760,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateExistingCollectionInitializerToExpression5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateExistingCollectionInitializerToExpression5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2969,12 +2794,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2997,12 +2820,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3026,12 +2847,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3055,12 +2874,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3085,12 +2902,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3116,12 +2931,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3148,12 +2961,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3178,12 +2989,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NoElements_ExistingInitializer8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NoElements_ExistingInitializer8()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3207,12 +3016,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3235,12 +3042,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3264,12 +3069,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3298,12 +3101,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3328,12 +3129,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3359,12 +3158,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3396,12 +3193,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3432,12 +3227,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer8()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3466,12 +3259,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer9()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3501,12 +3292,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_ExistingElements_ExistingInitializer10()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3536,12 +3325,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3565,12 +3352,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3595,12 +3380,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3631,12 +3414,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3662,12 +3443,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3694,12 +3473,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3733,12 +3510,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3771,12 +3546,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer8()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3807,12 +3580,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer9()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3842,12 +3613,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer10()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3877,12 +3646,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3912,12 +3679,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3948,12 +3713,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -3986,12 +3749,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4022,12 +3783,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4059,12 +3818,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4100,12 +3857,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4140,12 +3895,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer8()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4178,12 +3931,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer9()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4214,12 +3965,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer10()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4250,12 +3999,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_NoInitializer1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_NoInitializer1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4284,12 +4031,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReplacementLocation_NewMultiLineElements_NoInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReplacementLocation_NewMultiLineElements_NoInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4322,12 +4067,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNoMultiLineEvenWhenLongIfAllElementsAlreadyPresent()
-    {
-        await new VerifyCS.Test
+    public Task TestNoMultiLineEvenWhenLongIfAllElementsAlreadyPresent()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -4387,12 +4130,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCapacity1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4415,12 +4156,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCapacity2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4432,12 +4171,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4461,12 +4198,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity4()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4493,12 +4228,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity5()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4523,12 +4256,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity6()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4553,12 +4284,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity7()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4584,12 +4313,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity8()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4616,12 +4343,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity9()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4648,12 +4373,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity10()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4680,12 +4403,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity11()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity11()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -4714,12 +4435,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity12()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity12()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -4746,12 +4465,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity13()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity13()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4777,12 +4494,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity14()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity14()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -4811,12 +4526,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity15()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity15()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -4851,12 +4564,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity16()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity16()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4885,12 +4596,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity17()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity17()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4919,12 +4628,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity18()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity18()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4953,12 +4660,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity19()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity19()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4983,12 +4688,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity20()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity20()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -5016,12 +4719,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity21()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity21()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -5052,12 +4753,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity22()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity22()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -5084,12 +4783,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity23()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity23()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -5122,12 +4819,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCapacity24()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCapacity24()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -5160,12 +4855,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
-    public async Task TestInLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInLambda()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -5192,12 +4885,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
-    public async Task TestNotInLambda1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInLambda1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -5211,12 +4902,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
-    public async Task TestNotInExpressionTree()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInExpressionTree()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -5230,12 +4919,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInDictionary_Empty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInDictionary_Empty()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class Program
@@ -5256,12 +4943,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInDictionary_NotEmpty()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInDictionary_NotEmpty()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             class Program
@@ -5272,12 +4957,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInIEnumerableAndIncompatibleAdd_Empty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInIEnumerableAndIncompatibleAdd_Empty()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections;
             class Program
@@ -5308,12 +4991,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 IEnumerator IEnumerable.GetEnumerator() => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInIEnumerableAndIncompatibleAdd_NotEmpty()
-    {
-        await new VerifyCS.Test
+    public Task TestInIEnumerableAndIncompatibleAdd_NotEmpty()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -5352,12 +5033,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 OutputKind = OutputKind.DynamicallyLinkedLibrary,
             },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
-    public async Task TestAddRangeOfCollectionExpression1()
-    {
-        await new VerifyCS.Test
+    public Task TestAddRangeOfCollectionExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -5389,12 +5068,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
-    public async Task TestAddRangeOfCollectionExpression2()
-    {
-        await new VerifyCS.Test
+    public Task TestAddRangeOfCollectionExpression2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -5426,12 +5103,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple1()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple1()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5460,12 +5135,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple2()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple2()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5494,12 +5167,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple3()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple3()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5528,12 +5199,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple4()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple4()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5572,12 +5241,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple5()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple5()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5606,12 +5273,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple6()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple6()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5640,12 +5305,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
-    public async Task TestInValueTuple7()
-    {
-        await new VerifyCS.Test
+    public Task TestInValueTuple7()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5684,12 +5347,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72701")]
-    public async Task TestNotWithObservableCollection1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithObservableCollection1()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5708,12 +5369,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72701")]
-    public async Task TestNotWithObservableCollection2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithObservableCollection2()
+        => new VerifyCS.Test
         {
             TestCode =
                 """
@@ -5746,12 +5405,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public async Task TestObjectCreationArgument1()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreationArgument1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -5780,12 +5437,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public async Task TestObjectCreationArgument2()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectCreationArgument2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -5814,12 +5469,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73362")]
-    public async Task TestWithOverloadResolution1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithOverloadResolution1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -5868,12 +5521,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75894")]
-    public async Task TestNotOnDictionaryConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnDictionaryConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -5890,12 +5541,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76092")]
-    public async Task TestNotOnSetAssignedToNonSet()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnSetAssignedToNonSet()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -5911,12 +5560,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76092")]
-    public async Task TestOnSetAssignedToSet()
-    {
-        await new VerifyCS.Test
+    public Task TestOnSetAssignedToSet()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -5943,12 +5590,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76683")]
-    public async Task TestNotOnStack()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnStack()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Linq;
@@ -5966,6 +5611,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
+<<<<<<< HEAD
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
@@ -6342,11 +5988,140 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         Dictionary<string, string> map = [|new|] Dictionary<string, string>(StringComparer.Ordinal);
                         map["x"] = "y";
+=======
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77962")]
+    public Task TestNotOnBindingList()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.ComponentModel;
+                
+                class C
+                {
+                    BindingList<T> GetNumbers<T>(T[] values)
+                    {
+                        return new BindingList<T>(values);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79156")]
+    public Task TestNotWithConstructorArgNotValidAsAddArgument()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+
+                Goo _ = new("goobar");
+
+                public class Goo(string s = "") : IEnumerable
+                {
+                    public void Add(Bar b) { }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                        => throw new NotImplementedException();
+                }
+
+                public class Bar { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79156")]
+    public Task TestWithConstructorArgValidAsAddArgument()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                IEnumerable<Bar> bars = null;
+                Goo _ = [|new|](bars);
+
+                public class Goo : IEnumerable
+                {
+                    public Goo() { }
+
+                    public Goo(IEnumerable<Bar> bars)
+                    {
+                        foreach (var bar in bars)
+                            Add(bar);
+                    }
+
+                    public void Add(Bar b) { }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                        => throw new NotImplementedException();
+                }
+
+                public class Bar { }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                IEnumerable<Bar> bars = null;
+                Goo _ = [.. bars];
+
+                public class Goo : IEnumerable
+                {
+                    public Goo() { }
+
+                    public Goo(IEnumerable<Bar> bars)
+                    {
+                        foreach (var bar in bars)
+                            Add(bar);
+                    }
+
+                    public void Add(Bar b) { }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                        => throw new NotImplementedException();
+                }
+
+                public class Bar { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80471")]
+    public Task TestNeedForCast1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private void CodeFixErrorRepro_OldEnumerables()
+                    {
+                        ArrayList arrayList = [1, 2, 3];
+
+                        List<int> stronglyTypedList = [|new|]();
+                        [|foreach (int i in |]arrayList)
+                        {
+                            stronglyTypedList.Add(i);
+                        }
+>>>>>>> upstream/features/collection-expression-arguments
                     }
                 }
                 """,
             FixedCode = """
                 using System;
+<<<<<<< HEAD
                 using System.Linq;
                 using System.Collections.Generic;
                 
@@ -6362,4 +6137,130 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+=======
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
+                
+                class C
+                {
+                    private void CodeFixErrorRepro_OldEnumerables()
+                    {
+                        ArrayList arrayList = [1, 2, 3];
+                
+                        List<int> stronglyTypedList = [.. arrayList.Cast<int>()];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
+    public Task TestNotInCollectionBuilderMethod()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
+    public Task TestCollectionBuilderOutsideMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection<int> c = [|new|]();
+                    [|c.Add(|]1);
+                }
+            }
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection<int> c = [1];
+                }
+            }
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+>>>>>>> upstream/features/collection-expression-arguments
 }
+

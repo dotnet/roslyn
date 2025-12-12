@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(text));
             }
 
+            // span.Start and span.End are valid wrt eachother by nature of being passed in as a TextSpan,
+            // so there is no need to verify span.Start against text.Length or span.End against zero.
             if (span.Start < 0
-                || span.Start >= text.Length
-                || span.End < 0
                 || span.End > text.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(span));
@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Text
             private readonly SubText _subText;
             private readonly int _startLineNumberInUnderlyingText;
             private readonly int _lineCount;
-            private readonly bool _startsWithinSplitCRLF;
             private readonly bool _endsWithinSplitCRLF;
 
             public SubTextLineInfo(SubText subText)
@@ -115,14 +114,6 @@ namespace Microsoft.CodeAnalysis.Text
 
                 _startLineNumberInUnderlyingText = startLineInUnderlyingText.LineNumber;
                 _lineCount = (endLineInUnderlyingText.LineNumber - _startLineNumberInUnderlyingText) + 1;
-
-                var underlyingSpanStart = _subText.UnderlyingSpan.Start;
-                if (underlyingSpanStart == startLineInUnderlyingText.End + 1 &&
-                    underlyingSpanStart == startLineInUnderlyingText.EndIncludingLineBreak - 1)
-                {
-                    Debug.Assert(_subText.UnderlyingText[underlyingSpanStart - 1] == '\r' && _subText.UnderlyingText[underlyingSpanStart] == '\n');
-                    _startsWithinSplitCRLF = true;
-                }
 
                 var underlyingSpanEnd = _subText.UnderlyingSpan.End;
                 if (underlyingSpanEnd == endLineInUnderlyingText.End + 1 &&
@@ -151,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Text
                         // Special case splitting the CRLF at the end as the UnderlyingText doesn't view the position
                         // after between the \r and \n as on a new line whereas this subtext doesn't contain the \n
                         // and needs to view that position as on a new line.
-                        return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.End, 0));
+                        return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.Length, 0));
                     }
 
                     var underlyingTextLine = _subText.UnderlyingText.Lines[lineNumber + _startLineNumberInUnderlyingText];
@@ -209,12 +200,6 @@ namespace Microsoft.CodeAnalysis.Text
 
                 var underlyingPosition = position + _subText.UnderlyingSpan.Start;
                 var underlyingLineNumber = _subText.UnderlyingText.Lines.IndexOf(underlyingPosition);
-
-                if (_startsWithinSplitCRLF && position != 0)
-                {
-                    // The \n contributes a line to the count in this subtext, but not in the UnderlyingText.
-                    underlyingLineNumber += 1;
-                }
 
                 return underlyingLineNumber - _startLineNumberInUnderlyingText;
             }

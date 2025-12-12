@@ -8,21 +8,20 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(ICSAutoImplementedPropertyExtender))]
+public class AutoImplementedPropertyExtender : ICSAutoImplementedPropertyExtender
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ICSAutoImplementedPropertyExtender))]
-    public class AutoImplementedPropertyExtender : ICSAutoImplementedPropertyExtender
+    internal static ICSAutoImplementedPropertyExtender Create(bool isAutoImplemented)
     {
-        internal static ICSAutoImplementedPropertyExtender Create(bool isAutoImplemented)
-        {
-            var result = new AutoImplementedPropertyExtender(isAutoImplemented);
-            return (ICSAutoImplementedPropertyExtender)ComAggregate.CreateAggregatedObject(result);
-        }
-
-        private AutoImplementedPropertyExtender(bool isAutoImplemented)
-            => IsAutoImplemented = isAutoImplemented;
-
-        public bool IsAutoImplemented { get; }
+        var result = new AutoImplementedPropertyExtender(isAutoImplemented);
+        return (ICSAutoImplementedPropertyExtender)ComAggregate.CreateAggregatedObject(result);
     }
+
+    private AutoImplementedPropertyExtender(bool isAutoImplemented)
+        => IsAutoImplemented = isAutoImplemented;
+
+    public bool IsAutoImplemented { get; }
 }

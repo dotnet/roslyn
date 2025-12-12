@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (segments.Count > 1)
             {
                 // Remove empty segments before checking for split line breaks
-                segments.RemoveWhere(static (s, _, _) => s.Length == 0, arg: 0);
+                segments.RemoveAll(static (s, _, _) => s.Length == 0, arg: 0);
 
                 var splitLineBreakFound = false;
                 for (int i = 1; i < segments.Count; i++)
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     // If a split line break was present, ensure there aren't any empty lines again
                     // due to the sourcetexts created from the GetSubText calls.
-                    segments.RemoveWhere(static (s, _, _) => s.Length == 0, arg: 0);
+                    segments.RemoveAll(static (s, _, _) => s.Length == 0, arg: 0);
                 }
             }
         }

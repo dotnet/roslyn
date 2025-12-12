@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis;
 
 internal partial struct SymbolKey
@@ -19,21 +15,18 @@ internal partial struct SymbolKey
             visitor.WriteSymbolKey(symbol.ContainingSymbol);
             visitor.WriteString(symbol.Name);
             visitor.WriteInteger(symbol.Arity);
-            visitor.WriteString(symbol.IsFileLocal
-                ? symbol.DeclaringSyntaxReferences[0].SyntaxTree.FilePath
-                : null);
+#if !ROSLYN_4_12_OR_LOWER
+            // Include the metadata name for extensions.  We need this to uniquely find it when resolving.
+            visitor.WriteString(symbol.IsExtension ? symbol.MetadataName : null);
+#endif
+            // Include the file path for 'file-local' types.  We need this to uniquely find it when resolving.
+            visitor.WriteString(symbol.IsFileLocal ? symbol.DeclaringSyntaxReferences[0].SyntaxTree.FilePath : null);
             visitor.WriteBoolean(symbol.IsUnboundGenericType);
             visitor.WriteBoolean(symbol.IsNativeIntegerType);
             visitor.WriteBoolean(symbol.SpecialType == SpecialType.System_IntPtr);
 
-            if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
-            {
-                visitor.WriteSymbolKeyArray(symbol.TypeArguments);
-            }
-            else
-            {
-                visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
-            }
+            visitor.WriteSymbolKeyArray(
+                symbol.Equals(symbol.ConstructedFrom) || symbol.IsUnboundGenericType ? [] : symbol.TypeArguments);
         }
 
         protected sealed override SymbolKeyResolution Resolve(
@@ -42,6 +35,11 @@ internal partial struct SymbolKey
             var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
             var name = reader.ReadRequiredString();
             var arity = reader.ReadInteger();
+#if !ROSLYN_4_12_OR_LOWER
+            var extensionMetadataName = reader.ReadString();
+#else
+            string? extensionMetadataName = null;
+#endif
             var filePath = reader.ReadString();
             var isUnboundGenericType = reader.ReadBoolean();
             var isNativeIntegerType = reader.ReadBoolean();
@@ -73,7 +71,8 @@ internal partial struct SymbolKey
 
             var normalResolution = ResolveNormalNamedType(
                 containingSymbolResolution, containingSymbolFailureReason,
-                name, arity, filePath, isUnboundGenericType, typeArgumentsArray,
+                name, extensionMetadataName, arity, filePath,
+                isUnboundGenericType, typeArgumentsArray,
                 out failureReason);
 
             if (normalResolution.SymbolCount > 0)
@@ -140,10 +139,11 @@ internal partial struct SymbolKey
             SymbolKeyResolution containingSymbolResolution,
             string? containingSymbolFailureReason,
             string name,
+            string? extensionMetadataName,
             int arity,
             string? filePath,
             bool isUnboundGenericType,
-            ITypeSymbol[] typeArgumentsArray,
+            ITypeSymbol[] typeArguments,
             out string? failureReason)
         {
             if (containingSymbolFailureReason != null)
@@ -154,43 +154,46 @@ internal partial struct SymbolKey
 
             using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
             foreach (var nsOrType in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
-            {
-                Resolve(
-                    result, nsOrType, name, arity, filePath,
-                    isUnboundGenericType, typeArgumentsArray);
-            }
+                Resolve(nsOrType, result);
 
             return CreateResolution(result, $"({nameof(NamedTypeSymbolKey)} failed)", out failureReason);
-        }
 
-        private static void Resolve(
-            PooledArrayBuilder<INamedTypeSymbol> result,
-            INamespaceOrTypeSymbol container,
-            string name,
-            int arity,
-            string? filePath,
-            bool isUnboundGenericType,
-            ITypeSymbol[] typeArguments)
-        {
-            foreach (var type in container.GetTypeMembers(name, arity))
+            void Resolve(
+                INamespaceOrTypeSymbol container,
+                PooledArrayBuilder<INamedTypeSymbol> result)
             {
-                // if this is a file-local type, then only resolve to a file-local type from this same file
-                if (filePath != null)
+                if (extensionMetadataName != null)
                 {
-                    if (!type.IsFileLocal ||
-                        // note: if we found 'IsFile' returned true, we can assume DeclaringSyntaxReferences is non-empty.
-                        type.DeclaringSyntaxReferences[0].SyntaxTree.FilePath != filePath)
+                    // Unfortunately, no fast index from metadata name to type, so we have to iterate all nested types.
+                    foreach (var type in container.GetTypeMembers())
                     {
-                        continue;
+                        if (type.MetadataName == extensionMetadataName)
+                            result.AddIfNotNull(Construct(type, isUnboundGenericType, typeArguments));
                     }
                 }
-                else if (type.IsFileLocal)
+                else
                 {
-                    // since this key lacks a file path it can't match against a file-local type
-                    continue;
-                }
+                    foreach (var type in container.GetTypeMembers(name, arity))
+                    {
+                        // if this is a file-local type, then only resolve to a file-local type from this same file
+                        if (filePath != null)
+                        {
+                            if (!type.IsFileLocal ||
+                                // note: if we found 'IsFile' returned true, we can assume DeclaringSyntaxReferences is non-empty.
+                                type.DeclaringSyntaxReferences[0].SyntaxTree.FilePath != filePath)
+                            {
+                                continue;
+                            }
+                        }
+                        else if (type.IsFileLocal)
+                        {
+                            // since this key lacks a file path it can't match against a file-local type
+                            continue;
+                        }
 
-                result.AddIfNotNull(Construct(type, isUnboundGenericType, typeArguments));
+                        result.AddIfNotNull(Construct(type, isUnboundGenericType, typeArguments));
+                    }
+                }
             }
         }
 

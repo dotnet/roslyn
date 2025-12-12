@@ -3,13 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
 
@@ -2562,6 +2562,30 @@ End Module
 
             Dim reducedMethodOnVoid = extensionMethod.ReduceExtensionMethod(compilation.GetSpecialType(SpecialType.System_Void))
             Assert.Null(reducedMethodOnVoid)
+        End Sub
+
+        <Fact>
+        Public Sub ReduceExtensionMember_01()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class E
+    Public Sub Method()
+    End Sub
+    Public Property Prop As Integer
+End Class
+]]></file>
+</compilation>)
+
+            compilation.VerifyEmitDiagnostics()
+
+            Dim systemObject As NamedTypeSymbol = compilation.GetSpecialType(SpecialType.System_Object)
+            Dim method = DirectCast(compilation.GlobalNamespace.GetTypeMember("E").GetMember(Of MethodSymbol)("Method"), IMethodSymbol)
+            Assert.NotNull(method)
+            Assert.Null(method.ReduceExtensionMember(systemObject))
+
+            Dim prop = DirectCast(compilation.GlobalNamespace.GetTypeMember("E").GetMember(Of PropertySymbol)("Prop"), IPropertySymbol)
+            Assert.Null(prop.ReduceExtensionMember(systemObject))
         End Sub
     End Class
 

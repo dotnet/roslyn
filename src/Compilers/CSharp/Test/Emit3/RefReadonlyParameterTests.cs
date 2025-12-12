@@ -531,6 +531,30 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Method_NonVirtual()
+    {
+        var source = """
+            class C
+            {
+                public void M(ref readonly int p) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+        CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+        }
+    }
+
+    [Fact]
     public void Method_Virtual()
     {
         var source = """
@@ -855,10 +879,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             void local(ref readonly int p) { }
             System.Console.WriteLine(((object)local).GetType());
             """;
-        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+        CompileAndVerify(comp,
             sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>A{00000004}`1[System.Int32]");
-        verifier.VerifyDiagnostics();
+            expectedOutput: "<>A{00000004}`1[System.Int32]").VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
         {
@@ -8663,5 +8690,52 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,22): error CS1676: Parameter 1 must be declared with the 'in' keyword
             //         d = (ref int x) => { x = 42; }; // should be an error
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "in").WithLocation(7, 22));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77528")]
+    public void UnassignedField(
+        [CombinatorialValues("in", "ref")] string arg,
+        [CombinatorialValues("ref readonly", "in")] string param)
+    {
+        var source = $$"""
+            #pragma warning disable CS9191 // The 'ref' modifier for argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+
+            M({{arg}} C.F);
+
+            static void M({{param}} int i) { }
+
+            static class C
+            {
+                public static int F;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,23): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 0
+            //     public static int F;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "0").WithLocation(9, 23));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77528")]
+    public void UnassignedField_NamedArguments(
+        [CombinatorialValues("in", "ref")] string arg,
+        [CombinatorialValues("ref readonly", "in")] string param)
+    {
+        var source = $$"""
+            #pragma warning disable CS9191 // The 'ref' modifier for argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+
+            M(j: ref C.F1, i: {{arg}} C.F2);
+
+            static void M({{param}} int i, ref int j) { }
+
+            static class C
+            {
+                public static int F1;
+                public static int F2;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,23): warning CS0649: Field 'C.F2' is never assigned to, and will always have its default value 0
+            //     public static int F2;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("C.F2", "0").WithLocation(10, 23));
     }
 }

@@ -6,12 +6,9 @@ Imports System.IO
 Imports System.IO.Compression
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.Storage
-Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch

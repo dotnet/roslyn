@@ -8,12 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private bool _hasNoBaseCycles;
 
-        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null);
 
         /// <summary>
         /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
@@ -212,6 +212,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (candidates.IsEmpty)
                 return;
 
+            AddOperators(operators, candidates);
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
+            foreach (var candidate in candidates)
+            {
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
+                {
+                    operators.Add(method);
+                }
+            }
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ArrayBuilder<Symbol> candidates)
+        {
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -331,6 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public abstract bool MightContainExtensionMethods { get; }
 
+        /// <remarks>Does not perform a full viability check</remarks>
         internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             if (this.MightContainExtensionMethods)
@@ -339,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <remarks>Does not perform a full viability check</remarks>
         internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var members = nameOpt == null
@@ -354,11 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
                         var thisParam = method.Parameters.First();
-
-                        if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
+                        if (!IsValidExtensionReceiverParameter(thisParam))
                         {
-                            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
                         }
 
@@ -368,6 +383,121 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+#nullable enable
+        private static bool IsValidExtensionReceiverParameter(ParameterSymbol thisParam)
+        {
+            Debug.Assert(thisParam is not null);
+
+            if (!thisParam.Type.IsValidExtensionParameterType())
+            {
+                return false;
+            }
+
+            // For ref and ref-readonly extension members and classic extension methods, receivers need to be of the correct types to be considered in lookup
+            if (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType)
+            {
+                return false;
+            }
+
+            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                && !thisParam.Type.IsValidInOrRefReadonlyExtensionParameterType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
+                | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
+                | LookupOptions.MustBeOperator | LookupOptions.MustNotBeMethodTypeParameter)) == 0);
+
+            Debug.Assert(name is not null || alternativeName is null);
+
+            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
+
+            foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
+            {
+                if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
+                    || !IsValidExtensionReceiverParameter(extensionParameter))
+                {
+                    continue;
+                }
+
+                var candidates = name is null || alternativeName is not null
+                    ? nestedType.GetMembersUnordered()
+                    : nestedType.GetMembers(name);
+
+                foreach (var candidate in candidates)
+                {
+                    if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                    {
+                        // Not supported yet
+                        continue;
+                    }
+
+                    if (extensionMemberMatches(candidate, name, alternativeName, arity, options, fieldsBeingBound))
+                    {
+                        members.Add(candidate);
+                    }
+                }
+            }
+
+            return;
+
+            static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+            {
+                if ((options & LookupOptions.MustBeInstance) != 0 && member.IsStatic)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustNotBeInstance) != 0 && !member.IsStatic)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustBeOperator) != 0 && member is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.AllMethodsOnArityZero) == 0
+                    && arity != member.GetMemberArityIncludingExtension())
+                {
+                    return false;
+                }
+
+                string memberName = member.Name;
+                bool namesMatch = name is null
+                    || memberName == name
+                    || (alternativeName is not null && memberName == alternativeName);
+
+                if (!namesMatch)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustBeInvocableIfMember) != 0
+                    && !Binder.IsInvocableMember(member, fieldsBeingBound))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+#nullable disable
 
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.
@@ -494,6 +624,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        public virtual bool IsExtension
+            => TypeKind == TypeKind.Extension;
+
+        /// <summary>
+        /// For the type representing an extension declaration, returns the receiver parameter symbol.
+        /// It may be unnamed.
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
+        /// </summary>
+        internal abstract ParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
+        /// </summary>
+        internal abstract string? ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
+        /// </summary>
+        internal abstract string? ExtensionMarkerName { get; }
 #nullable disable
 
         /// <summary>

@@ -470,9 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Note: we are using the metadata name also in the case that
                         // symbol.containingType is null (which should never be the case here) or is an
                         //       anonymous type (which 'does not have a name').
-                        var name = Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) || symbol.ContainingType == null || symbol.ContainingType.IsAnonymousType
-                            ? symbol.Name
-                            : symbol.ContainingType.Name;
+                        bool useConstructorName = Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
+                            || symbol.ContainingType == null || symbol.ContainingType.IsAnonymousType || symbol.ContainingType.IsExtension;
+
+                        var name = useConstructorName ? symbol.Name : symbol.ContainingType!.Name;
 
                         var partKind = GetPartKindForConstructorOrDestructor(symbol);
 
@@ -752,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static SymbolDisplayPartKind GetPartKindForConstructorOrDestructor(IMethodSymbol symbol)
         {
             // In the case that symbol.containingType is null (which should never be the case here) we will fallback to the MethodName symbol part
-            if (symbol.ContainingType is null)
+            if (symbol.ContainingType is null || symbol.ContainingType.IsExtension)
             {
                 return SymbolDisplayPartKind.MethodName;
             }
@@ -810,42 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
-                {
-                    // Add 'scoped' unless the parameter is an out parameter or
-                    // 'this' since those cases are implicitly scoped.
-                    if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                        symbol.RefKind != RefKind.Out &&
-                        !symbol.IsThis)
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-
-                    AddParameterRefKind(symbol.RefKind);
-                }
-
-                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
-
-                if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
-                {
-                    if (symbol.IsParams)
-                    {
-                        AddKeyword(SyntaxKind.ParamsKeyword);
-                        AddSpace();
-                    }
-
-                    if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                        symbol.RefKind == RefKind.None &&
-                        !(symbol.IsParams && symbol.Type is { IsRefLikeType: true } or ITypeParameterSymbol { AllowsRefLikeType: true }))
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-                }
-
-                symbol.Type.Accept(this.NotFirstVisitor);
-                AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
+                AddParameterModifiersAndType(symbol);
             }
 
             if (includeName)
@@ -874,6 +840,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddPunctuation(SyntaxKind.CloseBracketToken);
             }
+        }
+
+        private void AddParameterModifiersAndType(IParameterSymbol symbol)
+        {
+            if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
+            {
+                // Add 'scoped' unless the parameter is an out parameter or
+                // 'this' since those cases are implicitly scoped.
+                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                    symbol.RefKind != RefKind.Out &&
+                    !symbol.IsThis)
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
+                AddParameterRefKind(symbol.RefKind);
+            }
+
+            AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+            if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
+            {
+                if (symbol.IsParams)
+                {
+                    AddKeyword(SyntaxKind.ParamsKeyword);
+                    AddSpace();
+                }
+
+                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
+                    symbol.RefKind == RefKind.None &&
+                    !(symbol.IsParams && symbol.Type is { IsRefLikeType: true } or ITypeParameterSymbol { AllowsRefLikeType: true }))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+            }
+
+            symbol.Type.Accept(this.NotFirstVisitor);
+            AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
         }
 
         private static bool CanAddConstant(ITypeSymbol type, object? value)

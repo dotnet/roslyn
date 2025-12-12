@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_AddOrRemoveHandlerEvent = 30677
         ERR_UnrecognizedEnd = 30678
 
-        ERR_ArrayInitForNonArray2 = 30679
+        ' ERR_ArrayInitForNonArray2 = 30679 - unused
 
         ERR_EndRegionNoRegion = 30680
         ERR_ExpectedEndRegion = 30681
@@ -1787,8 +1787,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_CannotApplyOverloadResolutionPriorityToMember = 37334
 
         ERR_EmbeddedAttributeMustFollowPattern = 37335
+        ERR_TooManyUserStrings_RestartRequired = 37336
 
-        ERR_NextAvailable = 37336
+        ERR_MethodImplAttributeAsyncCannotBeUsed = 37337
+        ERR_AttributeCannotBeAppliedManually = 37338
+        ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 37339
+
+        ERR_NextAvailable = 37340
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1854,7 +1859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_ConstraintsFailedForInferredArgs2 = 41006
         WRN_ConditionalNotValidOnFunction = 41007
-        WRN_UseSwitchInsteadOfAttribute = 41008
+        ' WRN_UseSwitchInsteadOfAttribute = 41008 - unused
         WRN_TupleLiteralNameMismatch = 41009
 
         '// AVAILABLE                             41010 - 41199

@@ -1,1 +1,1 @@
-Moved to [target-framework-strategy.md](docs/contributing/target-framework-strategy.md)
+Moved to [target-framework-strategy.md](./target-framework-strategy.md)

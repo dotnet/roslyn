@@ -7,6 +7,11 @@
         <target state="translated">초기값 전용 속성 '{0}'은(는) 개체 멤버 이니셜라이저에 의해서나 인스턴스 생성자의 'Me', 'MyClass` 또는 'MyBase'에만 할당할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">공유 추상 또는 가상 인터페이스 구성원에 액세스할 수 없습니다.</target>
@@ -57,6 +62,11 @@
         <target state="translated">'{0}'을(를) 업데이트할 수 없습니다. 특성 '{1}'이(가) 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">'Experimental' 특성에 대한 diagnosticId 인수는 유효한 식별자여야 합니다.</target>
@@ -71,6 +81,11 @@
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">SyncLock에서는 'System.Threading.Lock' 형식의 값이 지원되지 않습니다. 대신 Try/Finally 블록에서 'Enter' 및 'Exit' 메서드를 수동으로 호출하는 것이 좋습니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
@@ -130,6 +145,11 @@
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">'{0}'은(는) '{1}' 어셈블리에 정의되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -350,8 +370,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -362,7 +381,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic 컴파일러 옵션
+        <target state="needs-review-translation">                  Visual Basic 컴파일러 옵션
 
                                   - 출력 파일 -
 -out:&lt;file&gt; 출력 파일 이름을 지정합니다.
@@ -543,11 +562,6 @@
         <target state="translated">VB에는 원시 정수 형식이 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">트리({0})</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
         <source>trees({0}) must have root node with SyntaxKind.CompilationUnit.</source>
         <target state="translated">트리({0})는 SyntaxKind.CompilationUnit을 사용하는 루트 노드여야 합니다.</target>
@@ -629,13 +643,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -798,16 +812,6 @@
         <target state="translated">입력 소스를 지정하지 않았습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">'{0}' 소스 파일을 여러 번 지정했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">소스 파일이 여러 번 지정되었습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">'{0}'을(를) 쓰기용으로 열 수 없습니다('{1}').</target>
@@ -846,16 +850,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">지시 파일에 지정되었기 때문에 /noconfig 옵션을 무시합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">'{1}' 옵션에 대한 '{0}' 경고 번호를 구성할 수 없거나 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">경고 번호가 구성 가능하지 않거나 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2978,11 +2972,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'End' 문이 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">배열 이니셜라이저는 배열에만 유효하지만 '{0}'의 형식은 '{1}'입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6734,16 +6723,6 @@
         <target state="translated">Conditional' 특성은 'Sub' 선언에서만 유효함</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">'{1}' 대신 명령줄 옵션 '{0}' 또는 적합한 프로젝트 설정을 사용하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">AssemblyKeyFileAttribute, AssemblyKeyNameAttribute 또는 AssemblyDelaySignAttribute 대신 명령줄 옵션 /keyfile, /keycontainer 또는 /delaysign 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">문이 '{1}' 이벤트에 대해 포함하는 '{0}'을(를) 재귀적으로 호출합니다.</target>
@@ -7422,16 +7401,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">AddressOf'의 메서드 인수를 사용하려면 이벤트의 대리자 형식으로 낮은 수준의 변환을 수행해야 하므로 'AddressOf' 식은 이 컨텍스트에서 효과가 없음</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">형식을 유추할 수 없어 범위 변수가 Object 형식으로 간주됩니다. 'As' 절을 사용하여 다른 형식을 지정하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">형식을 유추할 수 없으므로 범위 변수를 Object 형식으로 가정함</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">

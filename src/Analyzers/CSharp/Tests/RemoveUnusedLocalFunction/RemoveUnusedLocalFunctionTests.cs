@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFunction;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
-public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnusedLocalFunctionTests(ITestOutputHelper logger)
       : base(logger)
@@ -27,9 +27,8 @@ public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticPr
         => (null, new CSharpRemoveUnusedLocalFunctionCodeFixProvider());
 
     [Fact]
-    public async Task RemoveUnusedLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -47,12 +46,10 @@ public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveUnusedLocalFunctionFixAll1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedLocalFunctionFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -71,12 +68,10 @@ public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveUnusedLocalFunctionFixAll2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedLocalFunctionFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -95,12 +90,10 @@ public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveUnusedLocalFunctionFixAll3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedLocalFunctionFixAll3()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -118,12 +111,10 @@ public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveUnusedLocalFunctionFixAll4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedLocalFunctionFixAll4()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -141,16 +132,13 @@ public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44272")]
-    public async Task TopLevelStatement()
-    {
-        await TestAsync("""
+    public Task TopLevelStatement()
+        => TestAsync("""
             void [|local()|] { }
             """,
             """
 
-            """, TestOptions.Regular);
-    }
+            """, new(TestOptions.Regular));
 }

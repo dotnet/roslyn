@@ -584,6 +584,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+        System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor,
 
         System_Collections_ICollection__Count,
         System_Collections_ICollection__IsSynchronized,
@@ -623,6 +624,7 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Generic_List_T__AddRange,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
 
         System_Linq_Enumerable__ToList,
         System_Linq_Enumerable__ToArray,
@@ -717,11 +719,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
-
-        System_Collections_Generic_Dictionary_KV__ctor,
-        System_Collections_Generic_Dictionary_KV__set_Item,
-        System_Collections_Generic_KeyValuePair_KV__get_Key,
-        System_Collections_Generic_KeyValuePair_KV__get_Value,
 
         Count,
 

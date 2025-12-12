@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 
@@ -36,14 +34,6 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider(
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var switchLocation = context.Diagnostics.First().AdditionalLocations[0];
-        var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, context.CancellationToken);
-        if (switchStatement.ContainsDirectives)
-        {
-            // Avoid providing code fixes for switch statements containing directives
-            return Task.CompletedTask;
-        }
-
         RegisterCodeFix(context, CSharpAnalyzersResources.Convert_switch_statement_to_expression, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression));
         return Task.CompletedTask;
     }

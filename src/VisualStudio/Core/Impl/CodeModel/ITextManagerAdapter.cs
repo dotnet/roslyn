@@ -6,13 +6,12 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+
+/// <summary>
+/// A shim interface over the TextManager APIs needed to isolate unit tests.
+/// </summary>
+internal interface ITextManagerAdapter
 {
-    /// <summary>
-    /// A shim interface over the TextManager APIs needed to isolate unit tests.
-    /// </summary>
-    internal interface ITextManagerAdapter
-    {
-        EnvDTE.TextPoint CreateTextPoint(FileCodeModel fileCodeModel, VirtualTreePoint point);
-    }
+    EnvDTE.TextPoint CreateTextPoint(FileCodeModel fileCodeModel, VirtualTreePoint point);
 }

@@ -12,14 +12,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class AnonymousMethodExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<AnonymousMethodExpressionSyntax>
+public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<AnonymousMethodExpressionSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new AnonymousMethodExpressionStructureProvider();
 
     [Fact]
-    public async Task TestAnonymousMethod()
-    {
-        var code = """
+    public Task TestAnonymousMethod()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -29,16 +28,12 @@ public class AnonymousMethodExpressionStructureTests : AbstractCSharpSyntaxNodeS
                         };|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestAnonymousMethodInForLoop()
-    {
-        var code = """
+    public Task TestAnonymousMethodInForLoop()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -46,15 +41,11 @@ public class AnonymousMethodExpressionStructureTests : AbstractCSharpSyntaxNodeS
                         for (Action a = $$delegate { }; true; a()) { }
                     }
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact]
-    public async Task TestAnonymousMethodInMethodCall1()
-    {
-        var code = """
+    public Task TestAnonymousMethodInMethodCall1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -64,16 +55,12 @@ public class AnonymousMethodExpressionStructureTests : AbstractCSharpSyntaxNodeS
                         }|}|}, "other arguments");
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestAnonymousMethodInMethodCall2()
-    {
-        var code = """
+    public Task TestAnonymousMethodInMethodCall2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -83,9 +70,6 @@ public class AnonymousMethodExpressionStructureTests : AbstractCSharpSyntaxNodeS
                         }|}|});
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

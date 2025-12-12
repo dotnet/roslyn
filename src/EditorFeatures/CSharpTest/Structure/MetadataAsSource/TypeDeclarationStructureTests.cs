@@ -13,46 +13,37 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
+public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        var code = """
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:class $$C{|textspan:
                 {
                     void M();
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        var code = """
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:[Bar]
                 [Baz]
                 |}{|#0:public class $$C|}{|textspan2:
                 {
                     void M();
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        var code = """
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a doc comment.
                 [Bar, Baz]
@@ -60,17 +51,13 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
                 {
                     void M();
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47889")]
-    public async Task RecordWithCommentsAndAttributes()
-    {
-        var code = """
+    public Task RecordWithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a doc comment.
                 [Bar, Baz]
@@ -78,17 +65,13 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
                 {
                     void M();
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task RecordStructWithCommentsAndAttributes()
-    {
-        var code = """
+    public Task RecordStructWithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a doc comment.
                 [Bar, Baz]
@@ -96,33 +79,25 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
                 {
                     void M();
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithDocComments()
-    {
-        var code = """
+    public Task WithDocComments()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:/// <summary>This is a doc comment.</summary>
                 |}{|#0:public class $$C|}{|textspan2:
                 {
                     void M();
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithMultilineDocComments()
-    {
-        var code = """
+    public Task WithMultilineDocComments()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:/// <summary>This is a doc comment.</summary>
                 /// <remarks>
                 /// Comments are cool
@@ -131,10 +106,7 @@ public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTe
                 {
                     void M();
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

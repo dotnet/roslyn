@@ -22,10 +22,16 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Microsoft.Build.Framework" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
+    <!--
+      Since System.Text.Json is part of the .NET BCL we do not want to add
+      it as a package reference. Doing so will pin the version to what we use
+      in our build instead of allowing it to use the version from the .NET Runtime
+      we are running against.
+    -->
+    <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
@@ -63,6 +69,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.Experimental" Key="$(MicrosoftSharedPublicKey)" />
   </ItemGroup>
   <!--
     Include certain project reference binaries into this package in lib/ regular library.
@@ -90,6 +97,7 @@
     <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
+        <!-- NOTE: Update the `BuildHostProcessManager.GetDotNetFrameworkBuildHostPath` method if ContentFolderName changes. -->
         <ContentFolderName>BuildHost-net472</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
@@ -98,6 +106,7 @@
     <ItemGroup>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>$(NetRoslynBuildHostNetCoreVersion)</TargetFramework>
+        <!-- NOTE: Update the `BuildHostProcessManager.GetNetCoreBuildHostPath` method if ContentFolderName changes. -->
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
@@ -111,6 +120,8 @@
       <!-- We're setting both TargetPath and PackagePath here, the former when this is used in a regular build to deploy and the latter for
            when this called during pack. By putting the PackagePath in any/any, we only have to deploy this once rather than per TFM.
            Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
+
+      <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if the PackagePath changes. -->
       <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
                Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
                TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"

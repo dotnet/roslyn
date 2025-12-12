@@ -5469,12 +5469,18 @@ class C {
                 // (1,20): error CS1002: ; expected
                 // Action<object> a = public => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 20),
-                // (1,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,27): error CS1031: Type expected
                 // Action<object> a = public => { };
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "public").WithLocation(1, 20),
-                // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "=>").WithLocation(1, 27),
+                // (1,27): error CS1001: Identifier expected
                 // Action<object> a = public => { };
-                Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(1, 27));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                // (1,30): error CS1525: Invalid expression term '{'
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 30),
+                // (1,30): error CS1002: ; expected
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 30));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5513,9 +5519,23 @@ class C {
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.PropertyDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -5563,7 +5583,7 @@ class C {
         public void ScopedAsParameterName_02()
         {
             string source = "(scoped) => { }";
-            UsingExpression(source);
+            UsingExpression(source, options: TestOptions.Regular13);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -5584,13 +5604,39 @@ class C {
                 }
             }
             EOF();
+
+            UsingExpression(source,
+                // (1,8): error CS1001: Identifier expected
+                // (scoped) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 8));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
         [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_03()
         {
             string source = "(a, scoped) => { }";
-            UsingExpression(source);
+            UsingExpression(source, options: TestOptions.Regular13);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -5605,6 +5651,37 @@ class C {
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+
+            UsingExpression(source,
+                // (1,11): error CS1001: Identifier expected
+                // (a, scoped) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 11));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -6500,7 +6577,7 @@ class C {
         {
             // 'scoped' is always a modifier in C# 14 and above.
             string source = "(scoped a = null) => { }";
-            UsingExpression(source, TestOptions.RegularNext);
+            UsingExpression(source, TestOptions.Regular14);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {

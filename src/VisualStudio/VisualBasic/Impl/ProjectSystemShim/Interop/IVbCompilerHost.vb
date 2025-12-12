@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
     <Guid("782CB503-84B1-4b8f-9AAD-A12B75905015"), ComImport(), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)>

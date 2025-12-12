@@ -18,5 +18,5 @@ internal interface IFileDownloaderFactory
 
 internal interface IFileDownloader : IDisposable
 {
-    public Task<Stream?> ReadFileAsync();
+    Task<Stream?> ReadFileAsync();
 }

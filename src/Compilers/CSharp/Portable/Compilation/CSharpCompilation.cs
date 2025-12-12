@@ -160,6 +160,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
         private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
+        internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableUsedInForbiddenZoneType
+        {
+            get
+            {
+                if (field is null)
+                {
+                    Interlocked.CompareExchange(ref field, new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true), null);
+                }
+
+                return field;
+            }
+        }
+
+        internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableInferenceFailedType
+        {
+            get
+            {
+                if (field is null)
+                {
+                    Interlocked.CompareExchange(ref field, new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, unreported: false), null);
+                }
+
+                return field;
+            }
+        }
+
         public override string Language
         {
             get
@@ -309,6 +335,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 "always" => true,
                 "never" => false,
                 _ => null,
+            };
+        }
+
+        /// <summary>
+        /// Returns true if this method should be processed with runtime async handling instead
+        /// of compiler async state machine generation.
+        /// </summary>
+        internal bool IsRuntimeAsyncEnabledIn(Symbol? symbol)
+        {
+            if (!Assembly.RuntimeSupportsAsyncMethods)
+            {
+                return false;
+            }
+
+            if (symbol is not MethodSymbol method)
+            {
+                return false;
+            }
+
+            Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
+
+            var methodReturn = method.ReturnType.OriginalDefinition;
+            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
+                    InternalSpecialType.System_Threading_Tasks_Task or
+                    InternalSpecialType.System_Threading_Tasks_Task_T or
+                    InternalSpecialType.System_Threading_Tasks_ValueTask or
+                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
+            {
+                return false;
+            }
+
+            return symbol switch
+            {
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                _ => Feature("runtime-async") == "on"
             };
         }
 
@@ -1899,15 +1961,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
                         entryPoint = new EntryPoint(entryPointMethod, diagnostics);
                     }
-
-                    if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
-                    {
-                        var diagnostics = DiagnosticBag.GetInstance();
-                        diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
-                        entryPoint = new EntryPoint(entryPoint.MethodSymbol,
-                                                    new ReadOnlyBindingDiagnostic<AssemblySymbol>(
-                                                        entryPoint.Diagnostics.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()), entryPoint.Diagnostics.Dependencies));
-                    }
                 }
 
                 Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
@@ -1940,7 +1993,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return scriptClass.GetScriptEntryPoint();
                     }
 
-                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split('.')).OfMinimalArity();
+                    var nameParts = mainTypeName.Split('.');
+                    if (nameParts.Any(n => string.IsNullOrWhiteSpace(n)))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadCompilationOptionValue, NoLocation.Singleton, nameof(CSharpCompilationOptions.MainTypeName), mainTypeName);
+                        return null;
+                    }
+
+                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(nameParts).OfMinimalArity();
                     if (mainTypeOrNamespace is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotFound, NoLocation.Singleton, mainTypeName);
@@ -2158,6 +2218,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var member in members)
             {
+                if (member.IsExtensionBlockMember())
+                {
+                    // When candidates are collected by GetSymbolsWithName, skeleton members are found but not implementation methods.
+                    // We want to include the implementation for skeleton methods.
+                    if (member is MethodSymbol method && method.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                    {
+                        addIfCandidate(entryPointCandidates, implementationMethod);
+                    }
+                }
+                else
+                {
+                    addIfCandidate(entryPointCandidates, member);
+                }
+            }
+
+            static void addIfCandidate(ArrayBuilder<MethodSymbol> entryPointCandidates, Symbol member)
+            {
                 if (member is MethodSymbol method &&
                     method.IsEntryPointCandidate)
                 {
@@ -2189,12 +2266,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
-            BoundExpression? result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out BoundExpression? result, out BoundCall? runtimeAwaitCall, syntax, diagnostics);
 
             RoslynDebug.Assert(!namedType.IsDynamic());
-            return success &&
-                (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
+            if (!success)
+            {
+                return false;
+            }
+
+            Debug.Assert(result is { Type: not null } || runtimeAwaitCall is { Type: not null });
+            var returnType = result?.Type ?? runtimeAwaitCall!.Type;
+            return returnType.IsVoidType() || returnType.SpecialType == SpecialType.System_Int32;
         }
 
         /// <summary>
@@ -3574,8 +3656,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private protected override EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
-            => EmitHelpers.MapToCompilation(this, (PEDeltaAssemblyBuilder)moduleBeingBuilt);
+        private protected override SymbolMatcher CreatePreviousToCurrentSourceAssemblyMatcher(
+            EmitBaseline previousGeneration,
+            SynthesizedTypeMaps otherSynthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherDeletedMembers)
+        {
+            return new CSharpSymbolMatcher(
+                sourceAssembly: ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
+                SourceAssembly,
+                otherSynthesizedTypes,
+                otherSynthesizedMembers,
+                otherDeletedMembers);
+        }
 
         private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
         {
@@ -3683,7 +3776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_moduleInitializerMethods is object)
             {
-                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), methodBodyDiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
 
                 foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
                 {
@@ -3691,8 +3784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ilBuilder.EmitToken(
                         moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
-                        CSharpSyntaxTree.Dummy.GetRoot(),
-                        methodBodyDiagnosticBag);
+                        CSharpSyntaxTree.Dummy.GetRoot());
                 }
 
                 ilBuilder.EmitRet(isVoid: true);
@@ -3778,6 +3870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3789,6 +3882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken);
         }
@@ -4241,7 +4335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
-            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded).GetPublicSymbol();
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(

@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyCodeRefactoringProvider();
@@ -36,9 +36,8 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -52,12 +51,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -77,12 +74,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -102,12 +97,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedInLambda()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedInLambda()
+        => TestMissingAsync(
             """
             class C
             {
@@ -121,12 +114,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -134,12 +125,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -159,12 +148,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -184,12 +171,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task TestOfferedWithSelectionInsideBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedWithSelectionInsideBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -209,12 +194,10 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedWithSelectionOutsideBlockBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -228,5 +211,27 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
             }|]
             """,
             parameters: new TestParameters(options: UseBlockBody));
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterConstructorName()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int this[int i] // comment
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

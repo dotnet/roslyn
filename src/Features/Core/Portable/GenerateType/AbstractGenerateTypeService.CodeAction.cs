@@ -8,12 +8,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
 
@@ -102,7 +101,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var generateTypeOptionsService = _document.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
             var notificationService = _document.Project.Solution.Services.GetService<INotificationService>();
             var projectManagementService = _document.Project.Solution.Services.GetService<IProjectManagementService>();
-            var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeKindValue = GetTypeKindOption(_state);
             var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);
             return generateTypeOptionsService.GetGenerateTypeOptions(

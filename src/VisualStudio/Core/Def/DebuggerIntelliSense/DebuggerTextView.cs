@@ -17,15 +17,13 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 
-internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITextView2
+internal sealed partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITextView2
 {
     /// <summary>
     /// The actual debugger view of the watch or immediate window that we're wrapping
     /// </summary>
     private readonly IWpfTextView _innerTextView;
     private readonly IVsTextLines _debuggerTextLinesOpt;
-
-    private IMultiSelectionBroker _multiSelectionBroker;
 
     // This name "CompletionRoot" is specified on the Editor side.
     // Roslyn must match the name.
@@ -306,9 +304,9 @@ internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITex
     {
         get
         {
-            _multiSelectionBroker ??= _innerTextView.GetMultiSelectionBroker();
+            field ??= _innerTextView.GetMultiSelectionBroker();
 
-            return _multiSelectionBroker;
+            return field;
         }
     }
 

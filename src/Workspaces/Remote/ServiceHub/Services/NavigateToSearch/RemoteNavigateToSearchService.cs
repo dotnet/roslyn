@@ -42,7 +42,7 @@ internal sealed class RemoteNavigateToSearchService(
         // pulled over from the host side to the remote side.  Once this completes, the next
         // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
         // quick as very little will need to by sync'ed over.
-        return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
+        return RunServiceAsync(solutionChecksum, solution => ValueTask.CompletedTask, cancellationToken);
     }
 
     public ValueTask SearchDocumentAndRelatedDocumentsAsync(

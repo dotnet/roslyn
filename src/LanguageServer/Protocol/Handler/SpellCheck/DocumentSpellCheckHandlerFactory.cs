@@ -6,18 +6,17 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
-{
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(DocumentSpellCheckHandler)), Shared]
-    internal class DocumentSpellCheckHandlerFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSpellCheckHandlerFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck;
 
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new DocumentSpellCheckHandler();
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DocumentSpellCheckHandler)), Shared]
+internal sealed class DocumentSpellCheckHandlerFactory : ILspServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DocumentSpellCheckHandlerFactory()
+    {
     }
+
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new DocumentSpellCheckHandler();
 }

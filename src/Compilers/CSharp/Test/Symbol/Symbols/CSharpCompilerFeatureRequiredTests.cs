@@ -50,7 +50,7 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
         _ = new OnThisIndexerParameter()[1];
         """;
 
-    internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
+    internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string>? markers, bool areLocalsZeroed)
     {
         return _csharpTest.VisualizeRealIL(peModule, methodData, markers, areLocalsZeroed);
     }

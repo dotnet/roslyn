@@ -4,12 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +19,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -185,7 +182,8 @@ internal sealed partial class VisualStudioSymbolNavigationService(
     {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var definitionItem = symbol.ToNonClassifiedDefinitionItem(project.Solution, includeHiddenLocations: true);
+        var definitionItem = await symbol.ToNonClassifiedDefinitionItemAsync(
+            project.Solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
         definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
         var result = await TryGetNavigationAPIRequiredArgumentsAsync(definitionItem, rqName, cancellationToken).ConfigureAwait(true);
@@ -273,36 +271,12 @@ internal sealed partial class VisualStudioSymbolNavigationService(
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        if (!TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
+        if (!VisualStudioWorkspaceUtilities.TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
             return null;
 
-        var navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
-        if (navigationNotify == null)
+        if (hierarchy is not IVsSymbolicNavigationNotify navigationNotify)
             return null;
 
         return (hierarchy, itemID, navigationNotify);
-    }
-
-    private bool TryGetVsHierarchyAndItemId(Document document, [NotNullWhen(true)] out IVsHierarchy? hierarchy, out uint itemID)
-    {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace
-            && document.FilePath is object)
-        {
-            hierarchy = visualStudioWorkspace.GetHierarchy(document.Project.Id);
-            if (hierarchy is object)
-            {
-                itemID = hierarchy.TryGetItemId(document.FilePath);
-                if (itemID != VSConstants.VSITEMID_NIL)
-                {
-                    return true;
-                }
-            }
-        }
-
-        hierarchy = null;
-        itemID = (uint)VSConstants.VSITEMID.Nil;
-        return false;
     }
 }

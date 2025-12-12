@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -397,6 +398,10 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
             else if (namedTypeSymbol is { DelegateInvokeMethod.Parameters: var delegateInvokeParameters })
             {
                 declaredParameters = delegateInvokeParameters;
+            }
+            else if (namedTypeSymbol.IsExtension && namedTypeSymbol.ExtensionParameter is { } extensionParameter)
+            {
+                declaredParameters = [extensionParameter];
             }
         }
 

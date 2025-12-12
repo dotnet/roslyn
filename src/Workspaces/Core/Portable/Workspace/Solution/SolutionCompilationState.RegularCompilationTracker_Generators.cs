@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -10,11 +11,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -34,10 +34,12 @@ internal sealed partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
+            var canSkipRunningGenerators = await CanSkipRunningGeneratorsAsync(creationPolicy, compilationState, cancellationToken).ConfigureAwait(false);
+            if (canSkipRunningGenerators)
             {
-                // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
-                // just whatever prior generated docs we have.
+                // We're either frozen, or we only want required generators and know that there aren't any to run, so we
+                // do not want to go through the expensive cost of running generators.  Instead, we just use whatever
+                // prior generated docs we have.
                 var generatedSyntaxTrees = await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
                     static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
 
@@ -67,9 +69,33 @@ internal sealed partial class SolutionCompilationState
                     generatorInfo.Documents,
                     generatorInfo.Driver,
                     compilationWithStaleGeneratedTrees,
+                    creationPolicy.GeneratedDocumentCreationPolicy,
                     cancellationToken).ConfigureAwait(false);
                 return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
             }
+
+            async ValueTask<bool> CanSkipRunningGeneratorsAsync(CreationPolicy creationPolicy, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            {
+                // if we don't want to create generated documents, we can skip
+                if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
+                    return true;
+
+                // if we only want required documents, we can skip if we don't have any required generators
+                if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired)
+                {
+                    var hasRequiredGenerators = await HasRequiredGeneratorsAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                    return !hasRequiredGenerators;
+                }
+
+                // we need to run generators
+                return false;
+            }
+        }
+
+        private async Task<bool> HasRequiredGeneratorsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            var presence = await compilationState.GetProjectGeneratorPresenceAsync(ProjectState.Id, cancellationToken).ConfigureAwait(false);
+            return presence is SourceGeneratorPresence.ContainsRequiredSourceGenerators;
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
@@ -80,6 +106,7 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
+            var projectId = this.ProjectState.Id;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
@@ -88,20 +115,32 @@ internal sealed partial class SolutionCompilationState
             // We're going to be making multiple calls over to OOP.  No point in resyncing data multiple times.  Keep a
             // single connection, and keep this solution instance alive (and synced) on both sides of the connection
             // throughout the calls.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the connection.  All subsequent
+            // uses of this connection must do that aas well. This ensures that all calls will see the same exact
+            // snapshot on the OOP side, which is necessary for the GetSourceGeneratedDocumentInfoAsync and
+            // GetContentsAsync calls to see the exact same data and return sensible results.
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
-            using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            using var _ = await RemoteKeepAliveSession.CreateAsync(
+                compilationState, projectId, cancellationToken).ConfigureAwait(false);
 
             // First, grab the info from our external host about the generated documents it has for this project.  Note:
             // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
             // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
             // any overlaid 'frozen' source generated documents.
-            var projectId = this.ProjectState.Id;
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures the call to GetContentsAsync below sees the exact same solution
+            // instance as this call.
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
                 (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratedDocumentInfoAsync(
                     solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
+            // Since we called out to the OOP side, we'll want to later report summarized telemetry numbers.
+            solution.Services.GetService<ISourceGeneratorTelemetryReporterWorkspaceService>()?.QueueReportingOfTelemetry();
 
             if (!infosOpt.HasValue)
                 return null;
@@ -162,6 +201,10 @@ internal sealed partial class SolutionCompilationState
             // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
             // side reflects that by asking for the real source generated docs, and *not* any overlaid 'frozen' source
             // generated documents.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures that we see the exact same solution instance on the OOP side as the
+            // call to GetSourceGeneratedDocumentInfoAsync above.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
@@ -231,18 +274,12 @@ internal sealed partial class SolutionCompilationState
             TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
             GeneratorDriver? generatorDriver,
             Compilation? compilationWithStaleGeneratedTrees,
+            GeneratedDocumentCreationPolicy creationPolicy,
             CancellationToken cancellationToken)
         {
             // If we don't have any source generators.  Trivially bail out.
             if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
-
-            // If we don't already have an existing generator driver, create one from scratch
-            generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
-
-            CheckGeneratorDriver(generatorDriver, this.ProjectState);
-
-            Contract.ThrowIfNull(generatorDriver);
 
             // HACK HACK HACK HACK to address https://github.com/dotnet/roslyn/issues/59818. There, we were running into issues where
             // a generator being present and consuming syntax was causing all red nodes to be processed. This was problematic when
@@ -263,9 +300,19 @@ internal sealed partial class SolutionCompilationState
             var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
             // END HACK HACK HACK HACK.
 
-            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken);
+            // Hold onto the prior results so we can compare when filtering
+            var priorRunResult = generatorDriver?.GetRunResult();
 
-            Contract.ThrowIfNull(generatorDriver);
+            if (generatorDriver == null)
+            {
+                generatorDriver = await compilationState.GeneratorDriverCache.CreateAndRunGeneratorDriverAsync(this.ProjectState, compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken);
+            }
+
+            CheckGeneratorDriver(generatorDriver, this.ProjectState);
 
             var runResult = generatorDriver.GetRunResult();
 
@@ -273,6 +320,9 @@ internal sealed partial class SolutionCompilationState
             telemetryCollector?.CollectRunResult(
                 runResult, generatorDriver.GetTimingInfo(),
                 g => GetAnalyzerReference(this.ProjectState, g));
+
+            var telemetryReporter = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryReporterWorkspaceService>();
+            telemetryReporter?.QueueReportingOfTelemetry();
 
             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
             // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
@@ -388,20 +438,6 @@ internal sealed partial class SolutionCompilationState
                 return null;
             }
 
-            static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
-            {
-                var generatedFilesBaseDirectory = projectState.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory();
-                var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
-
-                return compilationFactory.CreateGeneratorDriver(
-                    projectState.ParseOptions!,
-                    GetSourceGenerators(projectState),
-                    projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts,
-                    generatedFilesBaseDirectory);
-            }
-
             [Conditional("DEBUG")]
             static void CheckGeneratorDriver(GeneratorDriver generatorDriver, ProjectState projectState)
             {
@@ -416,6 +452,46 @@ internal sealed partial class SolutionCompilationState
                 var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
 
                 Contract.ThrowIfFalse(additionalTexts.Length == projectState.AdditionalDocumentStates.Count);
+            }
+
+            bool ShouldGeneratorRun(GeneratorFilterContext context)
+            {
+                // We should never try and run a generator driver if we're not expecting to do any work
+                Contract.ThrowIfTrue(creationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate);
+
+                // If we're in Create mode, we're always going to run all generators
+                if (creationPolicy is GeneratedDocumentCreationPolicy.Create)
+                    return true;
+
+                // If we get here we expect to be in CreateOnlyRequired. Throw to ensure we catch if someone adds a new state
+                Contract.ThrowIfFalse(creationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired);
+
+                // We want to only run required generators, but it's also possible that there are generators that 
+                // have never been run (for instance, an AddGenerator operation might have occurred between runs).
+                // Our model is that it's acceptable for documents to be slightly out of date, but it is
+                // fundamentally incorrect to have *no* documents for a generator that could be producing them.
+
+                // If there was no prior run result, then we can't have any documents for this generator, so we
+                // need to re-run it.
+                if (priorRunResult is null)
+                    return true;
+
+                // Next we need to check if this particular generator was run as part of the prior driver execution.
+                // Either we have no state for the generator, in which case it can't have run. If we do have state,
+                // the contract from the generator driver is that a generator that hasn't run yet produces a default
+                // ImmutableArray for GeneratedSources. Note that this is different from an empty array, which
+                // indicates that the generator ran, but didn't produce any documents:
+
+                // - GeneratedSources == default ImmutableArray: the generator was not invoked during that run (must run).
+                // - GeneratedSources == non-default empty array: the generator ran but produced no documents (may skip).
+                // - GeneratedSources == non-default non-empty array: the generator ran and produced documents (may skip).
+
+                if (!priorRunResult.Results.Any(r => r.Generator == context.Generator && !r.GeneratedSources.IsDefault))
+                    return true;
+
+                // We have results for this generator, and we're in CreateOnlyRequired, so only run this generator if
+                // we consider it to be required.
+                return context.Generator.IsRequiredGenerator();
             }
         }
     }

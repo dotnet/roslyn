@@ -49,6 +49,6 @@ internal sealed class UnitTestingLegacySolutionEventsListener : ILegacySolutionE
     {
         var coordinator = GetCoordinator(args.NewSolution);
         coordinator?.OnWorkspaceChanged(args);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

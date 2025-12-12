@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
+    private sealed class WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
         protected override void ConnectToWorkspace(Workspace workspace)
             => this.RaiseChanged();

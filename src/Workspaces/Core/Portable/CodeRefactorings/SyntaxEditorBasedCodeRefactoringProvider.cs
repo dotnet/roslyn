@@ -6,60 +6,62 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeRefactoringProvider
 {
-    protected static readonly ImmutableArray<FixAllScope> DefaultFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
-    protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember];
+    protected static readonly ImmutableArray<RefactorAllScope> DefaultRefactorAllScopes = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution];
+    protected static readonly ImmutableArray<RefactorAllScope> AllRefactorAllScopes = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution, RefactorAllScope.ContainingType, RefactorAllScope.ContainingMember];
 
-    protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
+    protected abstract ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; }
+    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
-    internal sealed override FixAllProvider? GetFixAllProvider()
+    public sealed override RefactorAllProvider? GetRefactorAllProvider()
     {
-        if (SupportedFixAllScopes.IsEmpty)
+        if (SupportedRefactorAllScopes.IsEmpty)
             return null;
 
-        return FixAllProvider.Create(
-            async (fixAllContext, document, fixAllSpans) =>
-                await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
-            SupportedFixAllScopes);
+        return RefactorAllProvider.Create(
+            async (refactorAllContext, document, refactorAllSpans) =>
+                await this.RefactorAllAsync(document, refactorAllSpans, refactorAllContext.CodeActionEquivalenceKey, refactorAllContext.CancellationToken).ConfigureAwait(false),
+            SupportedRefactorAllScopes,
+            this.Cleanup);
     }
 
-    protected Task<Document> FixAsync(
+    protected Task<Document> RefactorAsync(
         Document document,
-        TextSpan fixAllSpan,
+        TextSpan refactorAllSpan,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
-        return FixAllWithEditorAsync(document,
-            editor => FixAllAsync(document, [fixAllSpan], editor, equivalenceKey, cancellationToken),
+        return RefactorAllWithEditorAsync(document,
+            editor => RefactorAllAsync(document, [refactorAllSpan], editor, equivalenceKey, cancellationToken),
             cancellationToken);
     }
 
-    protected Task<Document> FixAllAsync(
+    protected Task<Document> RefactorAllAsync(
         Document document,
-        Optional<ImmutableArray<TextSpan>> fixAllSpans,
+        Optional<ImmutableArray<TextSpan>> refactorAllSpans,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
-        return FixAllWithEditorAsync(document, FixAllAsync, cancellationToken);
+        return RefactorAllWithEditorAsync(document, RefactorAllAsync, cancellationToken);
 
         // Local functions
-        Task FixAllAsync(SyntaxEditor editor)
+        Task RefactorAllAsync(SyntaxEditor editor)
         {
-            // Fix the entire document if there are no sub-spans to fix.
-            var spans = fixAllSpans.HasValue ? fixAllSpans.Value : [editor.OriginalRoot.FullSpan];
-            return this.FixAllAsync(document, spans, editor, equivalenceKey, cancellationToken);
+            // Refactor the entire document if there are no sub-spans to refactor.
+            var spans = refactorAllSpans.HasValue ? refactorAllSpans.Value : [editor.OriginalRoot.FullSpan];
+            return this.RefactorAllAsync(document, spans, editor, equivalenceKey, cancellationToken);
         }
     }
 
-    internal static async Task<Document> FixAllWithEditorAsync(
+    internal static async Task<Document> RefactorAllWithEditorAsync(
         Document document,
         Func<SyntaxEditor, Task> editAsync,
         CancellationToken cancellationToken)
@@ -73,9 +75,9 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         return document.WithSyntaxRoot(newRoot);
     }
 
-    protected abstract Task FixAllAsync(
+    protected abstract Task RefactorAllAsync(
         Document document,
-        ImmutableArray<TextSpan> fixAllSpans,
+        ImmutableArray<TextSpan> refactorAllSpans,
         SyntaxEditor editor,
         string? equivalenceKey,
         CancellationToken cancellationToken);

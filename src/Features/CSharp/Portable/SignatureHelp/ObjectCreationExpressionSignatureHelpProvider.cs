@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -22,11 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : AbstractCSharpSignatureHelpProvider
 {
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private async Task<BaseObjectCreationExpressionSyntax?> TryGetObjectCreationExpressionAsync(
         Document document,
@@ -41,7 +40,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<BaseObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<BaseObjectCreationExpressionSyntax>(token, TriggerCharacters);
 
     private static bool IsArgumentListToken(BaseObjectCreationExpressionSyntax expression, SyntaxToken token)
     {
@@ -81,7 +80,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
             return null;
 
         // guess the best candidate if needed and determine parameter index
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, objectCreationExpression.ArgumentList.Arguments, position)
             .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
 
         // present items and select
@@ -111,7 +110,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
             return null;
 
         // determine parameter index
-        var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+        var parameterIndexOverride = new CSharpLightweightOverloadResolution(semanticModel, objectCreationExpression.ArgumentList.Arguments, position)
             .FindParameterIndexIfCompatibleMethod(invokeMethod);
 
         // present item and select

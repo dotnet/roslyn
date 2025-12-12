@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// System.Text.Json.JsonConverter for serializing and deserializing <see cref="ContainerElement"/>.
 /// </summary>
-internal class ContainerElementConverter : JsonConverter<ContainerElement>
+internal sealed class ContainerElementConverter : JsonConverter<ContainerElement>
 {
     public static readonly ContainerElementConverter Instance = new();
 
@@ -21,7 +21,7 @@ internal class ContainerElementConverter : JsonConverter<ContainerElement>
         if (reader.TokenType == JsonTokenType.StartObject)
         {
             ContainerElementStyle? style = null;
-            List<object> objects = new();
+            List<object> objects = [];
 
             while (reader.Read())
             {
@@ -42,7 +42,7 @@ internal class ContainerElementConverter : JsonConverter<ContainerElement>
                                 if (reader.TokenType == JsonTokenType.EndArray)
                                     break;
 
-                                objects.Add(ObjectContentConverter.Instance.Read(ref reader, typeof(object), options)!);
+                                objects.Add(ObjectContentConverter.Instance.Read(ref reader, typeof(object), options));
                             }
 
                             break;

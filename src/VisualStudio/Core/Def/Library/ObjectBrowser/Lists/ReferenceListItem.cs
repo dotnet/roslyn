@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 
-internal class ReferenceListItem : ObjectListItem
+internal sealed class ReferenceListItem : ObjectListItem
 {
     private readonly string _name;
 

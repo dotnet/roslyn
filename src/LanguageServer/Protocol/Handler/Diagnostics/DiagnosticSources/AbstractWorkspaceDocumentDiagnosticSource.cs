@@ -9,19 +9,21 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument document) : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-        => new FullSolutionAnalysisDiagnosticSource(document, diagnosticAnalyzerService, shouldIncludeAnalyzer);
+    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, AnalyzerFilter analyzerFilter)
+        => new FullSolutionAnalysisDiagnosticSource(document, analyzerFilter);
 
     public static AbstractWorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(document, codeAnalysisService);
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    private sealed class FullSolutionAnalysisDiagnosticSource(
+        TextDocument document, AnalyzerFilter analyzerFilter)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
         /// <summary>
@@ -31,33 +33,35 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         /// </summary>
         private static readonly ConditionalWeakTable<Project, AsyncLazy<ILookup<DocumentId, DiagnosticData>>> s_projectToDiagnostics = new();
 
-        /// <summary>
-        /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
-        /// </summary>
-        public override bool IsLiveSource()
-            => true;
-
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
         {
             if (Document is SourceGeneratedDocument sourceGeneratedDocument)
             {
+                if (sourceGeneratedDocument.IsRazorSourceGeneratedDocument())
+                {
+                    // Razor has not ever participated in diagnostics for closed files, so we filter then out when doing FSA. They will handle
+                    // their own open file diagnostics. Additionally, if we reported them here, they would should up as coming from a `.g.cs` file
+                    // which is not what the user wants anyway.
+                    return [];
+                }
+
                 // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
-                var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
+                var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var documentDiagnostics = await service.GetDiagnosticsForSpanAsync(
                     sourceGeneratedDocument, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
                 documentDiagnostics = documentDiagnostics.WhereAsArray(d => !d.IsSuppressed);
                 return documentDiagnostics;
             }
             else
             {
-                var projectDiagnostics = await GetProjectDiagnosticsAsync(diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
+                var projectDiagnostics = await GetProjectDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
                 return projectDiagnostics.WhereAsArray(d => d.DocumentId == Document.Id);
             }
         }
 
-        private async ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
+        private async ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
         {
             if (!s_projectToDiagnostics.TryGetValue(Document.Project, out var lazyDiagnostics))
             {
@@ -72,12 +76,12 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             {
                 return s_projectToDiagnostics.GetValue(
                     Document.Project,
-                    _ => AsyncLazy.Create(
+                    project => AsyncLazy.Create(
                         async cancellationToken =>
                         {
-                            var allDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                                Document.Project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer,
-                                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                            var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                            var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
+                                project, documentIds: default, diagnosticIds: null, analyzerFilter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                             // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
                             // code has always worked, but it isn't clear if that is correct.
@@ -90,19 +94,17 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
     private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        /// <summary>
-        /// This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
-        /// user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
-        /// that has been produced.
-        /// </summary>
-        public override bool IsLiveSource()
-            => false;
-
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(codeAnalysisService.GetLastComputedDocumentDiagnostics(Document.Id));
+            var diagnostics = codeAnalysisService.GetLastComputedDocumentDiagnostics(Document.Id);
+
+            // This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
+            // user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
+            // that has been produced.
+            diagnostics = ProtocolConversions.AddBuildTagIfNotPresent(diagnostics);
+            return Task.FromResult(diagnostics);
         }
     }
 }

@@ -183,4 +183,4 @@ of the value is as follows:
 5. `omit_if_default`.  Redundant modifiers are disallowed.  For example a private class member will be disallowed from
    using `private`, and a public interface member will be disallowed from using `public`.  This is the option to use
    if you feel that restating the accessibility when it matches what the language chooses by default is redundant and
-   should be disalloed.
+   should be disallowed.

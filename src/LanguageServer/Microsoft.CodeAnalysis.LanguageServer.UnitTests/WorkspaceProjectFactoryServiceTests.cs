@@ -11,18 +11,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHelper)
+public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
     [Fact]
     public async Task CreateProjectAndBatch()
     {
         var loggerFactory = new LoggerFactory();
-        using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, [], out var serverConfiguration, out var _);
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
+            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
+        using var _ = exportProvider;
 
-        exportProvider.GetExportedValue<ServerConfigurationFactory>()
-            .InitializeConfiguration(serverConfiguration);
         await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
@@ -48,7 +47,7 @@ public class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHel
         await batch.ApplyAsync(CancellationToken.None);
 
         // Verify it actually did something; we won't exclusively test each method since those are tested at lower layers
-        var project = workspaceFactory.Workspace.CurrentSolution.Projects.Single();
+        var project = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
 
         var document = Assert.Single(project.Documents);
         Assert.Equal(sourceFilePath, document.FilePath);

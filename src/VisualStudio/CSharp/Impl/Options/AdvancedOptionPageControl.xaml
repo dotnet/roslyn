@@ -41,7 +41,7 @@
                     </StackPanel>
                     <StackPanel>
                         <CheckBox x:Name="DisplayDiagnosticsInline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline}"/>
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Inline_diagnostic_location"
                                      x:Name="at_the_end_of_the_line_of_code"
@@ -50,16 +50,6 @@
                                      x:Name="on_the_right_edge_of_the_editor_window"
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
                         </StackPanel>
-                    </StackPanel>
-
-                    <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
-                              Checked="RunCodeAnalysisInSeparateProcess_Checked"
-                              Unchecked="RunCodeAnalysisInSeparateProcess_Unchecked" />
-
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <CheckBox x:Name="Automatically_reload_updated_analyzers_and_generators"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_reload_updated_analyzers_and_generators}" />
                     </StackPanel>
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer"
@@ -90,9 +80,6 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}"/>
                         </StackPanel>
                     </StackPanel>
-
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
                 </StackPanel>
             </GroupBox>
 
@@ -105,24 +92,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Always_use_default_symbol_servers_for_navigation}" />
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="RenameGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Rename}">
-                <StackPanel>
-                    <CheckBox x:Name="Rename_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Rename_asynchronously_experimental}" />
-
-                    <Label x:Name="Rename_UI_setting_label" Content="{x:Static local:AdvancedOptionPageStrings.Where_should_the_rename_UI_be_shown}" />
-                    <ComboBox x:Name="Rename_UI_setting">
-                        <ComboBoxItem x:Name="Rename_UI_inline"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_inline}"
-                            Tag="{StaticResource True}" />
-                        <ComboBoxItem x:Name="Rename_UI_dashboard"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_as_dashboard_in_top_right}" 
-                            Tag="{StaticResource False}" />
-                    </ComboBox>
                 </StackPanel>
             </GroupBox>
             
@@ -218,6 +187,10 @@
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
+                    <CheckBox x:Name="GenerateXmlDocCommentsOnSingleLine"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsOnSingleLine}" />
+                    <CheckBox x:Name="GenerateOnlySummaryTag"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateOnlySummaryTag}" />
                     <CheckBox x:Name="InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments}"/>
                     <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"
@@ -232,7 +205,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                     <CheckBox x:Name="Fix_text_pasted_into_string_literals_experimental"
                               x:Uid="Fix_text_pasted_into_string_literals_experimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fix_text_pasted_into_string_literals_experimental}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fix_text_pasted_into_string_literals}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
@@ -269,16 +242,6 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_JSON_strings}" />
                     <CheckBox x:Name="Highlight_related_JSON_components_under_cursor"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="EditorColorSchemeGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
-                <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Edit_color_scheme}">
-                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
-                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
-                    </ComboBox>
                 </StackPanel>
             </GroupBox>
 
@@ -392,14 +355,6 @@
                     <CheckBox x:Uid="AutomaticallyOpenStackTraceExplorer"
                               x:Name="AutomaticallyOpenStackTraceExplorer"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_open_stack_trace_explorer_on_focus}" />
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="DocumentOutlineGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Document_Outline}">
-                <StackPanel>
-                    <CheckBox x:Uid="EnableDocumentOutline"
-                              x:Name="EnableDocumentOutline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_document_outline_experimental_requires_restart}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

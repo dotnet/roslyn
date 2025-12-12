@@ -10,8 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseNullPropagation), [Shared]>
-    Friend Class VisualBasicUseNullPropagationCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseNullPropagationCodeFixProvider
         Inherits AbstractUseNullPropagationCodeFixProvider(Of
+            VisualBasicUseNullPropagationDiagnosticAnalyzer,
             SyntaxKind,
             ExpressionSyntax,
             ExecutableStatementSyntax,
@@ -31,13 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Public Sub New()
         End Sub
 
-        Protected Overrides Function TryGetBlock(node As SyntaxNode, ByRef block As ExecutableStatementSyntax) As Boolean
-            Return False
-        End Function
-
-        Protected Overrides Function ReplaceBlockStatements(block As ExecutableStatementSyntax, newInnerStatement As ExecutableStatementSyntax) As ExecutableStatementSyntax
-            Throw ExceptionUtilities.Unreachable()
-        End Function
+        Protected Overrides ReadOnly Property Analyzer As VisualBasicUseNullPropagationDiagnosticAnalyzer = VisualBasicUseNullPropagationDiagnosticAnalyzer.Instance
 
         Protected Overrides Function PostProcessElseIf(ifStatement As MultiLineIfBlockSyntax, newWhenTrueStatement As ExecutableStatementSyntax) As SyntaxNode
             Throw ExceptionUtilities.Unreachable()

@@ -31,8 +31,7 @@ internal abstract class AbstractUseNamedArgumentsCodeRefactoringProvider : CodeR
 
             // We allow empty nodes here to find VB implicit arguments.
             var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, allowEmptyNodes: true, cancellationToken).ConfigureAwait(false);
-            var argument = potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
-            if (argument == null)
+            if (potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) is not TSimpleArgumentSyntax argument)
             {
                 return;
             }

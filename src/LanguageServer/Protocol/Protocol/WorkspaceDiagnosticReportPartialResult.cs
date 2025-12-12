@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 namespace Roslyn.LanguageServer.Protocol;
+
 using System.Text.Json.Serialization;
 
 /// <summary>
@@ -12,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class WorkspaceDiagnosticReportPartialResult
+internal sealed class WorkspaceDiagnosticReportPartialResult
 {
     /// <summary>
     /// Gets or sets the items in this diagnostic report.

@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
@@ -34,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.ShowValueTracking)]
-internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
+internal sealed class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
 {
     private readonly IAsyncServiceProvider _serviceProvider;
     private readonly IThreadingContext _threadingContext;

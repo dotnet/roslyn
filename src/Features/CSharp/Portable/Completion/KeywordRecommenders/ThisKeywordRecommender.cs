@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -13,22 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ThisKeyword)
 {
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-    {
-        return
-            IsInstanceExpressionOrStatement(context) ||
-            IsThisParameterModifierContext(context) ||
-            IsConstructorInitializerContext(context);
-    }
+        => IsInstanceExpressionOrStatement(context) ||
+           IsThisParameterModifierContext(context) ||
+           IsConstructorInitializerContext(context) ||
+           IsNameofInsideAttributeContext(context);
 
     private static bool IsInstanceExpressionOrStatement(CSharpSyntaxContext context)
-    {
-        if (context.IsInstanceContext)
-        {
-            return context.IsNonAttributeExpressionContext || context.IsStatementContext;
-        }
-
-        return false;
-    }
+        => context.IsInstanceContext && (context.IsNonAttributeExpressionContext || context.IsStatementContext);
 
     private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
     {
@@ -37,20 +30,10 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
 
         var token = context.TargetToken;
 
-        if (token.Kind() == SyntaxKind.ColonToken &&
-            token.Parent is ConstructorInitializerSyntax &&
-            token.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration))
-        {
-            var constructor = token.GetRequiredAncestor<ConstructorDeclarationSyntax>();
-            if (constructor.Modifiers.Any(SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
+        return
+            token.Kind() == SyntaxKind.ColonToken &&
+            token.Parent is ConstructorInitializerSyntax { Parent: ConstructorDeclarationSyntax constructor } &&
+            !constructor.Modifiers.Any(SyntaxKind.StaticKeyword);
     }
 
     private static bool IsThisParameterModifierContext(CSharpSyntaxContext context)
@@ -58,10 +41,11 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
         if (context.SyntaxTree.IsParameterModifierContext(
                 context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
         {
-            if (previousModifier is SyntaxKind.None or
-                SyntaxKind.RefKeyword or
-                SyntaxKind.InKeyword or
-                SyntaxKind.ReadOnlyKeyword)
+            if (previousModifier
+                    is SyntaxKind.None
+                    or SyntaxKind.RefKeyword
+                    or SyntaxKind.InKeyword
+                    or SyntaxKind.ReadOnlyKeyword)
             {
                 if (parameterIndex == 0 &&
                     context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
@@ -72,6 +56,25 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
         }
 
         return false;
+    }
+
+    private static bool IsNameofInsideAttributeContext(CSharpSyntaxContext context)
+    {
+        // Fascinatingly, the language supports [Attr(nameof(this.X))]
+
+        var token = context.TargetToken;
+        if (token.Kind() != SyntaxKind.OpenParenToken)
+            return false;
+
+        if (!context.IsNameOfContext)
+            return false;
+
+        var attribute = token.GetAncestor<AttributeSyntax>();
+        if (attribute is null)
+            return false;
+
+        var typeDeclaration = attribute.GetAncestor<TypeDeclarationSyntax>();
+        return typeDeclaration != null;
     }
 
     protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)

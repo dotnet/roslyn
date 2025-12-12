@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -21,10 +20,6 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
     where TExpressionSyntax : SyntaxNode
     where TInvocationExpressionSyntax : TExpressionSyntax
 {
-    protected AbstractGenerateParameterizedMemberService()
-    {
-    }
-
     protected abstract AbstractInvocationInfo CreateInvocationMethodInfo(SemanticDocument document, State abstractState);
 
     protected abstract bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel);
@@ -54,7 +49,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         if (canGenerateAbstractly)
             result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: true, generateProperty: false));
 
-        var semanticFacts = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
+        var semanticFacts = document.Project.Solution.GetRequiredLanguageService<ISemanticFactsService>(state.TypeToGenerateIn.Language);
 
         if (semanticFacts.SupportsParameterizedProperties &&
             state.InvocationExpressionOpt != null)

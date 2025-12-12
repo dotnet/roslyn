@@ -9,12 +9,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
 {
     private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
@@ -25,7 +24,6 @@ internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUn
         : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                EnforceOnBuildValues.RemoveUnreachableCode,
                option: null,
-               fadingOption: FadingOptions.FadeOutUnreachableCode,
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                configurable: false)
     {

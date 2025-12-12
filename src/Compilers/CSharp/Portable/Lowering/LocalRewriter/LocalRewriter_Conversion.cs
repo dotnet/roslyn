@@ -630,7 +630,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             MethodSymbol method = methodDefinition.AsMember(destinationType);
 
-                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            TypeSymbol parameterType = method.ParameterTypesWithAnnotations[0].Type;
+                            Debug.Assert(parameterType.IsSZArray());
+                            Debug.Assert(rewrittenOperand.Type?.IsSZArray() == true);
+                            Conversion c = _factory.ClassifyEmitConversion(rewrittenOperand, parameterType);
+                            Debug.Assert(c.IsImplicit || conversion.IsExplicit);
+                            Debug.Assert(c.IsReference || c.IsIdentity);
+                            rewrittenOperand = _factory.Convert(parameterType, rewrittenOperand, c);
 
                             if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(destinationType))
                             {
@@ -653,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             MethodSymbol implicitOperator = implicitOperatorDefinition.AsMember((NamedTypeSymbol)sourceType);
 
-                            rewrittenOperand = _factory.Convert(implicitOperator.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            Debug.Assert(implicitOperator.ParameterTypesWithAnnotations[0].Type.Equals(rewrittenOperand.Type, TypeCompareKind.AllIgnoreOptions));
                             rewrittenOperand = _factory.Call(null, implicitOperator, rewrittenOperand);
 
                             if (Binder.NeedsSpanCastUp(sourceType, destinationType))
@@ -687,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeWithAnnotations sourceElementType = ((NamedTypeSymbol)sourceType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                             MethodSymbol method = methodDefinition.AsMember(destinationType).Construct([sourceElementType]);
 
-                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            Debug.Assert(method.ParameterTypesWithAnnotations[0].Type.Equals(rewrittenOperand.Type, TypeCompareKind.AllIgnoreOptions));
                             return _factory.Call(null, method, rewrittenOperand);
                         }
 
@@ -702,7 +708,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 throw ExceptionUtilities.Unreachable();
                             }
 
-                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            Debug.Assert(method.Parameters[0].Type.IsStringType());
+                            Debug.Assert(rewrittenOperand.Type?.IsStringType() == true);
                             return _factory.Call(null, method, rewrittenOperand);
                         }
 
@@ -781,6 +788,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (e.g. if the default value was specified by an attribute and was, therefore, not checked by the compiler).
         /// Set acceptFailingConversion if you want to see default(rewrittenType) in such cases.
         /// The error will be suppressed only for conversions from <see cref="decimal"/> or <see cref="DateTime"/>.
+        ///
+        /// Generally, conversions should be checked and BoundConversion nodes created during initial binding and re-used in lowering. But in some cases,
+        /// we do not preserve the conversion node. In such case, <paramref name="markAsChecked"/> is set to true
+        /// to indicate that the conversion has been previously checked during initial binding.
         /// </remarks>
         private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false, bool markAsChecked = false)
         {
@@ -831,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private BoundExpression MakeConversionNode(
+        internal BoundExpression MakeConversionNode(
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,

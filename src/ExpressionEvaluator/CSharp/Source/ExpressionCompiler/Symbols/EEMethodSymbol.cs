@@ -290,11 +290,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return true;
         }
+
+#nullable disable
 
         public override bool HidesBaseMethodsByName
         {
@@ -458,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool HasUnscopedRefAttribute => false;
 
         internal override bool UseUpdatedEscapeRules => false;
@@ -494,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.CalculateUseSiteDiagnostic(ref useSiteInfo);
             if (useSiteInfo.DiagnosticInfo != null && useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
             {
-                diagnostics.Add(useSiteInfo.DiagnosticInfo, this.Locations[0]);
+                diagnostics.Add(useSiteInfo.DiagnosticInfo, this.GetFirstLocation());
                 return;
             }
 
@@ -518,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var name = local.Name;
                         if (name.StartsWith("$", StringComparison.Ordinal))
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedCharacter, local.Locations[0], name[0]);
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedCharacter, local.GetFirstLocation(), name[0]);
                             return;
                         }
                     }
@@ -575,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     Debug.Assert(!diagnostics.HasAnyErrors());
                     Debug.Assert(!body.HasErrors);
+                    PipelinePhaseValidator.AssertAfterInitialBinding(body);
 
                     body = LocalRewriter.Rewrite(
                         compilation: this.DeclaringCompilation,
@@ -595,6 +602,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     Debug.Assert(!sawAwaitInExceptionHandler);
                     Debug.Assert(codeCoverageSpans.IsEmpty);
+
+                    if (body.HasErrors)
+                    {
+                        return;
+                    }
+
+                    body = ExtensionMethodReferenceRewriter.Rewrite(body);
 
                     if (body.HasErrors)
                     {
@@ -677,6 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     localsSet.Free();
                 }
+
+                PipelinePhaseValidator.AssertAfterClosureConversion(body);
 
                 // Insert locals from the original method,
                 // followed by any new locals.

@@ -19,12 +19,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertForEachToForCodeRefactoringProvider();
 
-    private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+    private readonly CodeStyleOption2<bool> onWithSilent = new(true, NotificationOption2.Silent);
 
     private OptionsCollection ImplicitTypeEverywhere
         => new(GetLanguage())
@@ -35,9 +35,8 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
         };
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task EmptyBlockBody()
-    {
-        var text = """
+    public Task EmptyBlockBody()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -48,8 +47,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -61,14 +59,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task EmptyBody()
-    {
-        var text = """
+    public Task EmptyBody()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -77,8 +72,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach[||](var a in array) ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -87,14 +81,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     for (int {|Rename:i|} = 0; i < array.Length; i++) ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Body()
-    {
-        var text = """
+    public Task Body()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -103,8 +94,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach[||](var a in array) Console.WriteLine(a);
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -117,14 +107,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BlockBody()
-    {
-        var text = """
+    public Task BlockBody()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -136,8 +123,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -150,14 +136,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task Comment()
-    {
-        var text = """
+    public Task Comment()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -169,8 +152,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -183,14 +165,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task Comment2()
-    {
-        var text = """
+    public Task Comment2()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -202,8 +181,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }/* comment */
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -216,14 +194,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }/* comment */
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Comment3()
-    {
-        var text = """
+    public Task Comment3()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -232,8 +207,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach[||](var a in array) /* comment */;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -242,14 +216,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Comment4()
-    {
-        var text = """
+    public Task Comment4()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -258,8 +229,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach[||](var a in array) Console.WriteLine(a); // test
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -272,14 +242,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Comment5()
-    {
-        var text = """
+    public Task Comment5()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -288,8 +255,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach [||] (var a in array) /* test */ Console.WriteLine(a); 
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -302,14 +268,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Comment6()
-    {
-        var text = """
+    public Task Comment6()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -319,8 +282,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                         /* test */ Console.WriteLine(a); 
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -334,14 +296,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task Comment7()
-    {
-        var text = """
+    public Task Comment7()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -352,8 +311,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -366,14 +324,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestCommentsInTheMiddleOfParentheses()
-    {
-        var text = """
+    public Task TestCommentsInTheMiddleOfParentheses()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -382,8 +337,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach [||] (var a /* test */ in array) ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -392,14 +346,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     for (int {|Rename:i|} = 0; i < array.Length; i++) ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestCommentsAtBeginningOfParentheses()
-    {
-        var text = """
+    public Task TestCommentsAtBeginningOfParentheses()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -408,8 +359,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach [||] (/* test */ var a in array) ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -418,14 +368,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     for (int {|Rename:i|} = 0; i < array.Length; i++) ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestCommentsAtTheEndOfParentheses()
-    {
-        var text = """
+    public Task TestCommentsAtTheEndOfParentheses()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -434,8 +381,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     foreach [||] (var a in array /* test */) ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -444,14 +390,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     for (int {|Rename:i|} = 0; i < array.Length; i++) ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task CollectionStatement()
-    {
-        var text = """
+    public Task CollectionStatement()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -462,8 +405,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -476,14 +418,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task CollectionConflict()
-    {
-        var text = """
+    public Task CollectionConflict()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -496,8 +435,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -512,14 +450,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task VariableWritten()
-    {
-        var text = """
+    public Task VariableWritten()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -531,8 +466,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -545,14 +479,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task IndexConflict()
-    {
-        var text = """
+    public Task IndexConflict()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -564,8 +495,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -578,14 +508,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task StructPropertyReadFromAndDiscarded()
-    {
-        var text = """
+    public Task StructPropertyReadFromAndDiscarded()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 struct Struct
@@ -602,8 +529,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 struct Struct
@@ -621,14 +547,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task StructPropertyReadFromAndAssignedToLocal()
-    {
-        var text = """
+    public Task StructPropertyReadFromAndAssignedToLocal()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 struct Struct
@@ -645,8 +568,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 struct Struct
@@ -664,14 +586,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task WrongCaretPosition()
-    {
-        var text = """
+    public Task WrongCaretPosition()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -683,15 +602,12 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task TestCaretBefore()
-    {
-        var text = """
+    public Task TestCaretBefore()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -702,8 +618,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -715,15 +630,12 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task TestCaretAfter()
-    {
-        var text = """
+    public Task TestCaretAfter()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -734,8 +646,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -747,15 +658,12 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task TestSelection()
-    {
-        var text = """
+    public Task TestSelection()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -766,8 +674,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -779,14 +686,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task Field()
-    {
-        var text = """
+    public Task Field()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 int[] array = new int[] { 1, 3, 4 };
@@ -798,8 +702,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 int[] array = new int[] { 1, 3, 4 };
@@ -812,14 +715,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task ArrayElement()
-    {
-        var text = """
+    public Task ArrayElement()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -831,8 +731,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -845,14 +744,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task Parameter()
-    {
-        var text = """
+    public Task Parameter()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int[] array)
@@ -862,8 +758,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int[] array)
@@ -874,14 +769,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-    public async Task Property()
-    {
-        var text = """
+    public Task Property()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 int [] Prop { get; } = new int[] { 1, 2, 3 };
@@ -893,8 +785,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 int [] Prop { get; } = new int[] { 1, 2, 3 };
@@ -907,14 +798,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Interface()
-    {
-        var text = """
+    public Task Interface()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class Test
@@ -928,8 +816,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System.Collections.Generic;
 
             class Test
@@ -944,14 +831,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task IListOfT()
-    {
-        var text = """
+    public Task IListOfT()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class Test
@@ -965,8 +849,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System.Collections.Generic;
 
             class Test
@@ -981,14 +864,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task IReadOnlyListOfT()
-    {
-        var text = """
+    public Task IReadOnlyListOfT()
+        => TestInRegularAndScriptAsync("""
             using System.Collections;
             using System.Collections.Generic;
 
@@ -1012,8 +892,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 public IEnumerator<T> GetEnumerator() => throw new System.NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new System.NotImplementedException();
             }
-            """;
-        var expected = """
+            """, """
             using System.Collections;
             using System.Collections.Generic;
 
@@ -1038,14 +917,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 public IEnumerator<T> GetEnumerator() => throw new System.NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new System.NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task IList()
-    {
-        var text = """
+    public Task IList()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -1080,8 +956,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 public void Remove(object value) => throw new NotImplementedException();
                 public void RemoveAt(int index) => throw new NotImplementedException();
             }
-            """;
-        var expected = """
+            """, """
             using System;
             using System.Collections;
 
@@ -1117,9 +992,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 public void Remove(object value) => throw new NotImplementedException();
                 public void RemoveAt(int index) => throw new NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740")]
     public async Task ImmutableArray()
@@ -1148,8 +1021,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 </Project>
             </Workspace>
             """;
-
-        var expected = """
+        await TestInRegularAndScriptAsync(text, """
             using System;
             using System.Collections.Immutable;
 
@@ -1165,14 +1037,12 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
-    public async Task ExplicitInterface()
-    {
-        var text = """
+    public Task ExplicitInterface()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1196,9 +1066,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1224,14 +1092,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task DoubleExplicitInterface()
-    {
-        var text = """
+    public Task DoubleExplicitInterface()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1259,14 +1124,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task DoubleExplicitInterfaceWithExplicitType()
-    {
-        var text = """
+    public Task DoubleExplicitInterfaceWithExplicitType()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1294,9 +1156,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1326,14 +1186,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task MixedInterfaceImplementation()
-    {
-        var text = """
+    public Task MixedInterfaceImplementation()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1361,9 +1218,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1392,14 +1247,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task MixedInterfaceImplementationWithExplicitType()
-    {
-        var text = """
+    public Task MixedInterfaceImplementationWithExplicitType()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1427,9 +1279,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1459,14 +1309,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                 IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task PreserveUserExpression()
-    {
-        var text = """
+    public Task PreserveUserExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1496,9 +1343,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1530,14 +1375,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task EmbededStatement()
-    {
-        var text = """
+    public Task EmbededStatement()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1546,14 +1388,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                         foreach [||] (var a in new int[] {});
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task EmbededStatement2()
-    {
-        var text = """
+    public Task EmbededStatement2()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1563,8 +1402,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                         foreach [||] (var a in array) Console.WriteLine(a);
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1578,14 +1416,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                         }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task IndexConflict2()
-    {
-        var text = """
+    public Task IndexConflict2()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1597,8 +1432,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1611,14 +1445,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task UseTypeAsUsedInForeach()
-    {
-        var text = """
+    public Task UseTypeAsUsedInForeach()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1630,8 +1461,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1644,14 +1474,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task String()
-    {
-        var text = """
+    public Task String()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1662,8 +1489,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1676,15 +1502,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task StringLocalConst()
-    {
-        var text = """
+    public Task StringLocalConst()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1696,8 +1518,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1710,14 +1531,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task StringConst()
-    {
-        var text = """
+    public Task StringConst()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 const string test = "test";
@@ -1730,8 +1548,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 const string test = "test";
@@ -1745,14 +1562,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task ElementExplicitCast()
-    {
-        var text = """
+    public Task ElementExplicitCast()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1764,8 +1578,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1778,14 +1591,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50469")]
-    public async Task PreventExplicitCastToVar()
-    {
-        var text = """
+    public Task PreventExplicitCastToVar()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1797,8 +1607,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1811,14 +1620,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task NotAssignable()
-    {
-        var text = """
+    public Task NotAssignable()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1830,14 +1636,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task ElementMissing()
-    {
-        var text = """
+    public Task ElementMissing()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1849,14 +1652,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task ElementMissing2()
-    {
-        var text = """
+    public Task ElementMissing2()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1867,14 +1667,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task StringExplicitType()
-    {
-        var text = """
+    public Task StringExplicitType()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1885,8 +1682,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1899,15 +1695,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task Var()
-    {
-        var text = """
+    public Task Var()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1931,9 +1723,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -1959,14 +1749,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                 IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
                 IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
-    }
+            """, new(options: ImplicitTypeEverywhere));
 
     [Fact]
-    public async Task ArrayRank2()
-    {
-        var text = """
+    public Task ArrayRank2()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -1977,14 +1764,11 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestMissingAsync(text);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48950")]
-    public async Task NullableReferenceVar()
-    {
-        var text = """
+    public Task NullableReferenceVar()
+        => TestInRegularAndScriptAsync("""
             #nullable enable
             class Test
             {
@@ -1996,8 +1780,7 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             #nullable enable
             class Test
             {
@@ -2011,7 +1794,5 @@ public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
-    }
+            """, new(options: ImplicitTypeEverywhere));
 }

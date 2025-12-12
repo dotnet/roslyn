@@ -5,17 +5,19 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForPropertiesHelper :
+internal sealed class UseExpressionBodyForPropertiesHelper :
     UseExpressionBodyHelper<PropertyDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForPropertiesHelper Instance = new();
@@ -61,10 +63,12 @@ internal class UseExpressionBodyForPropertiesHelper :
         throw new InvalidOperationException();
     }
 
-    protected override PropertyDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, PropertyDeclarationSyntax declaration)
-        => WithAccessorList(semanticModel, declaration);
+    protected override PropertyDeclarationSyntax WithGenerateBody(
+        SemanticModel semanticModel, PropertyDeclarationSyntax declaration, CancellationToken cancellation)
+        => WithAccessorList(semanticModel, declaration, cancellation);
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration, CancellationToken cancellationToken)
+        => true;
 
     protected override bool TryConvertToExpressionBody(
         PropertyDeclarationSyntax declaration,

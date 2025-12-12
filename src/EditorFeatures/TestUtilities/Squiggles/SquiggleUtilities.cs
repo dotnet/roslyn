@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,35 +15,34 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
+
+public static class SquiggleUtilities
 {
-    public static class SquiggleUtilities
+    // Squiggle tests require solution crawler to run.
+    internal static TestComposition CompositionWithSolutionCrawler = EditorTestCompositions.EditorFeatures
+        .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+
+    internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeatures
+        .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+
+    internal static async Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(
+        EditorTestWorkspace workspace,
+        IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
+        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
+        where TTag : class, ITag
     {
-        // Squiggle tests require solution crawler to run.
-        internal static TestComposition CompositionWithSolutionCrawler = EditorTestCompositions.EditorFeatures
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+        var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
 
-        internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeaturesWpf
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+        var firstDocument = workspace.Documents.First();
+        var textBuffer = firstDocument.GetTextBuffer();
+        using var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
 
-        internal static async Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(
-            EditorTestWorkspace workspace,
-            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
-            where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
-            where TTag : class, ITag
-        {
-            var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
+        await wrapper.WaitForTags();
 
-            var firstDocument = workspace.Documents.First();
-            var textBuffer = firstDocument.GetTextBuffer();
-            using var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
+        var snapshot = textBuffer.CurrentSnapshot;
+        var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
-            await wrapper.WaitForTags();
-
-            var snapshot = textBuffer.CurrentSnapshot;
-            var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
-
-            return spans;
-        }
+        return spans;
     }
 }

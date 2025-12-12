@@ -15,5 +15,5 @@ internal interface ITelemetryBlockLog : ITelemetryLog
     /// </summary>
     /// <param name="logMessage">Event data to be sent</param>
     /// <param name="minThresholdMs">Optional parameter used to determine whether to send the telemetry event (in milliseconds)</param>
-    public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs = -1);
+    IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs = -1);
 }

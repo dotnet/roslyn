@@ -9,9 +9,9 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 
-internal partial class CodeStyleSettingsViewModel
+internal sealed partial class CodeStyleSettingsViewModel
 {
-    internal class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<CodeStyleSetting>
+    internal sealed class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<CodeStyleSetting>
     {
         public SettingsEntriesSnapshot(ImmutableArray<CodeStyleSetting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
 

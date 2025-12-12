@@ -62,14 +62,18 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             // Makes a string of form "{0} {1}..."
             static string MakeInterpolatedString(int numberOfParameters)
             {
-                var interpolatedString = "\"";
+                var interpolatedString = """
+                    "
+                    """;
 
                 for (var i = 0; i < numberOfParameters; i++)
                 {
                     interpolatedString += $"{{{i}}}";
                 }
 
-                return interpolatedString + "\"";
+                return interpolatedString + """
+                    "
+                    """;
             }
 
             // Makes a string of form "{0} {1}..., 0, 1, ..."
@@ -83,9 +87,8 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
     }
 
     [Theory, MemberData(nameof(InvocationData))]
-    public async Task TestInvocationSubstitution(string before, string after)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationSubstitution(string before, string after)
+        => TestInRegularAndScriptAsync(
             $$"""
             using System;
             using System.Diagnostics;
@@ -110,12 +113,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55053")]
-    public async Task TestMissing_ConsoleWriteLine()
-    {
-        await TestMissingAsync(
+    public Task TestMissing_ConsoleWriteLine()
+        => TestMissingAsync(
             """
             using System;
 
@@ -130,12 +131,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 string GetString() => "";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55053")]
-    public async Task TestMissing_ConsoleWrite()
-    {
-        await TestMissingAsync(
+    public Task TestMissing_ConsoleWrite()
+        => TestMissingAsync(
             """
             using System;
 
@@ -150,12 +149,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 string GetString() => "";
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemOrdering()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestItemOrdering()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -178,12 +175,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemOrdering2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestItemOrdering2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -206,14 +201,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemOrdering3()
-    {
-        // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
-        // fixing first.
-        await TestMissingAsync(
+    public Task TestItemOrdering3()
+        => TestMissingAsync(
             """
             using System;
 
@@ -225,12 +216,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemOrdering4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestItemOrdering4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -253,12 +242,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMissingCurly1()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithMissingCurly1()
+        => TestMissingAsync(
             """
             using System;
 
@@ -270,12 +257,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMissingCurly2()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithMissingCurly2()
+        => TestMissingAsync(
             """
             using System;
 
@@ -287,12 +272,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithIncorrectSyntax1()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithIncorrectSyntax1()
+        => TestMissingAsync(
             """
             using System;
 
@@ -304,13 +287,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMatchWithFollowingNumber()
-    {
-        // want to make sure that `{1` is not matched as `{1}`
-        await TestMissingAsync(
+    public Task TestNotWithMatchWithFollowingNumber()
+        => TestMissingAsync(
             """
             using System;
 
@@ -322,12 +302,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithStringThatParsesWrongAsInterpolation()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithStringThatParsesWrongAsInterpolation()
+        => TestMissingAsync(
             """
             using System;
 
@@ -339,13 +317,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemOutsideRange()
-    {
-        // Missing as the format string refers to parameters that aren't provided.
-        await TestMissingAsync(
+    public Task TestItemOutsideRange()
+        => TestMissingAsync(
             """
             using System;
 
@@ -357,12 +332,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemDoNotHaveCast()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestItemDoNotHaveCast()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -385,12 +358,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemWithSyntaxErrorDoesHaveCast()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestItemWithSyntaxErrorDoesHaveCast()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -413,12 +384,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestItemWithoutSyntaxErrorDoesNotHaveCast()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestItemWithoutSyntaxErrorDoesNotHaveCast()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -441,12 +410,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParenthesisAddedForTernaryExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestParenthesisAddedForTernaryExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -469,12 +436,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoesNotAddDoubleParenthesisForTernaryExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDoesNotAddDoubleParenthesisForTernaryExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -497,12 +462,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLineExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -527,12 +490,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatSpecifiers()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatSpecifiers()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -558,12 +519,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatSpecifiers2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatSpecifiers2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -586,12 +545,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatSpecifiers3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatSpecifiers3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class T
@@ -621,12 +578,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatSpecifiers4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatSpecifiers4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -649,12 +604,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatSpecifiers5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatSpecifiers5()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -707,12 +660,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatSpecifiers6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatSpecifiers6()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -755,12 +706,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestVerbatimStringLiteral()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestVerbatimStringLiteral()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -794,12 +743,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatWithParams()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestFormatWithParams()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -819,12 +766,77 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
+    public Task TestCollectionExpressionArgument_WithNamedParameter()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0}", args: ["a"])|];
+                }
+
+                void M(string format, params object[] args)
+                {
+                }
+
+                void M(string format, string category)
+                {
+                }
+
+                void M(string format, string category, string sender)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
+    public Task TestCollectionExpressionArgument_WithNamedParameter2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0} {1}", args: ["a", "b"])|];
+                }
+
+                void M(string format, params object[] args)
+                {
+                }
+
+                void M(string format, string category)
+                {
+                }
+
+                void M(string format, string category, string sender)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
+    public Task TestImplicitArrayCreationArgument()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0}", new[] { "a" })|];
+                }
+
+                void M(string format, params object[] args)
+                {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestInvalidInteger()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvalidInteger()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -847,12 +859,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOutVariableDeclaration_01()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOutVariableDeclaration_01()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -864,12 +874,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOutVariableDeclaration_02()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOutVariableDeclaration_02()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -881,14 +889,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatWithNamedArguments1()
-    {
-        // Missing as this scenario is too esoteric.  I was not able to find any examples of code that reorders and
-        // names thigns like this with format strings.
-        await TestMissingAsync(
+    public Task TestFormatWithNamedArguments1()
+        => TestMissingAsync(
             """
             using System;
 
@@ -900,12 +904,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatWithNamedArguments2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatWithNamedArguments2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -928,12 +930,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatWithNamedArguments3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatWithNamedArguments3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -956,12 +956,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatWithNamedArguments4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatWithNamedArguments4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -984,12 +982,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatWithNamedArguments5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatWithNamedArguments5()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1012,12 +1008,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestOnlyArgumentSelection1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnlyArgumentSelection1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1040,12 +1034,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestOnlyArgumentSelection2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnlyArgumentSelection2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1068,12 +1060,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsSelection2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestArgumentsSelection2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1096,12 +1086,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task TestNoCastToObjectWhenNullableEnabled()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNoCastToObjectWhenNullableEnabled()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1128,12 +1116,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(1756068, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1756068")]
-    public async Task TestArbitraryAPI()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestArbitraryAPI()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1168,12 +1154,10 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task TestNotWithExplicitCultureInfo()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithExplicitCultureInfo()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Globalization;
@@ -1186,13 +1170,11 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Theory, MemberData(nameof(InvocationData))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/68469")]
-    public async Task TestInvocationSubstitution_FixAll(string before, string after)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationSubstitution_FixAll(string before, string after)
+        => TestInRegularAndScriptAsync(
             $$"""
             using System;
             using System.Diagnostics;
@@ -1219,5 +1201,4 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 }

@@ -87,11 +87,6 @@
         <target state="translated">Gezinti için her zaman varsayılan sembol sunucularını kullan</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyze_source_generated_files">
-        <source>Analyze source generated files</source>
-        <target state="translated">Kaynak tarafından oluşturulan dosyaları analiz et</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Çözümleyici Varsayılanları</target>
@@ -136,11 +131,6 @@
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">Odaklanmada Yığın İzleme Gezgini'ni otomatik olarak aç</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
-      </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="translated">Güncelleştirilmiş çözümleyicileri ve oluşturucuları otomatik olarak yeniden yükle (yeniden başlatma gerektirir)</target>
-        <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
@@ -242,19 +232,14 @@
         <target state="translated">'{0}' için kod analizi tamamlandı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_analysis_completed_for_Solution">
-        <source>Code analysis completed for Solution.</source>
-        <target state="translated">Çözüm için kod analizi tamamlandı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_0">
         <source>Code analysis terminated before completion for '{0}'.</source>
         <target state="translated">Kod analizi, '{0}' için tamamlanmadan önce sonlandırıldı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
-        <source>Code analysis terminated before completion for Solution.</source>
-        <target state="translated">Kod analizi, Çözüm için tamamlanmadan önce sonlandırıldı.</target>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
@@ -322,26 +307,6 @@
         <target state="translated">Geçerli parametre</target>
         <note />
       </trans-unit>
-      <trans-unit id="Default_Current_Document">
-        <source>Default (Current Document)</source>
-        <target state="translated">Varsayılan (Geçerli Belge)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_Entire_Solution">
-        <source>Default (Entire Solution)</source>
-        <target state="translated">Varsayılan (Tüm Çözüm)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_None">
-        <source>Default (None)</source>
-        <target state="translated">Varsayılan (Yok)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
-      <trans-unit id="Default_Open_Documents">
-        <source>Default (Open Documents)</source>
-        <target state="translated">Varsayılan (Açık Belgeler)</target>
-        <note>This text is a menu command</note>
-      </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
         <target state="translated">Türetilmiş türler</target>
@@ -357,9 +322,9 @@
         <target state="translated">Alt+F1 tuşlarına basılırken tüm ipuçlarını görüntüle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_diagnostics_inline_experimental">
-        <source>Display diagnostics inline (experimental)</source>
-        <target state="translated">Tanılamayı satır içi görüntüle (deneysel)</target>
+      <trans-unit id="Display_diagnostics_inline">
+        <source>Display diagnostics inline</source>
+        <target state="new">Display diagnostics inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -387,11 +352,6 @@
         <target state="translated">_Düzenle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_Color_Scheme">
-        <source>Editor Color Scheme</source>
-        <target state="translated">Düzenleyici Renk Düzeni</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Düzenleyici Yardımı</target>
@@ -400,11 +360,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Öğe geçerli değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_document_outline_experimental_requires_restart">
-        <source>Enable document outline (experimental, requires restart)</source>
-        <target state="translated">Belge ana hattını etkinleştir (deneysel, yeniden başlatma gerektirir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -457,6 +412,11 @@
         <target state="translated">Tam Çözüm ve Dış Kaynaklar</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_encountered_updating_0">
+        <source>Error encountered updating '{0}'</source>
+        <target state="new">Error encountered updating '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Gizlemeler güncellenirken hata oluştu: {0}</target>
@@ -464,8 +424,8 @@
       </trans-unit>
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
-        <target state="translated">Deneysel özellik</target>
-        <note />
+        <target state="new">Experimental feature</target>
+        <note>This is used by the settings UI to mark experimental features.</note>
       </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
@@ -492,11 +452,6 @@
         <target state="translated">Son</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
-        <source>Fix text pasted into string literals (experimental)</source>
-        <target state="translated">Sabit değerli dizelere yapıştırılan metni düzelt (deneysel)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
         <source>Fix analyzer warnings and errors</source>
         <target state="translated">Çözümleyici uyarılarını ve hatalarını düzeltin</target>
@@ -512,6 +467,11 @@
         <target state="translated">EditorConfig içinde ayarlanmış çözümleyici uyarılarını ve hatalarını düzeltin</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals">
+        <source>Fix text pasted into string literals</source>
+        <target state="new">Fix text pasted into string literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
         <target state="translated">Arabirim olmayan üyeler için</target>
@@ -525,6 +485,16 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Ayarlardan .editorconfig dosyası oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_only_summary_tag">
+        <source>Generate only &lt;summary&gt; tag</source>
+        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_on_single_line">
+        <source>Generate &lt;summary&gt; on single line</source>
+        <target state="new">Generate &lt;summary&gt; on single line</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
@@ -565,6 +535,16 @@
       <trans-unit id="Id">
         <source>Id</source>
         <target state="translated">Kimlik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_including_future_errors">
+        <source>Ignore (including future errors)</source>
+        <target state="new">Ignore (including future errors)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -1152,6 +1132,11 @@
         <target state="translated">Saltokunur alanları tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simple_property_accessors">
+        <source>Prefer simple property accessors</source>
+        <target state="new">Prefer simple property accessors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
         <target state="translated">Basit 'using' deyimini tercih et</target>
@@ -1232,10 +1217,10 @@
         <target state="translated">Gereksiz Kullanımları Kaldır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Zaman uyumsuz olarak yeniden adlandırın (deneysel)</target>
-        <note />
+      <trans-unit id="Removed_0">
+        <source>Removed {0}</source>
+        <target state="new">Removed {0}</target>
+        <note>{0} is a modifier, type, and parameter name</note>
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
@@ -1297,19 +1282,9 @@
         <target state="translated">Şunlar için arka plan kod analizini çalıştır:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">Kod analizini ayrı bir işlemde çalıştır (yeniden başlatma gerektirir)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">'{0}' için kod analizi çalıştırılıyor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_code_analysis_for_Solution">
-        <source>Running code analysis for Solution...</source>
-        <target state="translated">Çözüm için kod analizi çalıştırılıyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -1330,6 +1305,11 @@
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
         <target state="translated">Arama sonucu bulunamadı: C# veya Visual Basic projesi açılmadı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1386,16 +1366,6 @@
         <source>Show "Remove Unused References" command in Solution Explorer</source>
         <target state="translated">Çözüm Gezgini'nde "Kullanılmayan Başvuruları Kaldır" komutunu göster</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">UI öğesini sağ üstte pano olarak göster</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">UI Satır İçini Göster</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
@@ -1727,20 +1697,15 @@
         <target state="translated">Çağrı sitelerinde eklenecek değer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_2017">
-        <source>Visual Studio 2017</source>
-        <target state="translated">Visual Studio 2017</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2019">
-        <source>Visual Studio 2019</source>
-        <target state="translated">Visual Studio 2019</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
         <target state="translated">Visual Studio Ayarları</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_0_does_not_bind_to_type">
+        <source>Warning {0} does not bind to type</source>
+        <target state="new">Warning {0} does not bind to type</target>
+        <note>{0} is a type name</note>
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>
@@ -1771,11 +1736,6 @@
         <source>When types loosely match</source>
         <target state="translated">Türler yaklaşık olarak eşleştiğinde</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">Yeniden adlandırma UI öğesi nerede gösterilmeli?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
@@ -2049,16 +2009,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçiş yapmak için açılan menüyü kullanın.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnalyzerChangedOnDisk">
-        <source>AnalyzerChangedOnDisk</source>
-        <target state="translated">AnalyzerChangedOnDisk</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
-        <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="translated">Çözümleyici bütünleştirilmiş kodu '{0}' değiştirildi. Visual Studio yeniden başlatılmazsa tanılama yanlış olabilir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Tüm Seçimleri Kaldır</target>
@@ -2304,11 +2254,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
         <target state="translated">{0} ile eşitleniyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
-        <source>Visual Studio has suspended some advanced features to improve performance.</source>
-        <target state="translated">Visual Studio, performansı artırmak için bazı gelişmiş özellikleri askıya aldı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Installing_0">
         <source>Installing '{0}'</source>
         <target state="translated">'{0}' yükleniyor</target>
@@ -2501,11 +2446,6 @@ Ek bilgiler: {1}</target>
         <source>Restore {0}</source>
         <target state="translated">{0} öğesini geri yükle</target>
         <note>{0} is a parameter description</note>
-      </trans-unit>
-      <trans-unit id="Re_enable">
-        <source>Re-enable</source>
-        <target state="translated">Yeniden etkinleştir</target>
-        <note />
       </trans-unit>
       <trans-unit id="Learn_more">
         <source>Learn more</source>

@@ -354,7 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 callReceiver = initializerExpr;
             }
 
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
             // .GetPinnable()
+            callReceiver = this.ConvertReceiverForExtensionMemberIfNeeded(getPinnableMethod, callReceiver, markAsChecked: true);
             var getPinnableCall = getPinnableMethod.IsStatic ?
                 factory.Call(null, getPinnableMethod, callReceiver) :
                 factory.Call(callReceiver, getPinnableMethod);

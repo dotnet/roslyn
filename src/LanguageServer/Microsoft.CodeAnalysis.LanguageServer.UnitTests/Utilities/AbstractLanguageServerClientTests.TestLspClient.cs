@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -24,7 +23,7 @@ public partial class AbstractLanguageServerClientTests
         private int _disposed = 0;
 
         private readonly Process _process;
-        private readonly Dictionary<Uri, SourceText> _documents;
+        private readonly Dictionary<DocumentUri, SourceText> _documents;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ILoggerFactory _loggerFactory;
 
@@ -38,7 +37,7 @@ public partial class AbstractLanguageServerClientTests
             bool includeDevKitComponents,
             bool debugLsp,
             ILoggerFactory loggerFactory,
-            Dictionary<Uri, SourceText>? documents = null,
+            Dictionary<DocumentUri, SourceText>? documents = null,
             Dictionary<string, IList<LSP.Location>>? locations = null)
         {
             var pipeName = CreateNewPipeName();
@@ -58,7 +57,7 @@ public partial class AbstractLanguageServerClientTests
             // Initialize the capabilities.
             var initializeResponse = await lspClient.Initialize(clientCapabilities);
             Assert.NotNull(initializeResponse?.Capabilities);
-            lspClient._serverCapabilities = initializeResponse!.Capabilities;
+            lspClient._serverCapabilities = initializeResponse.Capabilities;
 
             await lspClient.Initialized();
 
@@ -124,7 +123,7 @@ public partial class AbstractLanguageServerClientTests
 
         internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
 
-        private TestLspClient(Process process, string pipeName, Dictionary<Uri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, ILoggerFactory loggerFactory)
+        private TestLspClient(Process process, string pipeName, Dictionary<DocumentUri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, ILoggerFactory loggerFactory)
         {
             _documents = documents;
             _locations = locations;
@@ -162,7 +161,7 @@ public partial class AbstractLanguageServerClientTests
             {
                 var logger = _loggerFactory.CreateLogger($"LSP {method}");
 
-                return (int type, string message) =>
+                return (type, message) =>
                 {
                     var logLevel = (MessageType)type switch
                     {
@@ -229,7 +228,7 @@ public partial class AbstractLanguageServerClientTests
 
             foreach (var documentEdit in textDocumentEdits)
             {
-                var uri = documentEdit.TextDocument.Uri;
+                var uri = documentEdit.TextDocument.DocumentUri;
                 var document = _documents[uri];
 
                 var changes = documentEdit.Edits
@@ -242,7 +241,7 @@ public partial class AbstractLanguageServerClientTests
             }
         }
 
-        public string GetDocumentText(Uri uri) => _documents[uri].ToString();
+        public string GetDocumentText(DocumentUri uri) => _documents[uri].ToString();
 
         public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 

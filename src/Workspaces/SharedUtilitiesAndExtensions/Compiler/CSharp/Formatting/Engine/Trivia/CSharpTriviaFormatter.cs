@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter
+internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
 {
     private bool _succeeded = true;
 
@@ -130,6 +129,17 @@ internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter
                         {
                             break;
                         }
+                    }
+                }
+
+                // For #endregion, match the indentation of the corresponding #region
+                if (trivia2.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
+                {
+                    var matchingRegion = endRegionDirective.GetMatchingDirective(cancellationToken);
+                    if (matchingRegion is RegionDirectiveTriviaSyntax)
+                    {
+                        var indentation = this.Context.GetBaseIndentation(matchingRegion.SpanStart);
+                        return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation);
                     }
                 }
 

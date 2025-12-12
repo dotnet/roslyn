@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ServiceHub.Framework;
-using System.Threading.Tasks;
 using System.IO.Pipelines;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 
-internal class MockServiceBroker : IServiceBroker
+internal sealed class MockServiceBroker : IServiceBroker
 {
     public Func<Type, object>? CreateService;
 
@@ -23,5 +23,5 @@ internal class MockServiceBroker : IServiceBroker
         => throw new NotImplementedException();
 
     public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
-        => ValueTaskFactory.FromResult((T?)(CreateService ?? throw new NotImplementedException()).Invoke(typeof(T)));
+        => ValueTask.FromResult((T?)(CreateService ?? throw new NotImplementedException()).Invoke(typeof(T)));
 }

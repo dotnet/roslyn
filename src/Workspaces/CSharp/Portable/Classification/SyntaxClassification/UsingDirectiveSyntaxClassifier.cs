@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
-internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
+internal sealed class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
 {
     public override void AddClassifications(
         SyntaxNode syntax,

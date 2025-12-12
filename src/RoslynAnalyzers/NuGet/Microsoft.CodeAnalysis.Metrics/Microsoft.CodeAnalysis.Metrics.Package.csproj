@@ -1,0 +1,55 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.Metrics</NuspecPackageId>
+    <Description>Report source based Code Metrics</Description>
+    <Summary>Microsoft.CodeAnalysis.Metrics</Summary>
+    <ReleaseNotes>Tool to report source based code metrics</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis CodeMetrics Metrics Compiler CSharp VB VisualBasic Syntax Semantics</PackageTags>
+    <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
+    <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
+    <IsShippingPackage>true</IsShippingPackage>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
+
+    <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AnalyzerNupkgFolder Include="Metrics" />
+    <AnalyzerNupkgFolder Include="Metrics.Legacy" />
+    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.Metrics.targets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Metrics\Metrics.csproj" />
+    <ProjectReference Include="..\..\Tools\Metrics.Legacy\Metrics.Legacy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.Build" VersionOverride="$(MicrosoftBuildVersionForMetrics)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(MicrosoftBuildVersionForMetrics)" ExcludeAssets="Runtime" />
+    <PackageReference Include="System.Text.Json" VersionOverride="$(SystemTextJsonVersionForMetrics)" />
+
+    <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+  </ItemGroup>
+</Project>

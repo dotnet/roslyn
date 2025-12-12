@@ -13,12 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing;
 
 using VerifyCS = CSharpCodeFixVerifier<CSharpRemoveConfusingSuppressionDiagnosticAnalyzer, CSharpRemoveConfusingSuppressionCodeFixProvider>;
 
-public class RemoveConfusingSuppressionTests
+public sealed class RemoveConfusingSuppressionTests
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestRemoveWithIsExpression1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestRemoveWithIsExpression1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -41,12 +40,10 @@ public class RemoveConfusingSuppressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestRemoveWithIsPattern1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestRemoveWithIsPattern1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -69,12 +66,10 @@ public class RemoveConfusingSuppressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestNegateWithIsExpression_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task TestNegateWithIsExpression_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -103,12 +98,10 @@ public class RemoveConfusingSuppressionTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestNegateWithIsPattern_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task TestNegateWithIsPattern_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -137,12 +130,10 @@ public class RemoveConfusingSuppressionTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestNegateWithIsExpression_CSharp9()
-    {
-        await new VerifyCS.Test
+    public Task TestNegateWithIsExpression_CSharp9()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -171,12 +162,10 @@ public class RemoveConfusingSuppressionTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestNegateWithIsPattern_CSharp9()
-    {
-        await new VerifyCS.Test
+    public Task TestNegateWithIsPattern_CSharp9()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -210,12 +199,10 @@ public class RemoveConfusingSuppressionTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestRemoveWithIsExpression_FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveWithIsExpression_FixAll1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -250,12 +237,10 @@ public class RemoveConfusingSuppressionTests
             NumberOfFixAllIterations = 1,
             CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.RemoveOperator,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestNegateWithIsExpression_FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestNegateWithIsExpression_FixAll1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -291,12 +276,10 @@ public class RemoveConfusingSuppressionTests
             CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.NegateExpression,
             NumberOfFixAllIterations = 1,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestRemoveWithIsPatternExpression_FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveWithIsPatternExpression_FixAll1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -331,12 +314,10 @@ public class RemoveConfusingSuppressionTests
             NumberOfFixAllIterations = 1,
             CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.RemoveOperator,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
-    public async Task TestNegateWithIsPatternExpression_FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestNegateWithIsPatternExpression_FixAll1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -372,5 +353,4 @@ public class RemoveConfusingSuppressionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.NegateExpression,
         }.RunAsync();
-    }
 }

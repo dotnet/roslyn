@@ -10,16 +10,19 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 
-public partial class SmartIndenterTests
+public sealed partial class SmartIndenterTests
 {
     // TODO: Author this as a performance test.
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void RegionPerformance()
     {
-        var code =
+
         #region very long sample code
-"""
+        #endregion
+
+        AssertSmartIndent(
+            """
  using System;
  using System.Collections.Generic;
 
@@ -2208,11 +2211,7 @@ public partial class SmartIndenterTests
      {
      }
  }
- """;
-        #endregion
-
-        AssertSmartIndent(
-            code,
+ """,
             expectedIndentation: 12);
     }
 }

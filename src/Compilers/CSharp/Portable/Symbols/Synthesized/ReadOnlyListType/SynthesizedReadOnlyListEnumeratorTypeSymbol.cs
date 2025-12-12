@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -54,8 +55,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
+
+                        Debug.Assert(method.ReturnType.IsObjectType());
+                        Debug.Assert(itemFieldReference.Type.IsTypeParameter());
+
+                        Conversion c = f.ClassifyEmitConversion(itemFieldReference, method.ReturnType);
+                        Debug.Assert(c.IsImplicit);
+                        Debug.Assert(c.IsBoxing);
+
                         // return (object)_item;
-                        return f.Return(f.Convert(method.ReturnType, itemFieldReference));
+                        return f.Return(f.Convert(method.ReturnType, itemFieldReference, c));
                     }));
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
@@ -139,6 +148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsRefLikeType => false;
 
+        internal override string? ExtensionGroupingName => null;
+
+        internal sealed override string? ExtensionMarkerName => null;
+
         public override bool IsReadOnly => false;
 
         public override Symbol ContainingSymbol => _containingType;
@@ -172,6 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
 
         internal override bool HasSpecialName => false;
 

@@ -7,11 +7,11 @@ Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -325,10 +325,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New MethodInstrumentation() With {.Kinds = EmitOptions.InstrumentationKinds}
         End Function
 
-        Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray(Of AnonymousTypeKey).Empty
-        End Function
-
         Friend Overridable Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
             Return 0
         End Function
@@ -382,14 +378,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Loop While stack.Count > 0
         End Function
 
-        Public NotOverridable Overrides Function GetExportedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.ExportedType)
+        Public NotOverridable Overrides Function GetExportedTypes(context As EmitContext) As ImmutableArray(Of Cci.ExportedType)
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If _lazyExportedTypes.IsDefault Then
                 Dim initialized = ImmutableInterlocked.InterlockedInitialize(_lazyExportedTypes, CalculateExportedTypes())
 
                 If initialized AndAlso _lazyExportedTypes.Length > 0 Then
-                    ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics)
+                    ReportExportedTypeNameCollisions(_lazyExportedTypes, context.Diagnostics)
                 End If
             End If
 

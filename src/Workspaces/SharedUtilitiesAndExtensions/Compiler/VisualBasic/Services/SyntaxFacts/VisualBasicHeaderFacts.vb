@@ -22,13 +22,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
                 position As Integer,
                 fullHeader As Boolean,
                 ByRef typeDeclaration As SyntaxNode) As Boolean
-            Dim typeBlock = TryGetAncestorForLocation(Of TypeBlockSyntax)(root, position)
+            Dim typeBlock = TryGetAncestorForLocation(Of TypeBlockSyntax)(root, position, typeDeclaration)
             If typeBlock Is Nothing Then
                 Return Nothing
             End If
 
             Dim typeStatement = typeBlock.BlockStatement
-            typeDeclaration = typeBlock
 
             Dim lastToken = If(typeStatement.TypeParameterList?.GetLastToken(), typeStatement.Identifier)
             If fullHeader Then
@@ -41,35 +40,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Overrides Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean
-            Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(root, position)
-            propertyDeclaration = node
+            Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(root, position, propertyDeclaration)
 
-            If propertyDeclaration Is Nothing Then
-                Return False
-            End If
-
-            If node.AsClause IsNot Nothing Then
+            If node?.AsClause IsNot Nothing Then
                 Return IsOnHeader(root, position, node, node.AsClause)
             End If
 
-            Return IsOnHeader(root, position, node, node.Identifier)
+            Return node IsNot Nothing AndAlso IsOnHeader(root, position, node, node.Identifier)
         End Function
 
         Public Overrides Function IsOnParameterHeader(root As SyntaxNode, position As Integer, ByRef parameter As SyntaxNode) As Boolean
-            Dim node = TryGetAncestorForLocation(Of ParameterSyntax)(root, position)
-            parameter = node
-
-            If parameter Is Nothing Then
-                Return False
-            End If
-
-            Return IsOnHeader(root, position, node, node)
+            Dim node = TryGetAncestorForLocation(Of ParameterSyntax)(root, position, parameter)
+            Return node IsNot Nothing AndAlso IsOnHeader(root, position, node, node)
         End Function
 
         Public Overrides Function IsOnMethodHeader(root As SyntaxNode, position As Integer, ByRef method As SyntaxNode) As Boolean
-            Dim node = TryGetAncestorForLocation(Of MethodStatementSyntax)(root, position)
-            method = node
-
+            Dim node = TryGetAncestorForLocation(Of MethodStatementSyntax)(root, position, method)
             If method Is Nothing Then
                 Return False
             End If
@@ -91,31 +77,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Overrides Function IsOnLocalDeclarationHeader(root As SyntaxNode, position As Integer, ByRef localDeclaration As SyntaxNode) As Boolean
-            Dim node = TryGetAncestorForLocation(Of LocalDeclarationStatementSyntax)(root, position)
-            localDeclaration = node
-
-            If localDeclaration Is Nothing Then
-                Return False
-            End If
-
-            Dim initializersExpressions = node.Declarators.
+            Dim node = TryGetAncestorForLocation(Of LocalDeclarationStatementSyntax)(root, position, localDeclaration)
+            Return node IsNot Nothing AndAlso IsOnHeader(root, position, node, node, node.Declarators.
                 Where(Function(d) d.Initializer IsNot Nothing).
-                SelectAsArray(Function(initialized) initialized.Initializer.Value)
-            Return IsOnHeader(root, position, node, node, initializersExpressions)
+                SelectAsArray(Function(initialized) initialized.Initializer.Value))
         End Function
 
         Public Overrides Function IsOnIfStatementHeader(root As SyntaxNode, position As Integer, ByRef ifStatement As SyntaxNode) As Boolean
-            ifStatement = Nothing
-
-            Dim multipleLineNode = TryGetAncestorForLocation(Of MultiLineIfBlockSyntax)(root, position)
+            Dim multipleLineNode = TryGetAncestorForLocation(Of MultiLineIfBlockSyntax)(root, position, ifStatement)
             If multipleLineNode IsNot Nothing Then
-                ifStatement = multipleLineNode
                 Return IsOnHeader(root, position, multipleLineNode.IfStatement, multipleLineNode.IfStatement)
             End If
 
-            Dim singleLineNode = TryGetAncestorForLocation(Of SingleLineIfStatementSyntax)(root, position)
+            Dim singleLineNode = TryGetAncestorForLocation(Of SingleLineIfStatementSyntax)(root, position, ifStatement)
             If singleLineNode IsNot Nothing Then
-                ifStatement = singleLineNode
                 Return IsOnHeader(root, position, singleLineNode, singleLineNode.Condition)
             End If
 
@@ -123,26 +98,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Overrides Function IsOnWhileStatementHeader(root As SyntaxNode, position As Integer, ByRef whileStatement As SyntaxNode) As Boolean
-            whileStatement = Nothing
-
-            Dim whileBlock = TryGetAncestorForLocation(Of WhileBlockSyntax)(root, position)
-            If whileBlock IsNot Nothing Then
-                whileStatement = whileBlock
-                Return IsOnHeader(root, position, whileBlock.WhileStatement, whileBlock.WhileStatement)
-            End If
-
-            Return False
+            Dim whileBlock = TryGetAncestorForLocation(Of WhileBlockSyntax)(root, position, whileStatement)
+            Return whileBlock IsNot Nothing AndAlso IsOnHeader(root, position, whileBlock.WhileStatement, whileBlock.WhileStatement)
         End Function
 
         Public Overrides Function IsOnForeachHeader(root As SyntaxNode, position As Integer, ByRef foreachStatement As SyntaxNode) As Boolean
-            Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(root, position)
-            foreachStatement = node
-
-            If foreachStatement Is Nothing Then
-                Return False
-            End If
-
-            Return IsOnHeader(root, position, node, node.ForEachStatement)
+            Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(root, position, foreachStatement)
+            Return node IsNot Nothing AndAlso IsOnHeader(root, position, node, node.ForEachStatement)
         End Function
     End Class
 End Namespace

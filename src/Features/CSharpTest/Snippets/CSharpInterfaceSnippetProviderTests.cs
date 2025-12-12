@@ -15,9 +15,8 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
     protected override string SnippetIdentifier => "interface";
 
     [Fact]
-    public async Task InsertInterfaceSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInBlockNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace
             {
                 $$
@@ -25,63 +24,55 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             namespace Namespace
             {
-                interface {|0:MyInterface|}
+                interface I{|0:MyInterface|}
                 {
                     $$
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInFileScopedNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace;
 
             $$
             """, """
             namespace Namespace;
 
-            interface {|0:MyInterface|}
+            interface I{|0:MyInterface|}
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetTest()
+        => VerifySnippetAsync("""
             $$
             """, """
-            interface {|0:MyInterface|}
+            interface I{|0:MyInterface|}
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceTopLevelSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceTopLevelSnippetTest()
+        => VerifySnippetAsync("""
             System.Console.WriteLine();
             $$
             """, """
             System.Console.WriteLine();
-            interface {|0:MyInterface|}
+            interface I{|0:MyInterface|}
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetInClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 $$
@@ -89,18 +80,16 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             class MyClass
             {
-                interface {|0:MyInterface|}
+                interface I{|0:MyInterface|}
                 {
                     $$
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetInRecordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInRecordTest()
+        => VerifySnippetAsync("""
             record MyRecord
             {
                 $$
@@ -108,18 +97,16 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             record MyRecord
             {
-                interface {|0:MyInterface|}
+                interface I{|0:MyInterface|}
                 {
                     $$
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetInStructTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInStructTest()
+        => VerifySnippetAsync("""
             struct MyStruct
             {
                 $$
@@ -127,18 +114,16 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             struct MyStruct
             {
-                interface {|0:MyInterface|}
+                interface I{|0:MyInterface|}
                 {
                     $$
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetInInterfaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInInterfaceTest()
+        => VerifySnippetAsync("""
             interface MyInterface
             {
                 $$
@@ -146,21 +131,36 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             interface MyInterface
             {
-                interface {|0:MyInterface1|}
+                interface I{|0:MyInterface|}
                 {
                     $$
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInterfaceSnippetWithModifiersTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInterfaceSnippetInInterfaceTest2()
+        => VerifySnippetAsync("""
+            interface IMyInterface
+            {
+                $$
+            }
+            """, """
+            interface IMyInterface
+            {
+                interface I{|0:MyInterface1|}
+                {
+                    $$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task InsertInterfaceSnippetWithModifiersTest()
+        => VerifySnippetAsync("""
             $$
             """, """
-            public interface {|0:MyInterface|}
+            public interface I{|0:MyInterface|}
             {
                 $$
             }
@@ -171,23 +171,19 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact]
-    public async Task NoInterfaceSnippetInEnumTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInterfaceSnippetInEnumTest()
+        => VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInterfaceSnippetInMethodTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInterfaceSnippetInMethodTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -196,12 +192,10 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInterfaceSnippetInConstructorTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInterfaceSnippetInConstructorTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public Program()
@@ -210,30 +204,26 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInterfaceSnippetAfterAccessibilityModifier(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertInterfaceSnippetAfterAccessibilityModifier(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} interface {|0:MyInterface|}
+            {{modifier}} interface I{|0:MyInterface|}
             {
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInterfaceSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertInterfaceSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} interface {|0:MyInterface|}
+            {{modifier}} interface I{|0:MyInterface|}
             {
                 $$
             }
@@ -244,21 +234,18 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Theory]
     [InlineData("unsafe")]
-    public async Task InsertInterfaceSnippetAfterValidModifiersTest(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertInterfaceSnippetAfterValidModifiersTest(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} interface {|0:MyInterface|}
+            {{modifier}} interface I{|0:MyInterface|}
             {
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("abstract")]
@@ -266,21 +253,18 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
     [InlineData("static")]
     [InlineData("ref")]
     [InlineData("readonly")]
-    public async Task NoInterfaceSnippetAfterInvalidModifiersTest(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($"""
+    public Task NoInterfaceSnippetAfterInvalidModifiersTest(string modifier)
+        => VerifySnippetIsAbsentAsync($"""
             {modifier} $$
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} partial $$
             """, $$"""
-            {{modifier}} partial interface {|0:MyInterface|}
+            {{modifier}} partial interface I{|0:MyInterface|}
             {
                 $$
             }
@@ -291,15 +275,13 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
-    public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
+        => VerifySnippetAsync("""
             partial $$
             """, """
-            public partial interface {|0:MyInterface|}
+            public partial interface I{|0:MyInterface|}
             {
                 $$
             }
@@ -310,5 +292,4 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 }

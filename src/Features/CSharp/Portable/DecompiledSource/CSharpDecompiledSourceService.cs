@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 
 [ExportLanguageService(typeof(IDecompiledSourceService), LanguageNames.CSharp), Shared]
-internal class CSharpDecompiledSourceService : IDecompiledSourceService
+internal sealed class CSharpDecompiledSourceService : IDecompiledSourceService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

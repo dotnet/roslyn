@@ -1,0 +1,19 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <MetricsExeFolder>$(MSBuildThisFileDirectory)\..\Metrics</MetricsExeFolder>
+    <MetricsExeName>Metrics</MetricsExeName>
+    <MetricsOutputFile Condition="'$(MetricsOutputFile)' == ''">$(MSBuildProjectName).Metrics.xml</MetricsOutputFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(LEGACY_CODE_METRICS_MODE)' == 'true'">
+    <MetricsExeFolder>$(MetricsExeFolder).Legacy</MetricsExeFolder>
+    <MetricsExeName>$(MetricsExeName).Legacy</MetricsExeName>
+  </PropertyGroup>
+
+  <Target Name="Metrics">
+    <Exec Command='&quot;$(MetricsExeFolder)\$(MetricsExeName).exe&quot; /project:&quot;$(MSBuildProjectFullPath)&quot; /out:&quot;$(MetricsOutputFile)&quot;'
+          WorkingDirectory="$(MSBuildProjectDirectory)">
+    </Exec>
+  </Target>
+</Project>

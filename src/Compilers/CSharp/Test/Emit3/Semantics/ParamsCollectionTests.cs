@@ -20,15 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class ParamsCollectionTests : CompilingTestBase
     {
-        private const string ParamCollectionAttributeSource = @"
-namespace System.Runtime.CompilerServices
-{
-    public sealed class ParamCollectionAttribute : Attribute
-    {
-        public ParamCollectionAttribute() { }
-    }
-}
-";
+        private static string ParamCollectionAttributeSource => TestSources.ParamsCollectionAttribute;
 
         private static void VerifyParamsAndAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
@@ -941,43 +933,6 @@ public class Program
                 //     public static void Test1(params MyCollection1 a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection1 a").WithArguments("MyCollectionBuilder1.Create(System.ReadOnlySpan<long>)", "Program.Test1(params MyCollection1)").WithLocation(38, 30)
                 );
-        }
-
-        [Fact]
-        public void CreateMethod_LocalFunction_InconsistentAccessibility()
-        {
-            string source = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                class Program
-                {
-                    [CollectionBuilder(typeof(MyBuilder), "Create")]
-                    private class MyCollection<T> : IEnumerable<T>
-                    {
-                        private readonly List<T> _items;
-                        public MyCollection(ReadOnlySpan<T> items) { _items = new(items.ToArray()); }
-                        public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-                    }
-                    private class MyBuilder
-                    {
-                        public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
-                    }
-                    static void Main()
-                    {
-                        local(1, 2, 3);
-                        void local<T>(params MyCollection<T> c) { c.Report(); }
-                    }
-                }
-                """;
-            var verifier = CompileAndVerify(
-                [source, CollectionExpressionTests.s_collectionExtensions],
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: ExpectedOutput("""[1, 2, 3], """));
-            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2407,52 +2362,6 @@ class Program
         }
 
         [Fact]
-        public void ImplementsIEnumerableT_24_ProtectedConstructor()
-        {
-            string sourceA = """
-                using System.Collections;
-                using System.Collections.Generic;
-                internal class MyCollection<T> : IEnumerable<T>
-                {
-                    protected MyCollection() { }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
-                    IEnumerator IEnumerable.GetEnumerator() => null;
-                    public void Add(T t) { }
-                }
-                """;
-            string sourceB = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var f1 = (params MyCollection<string> args) => { };
-                        static void f2<T>(params MyCollection<T> args) { }
-                        f1();
-                        f2<string>();
-                    }
-                    static void F3<T>(params MyCollection<T> args) { }
-                }
-                """;
-            var comp = CreateCompilation([sourceA, sourceB]);
-            comp.VerifyEmitDiagnostics(
-                // (5,19): error CS0122: 'MyCollection<string>.MyCollection()' is inaccessible due to its protection level
-                //         var f1 = (params MyCollection<string> args) => { };
-                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection<string> args").WithArguments("MyCollection<string>.MyCollection()").WithLocation(5, 19),
-                // (6,27): error CS0122: 'MyCollection<T>.MyCollection()' is inaccessible due to its protection level
-                //         static void f2<T>(params MyCollection<T> args) { }
-                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection<T> args").WithArguments("MyCollection<T>.MyCollection()").WithLocation(6, 27),
-                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<MyCollection<string>>'
-                //         f1();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f1").WithArguments("obj", "System.Action<MyCollection<string>>").WithLocation(7, 9),
-                // (8,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'f2<T>(params MyCollection<T>)'
-                //         f2<string>();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f2<string>").WithArguments("args", "f2<T>(params MyCollection<T>)").WithLocation(8, 9),
-                // (10,23): error CS0122: 'MyCollection<T>.MyCollection()' is inaccessible due to its protection level
-                //     static void F3<T>(params MyCollection<T> args) { }
-                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection<T> args").WithArguments("MyCollection<T>.MyCollection()").WithLocation(10, 23));
-        }
-
-        [Fact]
         public void ImplementsIEnumerable_01()
         {
             var src = """
@@ -2824,10 +2733,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics(
                     // (7,72): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
@@ -2880,8 +2787,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics(
                     // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<long[]> l = (params long[] x) => {};
@@ -3026,10 +2933,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3075,8 +2980,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics();
         }
 
@@ -3161,7 +3066,7 @@ format:
   IL_006c:  ldloca.s   V_0
   IL_006e:  ldc.i4.2
   IL_006f:  call       ""System.ReadOnlySpan<CustomHandler> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<CustomHandler>, CustomHandler>(in <>y__InlineArray2<CustomHandler>, int)""
-  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(scoped System.ReadOnlySpan<CustomHandler>)""
+  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(params System.ReadOnlySpan<CustomHandler>)""
   IL_0079:  ret
 }
 ");
@@ -4616,15 +4521,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on lambdas
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_1");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -4769,15 +4672,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on local functions
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test1|0_0");
-                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test2|0_1");
-                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -13053,9 +12954,9 @@ class Program
                 src,
                 "<>f__AnonymousDelegate0.Invoke",
                 "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
-                // (7,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
-                //         var x1 = Test1;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test1").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 18)
+                // (11,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         void Test1(params IEnumerable<long> a) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> a").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(11, 20)
                 );
         }
 

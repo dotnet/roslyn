@@ -244,8 +244,6 @@ internal static class ITextViewWindowInProcessExtensions
         return view.Caret.Position;
     }
 
-    private static async Task WaitForCompletionSetAsync(ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
-    {
-        await textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private static Task WaitForCompletionSetAsync(ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
+        => textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 }

@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -137,39 +138,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Can't specify the same value for iid and eventsid
                     ' It is not an error to reuse the classid guid though.
                     If InterfaceId IsNot Nothing AndAlso EventId IsNot Nothing AndAlso interfaceGuid = eventGuid Then
-                        Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassDuplicateGuids1, comClass.Name)
+                        Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassDuplicateGuids1, comClass.Name)
                     End If
                 End If
 
                 ' Can't specify ComClass and Guid
                 If comClass.HasGuidAttribute() Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.GuidAttribute.Name)
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.GuidAttribute.Name)
                 End If
 
                 ' Can't specify ComClass and ClassInterface
                 If comClass.HasClassInterfaceAttribute() Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.ClassInterfaceAttribute.Name)
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.ClassInterfaceAttribute.Name)
                 End If
 
                 ' Can't specify ComClass and ComSourceInterfaces
                 If comClass.HasComSourceInterfacesAttribute() Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.ComSourceInterfacesAttribute.Name)
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.ComSourceInterfacesAttribute.Name)
                 End If
 
                 ' Can't specify ComClass and ComVisible(False)
                 If Not GetComVisibleState(comClass) Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.ComVisibleAttribute.Name & "(False)")
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassAndReservedAttribute1, AttributeDescription.ComVisibleAttribute.Name & "(False)")
                 End If
 
                 'Class must be Public
                 If comClass.DeclaredAccessibility <> Accessibility.Public Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassRequiresPublicClass1, comClass.Name)
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassRequiresPublicClass1, comClass.Name)
                 Else
                     Dim container As NamedTypeSymbol = comClass.ContainingType
 
                     While container IsNot Nothing
                         If container.DeclaredAccessibility <> Accessibility.Public Then
-                            Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassRequiresPublicClass2,
+                            Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassRequiresPublicClass2,
                                                     comClass.Name, container.Name)
                             Exit While
                         End If
@@ -180,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Class cannot be Abstract
                 If comClass.IsMustInherit Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_ComClassCantBeAbstract0)
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_ComClassCantBeAbstract0)
                 End If
 
                 ' Check for nest type name collisions on this class and
@@ -191,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 GetComClassMembers(comClass, interfaceMembers, eventMembers, haveDefaultProperty, diagnostics)
 
                 If interfaceMembers.Count = 0 AndAlso eventMembers.Count = 0 Then
-                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.WRN_ComClassNoMembers1, comClass.Name)
+                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.WRN_ComClassNoMembers1, comClass.Name)
 
                 ElseIf Not diagnostics.HasAnyErrors() Then
                     Dim comClassInterface As NamedTypeSymbol = New SynthesizedComInterface(comClass, interfaceMembers)
@@ -210,26 +211,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                    (EventId IsNot Nothing AndAlso interfaces.Length > 1) Then
                     Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
-                                                                     comClass.Locations(0),
+                                                                     comClass.GetFirstLocation(),
                                                                      diagnostics)
                 End If
 
                 ' Should be able to emit ClassInterfaceAttribute.
                 Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType,
                                                                  comClass.DeclaringCompilation,
-                                                                 comClass.Locations(0),
+                                                                 comClass.GetFirstLocation(),
                                                                  diagnostics)
 
                 ' Should be able to emit ComSourceInterfacesAttribute and InterfaceTypeAttribute if there is an event interface.
                 If interfaces.Length > 1 Then
                     Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComSourceInterfacesAttribute__ctorString,
                                                                      comClass.DeclaringCompilation,
-                                                                     comClass.Locations(0),
+                                                                     comClass.GetFirstLocation(),
                                                                      diagnostics)
 
                     Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16,
                                                                      comClass.DeclaringCompilation,
-                                                                     comClass.Locations(0),
+                                                                     comClass.GetFirstLocation(),
                                                                      diagnostics)
                 End If
 
@@ -237,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If interfaces.Length > 0 Then
                     Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
-                                                                     comClass.Locations(0),
+                                                                     comClass.GetFirstLocation(),
                                                                      diagnostics)
                 End If
 
@@ -264,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Should be able to emit DispIdAttribute on members.
                     Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
-                                                                     comClass.Locations(0),
+                                                                     comClass.GetFirstLocation(),
                                                                      diagnostics)
                 End If
 
@@ -272,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Should be able to emit DefaultMemberAttribute.
                     Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
-                                                                     comClass.Locations(0),
+                                                                     comClass.GetFirstLocation(),
                                                                      diagnostics)
                 End If
 
@@ -286,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Shared Function ValidateComClassGuid(comClass As SourceNamedTypeSymbol, id As String, diagnostics As BindingDiagnosticBag, <Out> Optional ByRef guidVal As Guid = Nothing) As Boolean
                 If id IsNot Nothing Then
                     If Not Guid.TryParseExact(id, "D", guidVal) Then '32 digits separated by hyphens: 00000000-0000-0000-0000-000000000000 
-                        Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_BadAttributeUuid2, AttributeDescription.VisualBasicComClassAttribute.Name, id)
+                        Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.ERR_BadAttributeUuid2, AttributeDescription.VisualBasicComClassAttribute.Name, id)
                         Return False
                     End If
                 Else
@@ -328,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     For Each member As Symbol In comClass.GetMembers(interfaceName)
                         ' Error--name collision on this class
-                        Binder.ReportDiagnostic(diagnostics, member.Locations(0), ERRID.ERR_MemberConflictWithSynth4,
+                        Binder.ReportDiagnostic(diagnostics, member.GetFirstLocation(), ERRID.ERR_MemberConflictWithSynth4,
                                                 SyntaxFacts.GetText(SyntaxKind.InterfaceKeyword) & " " & interfaceName,
                                                 AttributeDescription.VisualBasicComClassAttribute.Name,
                                                 SyntaxFacts.GetText(SyntaxKind.ClassKeyword),
@@ -342,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 If member.DeclaredAccessibility <> Accessibility.Private Then
                                     ' Warning--name shadows a base class member
 
-                                    Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.WRN_ComClassInterfaceShadows5,
+                                    Binder.ReportDiagnostic(diagnostics, comClass.GetFirstLocation(), ERRID.WRN_ComClassInterfaceShadows5,
                                                             comClass.Name,
                                                             SyntaxFacts.GetText(SyntaxKind.InterfaceKeyword),
                                                             interfaceName,
@@ -425,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             ' Warn for Property X As Object : Set(ByVal o As Object)
                             If prop.Type.IsObjectType() AndAlso prop.SetMethod IsNot Nothing Then
-                                Binder.ReportDiagnostic(diagnostics, prop.Locations(0), ERRID.WRN_ComClassPropertySetObject1, prop)
+                                Binder.ReportDiagnostic(diagnostics, prop.GetFirstLocation(), ERRID.WRN_ComClassPropertySetObject1, prop)
                             End If
 
                             interfaceMembers.Add(New KeyValuePair(Of Symbol, Integer)(prop, GetUserSpecifiedDispId(prop, diagnostics)))
@@ -451,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case SymbolKind.Method
                             If DirectCast(member, MethodSymbol).IsGenericMethod Then
                                 ' Generic methods cannot be exposed to COM
-                                Binder.ReportDiagnostic(diagnostics, member.Locations(0), ERRID.ERR_ComClassGenericMethod)
+                                Binder.ReportDiagnostic(diagnostics, member.GetFirstLocation(), ERRID.ERR_ComClassGenericMethod)
                             End If
 
                             interfaceMembers.Add(New KeyValuePair(Of Symbol, Integer)(member, GetUserSpecifiedDispId(member, diagnostics)))
@@ -492,13 +493,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' for the Default property.
                         If dispId = 0 Then
                             If target.Kind <> SymbolKind.Property OrElse Not DirectCast(target, PropertySymbol).IsDefault Then
-                                Binder.ReportDiagnostic(diagnostics, target.Locations(0), ERRID.ERR_ComClassReservedDispIdZero1, target.Name)
+                                Binder.ReportDiagnostic(diagnostics, target.GetFirstLocation(), ERRID.ERR_ComClassReservedDispIdZero1, target.Name)
                             End If
 
                             ' Validate that the user has not used negative DispId's which
                             ' are reserved by COM and the runtime.
                         ElseIf dispId < 0 Then
-                            Binder.ReportDiagnostic(diagnostics, target.Locations(0), ERRID.ERR_ComClassReservedDispId1, target.Name)
+                            Binder.ReportDiagnostic(diagnostics, target.GetFirstLocation(), ERRID.ERR_ComClassReservedDispId1, target.Name)
                         End If
 
                         Return dispId

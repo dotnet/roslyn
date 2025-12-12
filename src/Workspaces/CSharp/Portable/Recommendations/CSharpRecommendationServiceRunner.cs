@@ -443,7 +443,7 @@ internal partial class CSharpRecommendationService
                 CancellationToken cancellationToken)
             {
                 // Fine to offer primary constructor parameters in field/property initializers 
-                var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
+                var initializer = context.TargetToken.GetAncestor<EqualsValueClauseSyntax>();
                 if (initializer is
                     {
                         Parent: PropertyDeclarationSyntax or
@@ -452,6 +452,11 @@ internal partial class CSharpRecommendationService
                 {
                     return false;
                 }
+
+                // Also fine to offer primary constructor parameters in the base type list of that type.
+                var baseTypeSyntax = context.TargetToken.GetAncestor<PrimaryConstructorBaseTypeSyntax>();
+                if (baseTypeSyntax != null)
+                    return false;
 
                 // We're not in an initializer.  Filter out this primary constructor parameter if it's already been
                 // captured by an existing field or property initializer.
@@ -676,7 +681,7 @@ internal partial class CSharpRecommendationService
 
             // If the thing on the left is a type, namespace, or alias, we shouldn't show anything in
             // IntelliSense.
-            if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
+            if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault() is INamedTypeSymbol or INamespaceSymbol or IAliasSymbol)
                 return default;
 
             // Can't access statics through `?.` so do not allow for the `Color Color` case.
@@ -700,7 +705,7 @@ internal partial class CSharpRecommendationService
             var typeMembers = GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
 
             return new RecommendedSymbols(
-                result.NamedSymbols.Concat(typeMembers.NamedSymbols),
+                [.. result.NamedSymbols, .. typeMembers.NamedSymbols],
                 result.UnnamedSymbols);
 
             bool CanAccessInstanceAndStaticMembersOffOf(out SymbolInfo reinterpretedBinding)

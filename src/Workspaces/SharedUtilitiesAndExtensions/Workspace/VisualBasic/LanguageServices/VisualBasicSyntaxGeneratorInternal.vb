@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -15,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <ExportLanguageService(GetType(SyntaxGeneratorInternal), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxGeneratorInternal
+    Friend NotInheritable Class VisualBasicSyntaxGeneratorInternal
         Inherits SyntaxGeneratorInternal
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxGeneratorInternal()
@@ -65,6 +66,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
         End Function
 
+        Public Overrides Function WithPropertyInitializer(propertyDeclaration As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException("VB does not support primary constructors.")
+        End Function
+
+        Public Overrides Function EqualsValueClause(value As SyntaxNode) As SyntaxNode
+            Return EqualsValueClause(SyntaxFactory.Token(SyntaxKind.EqualsToken), value)
+        End Function
+
         Public Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
@@ -97,6 +106,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode
+            Return Parenthesize(expression, addSimplifierAnnotation)
+        End Function
+
+        Friend Shared Function ParenthesizeNonSimple(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ExpressionSyntax
+            Dim identifierName = TryCast(expression, IdentifierNameSyntax)
+            If identifierName IsNot Nothing Then
+                Return identifierName
+            End If
+
             Return Parenthesize(expression, addSimplifierAnnotation)
         End Function
 
@@ -518,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #End Region
 
         Public Overrides Function BitwiseOrExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.OrExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.OrExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function CastExpression(type As SyntaxNode, expression As SyntaxNode) As SyntaxNode

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Security.Cryptography;
 using System.Runtime.Serialization;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -41,31 +42,30 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
         // ensure we don't have collisions.
         var generatorIdentity = SourceGeneratorIdentity.Create(generator, analyzerReference);
 
-        // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
-        // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
-        var projectIdBytes = projectId.Id.ToByteArray();
-
         // The assembly path should exist in any normal scenario; the hashing of the name only would apply if the user loaded a
         // dynamic assembly they produced at runtime and passed us that via a custom AnalyzerReference.
         var assemblyNameToHash = generatorIdentity.AssemblyPath ?? generatorIdentity.AssemblyName;
 
-        using var _ = ArrayBuilder<byte>.GetInstance(capacity: (assemblyNameToHash.Length + 1 + generatorIdentity.TypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
-        hashInput.AddRange(projectIdBytes);
+#if NET
+        Span<byte> bytesToChecksum = stackalloc byte[16];
+        projectId.Id.TryWriteBytes(bytesToChecksum);
+#else
+        var bytesToChecksum = projectId.Id.ToByteArray().AsSpan();
+#endif
 
-        // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
-        // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
-        hashInput.AddRange(Encoding.Unicode.GetBytes(assemblyNameToHash));
-        hashInput.AddRange(0, 0);
-        hashInput.AddRange(Encoding.Unicode.GetBytes(generatorIdentity.TypeName));
-        hashInput.AddRange(0, 0);
-        hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
+        ReadOnlySpan<string> stringsToChecksum = [assemblyNameToHash, generatorIdentity.TypeName, hintName];
+        var stringChecksum = Checksum.Create(stringsToChecksum);
+        var byteChecksum = Checksum.Create(bytesToChecksum);
+        var compositeChecksum = Checksum.Create(stringChecksum, byteChecksum);
 
-        // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary. The only requirement
-        // is it must be collision resistant, and provide enough bits to fill a GUID.
-        using var crytpoAlgorithm = System.Security.Cryptography.SHA256.Create();
-        var hash = crytpoAlgorithm.ComputeHash(hashInput.ToArray());
-        Array.Resize(ref hash, 16);
-        var guid = new Guid(hash);
+        Span<byte> checksumAsBytes = stackalloc byte[16];
+        compositeChecksum.WriteTo(checksumAsBytes);
+
+#if NET
+        var guid = new Guid(checksumAsBytes);
+#else
+        var guid = new Guid(checksumAsBytes.ToArray());
+#endif
 
         var documentId = DocumentId.CreateFromSerialized(projectId, guid, isSourceGenerated: true, hintName);
 

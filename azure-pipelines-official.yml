@@ -3,10 +3,12 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
     - features/lsp_tools_host
+    - features/runtime-async
     exclude:
     - release/dev17.0
 pr: none
@@ -43,19 +45,28 @@ parameters:
   type: boolean
   default: true
 
+# An optional VS commit SHA that will be automatically cherry-picked
+# to the insertion PR created by this build.
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
+
 schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
     branches:
-      include: 
+      include:
         - main
         - release/*
-      exclude: 
+      exclude:
         - ""
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
 
 variables:
+  # Defines $(DncEngInternalBuildPool)
+  - template: /eng/common/templates-official/variables/pool-providers.yml@self
+
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
@@ -104,23 +115,25 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
+      autoEnablePREfastWithNewRuleset: false
+      autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Svc-Internal
+        name: $(DncEngInternalBuildPool)
         image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
       suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
       policheck:
           enabled: true
       tsa:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.amd64
+      name: $(DncEngInternalBuildPool)
+      image: windows.vs2022preview.scout.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -130,11 +143,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.13') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.13
+            MirrorBranch: release/dev18.0
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -158,12 +171,12 @@ extends:
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files'
+            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
             publishLocation: Container
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -213,7 +226,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -280,10 +293,13 @@ extends:
 
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: ${{ parameters.SignType }}
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+            # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
+            ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+              ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
+          condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
         - download: profilingInputs
           artifact: merged mibc
@@ -303,15 +319,15 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipTests ${{ parameters.SkipTests }}
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
-                       -officialIbcDrop $(IbcDrop)
+                       -officialIbcDrop ${{ parameters.IbcDrop }}
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
                        /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
-                       /p:DotNetSignType=$(SignType)
+                       /p:DotNetSignType=${{ parameters.SignType }}
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
@@ -323,7 +339,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+            arguments: '-configuration $(BuildConfiguration)'
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
@@ -346,7 +362,7 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+          condition: and(succeededOrFailed(), ${{ not(parameters.SkipTests) }})
 
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
@@ -355,7 +371,7 @@ extends:
           dependsOn:
           - OfficialBuild
           pool:
-            name: NetCore1ESPool-Svc-Internal
+            name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
 
       - ${{ if eq(variables.enableSourceIndex, 'true') }}:
@@ -390,17 +406,15 @@ extends:
             componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
-            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
-          # Symbol validation is not entirely reliable as of yet, so should be turned off until
-          # https://github.com/dotnet/arcade/issues/2871 is resolved.
-          enableSymbolValidation: false
           enableSourceLinkValidation: false
           # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
           SDLValidationParameters:

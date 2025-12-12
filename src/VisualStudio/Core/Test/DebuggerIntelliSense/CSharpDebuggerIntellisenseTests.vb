@@ -339,6 +339,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Function
 
         <WpfFact>
+        Public Async Function SingleStatementBlockInvokeCompletion() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main()
+    {
+        for (int variable1 = 0; variable1 &lt; 10; variable1++)
+            [|Console.Write(0);|]
+        int variable2 = 0;
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, False)
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("variable1")
+            End Using
+        End Function
+
+        <WpfFact>
         Public Async Function SignatureHelpInParameterizedConstructor() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">

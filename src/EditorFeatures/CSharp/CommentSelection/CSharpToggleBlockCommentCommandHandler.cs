@@ -43,8 +43,10 @@ internal sealed class CSharpToggleBlockCommentCommandHandler(
     {
         var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
         // Only search for block comments intersecting the lines in the selections.
-        return root.DescendantTrivia(linesContainingSelections)
-            .Where(trivia => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia)
-            .SelectAsArray(blockCommentTrivia => blockCommentTrivia.Span);
+        return root
+            .DescendantTrivia(linesContainingSelections)
+            .SelectAsArray(
+                predicate: trivia => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia,
+                selector: blockCommentTrivia => blockCommentTrivia.Span);
     }
 }

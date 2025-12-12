@@ -7,14 +7,25 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;
 
-internal sealed class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
+internal sealed class ExtractInterfaceCodeAction(
+    AbstractExtractInterfaceService extractInterfaceService,
+    ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
+    : CodeActionWithOptions
 {
     private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult = typeAnalysisResult;
     private readonly AbstractExtractInterfaceService _extractInterfaceService = extractInterfaceService;
+
+    // While Extract-Interface is supported on an interface (to pull out a base interface), this is as less
+    // common operation and something we want to lower the priority on against more common operations (like
+    // moving the interface to a matching file (or renaming a file to match an interface within).
+    protected override CodeActionPriority ComputePriority()
+        => _typeAnalysisResult.TypeToExtractFrom is { TypeKind: TypeKind.Interface }
+            ? CodeActionPriority.Low
+            : CodeActionPriority.Default;
 
     public override object GetOptions(CancellationToken cancellationToken)
     {

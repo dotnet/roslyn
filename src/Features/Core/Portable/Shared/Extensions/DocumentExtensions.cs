@@ -8,11 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Shared.Naming;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -106,7 +104,7 @@ internal static class DocumentExtensions
     }
 
     public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-        this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
+        this Document document, SymbolKindOrTypeKind kind, Modifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
     {
         var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         foreach (var rule in rules)

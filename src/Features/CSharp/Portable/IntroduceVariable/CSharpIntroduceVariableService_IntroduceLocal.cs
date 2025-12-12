@@ -51,11 +51,12 @@ internal sealed partial class CSharpIntroduceVariableService
         var updatedExpression = expression.WithoutTrivia();
         var simplifierOptions = (CSharpSimplifierOptions)options.SimplifierOptions;
 
-        // If the target-type new syntax is preferred and "var" is not preferred under any circumstance, then we use the
-        // target-type new syntax. The approach is not exhaustive. We aim to support codebases that rely strictly on the
-        // target-type new syntax (i.e., no "var").
-        if (simplifierOptions.ImplicitObjectCreationWhenTypeIsApparent.Value && simplifierOptions.GetUseVarPreference() == UseVarPreference.None
-            && updatedExpression is ObjectCreationExpressionSyntax objectCreationExpression)
+        // If the implicit-object-creation is preferred and "var" is not preferred under any circumstance, then we use
+        // the implicit creation form when it it available.
+        if (simplifierOptions.ImplicitObjectCreationWhenTypeIsApparent.Value &&
+            simplifierOptions.GetUseVarPreference() == UseVarPreference.None &&
+            updatedExpression is ObjectCreationExpressionSyntax objectCreationExpression &&
+            document.Root.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
         {
             var (newKeyword, argumentList) = objectCreationExpression.ArgumentList is null
                 ? (objectCreationExpression.NewKeyword.WithoutTrailingTrivia(), ArgumentList().WithoutLeadingTrivia().WithTrailingTrivia(objectCreationExpression.NewKeyword.TrailingTrivia))
@@ -321,7 +322,7 @@ internal sealed partial class CSharpIntroduceVariableService
         foreach (var match in matches)
             editor.ReplaceNode(match, replacement);
 
-        if (scope is BlockSyntax block)
+        if (matches.FindInnermostCommonBlock() is BlockSyntax block)
         {
             var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>()!.Contains(s));
             var firstAffectedStatementIndex = block.Statements.IndexOf(firstAffectedStatement);

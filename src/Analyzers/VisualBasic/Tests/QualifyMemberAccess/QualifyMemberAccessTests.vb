@@ -5,8 +5,8 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
         End Function
 
         Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
-            Return TestInRegularAndScriptAsync(code, expected, options:=[Option](opt, True, notification))
+            Return TestInRegularAndScriptAsync(code, expected, New TestParameters(options:=[Option](opt, True, notification)))
         End Function
 
         Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean))) As Task

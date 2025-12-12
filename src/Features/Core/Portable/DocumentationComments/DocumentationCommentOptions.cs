@@ -15,6 +15,18 @@ internal readonly record struct DocumentationCommentOptions
     [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
     [DataMember] public bool AutoXmlDocCommentGeneration { get; init; } = true;
 
+    /// <summary>
+    /// When true, generates the summary tag on a single line (e.g., /// &lt;summary&gt;&lt;/summary&gt;)
+    /// instead of spanning multiple lines.
+    /// </summary>
+    [DataMember] public bool GenerateSummaryTagOnSingleLine { get; init; } = false;
+
+    /// <summary>
+    /// When true, only generates the &lt;summary&gt; tag and omits other tags like
+    /// &lt;param&gt;, &lt;typeparam&gt;, &lt;returns&gt;, and &lt;exception&gt;.
+    /// </summary>
+    [DataMember] public bool GenerateOnlySummaryTag { get; init; } = false;
+
     public DocumentationCommentOptions()
     {
     }

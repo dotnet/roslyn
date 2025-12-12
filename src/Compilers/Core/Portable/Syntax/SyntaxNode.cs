@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxNode? value = null;
             if (slot?.TryGetTarget(out value) == true)
             {
-                return value!;
+                return value;
             }
 
             return CreateWeakItem(ref slot, index);
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis
                 WeakReference<SyntaxNode>? previousWeakReference = slot;
                 if (previousWeakReference?.TryGetTarget(out previousNode) == true)
                 {
-                    return previousNode!;
+                    return previousNode;
                 }
 
                 if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
@@ -798,7 +799,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia = true)
         {
-            return this.Parent?
+            var parent = GetParent(this, ascendOutOfTrivia);
+            return parent?
                 .AncestorsAndSelf(ascendOutOfTrivia) ??
                 SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }

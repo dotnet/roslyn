@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.FindSymbols;
 
 [UseExportProvider]
-public class SymbolTreeInfoTests
+public sealed class SymbolTreeInfoTests
 {
     [Fact]
     public async Task TestSymbolTreeInfoForMetadataWithDifferentProperties1()

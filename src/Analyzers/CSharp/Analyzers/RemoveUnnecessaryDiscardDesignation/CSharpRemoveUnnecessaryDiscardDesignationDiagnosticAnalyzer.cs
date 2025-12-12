@@ -22,7 +22,6 @@ internal sealed class CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyze
         : base(IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId,
                EnforceOnBuildValues.RemoveUnnecessaryDiscardDesignation,
                option: null,
-               fadingOption: null,
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnessary_discard), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Discard_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {
@@ -81,8 +80,7 @@ internal sealed class CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyze
         else if (discard.Parent is RecursivePatternSyntax recursivePattern)
         {
             // can't remove from `(int i) _` as `(int i)` is not a legal pattern itself.
-            if (recursivePattern.PositionalPatternClause != null &&
-                recursivePattern.PositionalPatternClause.Subpatterns.Count == 1)
+            if (recursivePattern.PositionalPatternClause is { Subpatterns.Count: 1 })
             {
                 return;
             }

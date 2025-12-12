@@ -8,33 +8,32 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
+
+[ExportCSharpVisualBasicLspServiceFactory(typeof(CodeLensRefreshQueue)), Shared]
+internal sealed class CodeLensRefreshQueueFactory : ILspServiceFactory
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(CodeLensRefreshQueue)), Shared]
-    internal sealed class CodeLensRefreshQueueFactory : ILspServiceFactory
+    private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
+    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+    private readonly IGlobalOptionService _globalOptionService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CodeLensRefreshQueueFactory(
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        IGlobalOptionService globalOptionService)
     {
-        private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
-        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-        private readonly IGlobalOptionService _globalOptionService;
+        _asyncListenerProvider = asynchronousOperationListenerProvider;
+        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+        _globalOptionService = globalOptionService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeLensRefreshQueueFactory(
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            IGlobalOptionService globalOptionService)
-        {
-            _asyncListenerProvider = asynchronousOperationListenerProvider;
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _globalOptionService = globalOptionService;
-        }
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    {
+        var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
 
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-
-            return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _globalOptionService);
-        }
+        return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _globalOptionService);
     }
 }

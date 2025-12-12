@@ -9,46 +9,44 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
+
+public abstract class AbstractSyntaxNodeStructureProviderTests<TSyntaxNode> : AbstractSyntaxStructureProviderTests
+    where TSyntaxNode : SyntaxNode
 {
-    public abstract class AbstractSyntaxNodeStructureProviderTests<TSyntaxNode> : AbstractSyntaxStructureProviderTests
-        where TSyntaxNode : SyntaxNode
+    internal abstract AbstractSyntaxStructureProvider CreateProvider();
+
+    internal sealed override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
     {
-        internal abstract AbstractSyntaxStructureProvider CreateProvider();
+        var root = await document.GetSyntaxRootAsync(CancellationToken.None);
+        var token = root.FindToken(position, findInsideTrivia: true);
+        var node = token.Parent.FirstAncestorOrSelf<TSyntaxNode>();
+        Assert.NotNull(node);
 
-        internal sealed override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
+        // We prefer ancestor nodes if the position is on the edge of the located node's span.
+        while (node.Parent is TSyntaxNode)
         {
-            var root = await document.GetSyntaxRootAsync(CancellationToken.None);
-            var token = root.FindToken(position, findInsideTrivia: true);
-            var node = token.Parent.FirstAncestorOrSelf<TSyntaxNode>();
-            Assert.NotNull(node);
-
-            // We prefer ancestor nodes if the position is on the edge of the located node's span.
-            while (node.Parent is TSyntaxNode)
+            if ((position == node.SpanStart && position == node.Parent.SpanStart) ||
+                (position == node.Span.End && position == node.Parent.Span.End))
             {
-                if ((position == node.SpanStart && position == node.Parent.SpanStart) ||
-                    (position == node.Span.End && position == node.Parent.Span.End))
-                {
-                    node = (TSyntaxNode)node.Parent;
-                }
-                else
-                {
-                    break;
-                }
+                node = (TSyntaxNode)node.Parent;
             }
-
-            var outliner = CreateProvider();
-            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var actualRegions);
-            // Calculate previousToken for tests the same way it is derived in production code
-            var previousToken = root.DescendantNodesAndTokens(descendIntoTrivia: true).TakeWhile(nodeOrToken => nodeOrToken != node).LastOrDefault(nodeOrToken => nodeOrToken.IsToken).AsToken();
-            outliner.CollectBlockSpans(previousToken, node, actualRegions, options, CancellationToken.None);
-
-            // TODO: Determine why we get null outlining spans.
-            return actualRegions.ToImmutableAndClear();
+            else
+            {
+                break;
+            }
         }
+
+        var outliner = CreateProvider();
+        using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var actualRegions);
+        // Calculate previousToken for tests the same way it is derived in production code
+        var previousToken = root.DescendantNodesAndTokens(descendIntoTrivia: true).TakeWhile(nodeOrToken => nodeOrToken != node).LastOrDefault(nodeOrToken => nodeOrToken.IsToken).AsToken();
+        outliner.CollectBlockSpans(previousToken, node, actualRegions, options, CancellationToken.None);
+
+        // TODO: Determine why we get null outlining spans.
+        return actualRegions.ToImmutableAndClear();
     }
 }

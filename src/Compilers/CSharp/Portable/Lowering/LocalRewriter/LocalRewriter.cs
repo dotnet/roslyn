@@ -145,6 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
+
+                PipelinePhaseValidator.AssertAfterLocalRewriting(loweredStatement);
+#if DEBUG
+                localRewriter.AssertNoPlaceholderReplacements();
+#endif
+
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
@@ -158,11 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
+                PipelinePhaseValidator.AssertAfterSpilling(loweredStatement);
+
                 codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
-#if DEBUG
-                LocalRewritingValidator.Validate(loweredStatement);
-                localRewriter.AssertNoPlaceholderReplacements();
-#endif
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
@@ -283,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (visited != null &&
                 visited != node &&
-                node.Kind is not (BoundKind.ImplicitReceiver or BoundKind.ObjectOrCollectionValuePlaceholder or BoundKind.ValuePlaceholder))
+                node.Kind is not (BoundKind.ImplicitReceiver or BoundKind.ObjectOrCollectionValuePlaceholder or BoundKind.ValuePlaceholder or BoundKind.CollectionBuilderElementsPlaceholder))
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -412,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                static bool hasReturnTypeOrParameter(LocalFunctionSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
+                static bool hasReturnTypeOrParameter(MethodSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
                     predicate(localFunction.ReturnTypeWithAnnotations) || localFunction.ParameterTypesWithAnnotations.Any(predicate);
             }
 
@@ -463,6 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             return PlaceholderReplacement(node);
         }
@@ -1049,6 +1058,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Used for Length or Count properties only which are effectively readonly.
                     return true;
 
+                case BoundKind.AwaitableValuePlaceholder:
+                    // AwaitableValuePlaceholder that makes it here is always a parameter to a runtime async AsyncHelper method,
+                    // and are always passed by value.
+                    return false;
+
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
                     if (eventAccess.IsUsableAsField)
@@ -1136,128 +1150,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
         }
 
-#if DEBUG
-        /// <summary>
-        /// Note: do not use a static/singleton instance of this type, as it holds state.
-        /// Consider generating this type from BoundNodes.xml for easier maintenance.
-        /// </summary>
-        private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
         {
-            public override BoundNode? Visit(BoundNode? node)
+            if (member.IsExtensionBlockMember())
             {
-                if (node is BoundIfStatement)
-                {
-                    Fail(node);
-                    return null;
-                }
-
-                return base.Visit(node);
-            }
-
-            /// <summary>
-            /// Asserts that no unexpected nodes survived local rewriting.
-            /// </summary>
-            public static void Validate(BoundNode node)
-            {
-                try
-                {
-                    new LocalRewritingValidator().Visit(node);
-                }
-                catch (InsufficientExecutionStackException)
-                {
-                    // Intentionally ignored to let the overflow get caught in a more crucial visitor
-                }
-            }
-
-            public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            private void Fail(BoundNode node)
-            {
-                RoslynDebug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
-            }
-        }
+                Debug.Assert(!member.IsStatic);
+                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+#if DEBUG
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(Conversions.IsValidExtensionMethodThisArgConversion(this._compilation.Conversions.ClassifyConversionFromType(receiver.Type, extensionParameter.Type, isChecked: false, ref discardedUseSiteInfo)));
 #endif
+
+                // We don't need to worry about checked context because only implicit conversions are allowed on the receiver of an extension member
+                return MakeConversionNode(receiver, extensionParameter.Type, @checked: false, acceptFailingConversion: false, markAsChecked: markAsChecked);
+            }
+
+            return receiver;
+        }
     }
 }

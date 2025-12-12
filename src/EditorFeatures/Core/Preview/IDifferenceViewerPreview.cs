@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 internal interface IDifferenceViewerPreview<TDifferenceViewer> : IDisposable
     where TDifferenceViewer : IDifferenceViewer
 {
-    public TDifferenceViewer Viewer { get; }
+    TDifferenceViewer Viewer { get; }
 }

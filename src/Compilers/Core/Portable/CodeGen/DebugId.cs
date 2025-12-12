@@ -43,6 +43,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => Ordinal.CompareTo(other.Ordinal) is int result and not 0 ? result : Generation.CompareTo(other.Generation);
 
         public override string ToString()
-            => (Generation > 0) ? $"{Ordinal}{CommonGeneratedNames.GenerationSeparator}{Generation}" : Ordinal.ToString();
+            => (Generation > 0) ? $"{Ordinal}{CommonGeneratedNames.GenerationSeparator}{Generation}" : Ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 }

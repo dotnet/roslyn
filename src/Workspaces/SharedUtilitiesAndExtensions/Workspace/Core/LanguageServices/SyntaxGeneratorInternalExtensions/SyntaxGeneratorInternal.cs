@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -46,6 +45,12 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 
     public abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
 
+    /// <summary>
+    /// Adds an initializer to a property declaration.
+    /// </summary>
+    public abstract SyntaxNode WithPropertyInitializer(SyntaxNode propertyDeclaration, SyntaxNode initializer);
+
+    public abstract SyntaxNode EqualsValueClause(SyntaxNode value);
     public abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
 
     public abstract SyntaxToken Identifier(string identifier);

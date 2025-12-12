@@ -4,12 +4,11 @@
 
 using Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
+
+/// <inheritdoc cref="IEmbeddedLanguageClassifier"/>
+internal interface IAspNetCoreEmbeddedLanguageClassifier
 {
-    /// <inheritdoc cref="IEmbeddedLanguageClassifier"/>
-    internal interface IAspNetCoreEmbeddedLanguageClassifier
-    {
-        /// <inheritdoc cref="IEmbeddedLanguageClassifier.RegisterClassifications"/>
-        void RegisterClassifications(AspNetCoreEmbeddedLanguageClassificationContext context);
-    }
+    /// <inheritdoc cref="IEmbeddedLanguageClassifier.RegisterClassifications"/>
+    void RegisterClassifications(AspNetCoreEmbeddedLanguageClassificationContext context);
 }

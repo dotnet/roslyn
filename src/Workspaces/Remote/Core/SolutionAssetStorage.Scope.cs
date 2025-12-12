@@ -8,11 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal partial class SolutionAssetStorage
+internal sealed partial class SolutionAssetStorage
 {
     internal sealed partial class Scope(
         SolutionAssetStorage storage,

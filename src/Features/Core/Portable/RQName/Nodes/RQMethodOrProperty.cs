@@ -16,7 +16,7 @@ internal abstract class RQMethodOrProperty(
     IList<RQParameter> parameters) : RQMethodPropertyOrEvent(containingType, memberName)
 {
     public readonly int TypeParameterCount = typeParameterCount;
-    public readonly ReadOnlyCollection<RQParameter> Parameters = new ReadOnlyCollection<RQParameter>(parameters);
+    public readonly ReadOnlyCollection<RQParameter> Parameters = new(parameters);
 
     protected override void AppendChildren(List<SimpleTreeNode> childList)
     {

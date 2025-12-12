@@ -18,81 +18,80 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+
+public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelper logger = null)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
-    public abstract class AbstractSuppressionDiagnosticTest_NoEditor : AbstractUserDiagnosticTest_NoEditor
+    protected abstract int CodeActionIndex { get; }
+    protected virtual bool IncludeSuppressedDiagnostics => false;
+    protected virtual bool IncludeUnsuppressedDiagnostics => true;
+    protected virtual bool IncludeNoLocationDiagnostics => true;
+
+    protected Task TestAsync(string initial, string expected, ParseOptions parseOptions = null)
+        => TestAsync(initial, expected, new TestParameters(parseOptions, index: CodeActionIndex));
+
+    internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
     {
-        protected AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelper logger = null)
-            : base(logger)
+        return [.. actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
+            ? a.NestedActions
+            : [a])];
+    }
+
+    private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    {
+        if (!IncludeNoLocationDiagnostics)
         {
+            diagnostics = diagnostics.Where(d => d.Location.IsInSource);
         }
 
-        protected abstract int CodeActionIndex { get; }
-        protected virtual bool IncludeSuppressedDiagnostics => false;
-        protected virtual bool IncludeUnsuppressedDiagnostics => true;
-        protected virtual bool IncludeNoLocationDiagnostics => true;
-
-        protected Task TestAsync(string initial, string expected)
-            => TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
-
-        internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
-
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        if (!IncludeSuppressedDiagnostics)
         {
-            return [.. actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
-                ? a.NestedActions
-                : [a])];
+            diagnostics = diagnostics.Where(d => !d.IsSuppressed);
         }
 
-        private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        if (!IncludeUnsuppressedDiagnostics)
         {
-            if (!IncludeNoLocationDiagnostics)
-            {
-                diagnostics = diagnostics.Where(d => d.Location.IsInSource);
-            }
-
-            if (!IncludeSuppressedDiagnostics)
-            {
-                diagnostics = diagnostics.Where(d => !d.IsSuppressed);
-            }
-
-            if (!IncludeUnsuppressedDiagnostics)
-            {
-                diagnostics = diagnostics.Where(d => d.IsSuppressed);
-            }
-
-            return [.. diagnostics];
+            diagnostics = diagnostics.Where(d => d.IsSuppressed);
         }
 
-        internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
-            AddAnalyzerToWorkspace(workspace, analyzer);
+        return [.. diagnostics];
+    }
 
-            var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
-            return FilterDiagnostics(diagnostics);
-        }
+    internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
+        TestWorkspace workspace, TestParameters parameters)
+    {
+        var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
+        AddAnalyzerToWorkspace(workspace, analyzer);
 
-        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
-            AddAnalyzerToWorkspace(workspace, analyzer);
+        var document = GetDocumentAndSelectSpan(workspace, out var span);
+        var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
+        return FilterDiagnostics(diagnostics);
+    }
 
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+    internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
+        TestWorkspace workspace, TestParameters parameters)
+    {
+        var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
+        AddAnalyzerToWorkspace(workspace, analyzer);
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
-                .Where(d => fixer.IsFixableDiagnostic(d));
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
 
-            var filteredDiagnostics = FilterDiagnostics(diagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
+        var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
+            .Where(d => fixer.IsFixableDiagnostic(d));
 
-            var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
-            return await GetDiagnosticAndFixesAsync(
-                filteredDiagnostics, wrapperCodeFixer, testDriver, document,
-                span, annotation, parameters.index);
-        }
+        var filteredDiagnostics = FilterDiagnostics(diagnostics);
+
+        var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
+        return await GetDiagnosticAndFixesAsync(
+            filteredDiagnostics, wrapperCodeFixer, testDriver, document,
+            span, annotation, parameters.index);
     }
 }

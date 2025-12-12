@@ -669,7 +669,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
                     rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates);
+                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates,
+                    disallowExpandedNonArrayParams: false, acceptOnlyMethods: true);
 
                 result.WasCompilerGenerated = true;
 
@@ -716,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver.Type?.IsErrorType() == false)
             {
-                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type!, numParameters);
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
             }
 
             outPlaceholders = default;

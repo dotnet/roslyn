@@ -7,7 +7,9 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -306,7 +308,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function CreatePreprocessingSymbol(model As SemanticModel, token As SyntaxToken) As IPreprocessingSymbol
+#If Not ROSLYN_4_12_OR_LOWER Then
             Return model.Compilation.CreatePreprocessingSymbol(token.ValueText)
+#Else
+            return nothing
+#End If
         End Function
 
         Friend Shared Function IsWithinPreprocessorConditionalExpression(node As IdentifierNameSyntax) As Boolean
@@ -334,7 +340,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-#If Not CODE_STYLE Then
+        Public Function ClassifyConversion(semanticModel As SemanticModel, expression As SyntaxNode, destination As ITypeSymbol) As CommonConversion Implements ISemanticFacts.ClassifyConversion
+            Return semanticModel.ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
+        End Function
+
+#If VISUAL_BASIC_WORKSPACE Then
 
         Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
             ' VB does not support interceptors

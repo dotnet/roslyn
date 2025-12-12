@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ReferenceEquals(_constructedFrom, this));
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, out typeParameters);
+            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, propagateAttributes: false, out typeParameters);
 
             var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
@@ -170,13 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             // This will throw if API shouldn't be supported or there is a problem with the argument.
             var notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
-            Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
-            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal].Type;
+            Debug.Assert(notUsed.Type is null && OriginalDefinition.ReducedFrom is not null);
+            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal];
         }
 
         public sealed override MethodSymbol ReducedFrom
@@ -215,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 
         public sealed override Symbol AssociatedSymbol
         {
@@ -309,25 +312,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Map; }
         }
 
-        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal sealed override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             // Required in EE scenarios.  Specifically, the EE binds in the context of a 
             // substituted method, whereas the core compiler always binds within the
             // context of an original definition.  
             // There should never be any reason to call this in normal compilation
             // scenarios, but the behavior should be sensible if it does occur.
-            ParameterSymbol originalThisParameter;
+            ParameterSymbol? originalThisParameter;
             if (!OriginalDefinition.TryGetThisParameter(out originalThisParameter))
             {
                 thisParameter = null;
                 return false;
             }
 
-            thisParameter = (object)originalThisParameter != null
+            thisParameter = originalThisParameter is not null
                 ? new ThisParameterSymbol(this)
                 : null;
             return true;
         }
+
+#nullable disable
+
+        internal override int TryGetOverloadResolutionPriority()
+            => OriginalDefinition.TryGetOverloadResolutionPriority();
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
@@ -477,5 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

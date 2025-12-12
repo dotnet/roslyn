@@ -230,18 +230,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // These occur when special types are missing or malformed, or the patterns are incompletely implemented.
             hasErrors |= builder.IsIncomplete;
 
-            BoundAwaitableInfo awaitInfo = null;
+            BoundAwaitableInfo moveNextAwaitableInfo = null;
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorInfo?.Method;
             if (getEnumeratorMethod != null)
             {
                 originalBinder.CheckImplicitThisCopyInReadOnlyMember(collectionExpr, getEnumeratorMethod, diagnostics);
 
-                if (getEnumeratorMethod.IsExtensionMethod && !hasErrors)
+                if (!hasErrors)
                 {
-                    var messageId = IsAsync ? MessageID.IDS_FeatureExtensionGetAsyncEnumerator : MessageID.IDS_FeatureExtensionGetEnumerator;
-                    messageId.CheckFeatureAvailability(diagnostics, Compilation, collectionExpr.Syntax.Location);
+                    if (getEnumeratorMethod.IsExtensionMethod)
+                    {
+                        var messageId = IsAsync ? MessageID.IDS_FeatureExtensionGetAsyncEnumerator : MessageID.IDS_FeatureExtensionGetEnumerator;
+                        messageId.CheckFeatureAvailability(diagnostics, Compilation, collectionExpr.Syntax.Location);
 
-                    if (getEnumeratorMethod.ParameterRefKinds is { IsDefault: false } refKinds && refKinds[0] == RefKind.Ref)
+                        if (getEnumeratorMethod.ParameterRefKinds is { IsDefault: false } refKinds && refKinds[0] == RefKind.Ref)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLvalueExpected, collectionExpr.Syntax);
+                            hasErrors = true;
+                        }
+                    }
+                    else if (getEnumeratorMethod.IsExtensionBlockMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefLvalueExpected, collectionExpr.Syntax);
                         hasErrors = true;
@@ -253,9 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
                 var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
-                awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
+                moveNextAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
-                if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                if (!hasErrors && (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
                     hasErrors = true;
@@ -445,7 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iterationErrorExpression,
                     collectionExpr,
                     deconstructStep,
-                    awaitInfo,
                     body,
                     this.BreakLabel,
                     this.ContinueLabel,
@@ -457,12 +464,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, getEnumeratorMethod, foreachKeyword, isDelegateConversion: false);
+            Debug.Assert(!IsDisallowedExtensionInOlderLangVer(getEnumeratorMethod));
+
             // MoveNext is an instance method, so it does not need to have unmanaged callers only diagnostics reported.
             // Either a diagnostic was reported at the declaration of the method (for the invalid attribute), or MoveNext
             // is marked as not supported and we won't get here in the first place (for metadata import).
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextInfo.Method, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
+            Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
+            Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
@@ -559,9 +570,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
             }
 
-            if (builder.NeedsDisposal && IsAsync)
+            if (IsAsync)
             {
-                hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
+                builder.MoveNextAwaitableInfo = moveNextAwaitableInfo;
+
+                if (builder.NeedsDisposal)
+                {
+                    hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
+                }
             }
 
             Debug.Assert(
@@ -570,7 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (collectionConversionClassification.IsImplicit &&
                  (IsIEnumerable(builder.CollectionType) ||
                   IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation) ||
-                  builder.GetEnumeratorInfo.Method.IsExtensionMethod)) ||
+                  builder.GetEnumeratorInfo.Method.IsExtensionMethod ||
+                  builder.GetEnumeratorInfo.Method.IsExtensionBlockMember())) ||
                 // For compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
                 // result in an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
                 (collectionConversionClassification.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
@@ -585,7 +602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationErrorExpression,
                 convertedCollectionExpression,
                 deconstructStep,
-                awaitInfo,
                 body,
                 this.BreakLabel,
                 this.ContinueLabel,
@@ -861,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
                 Debug.Assert(span == originalSpan);
-                Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod);
+                Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionBlockMember());
 #endif
                 if (!builder.ViaExtensionMethod &&
                     ((result is EnumeratorResult.Succeeded && builder.ElementTypeWithAnnotations.Equals(elementField.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions) &&
@@ -908,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             Debug.Assert(collectionExpr == originalCollectionExpr ||
                          (originalCollectionExpr.Type?.IsNullableType() == true && originalCollectionExpr.Type.StrippedType().Equals(collectionExpr.Type, TypeCompareKind.AllIgnoreOptions)));
-            Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod);
+            Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionBlockMember());
 #endif
 
             return result;
@@ -922,7 +938,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionExprType is null) // There's no way to enumerate something without a type.
                 {
-                    if (!ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
+                    if (collectionExpr is BoundLiteral && collectionExpr.ConstantValueOpt is { IsNull: true })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
+                    }
+                    else
                     {
                         // Anything else with a null type is a method group or anonymous function
                         diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, collectionSyntax.Location, collectionExpr.Display);
@@ -949,10 +969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
                 if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
                 {
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
                     builder = GetDefaultEnumeratorInfo(syntax, builder, diagnostics, collectionExprType);
                     return EnumeratorResult.Succeeded;
                 }
@@ -963,10 +979,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (SatisfiesGetEnumeratorPattern(syntax, collectionSyntax, ref builder, unwrappedCollectionExpr, isAsync, viaExtensionMethod: false, diagnostics))
                 {
                     collectionExpr = unwrappedCollectionExpr;
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
                     return createPatternBasedEnumeratorResult(ref builder, unwrappedCollectionExpr, isAsync, viaExtensionMethod: false, diagnostics);
                 }
 
@@ -998,11 +1010,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Lowering will not use iterator info with strings, so it is ok.
                 if (!isAsync && collectionExprType.SpecialType == SpecialType.System_String)
                 {
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
-
                     builder = GetDefaultEnumeratorInfo(syntax, builder, diagnostics, collectionExprType);
                     return EnumeratorResult.Succeeded;
                 }
@@ -1019,12 +1026,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)builder.GetEnumeratorInfo != null);
 
-                Debug.Assert(!(viaExtensionMethod && builder.GetEnumeratorInfo.Method.Parameters.IsDefaultOrEmpty));
+                Debug.Assert(!(viaExtensionMethod && builder.GetEnumeratorInfo.Method.IsExtensionMethod && builder.GetEnumeratorInfo.Method.Parameters.IsDefaultOrEmpty));
+                Debug.Assert(!(viaExtensionMethod && !builder.GetEnumeratorInfo.Method.IsExtensionMethod && !builder.GetEnumeratorInfo.Method.IsExtensionBlockMember()));
 
                 builder.ViaExtensionMethod = viaExtensionMethod;
-                builder.CollectionType = viaExtensionMethod
-                    ? builder.GetEnumeratorInfo.Method.Parameters[0].Type
-                    : collectionExpr.Type;
+
+                if (viaExtensionMethod)
+                {
+                    if (builder.GetEnumeratorInfo.Method.IsExtensionMethod)
+                    {
+                        builder.CollectionType = builder.GetEnumeratorInfo.Method.Parameters[0].Type;
+                    }
+                    else
+                    {
+                        builder.CollectionType = builder.GetEnumeratorInfo.Method.ContainingType.ExtensionParameter.Type;
+                    }
+                }
+                else
+                {
+                    builder.CollectionType = collectionExpr.Type;
+                }
 
                 if (SatisfiesForEachPattern(syntax, collectionSyntax, ref builder, isAsync, diagnostics))
                 {
@@ -1046,11 +1067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!AllInterfacesContainsIEnumerable(collectionSyntax, ref builder, unwrappedCollectionExprType, isAsync, diagnostics, out bool foundMultipleGenericIEnumerableInterfaces))
             {
                 return EnumeratorResult.FailedNotReported;
-            }
-
-            if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-            {
-                return EnumeratorResult.FailedAndReported;
             }
 
             SyntaxNode errorLocationSyntax = collectionSyntax;
@@ -1173,17 +1189,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EnumeratorResult.Succeeded;
         }
 
-        private bool ReportConstantNullCollectionExpr(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
-        {
-            if (collectionExpr.ConstantValueOpt is { IsNull: true })
-            {
-                // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
-                diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
-                return true;
-            }
-            return false;
-        }
-
         private void GetDisposalInfoForEnumerator(SyntaxNode syntax, ref ForEachEnumeratorInfo.Builder builder, BoundExpression expr, bool isAsync, BindingDiagnosticBag diagnostics)
         {
             // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
@@ -1200,7 +1205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, patternDiagnostics, out bool expanded);
                 if (patternDisposeMethod is object)
                 {
-                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod);
+                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.IsExtensionBlockMember(),
+                        "No extension disposal. See TryFindDisposePatternMethod");
                     Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty ||
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
@@ -1211,6 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindDefaultArguments(
                         syntax,
                         patternDisposeMethod.Parameters,
+                        extensionReceiver: null,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
                         namesBuilder: null,
@@ -1234,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (implementsInterface(enumeratorType, isAsync, diagnostics))
+            if (implementsInterface(builder.CollectionType, enumeratorType, isAsync, diagnostics))
             {
                 builder.NeedsDisposal = true;
                 return;
@@ -1254,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool implementsInterface(TypeSymbol enumeratorType, bool isAsync, BindingDiagnosticBag diagnostics)
+            bool implementsInterface(TypeSymbol collectionType, TypeSymbol enumeratorType, bool isAsync, BindingDiagnosticBag diagnostics)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -1268,7 +1275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(syntax, useSiteInfo);
 
                 if (needSupportForRefStructInterfaces &&
-                    enumeratorType.ContainingModule != Compilation.SourceModule)
+                    enumeratorType.ContainingModule != Compilation.SourceModule &&
+                    !LocalRewriter.CanRewriteForEachAsFor(Compilation, syntax, collectionType, out _, out _, BindingDiagnosticBag.Discarded))
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
                 }
@@ -1443,6 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (overloadResolutionResult.Succeeded)
             {
                 result = overloadResolutionResult.ValidResult.Member;
+                Debug.Assert(!result.IsExtensionMethod && !result.IsExtensionBlockMember());
 
                 if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
                 {
@@ -1467,6 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindDefaultArguments(
                         syntax,
                         result.Parameters,
+                        extensionReceiver: null,
                         analyzedArguments.Arguments,
                         analyzedArguments.RefKinds,
                         analyzedArguments.Names,
@@ -1500,7 +1510,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
-            var methodGroupResolutionResult = this.BindExtensionMethod(
+            CompoundUseSiteInfo<AssemblySymbol> extensionUseSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+
+            var methodGroupResolutionResult = this.ResolveExtension(
                 collectionSyntax,
                 methodName,
                 analyzedArguments,
@@ -1509,14 +1521,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: OverloadResolution.Options.None,
                 returnRefKind: default,
                 returnType: null,
-                withDependencies: diagnostics.AccumulatesDependencies);
+                ref extensionUseSiteInfo,
+                acceptOnlyMethods: true);
 
+            diagnostics.Add(syntax, extensionUseSiteInfo);
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);
 
             var overloadResolutionResult = methodGroupResolutionResult.OverloadResolutionResult;
             if (overloadResolutionResult?.Succeeded ?? false)
             {
                 var result = overloadResolutionResult.ValidResult.Member;
+
+                Debug.Assert(result.IsExtensionMethod || result.IsExtensionBlockMember());
 
                 if (result.CallsAreOmitted(syntax.SyntaxTree))
                 {
@@ -1527,28 +1543,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
-                diagnostics.Add(syntax, useSiteInfo);
+                MethodArgumentInfo info;
+                bool expanded = overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
 
-                // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
-                Debug.Assert(!collectionConversion.IsUserDefined);
-                collectionExpr = new BoundConversion(
-                    collectionExpr.Syntax,
-                    collectionExpr,
-                    collectionConversion,
-                    @checked: CheckOverflowAtRuntime,
-                    explicitCastInCode: false,
-                    conversionGroupOpt: null,
-                    ConstantValue.NotAvailable,
-                    result.Parameters[0].Type);
+                if (result.IsExtensionMethod)
+                {
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                    diagnostics.Add(syntax, useSiteInfo);
 
-                var info = BindDefaultArguments(
-                    result,
-                    collectionExpr,
-                    expanded: overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    collectionExpr.Syntax,
-                    diagnostics);
+                    // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
+                    Debug.Assert(!collectionConversion.IsUserDefined);
+                    collectionExpr = new BoundConversion(
+                        collectionExpr.Syntax,
+                        collectionExpr,
+                        collectionConversion,
+                        @checked: CheckOverflowAtRuntime,
+                        explicitCastInCode: false,
+                        conversionGroupOpt: null,
+                        ConstantValue.NotAvailable,
+                        result.Parameters[0].Type);
+
+                    info = BindDefaultArguments(
+                        result,
+                        collectionExpr,
+                        expanded: expanded,
+                        collectionExpr.Syntax,
+                        diagnostics);
+                }
+                else
+                {
+                    BoundExpression extensionReceiver = result.IsExtensionBlockMember() ? collectionExpr : null;
+                    Debug.Assert(!result.IsStatic);
+
+                    info = BindDefaultArguments(
+                        result,
+                        extensionReceiverOpt: extensionReceiver,
+                        expanded: expanded,
+                        collectionExpr.Syntax,
+                        diagnostics);
+                }
+
                 methodGroupResolutionResult.Free();
                 analyzedArguments.Free();
                 return info;
@@ -1775,7 +1810,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (implementedIEnumerable is not null && needSupportForRefStructInterfaces && type.ContainingModule != Compilation.SourceModule)
+            if (implementedIEnumerable is not null && needSupportForRefStructInterfaces && type.ContainingModule != Compilation.SourceModule &&
+                !LocalRewriter.CanRewriteForEachAsFor(Compilation, collectionSyntax, type, out _, out _, BindingDiagnosticBag.Discarded))
             {
                 CheckFeatureAvailability(collectionSyntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
             }
@@ -1904,10 +1940,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : null;
         }
 
-        /// <param name="extensionReceiverOpt">If method is an extension method, this must be non-null.</param>
+        /// <param name="extensionReceiverOpt">If method is an extension method (classic or new), this must be non-null.</param>
         private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert((extensionReceiverOpt != null) == method.IsExtensionMethod);
+            Debug.Assert((extensionReceiverOpt != null) == (method.IsExtensionMethod || method.IsExtensionBlockMember()));
+            Debug.Assert(!method.IsExtensionBlockMember() || !method.IsStatic);
 
             if (method.ParameterCount == 0)
             {
@@ -1925,6 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindDefaultArguments(
                 syntax,
                 method.Parameters,
+                extensionReceiver: method.IsExtensionBlockMember() ? extensionReceiverOpt : null,
                 argsBuilder,
                 argumentRefKindsBuilder: null,
                 namesBuilder: null,

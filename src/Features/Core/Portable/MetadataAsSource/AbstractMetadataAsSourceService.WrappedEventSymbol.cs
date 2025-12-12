@@ -32,5 +32,8 @@ internal abstract partial class AbstractMetadataAsSourceService
         public IMethodSymbol? RemoveMethod => _symbol.RemoveMethod;
         public ITypeSymbol Type => _symbol.Type;
         public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+        public IEventSymbol? PartialDefinitionPart => _symbol.PartialDefinitionPart;
+        public IEventSymbol? PartialImplementationPart => _symbol.PartialImplementationPart;
+        public bool IsPartialDefinition => _symbol.IsPartialDefinition;
     }
 }

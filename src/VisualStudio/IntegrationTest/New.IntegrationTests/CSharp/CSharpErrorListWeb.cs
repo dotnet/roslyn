@@ -25,14 +25,13 @@ public class CSharpErrorListWeb : AbstractWebApplicationTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70627")]
     public async Task ClosedRazorFile()
     {
-        var source = """
+        await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, @"Pages\\Index.razor", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
 @page
 @{
     var x = "Hello"
 }
-""";
-        await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, @"Pages\\Index.razor", HangMitigatingCancellationToken);
-        await TestServices.Editor.SetTextAsync(source, HangMitigatingCancellationToken);
+""", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
 

@@ -9,8 +9,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data;
@@ -66,8 +66,8 @@ public static class CodeStyleSettingsTest
             description: "TestDesciption",
             options,
             updater: null!,
-            enumValues: (DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)),
-            valueDescriptions: Enum.GetNames(typeof(DayOfWeek)));
+            enumValues: Enum.GetValues<DayOfWeek>(),
+            valueDescriptions: Enum.GetNames<DayOfWeek>());
 
         Assert.Equal(string.Empty, setting.Category);
         Assert.Equal("TestDesciption", setting.Description);
@@ -98,7 +98,7 @@ public static class CodeStyleSettingsTest
             isEditorConfigOption: true);
     }
 
-    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         private readonly IDictionary<string, string> _dictionary;
         public TestAnalyzerConfigOptions((string, string)[]? options = null)

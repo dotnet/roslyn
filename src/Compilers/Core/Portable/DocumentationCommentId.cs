@@ -382,6 +382,12 @@ namespace Microsoft.CodeAnalysis
             {
                 _builder.Append("T:");
                 _generator.Visit(symbol);
+
+                if (symbol.IsExtension)
+                {
+                    _builder.Append('.');
+                    _builder.Append(symbol.ExtensionMarkerName);
+                }
             }
 
             private sealed class DeclarationGenerator : SymbolVisitor<bool>
@@ -463,7 +469,7 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.TypeParameters.Length > 0)
                     {
                         _builder.Append("``");
-                        _builder.Append(symbol.TypeParameters.Length);
+                        _builder.Append(symbol.TypeParameters.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
 
                     AppendParameters(symbol.Parameters);
@@ -525,12 +531,12 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append('.');
                     }
 
-                    _builder.Append(EncodeName(symbol.Name));
+                    _builder.Append(EncodeName(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name));
 
                     if (symbol.TypeParameters.Length > 0)
                     {
                         _builder.Append('`');
-                        _builder.Append(symbol.TypeParameters.Length);
+                        _builder.Append(symbol.TypeParameters.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
 
                     return true;
@@ -561,7 +567,14 @@ namespace Microsoft.CodeAnalysis
                     _builder.Append('.');
                 }
 
-                _builder.Append(EncodeName(symbol.Name));
+                if (symbol is INamedTypeSymbol { IsExtension: true } extension)
+                {
+                    _builder.Append(EncodeName(extension.ExtensionGroupingName));
+                }
+                else
+                {
+                    _builder.Append(EncodeName(symbol.Name));
+                }
             }
 
             public override bool VisitAlias(IAliasSymbol symbol)
@@ -583,13 +596,25 @@ namespace Microsoft.CodeAnalysis
             public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
                 this.BuildDottedName(symbol);
+                AppendArityOrTypeArguments(symbol);
 
+                if (symbol.IsExtension)
+                {
+                    _builder.Append('.');
+                    _builder.Append(symbol.ExtensionMarkerName);
+                }
+
+                return true;
+            }
+
+            private void AppendArityOrTypeArguments(INamedTypeSymbol symbol)
+            {
                 if (symbol.IsGenericType)
                 {
                     if (symbol.OriginalDefinition == symbol)
                     {
                         _builder.Append('`');
-                        _builder.Append(symbol.TypeParameters.Length);
+                        _builder.Append(symbol.TypeParameters.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
                     else if (symbol.TypeArguments.Length > 0)
                     {
@@ -608,8 +633,6 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append('}');
                     }
                 }
-
-                return true;
             }
 
             public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
@@ -665,7 +688,7 @@ namespace Microsoft.CodeAnalysis
                 if (symbol.DeclaringMethod != null)
                 {
                     _builder.Append("``");
-                    _builder.Append(symbol.Ordinal);
+                    _builder.Append(symbol.Ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
                 else
                 {
@@ -673,7 +696,7 @@ namespace Microsoft.CodeAnalysis
                     var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
                     _builder.Append('`');
-                    _builder.Append(b + symbol.Ordinal);
+                    _builder.Append((b + symbol.Ordinal).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 return true;
@@ -802,7 +825,7 @@ namespace Microsoft.CodeAnalysis
                             if (arity > 0)
                             {
                                 // only types have arity
-                                GetMatchingTypes(containers, name, arity, results);
+                                GetMatchingTypes(containers, name, arity, isTerminal: false, results);
                             }
                             else if (kind == SymbolKind.Namespace)
                             {
@@ -839,7 +862,7 @@ namespace Microsoft.CodeAnalysis
                             GetMatchingMethods(id, ref index, containers, name, arity, compilation, results);
                             break;
                         case SymbolKind.NamedType:
-                            GetMatchingTypes(containers, name, arity, results);
+                            GetMatchingTypes(containers, name, arity, isTerminal: true, results);
                             break;
                         case SymbolKind.Property:
                             GetMatchingProperties(id, ref index, containers, name, compilation, results);
@@ -1042,7 +1065,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (arity != 0 || PeekNextChar(id, index) != '.')
                         {
-                            GetMatchingTypes(containers, name, arity, results);
+                            GetMatchingTypes(containers, name, arity, isTerminal: false, results);
 
                             if (arity != 0 && typeArguments != null && typeArguments.Count != 0)
                             {
@@ -1152,16 +1175,29 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            private static void GetMatchingTypes(List<INamespaceOrTypeSymbol> containers, string memberName, int arity, List<ISymbol> results)
+            private static void GetMatchingTypes(List<INamespaceOrTypeSymbol> containers, string memberName, int arity, bool isTerminal, List<ISymbol> results)
             {
                 for (int i = 0, n = containers.Count; i < n; i++)
                 {
-                    GetMatchingTypes(containers[i], memberName, arity, results);
+                    GetMatchingTypes(containers[i], memberName, arity, isTerminal: isTerminal, results);
                 }
             }
 
-            private static void GetMatchingTypes(INamespaceOrTypeSymbol container, string memberName, int arity, List<ISymbol> results)
+            /// <param name="isTerminal">Indicates that we're looking at the last segment in a dotted chain.
+            /// If we're in terminal position, we need to recognize the extension marker name so that
+            /// `ContainingType.ExtensionGroupingName.ExtensionMarkerName` can be matched to the extension type.
+            /// </param>
+            private static void GetMatchingTypes(INamespaceOrTypeSymbol container, string memberName, int arity, bool isTerminal, List<ISymbol> results)
             {
+                if (isTerminal
+                    && container is INamedTypeSymbol { IsExtension: true } extension
+                    && extension.ExtensionMarkerName == memberName
+                    && arity == 0)
+                {
+                    results.Add(extension);
+                    return;
+                }
+
                 var members = container.GetMembers(memberName);
 
                 foreach (var symbol in members)
@@ -1175,6 +1211,8 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+
+                GetMatchingExtensions(container, memberName, arity, results);
             }
 
             private static void GetMatchingNamespaceOrTypes(List<INamespaceOrTypeSymbol> containers, string memberName, List<ISymbol> results)
@@ -1194,6 +1232,27 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.Kind == SymbolKind.Namespace || (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).Arity == 0))
                     {
                         results.Add(symbol);
+                    }
+                }
+
+                GetMatchingExtensions(container, memberName, arity: 0, results);
+            }
+
+            private static void GetMatchingExtensions(INamespaceOrTypeSymbol container, string memberName, int arity, List<ISymbol> results)
+            {
+                if (container.IsNamespace)
+                {
+                    return;
+                }
+
+                ImmutableArray<INamedTypeSymbol> unnamedNamedTypes = container.GetTypeMembers("");
+                foreach (var namedType in unnamedNamedTypes)
+                {
+                    if (namedType.IsExtension
+                        && namedType.Arity == arity
+                        && namedType.ExtensionGroupingName == memberName)
+                    {
+                        results.Add(namedType);
                     }
                 }
             }

@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Options;
 
-public class OptionSerializerTests
+public sealed class OptionSerializerTests
 {
     [Theory, CombinatorialData]
     public void SerializationAndDeserializationForNullableBool([CombinatorialValues(true, false, null)] bool? value)
@@ -27,7 +27,6 @@ public class OptionSerializerTests
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             InheritanceMarginOptionsStorage.ShowInheritanceMargin,
-            SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
             CompletionOptionsStorage.TriggerOnDeletion,
@@ -90,7 +89,8 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption,
+            new Option2<ConsoleColor?>("Name1", null),
+            new Option2<ConsoleColor?>("Name2", ConsoleColor.Black),
         };
 
         foreach (var option in options)
@@ -165,7 +165,7 @@ public class OptionSerializerTests
         foreach (var enumValue in possibleEnumValues)
         {
             var serializedValue = serializer.Serialize(enumValue);
-            var expectedPascalCase = enumValue.ToString()!;
+            var expectedPascalCase = enumValue.ToString();
             var expectedSnakeCase = PascalToSnakeCase(expectedPascalCase);
 
             // if option allows snake case it should use it for serialization:

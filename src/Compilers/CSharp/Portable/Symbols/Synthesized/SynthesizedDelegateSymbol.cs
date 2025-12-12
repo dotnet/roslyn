@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SynthesizedDelegateInvokeMethod : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedDelegateInvokeMethod : SynthesizedMethodSymbol
     {
         internal readonly struct ParameterDescription
         {
@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (Method: this, ParameterCount: parameterDescriptions.Count));
             ReturnTypeWithAnnotations = returnType;
             RefKind = refKind;
+            RefCustomModifiers = refKind == RefKind.RefReadOnly ?
+                [CSharpCustomModifier.CreateRequired(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute))] :
+                [];
         }
 
         public override string Name
@@ -162,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind { get; }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
@@ -183,11 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
-        }
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol? AssociatedSymbol

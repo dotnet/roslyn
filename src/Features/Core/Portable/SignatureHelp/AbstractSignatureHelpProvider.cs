@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,12 +28,12 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
             SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions & ~SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
+    public abstract ImmutableArray<char> TriggerCharacters { get; }
+    public abstract ImmutableArray<char> RetriggerCharacters { get; }
+
     protected AbstractSignatureHelpProvider()
     {
     }
-
-    public abstract bool IsTriggerCharacter(char ch);
-    public abstract bool IsRetriggerCharacter(char ch);
 
     protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 
@@ -199,7 +200,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         {
             var structuralTypeParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
+                new(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
             };
 
             structuralTypeParts.AddRange(info.TypesParts);

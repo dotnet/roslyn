@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this,
                     systemBooleanType,
                     "IncludesInternals",
-                    isPublic: true,
+                    DeclarationModifiers.Public,
                     isReadOnly: true,
                     isStatic: false));
 

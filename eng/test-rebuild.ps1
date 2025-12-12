@@ -34,7 +34,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog /p:RoslynCompilerType=Framework
     Test-LastExitCode
   }
 
@@ -45,7 +45,7 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/`"" +
 
 # Rebuilds with output differences
-  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" +
@@ -60,19 +60,24 @@ try {
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net8.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net9.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
+  " --exclude net10.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
+  " --exclude net8.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
+  " --exclude net9.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Extensions.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
-  " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
-  " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
 
   # Semantic Search reference assemblies can't be reconstructed from source.
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.CSharp.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.VisualBasic.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.SemanticSearch.Extensions.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\System.Collections.Immutable.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +

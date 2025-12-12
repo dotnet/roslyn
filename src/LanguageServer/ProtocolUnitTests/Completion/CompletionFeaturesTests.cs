@@ -27,7 +27,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 
-public class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
+public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => FeaturesLspComposition;
 
@@ -64,22 +64,24 @@ public class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
     public async Task TestDoesNotThrowInComplexEditWhenDisplayTextShorterThanDefaultSpanAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System;
-using System.Text;
+            """
 
-public class A
-{
-    public int M()
-    {
-        return{|caret:|}
-    }
-}";
+            using System;
+            using System.Text;
+
+            public class A
+            {
+                public int M()
+                {
+                    return{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -100,14 +102,16 @@ public class A
     {
         var markup = isInUsingStatement
             ? @"global using static Task{|caret:|}"
-            : @"
-class A
-{
-    void M()
-    {
-        Task{|caret:|}
-    }
-}";
+            : """
+
+            class A
+            {
+                void M()
+                {
+                    Task{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -128,7 +132,7 @@ class A
 
         var actualItem = completionResult.Items.First(i => i.Label == "Task");
         Assert.Equal("System.Threading.Tasks", actualItem.LabelDetails.Description);
-        Assert.Equal("~Task  System.Threading.Tasks", actualItem.SortText);
+        Assert.Equal("0000~Task  System.Threading.Tasks", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, actualItem.Kind);
         Assert.Null(actualItem.LabelDetails.Detail);
         Assert.Null(actualItem.FilterText);
@@ -145,7 +149,7 @@ class A
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("System.Threading.Tasks", resolvedItem.LabelDetails.Description);
-        Assert.Equal("~Task  System.Threading.Tasks", resolvedItem.SortText);
+        Assert.Equal("0000~Task  System.Threading.Tasks", resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
 
         TextEdit expectedAdditionalEdit = isInUsingStatement
@@ -174,25 +178,27 @@ class A
     public async Task TestImportCompletionForExtensionMethod(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-namespace NS2
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtensionMethod(this object o) => true;
-    }
-}
+            """
 
-namespace NS1
-{
-    class Program
-    {
-        void M(object o)
-        {
-            o.{|caret:|}
-        }
-    }
-}";
+            namespace NS2
+            {
+                public static class ExtensionClass
+                {
+                    public static bool ExtensionMethod(this object o) => true;
+                }
+            }
+
+            namespace NS1
+            {
+                class Program
+                {
+                    void M(object o)
+                    {
+                        o.{|caret:|}
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -213,7 +219,7 @@ namespace NS1
 
         var actualItem = completionResult.Items.First(i => i.Label == "ExtensionMethod");
         Assert.Equal("NS2", actualItem.LabelDetails.Description);
-        Assert.Equal("~ExtensionMethod NS2", actualItem.SortText);
+        Assert.Equal("0004~ExtensionMethod NS2", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Method, actualItem.Kind);
         Assert.Null(actualItem.LabelDetails.Detail);
         Assert.Null(actualItem.FilterText);
@@ -230,7 +236,7 @@ namespace NS1
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("NS2", resolvedItem.LabelDetails.Description);
-        Assert.Equal("~ExtensionMethod NS2", resolvedItem.SortText);
+        Assert.Equal("0004~ExtensionMethod NS2", resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Method, resolvedItem.Kind);
 
         var expectedAdditionalEdit = new TextEdit() { NewText = "using NS2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
@@ -255,9 +261,11 @@ namespace NS1
     public async Task TestResolveComplexEdit(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-/// <summ{|caret:|}
-class A { }";
+            """
+
+            /// <summ{|caret:|}
+            class A { }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
@@ -277,7 +285,7 @@ class A { }";
         Assert.Equal(CompletionItemKind.Keyword, actualItem.Kind);
         Assert.Equal("summ", actualItem.TextEditText);
         Assert.Null(actualItem.LabelDetails);
-        Assert.Null(actualItem.SortText);
+        Assert.Equal("0011", actualItem.SortText);
         Assert.Null(actualItem.FilterText);
         Assert.Null(actualItem.TextEdit);
         Assert.Null(actualItem.AdditionalTextEdits);
@@ -304,22 +312,24 @@ class A { }";
     public async Task TestSoftSelectionWhenFilterTextIsEmptyAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System;
-using System.Text;
+            """
 
-public class A
-{
-    public void M(string someText)
-    {
-        var x = new StringBuilder();
-        x.Append({|caret:|}
-    }
-}";
+            using System;
+            using System.Text;
+
+            public class A
+            {
+                public void M(string someText)
+                {
+                    var x = new StringBuilder();
+                    x.Append({|caret:|}
+                }
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, true);
 
@@ -345,7 +355,7 @@ public class A
             Assert.True(!someTextItem.Preselect && someTextItem.CommitCharacters == null);
         }
 
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caretLocation),
@@ -373,14 +383,16 @@ public class A
     public async Task TestPromotingDefaultCommitCharactersAsync(bool mutatingLspWorkspace, bool hasDefaultCommitCharCapability)
     {
         var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        item{|caret:|}
-    }
-}";
+            """
+            using System;
+            class A
+            {
+                void M()
+                {
+                    item{|caret:|}
+                }
+            }
+            """;
         var clientCapability = DefaultClientCapabilities;
         if (!hasDefaultCommitCharCapability)
         {
@@ -446,7 +458,7 @@ class A
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -532,7 +544,7 @@ class A
 
         var actualItem = completionResult.Items.First(i => i.Label == "ObsoleteType");
         Assert.Null(actualItem.LabelDetails);
-        Assert.Null(actualItem.SortText);
+        Assert.Equal("0000", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, actualItem.Kind);
         Assert.Equal([CompletionItemTag.Deprecated], actualItem.Tags);
         Assert.Null(actualItem.FilterText);
@@ -549,7 +561,7 @@ class A
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Null(resolvedItem.LabelDetails);
-        Assert.Null(resolvedItem.SortText);
+        Assert.Equal("0000", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
         Assert.Equal([CompletionItemTag.Deprecated], resolvedItem.Tags);
 
@@ -565,7 +577,7 @@ class A
             Kind = LSP.MarkupKind.PlainText,
             Value = "[deprecated] class ObsoleteType"
         };
-        AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
+        AssertJsonEquals(expectedDocumentation, resolvedItem.Documentation);
     }
 
     private sealed class CSharpLspMockCompletionService : CompletionService
@@ -631,14 +643,16 @@ class A
     public async Task EditRangeShouldEndAtCursorPosition(bool mutatingLspWorkspace)
     {
         var markup =
-@"public class C1 {}
+            """
+            public class C1 {}
 
-pub{|caret:|}class";
+            pub{|caret:|}class
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -658,25 +672,27 @@ pub{|caret:|}class";
     public async Task TestResolveImportCompletionWithIdenticalLabel(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-namespace Namespace1
-{
-    class MyClass {}
-}
-namespace Namespace2
-{
-    class MyClass {}
-}
-namespace Program
-{
-    class A
-    {
-        void M()
-        {
-            MyClass{|caret:|}
-        }
-    }
-}";
+            """
+
+            namespace Namespace1
+            {
+                class MyClass {}
+            }
+            namespace Namespace2
+            {
+                class MyClass {}
+            }
+            namespace Program
+            {
+                class A
+                {
+                    void M()
+                    {
+                        MyClass{|caret:|}
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -695,7 +711,7 @@ namespace Program
         Assert.NotNull(completionResult.ItemDefaults.Data);
         Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
 
-        var myClassItems = completionResult.Items.Where(i => i.Label == "MyClass").ToImmutableArray();
+        var myClassItems = completionResult.Items.WhereAsArray(i => i.Label == "MyClass");
         var itemFromNS1 = myClassItems.Single(i => i.LabelDetails?.Description == "Namespace1");
         var itemFromNS2 = myClassItems.Single(i => i.LabelDetails?.Description == "Namespace2");
 
@@ -708,7 +724,7 @@ namespace Program
 
         var resolvedItem1 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS1, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace1", resolvedItem1.LabelDetails.Description);
-        Assert.Equal("~MyClass Namespace1", resolvedItem1.SortText);
+        Assert.Equal("0000~MyClass Namespace1", resolvedItem1.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
 
         var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
@@ -716,7 +732,7 @@ namespace Program
 
         var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace2", resolvedItem2.LabelDetails.Description);
-        Assert.Equal("~MyClass Namespace2", resolvedItem2.SortText);
+        Assert.Equal("0001~MyClass Namespace2", resolvedItem2.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
 
         var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
@@ -727,21 +743,23 @@ namespace Program
     public async Task TestEmptyCommitCharsInSuggestionMode(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System.Collections.Generic;
-using System.Linq;
-public class C
-{
-    public Foo(List<int> myList)
-    {
-        var foo = myList.Where(i{|caret:|})
-    }
-}";
+            """
+
+            using System.Collections.Generic;
+            using System.Linq;
+            public class C
+            {
+                public Foo(List<int> myList)
+                {
+                    var foo = myList.Where(i{|caret:|})
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -771,11 +789,11 @@ public class C
         mockService.ItemCounts = (10, 10);
 
         var caret = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caret.Uri);
+        await testLspServer.OpenDocumentAsync(caret.DocumentUri);
 
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -792,7 +810,7 @@ public class C
         foreach (var item in results.Items)
             Assert.Null(item.CommitCharacters);
 
-        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "i"));
+        await testLspServer.InsertTextAsync(caret.DocumentUri, (caret.Range.End.Line, caret.Range.End.Character, "i"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caret),
@@ -813,19 +831,21 @@ public class C
     public async Task TestSoftSelectionForDiscardAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-public class A
-{
-    public void M()
-    {
-        var _someDiscard = 1;
-        _{|caret:|}
-    }
-}";
+            """
+
+            public class A
+            {
+                public void M()
+                {
+                    var _someDiscard = 1;
+                    _{|caret:|}
+                }
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, true);
 
@@ -844,7 +864,7 @@ public class A
         Assert.Equal("_someDiscard", actualItem.Label);
         Assert.Null(actualItem.CommitCharacters);
 
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caretLocation),
@@ -941,7 +961,7 @@ public class A
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -1010,7 +1030,7 @@ public class A
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -1049,22 +1069,24 @@ public class A
     public async Task FilteringShouldBeDoneByTextBeforeCursorLocation(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-public class Z
-{
-    public int M()
-    {
-        int ia, ib, ic, ifa, ifb, ifc; 
-        i{|caret:|}Exception
-    }
-}";
+            """
+
+            public class Z
+            {
+                public int M()
+                {
+                    int ia, ib, ic, ifa, ifb, ifc; 
+                    i{|caret:|}Exception
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caret.Uri);
+        await testLspServer.OpenDocumentAsync(caret.DocumentUri);
 
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -1084,7 +1106,7 @@ public class Z
         Assert.Equal(listMaxSize, results.Items.Length);
         Assert.False(results.Items.Any(i => i.Label == "if"));
 
-        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
+        await testLspServer.InsertTextAsync(caret.DocumentUri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caret),

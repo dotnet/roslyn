@@ -6,40 +6,52 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+
+public struct MatchingPair
 {
-    public struct MatchingPair
-    {
-        public string Old;
-        public string New;
+    public string Old;
+    public string New;
 
-        public override readonly string ToString()
-            => "{ \"" + Old.Replace("\"", "\\\"") + "\", \"" + New.Replace("\"", "\\\"") + "\" }";
-    }
+    public override readonly string ToString()
+        => """
+        { "
+        """ + Old.Replace("""
+               "
+               """, """
+               \"
+               """) + """
+        ", "
+        """ + New.Replace("""
+                          "
+                          """, """
+                          \"
+                          """) + """
+        " }
+        """;
+}
 
-    public class MatchingPairs : IEnumerable<MatchingPair>
-    {
-        public readonly List<MatchingPair> Pairs;
+public class MatchingPairs : IEnumerable<MatchingPair>
+{
+    public readonly List<MatchingPair> Pairs;
 
-        public MatchingPairs()
-            => Pairs = [];
+    public MatchingPairs()
+        => Pairs = [];
 
-        public MatchingPairs(IEnumerable<MatchingPair> pairs)
-            => Pairs = [.. pairs];
+    public MatchingPairs(IEnumerable<MatchingPair> pairs)
+        => Pairs = [.. pairs];
 
-        public void Add(string old, string @new)
-            => Pairs.Add(new MatchingPair { Old = old, New = @new });
+    public void Add(string old, string @new)
+        => Pairs.Add(new MatchingPair { Old = old, New = @new });
 
-        public IEnumerator GetEnumerator()
-            => Pairs.GetEnumerator();
+    public IEnumerator GetEnumerator()
+        => Pairs.GetEnumerator();
 
-        IEnumerator<MatchingPair> IEnumerable<MatchingPair>.GetEnumerator()
-            => Pairs.GetEnumerator();
+    IEnumerator<MatchingPair> IEnumerable<MatchingPair>.GetEnumerator()
+        => Pairs.GetEnumerator();
 
-        public void AssertEqual(MatchingPairs actual)
-            => AssertEx.Equal(this, actual, itemSeparator: ",\r\n");
-    }
+    public void AssertEqual(MatchingPairs actual)
+        => AssertEx.Equal(this, actual, itemSeparator: ",\r\n");
 }

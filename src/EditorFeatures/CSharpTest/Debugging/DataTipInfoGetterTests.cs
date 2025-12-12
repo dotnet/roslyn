@@ -28,9 +28,8 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
     }
 
     [Fact]
-    public async Task Test1()
-    {
-        await TestAsync(
+    public Task Test1()
+        => TestAsync(
             """
             class C
             {
@@ -40,12 +39,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test2()
-    {
-        await TestAsync(
+    public Task Test2()
+        => TestAsync(
             """
             class C
             {
@@ -55,12 +52,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test3()
-    {
-        await TestAsync(
+    public Task Test3()
+        => TestAsync(
             """
             class C
             {
@@ -70,12 +65,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test4()
-    {
-        await TestAsync(
+    public Task Test4()
+        => TestAsync(
             """
             class C
             {
@@ -85,12 +78,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test5()
-    {
-        await TestAsync(
+    public Task Test5()
+        => TestAsync(
             """
             class C
             {
@@ -100,12 +91,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test6()
-    {
-        await TestNoDataTipAsync(
+    public Task Test6()
+        => TestNoDataTipAsync(
             """
             class C
             {
@@ -115,12 +104,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test7()
-    {
-        await TestAsync(
+    public Task Test7()
+        => TestAsync(
             """
             class C
             {
@@ -130,12 +117,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test8()
-    {
-        await TestNoDataTipAsync(
+    public Task Test8()
+        => TestNoDataTipAsync(
             """
             class C
             {
@@ -145,12 +130,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestVar()
-    {
-        await TestAsync(
+    public Task TestVar()
+        => TestAsync(
             """
             class C
             {
@@ -160,12 +143,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """, "int");
-    }
 
     [Fact]
-    public async Task TestVariableType()
-    {
-        await TestAsync(
+    public Task TestVariableType()
+        => TestAsync(
             """
             class C
             {
@@ -175,12 +156,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestVariableIdentifier()
-    {
-        await TestAsync(
+    public Task TestVariableIdentifier()
+        => TestAsync(
             """
             class C
             {
@@ -190,12 +169,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539910")]
-    public async Task TestLiterals()
-    {
-        await TestAsync(
+    public Task TestLiterals()
+        => TestAsync(
             """
             class C
             {
@@ -205,12 +182,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """, "int");
-    }
 
     [Fact]
-    public async Task TestNonExpressions()
-    {
-        await TestNoDataTipAsync(
+    public Task TestNonExpressions()
+        => TestNoDataTipAsync(
             """
             class C
             {
@@ -220,12 +195,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }$$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParameterIdentifier()
-    {
-        await TestAsync(
+    public Task TestParameterIdentifier()
+        => TestAsync(
             """
             class C
             {
@@ -234,12 +207,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")]
-    public async Task TestCatchIdentifier()
-    {
-        await TestAsync(
+    public Task TestCatchIdentifier()
+        => TestAsync(
             """
             class C
             {
@@ -254,7 +225,6 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestEvent()
@@ -281,16 +251,14 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
     }
 
     [Fact]
-    public async Task TestMethod()
-    {
-        await TestAsync(
+    public Task TestMethod()
+        => TestAsync(
             """
             class C
             {
                 int [|$$M|]() { }
             }
             """);
-    }
 
     [Fact]
     public async Task TestTypeParameter()
@@ -306,9 +274,8 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
     }
 
     [Fact]
-    public async Task UsingAlias()
-    {
-        await TestAsync(
+    public Task UsingAlias()
+        => TestAsync(
             """
             using [|$$S|] = Static;
 
@@ -316,12 +283,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540921")]
-    public async Task TestForEachIdentifier()
-    {
-        await TestAsync(
+    public Task TestForEachIdentifier()
+        => TestAsync(
             """
             class C
             {
@@ -333,12 +298,10 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546328")]
-    public async Task TestProperty()
-    {
-        await TestAsync(
+    public Task TestProperty()
+        => TestAsync(
             """
             namespace ConsoleApplication16
             {
@@ -363,7 +326,6 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestQueryIdentifier()
@@ -452,9 +414,8 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
     [InlineData("[|Me?.$$B|]?.C?.D")]
     [InlineData("[|Me?.B?.$$C|]?.D")]
     [InlineData("[|Me?.B?.C?.$$D|]")]
-    public async Task TestConditionalAccessExpression(string data)
-    {
-        await TestAsync($$"""
+    public Task TestConditionalAccessExpression(string data)
+        => TestAsync($$"""
             class A
             {
                 B B;
@@ -479,15 +440,13 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             {
             }
             """);
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
     [InlineData("/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/")]
     [InlineData("/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/")]
     [InlineData("/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/")]
-    public async Task TestConditionalAccessExpression_Trivia(string data)
-    {
-        await TestAsync($$"""
+    public Task TestConditionalAccessExpression_Trivia(string data)
+        => TestAsync($$"""
             class A
             {
                 B B;
@@ -507,60 +466,49 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLinq1()
-    {
-        await TestAsync("""
+    public Task TestLinq1()
+        => TestAsync("""
             using System.Linq;
 
             int[] args;
             var v = $$[|args|].Select(a => a.ToString());
             """);
-    }
 
     [Fact]
-    public async Task TestLinq2()
-    {
-        await TestAsync("""
+    public Task TestLinq2()
+        => TestAsync("""
             using System.Linq;
 
             int[] args;
             var v = {|LinqExpression:[|args.$$Select|](a => a.ToString())|};
             """);
-    }
 
     [Fact]
-    public async Task TestLinq3()
-    {
-        await TestAsync("""
+    public Task TestLinq3()
+        => TestAsync("""
             using System.Linq;
 
             int[] args;
             var v = $$[|args|].Select(a => a.ToString()).Where(a => a.Length >= 0);
             """);
-    }
 
     [Fact]
-    public async Task TestLinq4()
-    {
-        await TestAsync("""
+    public Task TestLinq4()
+        => TestAsync("""
             using System.Linq;
 
             int[] args;
             var v = {|LinqExpression:[|args.$$Select|](a => a.ToString())|}.Where(a => a.Length >= 0);
             """);
-    }
 
     [Fact]
-    public async Task TestLinq5()
-    {
-        await TestAsync("""
+    public Task TestLinq5()
+        => TestAsync("""
             using System.Linq;
 
             int[] args;
             var v = {|LinqExpression:[|args.Select(a => a.ToString()).$$Where|](a => a.Length >= 0)|};
             """);
-    }
 }

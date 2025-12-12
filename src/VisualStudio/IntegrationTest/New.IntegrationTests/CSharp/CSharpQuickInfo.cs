@@ -23,14 +23,16 @@ public class CSharpQuickInfo : AbstractEditorTest
     [IdeFact]
     public async Task QuickInfo_MetadataDocumentation()
     {
-        await SetUpEditorAsync(@"
-///<summary>Hello!</summary>
-class Program
-{
-    static void Main(string$$[] args)
-    {
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            ///<summary>Hello!</summary>
+            class Program
+            {
+                static void Main(string$$[] args)
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
         Assert.Equal(
@@ -41,14 +43,16 @@ class Program
     [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task QuickInfo_Documentation()
     {
-        await SetUpEditorAsync(@"
-///<summary>Hello!</summary>
-class Program$$
-{
-    static void Main(string[] args)
-    {
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            ///<summary>Hello!</summary>
+            class Program$$
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
         Assert.Equal("class Program\r\nHello!", quickInfo);
@@ -57,42 +61,47 @@ class Program$$
     [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task International()
     {
-        await SetUpEditorAsync(@"
-/// <summary>
-/// This is an XML doc comment defined in code.
-/// </summary>
-class العربية123
-{
-    static void Main()
-    {
-         العربية123$$ goo;
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            /// <summary>
+            /// This is an XML doc comment defined in code.
+            /// </summary>
+            class العربية123
+            {
+                static void Main()
+                {
+                     العربية123$$ goo;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-        Assert.Equal(@"class العربية123
-This is an XML doc comment defined in code.", quickInfo);
+        Assert.Equal("""
+            class العربية123
+            This is an XML doc comment defined in code.
+            """, quickInfo);
     }
 
     [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task SectionOrdering()
     {
-        await SetUpEditorAsync(@"
-using System;
-using System.Threading.Tasks;
+        await SetUpEditorAsync("""
 
-class C
-{
-    /// <exception cref=""Exception""></exception>
-    async Task <int> M()
-    {
-                return await M$$();
-            }
-        }", HangMitigatingCancellationToken);
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                /// <exception cref="Exception"></exception>
+                async Task <int> M()
+                {
+                            return await M$$();
+                        }
+                    }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-        var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
-        Assert.Equal(expected, quickInfo);
+        Assert.Equal("(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception", quickInfo);
     }
 }

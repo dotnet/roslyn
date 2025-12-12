@@ -2,11 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.IntroduceParameter.VisualBasicIntroduceParameterCodeRefactoringProvider)
 
@@ -30,8 +25,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -75,8 +69,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -104,8 +97,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -165,8 +157,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -610,8 +601,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -634,8 +624,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -677,8 +666,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -707,8 +695,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -847,8 +834,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -981,8 +967,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -1013,8 +998,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 

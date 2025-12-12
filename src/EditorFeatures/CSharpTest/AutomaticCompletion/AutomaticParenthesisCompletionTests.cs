@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticParenthesisCompletionTests : AbstractAutomaticBraceCompletionTests
+public sealed class AutomaticParenthesisCompletionTests : AbstractAutomaticBraceCompletionTests
 {
     [WpfFact]
     public void Creation()
@@ -193,10 +193,396 @@ public class AutomaticParenthesisCompletionTests : AbstractAutomaticBraceComplet
         CheckStart(session.Session, expectValidSession: false);
     }
 
-    internal static Holder CreateSession(string code)
+    [WpfFact]
+    public void ExtensionParameterList_OpenParenthesis_Delete()
+    {
+        var code = """
+            static class C
+            {
+                extension$$
+            }
+            """;
+
+        using var session = CreateSession(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckBackspace(session.Session);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInIfStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    if (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    if (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInWhileStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    while (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    while (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInForStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    for (int i = 0; a.Where$$; i++)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    for (int i = 0; a.Where(); i++)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInForEachStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    foreach (var x in a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    foreach (var x in a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInUsingStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    using (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    using (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInLockStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    lock (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    lock (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInSwitchStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    switch (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    switch (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInFixedStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                unsafe void Method()
+                {
+                    var a = new int[] { };
+                    fixed (int* p = a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                unsafe void Method()
+                {
+                    var a = new int[] { };
+                    fixed (int* p = a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInCastExpression()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    var x = (object)a.Where$$;
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    var x = (object)a.Where();
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
+    public void NestedParenthesisInCatchDeclaration()
+    {
+        var code = """
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    try { }
+                    catch (Exception ex) when (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    try { }
+                    catch (Exception ex) when (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    internal static Holder CreateSession(string code, ParseOptions? parseOptions = null)
     {
         return CreateSession(
-            EditorTestWorkspace.CreateCSharp(code),
+            EditorTestWorkspace.CreateCSharp(code, parseOptions),
             Parenthesis.OpenCharacter, Parenthesis.CloseCharacter);
     }
 }

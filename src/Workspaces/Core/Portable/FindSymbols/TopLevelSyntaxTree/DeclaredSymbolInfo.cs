@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -30,6 +31,7 @@ internal enum DeclaredSymbolInfoKind : byte
     Method,
     Module,
     Namespace,
+    Operator,
     Property,
     Record,
     RecordStruct,

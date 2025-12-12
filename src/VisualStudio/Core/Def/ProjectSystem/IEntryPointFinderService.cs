@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 internal interface IEntryPointFinderService : ILanguageService
 {
     /// <summary>
-    /// Finds the types that contain entry points like the Main method in a give namespace.
+    /// Finds the types that contain entry points like the Main method in a given compilation.
     /// </summary>
-    /// <param name="symbol">The namespace to search.</param>
+    /// <param name="compilation">The compilation to search.</param>
     /// <param name="findFormsOnly">Restrict the search to only Windows Forms classes. Note that this is only implemented for VisualBasic</param>
-    IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol, bool findFormsOnly);
+    IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation, bool findFormsOnly);
 }

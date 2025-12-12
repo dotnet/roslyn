@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
-public class SourceGeneratedDocumentUrisTests : AbstractLanguageServerProtocolTests
+public sealed class SourceGeneratedDocumentUrisTests : AbstractLanguageServerProtocolTests
 {
     public SourceGeneratedDocumentUrisTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -32,8 +32,8 @@ public class SourceGeneratedDocumentUrisTests : AbstractLanguageServerProtocolTe
             new SourceGeneratorIdentity("GeneratorAssembly", "Generator.dll", new Version(1, 0), "GeneratorType"), HintName);
 
         var uri = SourceGeneratedDocumentUri.Create(identity);
-        Assert.Equal(SourceGeneratedDocumentUri.Scheme, uri.Scheme);
-        var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri);
+        Assert.Equal(SourceGeneratedDocumentUri.Scheme, uri.GetRequiredParsedUri().Scheme);
+        var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri.GetRequiredParsedUri());
 
         AssertEx.NotNull(deserialized);
         Assert.Equal(identity, deserialized.Value);

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -108,7 +107,7 @@ internal static class SourceTextExtensions
             => csharp.Rules.NamingRules.Except(common, NamingRuleComparerIgnoreGUIDs.Instance);
     }
 
-    private class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
+    private sealed class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
     {
         private static readonly Lazy<NamingRuleComparerIgnoreGUIDs> s_lazyInstance = new(() => new NamingRuleComparerIgnoreGUIDs());
 
@@ -129,7 +128,7 @@ internal static class SourceTextExtensions
             return Hash.Combine(enforcementLevelHashCode, Hash.Combine(namingStyleHashCode, symbolSpecificationHashCode));
         }
 
-        private class NamingStyleComparerIgnoreGUIDs : IEqualityComparer<NamingStyle>
+        private sealed class NamingStyleComparerIgnoreGUIDs : IEqualityComparer<NamingStyle>
         {
             private static readonly Lazy<NamingStyleComparerIgnoreGUIDs> s_lazyInstance = new(() => new NamingStyleComparerIgnoreGUIDs());
 
@@ -154,7 +153,7 @@ internal static class SourceTextExtensions
             }
         }
 
-        private class SymbolSpecificationComparerIgnoreGUIDs : IEqualityComparer<SymbolSpecification>
+        private sealed class SymbolSpecificationComparerIgnoreGUIDs : IEqualityComparer<SymbolSpecification>
         {
             private static readonly Lazy<SymbolSpecificationComparerIgnoreGUIDs> s_lazyInstance = new(() => new SymbolSpecificationComparerIgnoreGUIDs());
 
@@ -172,7 +171,7 @@ internal static class SourceTextExtensions
                     return false;
                 }
 
-                return StringComparer.OrdinalIgnoreCase.Equals(left!.Name, right!.Name) &&
+                return StringComparer.OrdinalIgnoreCase.Equals(left.Name, right.Name) &&
                        left.RequiredModifierList.SequenceEqual(right.RequiredModifierList) &&
                        left.ApplicableAccessibilityList.SequenceEqual(right.ApplicableAccessibilityList) &&
                        left.ApplicableSymbolKindList.SequenceEqual(right.ApplicableSymbolKindList);

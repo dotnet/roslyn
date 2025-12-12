@@ -13,6 +13,12 @@ dotnet_diagnostic.CA1052.severity = warning
 # CA2012: Use ValueTasks correctly
 dotnet_diagnostic.CA2012.severity = warning
 
+# CA2022: Avoid inexact read with 'Stream.Read'
+dotnet_diagnostic.CA2022.severity = suggestion
+
+# CA2265: Do not compare Span<T> to 'null' or 'default'
+dotnet_diagnostic.CA2265.severity = suggestion
+
 # IDE0073: File header
 dotnet_diagnostic.IDE0073.severity = warning
 
@@ -126,9 +132,6 @@ dotnet_diagnostic.VSTHRD103.severity = none
 dotnet_diagnostic.VSTHRD010.severity = none
 # VSTHRD110: Observe result of async calls
 dotnet_diagnostic.VSTHRD110.severity = none
-
-# Workaround for old Microsoft.VisualStudio.Progression.* packages: https://github.com/dotnet/roslyn/issues/71404
-dotnet_diagnostic.VSIXCompatibility1001.severity = none
 
 dotnet_diagnostic.HAA0101.severity = none
 dotnet_diagnostic.HAA0102.severity = none

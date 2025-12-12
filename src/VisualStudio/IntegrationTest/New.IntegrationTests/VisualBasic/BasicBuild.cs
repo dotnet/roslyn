@@ -30,15 +30,15 @@ public class BasicBuild : AbstractIntegrationTest
     [IdeFact, Trait(Traits.Feature, Traits.Features.Build)]
     public async Task BuildProject()
     {
-        var editorText = @"Module Module1
+        await TestServices.Editor.SetTextAsync("""
+            Module Module1
 
-    Sub Main()
-        Console.WriteLine(""Hello, World!"")
-    End Sub
+                Sub Main()
+                    Console.WriteLine("Hello, World!")
+                End Sub
 
-End Module";
-
-        await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
+            End Module
+            """, HangMitigatingCancellationToken);
 
         var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
         Assert.True(succeed);

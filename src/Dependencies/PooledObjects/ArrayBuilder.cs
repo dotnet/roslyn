@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-
-#if COMPILERCORE
-using Roslyn.Utilities;
-#endif
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
@@ -274,7 +273,21 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void RemoveAll(Predicate<T> match)
         {
-            _builder.RemoveAll(match);
+            var i = 0;
+            for (var j = 0; j < _builder.Count; j++)
+            {
+                if (!match(_builder[j]))
+                {
+                    if (i != j)
+                    {
+                        _builder[i] = _builder[j];
+                    }
+
+                    i++;
+                }
+            }
+
+            Clip(i);
         }
 
         public void RemoveAll<TArg>(Func<T, TArg, bool> match, TArg arg)
@@ -283,6 +296,25 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             for (var j = 0; j < _builder.Count; j++)
             {
                 if (!match(_builder[j], arg))
+                {
+                    if (i != j)
+                    {
+                        _builder[i] = _builder[j];
+                    }
+
+                    i++;
+                }
+            }
+
+            Clip(i);
+        }
+
+        public void RemoveAll<TArg>(Func<T, int, TArg, bool> match, TArg arg)
+        {
+            var i = 0;
+            for (var j = 0; j < _builder.Count; j++)
+            {
+                if (!match(_builder[j], i, arg))
                 {
                     if (i != j)
                     {
@@ -306,7 +338,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.Sort();
         }
 
-        public void Sort(IComparer<T> comparer)
+        public void Sort(IComparer<T>? comparer)
         {
             _builder.Sort(comparer);
         }
@@ -420,6 +452,15 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             var result = this.ToArray();
             this.Free();
             return result;
+        }
+
+        public void FreeAll(Func<T, ArrayBuilder<T>?> getNested)
+        {
+            foreach (var item in this)
+            {
+                getNested(item)?.FreeAll(getNested);
+            }
+            Free();
         }
 
         #region Poolable
@@ -637,13 +678,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items, length);
         }
 
-#if COMPILERCORE
-        public void AddRange(OneOrMany<T> items)
-        {
-            items.AddRangeTo(this);
-        }
-#endif
-
         public void Clip(int limit)
         {
             Debug.Assert(limit <= Count);
@@ -684,12 +718,14 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set.Free();
         }
 
-        public void SortAndRemoveDuplicates(IComparer<T> comparer)
+        public void SortAndRemoveDuplicates(IComparer<T>? comparer = null)
         {
             if (Count <= 1)
             {
                 return;
             }
+
+            comparer ??= Comparer<T>.Default;
 
             Sort(comparer);
 
@@ -723,6 +759,194 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set.Free();
             return result.ToImmutableAndFree();
         }
+
+        public bool Any(Func<T, bool> predicate)
+        {
+            foreach (var item in this)
+            {
+                if (predicate(item))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool Any<A>(Func<T, A, bool> predicate, A arg)
+        {
+            foreach (var item in this)
+            {
+                if (predicate(item, arg))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool All(Func<T, bool> predicate)
+        {
+            foreach (var item in this)
+            {
+                if (!predicate(item))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool All<A>(Func<T, A, bool> predicate, A arg)
+        {
+            foreach (var item in this)
+            {
+                if (!predicate(item, arg))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Maps an array builder to immutable array.
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="map">The mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array</returns>
+        public ImmutableArray<TResult> SelectAsArray<TResult>(Func<T, TResult> map)
+        {
+            switch (Count)
+            {
+                case 0:
+                    return [];
+
+                case 1:
+                    return [map(this[0])];
+
+                case 2:
+                    return [map(this[0]), map(this[1])];
+
+                case 3:
+                    return [map(this[0]), map(this[1]), map(this[2])];
+
+                case 4:
+                    return [map(this[0]), map(this[1]), map(this[2]), map(this[3])];
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
+                    foreach (var item in this)
+                    {
+                        builder.Add(map(item));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
+        }
+
+        /// <summary>
+        /// Maps an array builder to immutable array.
+        /// </summary>
+        /// <typeparam name="TArg"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="map">The mapping delegate</param>
+        /// <param name="arg">The extra input used by mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public ImmutableArray<TResult> SelectAsArray<TArg, TResult>(Func<T, TArg, TResult> map, TArg arg)
+        {
+            switch (Count)
+            {
+                case 0:
+                    return [];
+
+                case 1:
+                    return [map(this[0], arg)];
+
+                case 2:
+                    return [map(this[0], arg), map(this[1], arg)];
+
+                case 3:
+                    return [map(this[0], arg), map(this[1], arg), map(this[2], arg)];
+
+                case 4:
+                    return [map(this[0], arg), map(this[1], arg), map(this[2], arg), map(this[3], arg)];
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
+                    foreach (var item in this)
+                    {
+                        builder.Add(map(item, arg));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
+        }
+
+        /// <summary>
+        /// Maps an array builder to immutable array.
+        /// </summary>
+        /// <typeparam name="TArg"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="map">The mapping delegate</param>
+        /// <param name="arg">The extra input used by mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public ImmutableArray<TResult> SelectAsArrayWithIndex<TArg, TResult>(Func<T, int, TArg, TResult> map, TArg arg)
+        {
+            switch (Count)
+            {
+                case 0:
+                    return [];
+
+                case 1:
+                    return [map(this[0], 0, arg)];
+
+                case 2:
+                    return [map(this[0], 0, arg), map(this[1], 1, arg)];
+
+                case 3:
+                    return [map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg)];
+
+                case 4:
+                    return [map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg), map(this[3], 3, arg)];
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
+                    foreach (var item in this)
+                    {
+                        builder.Add(map(item, builder.Count, arg));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
+        }
+
+        // The following extension methods allow an ArrayBuilder to be used as a stack. 
+        // Note that the order of an IEnumerable from a List is from bottom to top of stack. An IEnumerable 
+        // from the framework Stack is from top to bottom.
+        public void Push(T e)
+            => Add(e);
+
+        public T Pop()
+        {
+            var e = Peek();
+            RemoveAt(Count - 1);
+            return e;
+        }
+
+        public bool TryPop([MaybeNullWhen(false)] out T result)
+        {
+            if (Count > 0)
+            {
+                result = Pop();
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        public T Peek()
+            => this[Count - 1];
 
 #if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
 

@@ -4,14 +4,13 @@
 
 #if !NET
 
-namespace System.Diagnostics.CodeAnalysis
+namespace System.Diagnostics.CodeAnalysis;
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+internal sealed class StringSyntaxAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    internal sealed class StringSyntaxAttribute : Attribute
-    {
-        public StringSyntaxAttribute(string syntax) => Syntax = syntax;
-        public string Syntax { get; }
-    }
+    public StringSyntaxAttribute(string syntax) => Syntax = syntax;
+    public string Syntax { get; }
 }
 
 #endif

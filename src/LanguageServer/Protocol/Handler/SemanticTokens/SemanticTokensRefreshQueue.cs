@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 /// <summary>
 /// Batches requests to refresh the semantic tokens to optimize user experience.
 /// </summary>
-internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
+internal sealed class SemanticTokensRefreshQueue : AbstractRefreshQueue
 {
     /// <summary>
     /// Lock over the mutable state that follows.
@@ -28,6 +27,8 @@ internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
     /// compilation produced on the oop server.
     /// </summary>
     private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = [];
+
+    public bool AllowRazorRefresh { get; set; }
 
     public SemanticTokensRefreshQueue(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
@@ -62,7 +63,7 @@ internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
 
     protected override void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        Uri? documentUri = null;
+        DocumentUri? documentUri = null;
 
         if (e.DocumentId is not null)
         {
@@ -80,7 +81,7 @@ internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
                 var document = e.NewSolution.GetRequiredAdditionalDocument(e.DocumentId);
 
                 // Changes to files with certain extensions (eg: razor) shouldn't trigger semantic a token refresh
-                if (DisallowsAdditionalDocumentChangedRefreshes(document.FilePath))
+                if (!AllowRazorRefresh && DisallowsAdditionalDocumentChangedRefreshes(document.FilePath))
                     return;
             }
             else if (e.Kind is WorkspaceChangeKind.DocumentReloaded)

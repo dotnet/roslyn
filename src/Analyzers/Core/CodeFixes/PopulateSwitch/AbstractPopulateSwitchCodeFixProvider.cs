@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
@@ -24,17 +22,14 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
     TSwitchOperation,
     TSwitchSyntax,
     TSwitchArmSyntax,
-    TMemberAccessExpression>
+    TMemberAccessExpression>(string diagnosticId)
     : SyntaxEditorBasedCodeFixProvider
     where TSwitchOperation : IOperation
     where TSwitchSyntax : SyntaxNode
     where TSwitchArmSyntax : SyntaxNode
     where TMemberAccessExpression : SyntaxNode
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
-
-    protected AbstractPopulateSwitchCodeFixProvider(string diagnosticId)
-        => FixableDiagnosticIds = [diagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [diagnosticId];
 
     protected abstract ITypeSymbol GetSwitchType(TSwitchOperation switchStatement);
     protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation switchOperation);
@@ -142,8 +137,7 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
         var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
         var switchLocation = diagnostic.AdditionalLocations[0];
-        var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;
-        if (switchNode == null)
+        if (switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) is not TSwitchSyntax switchNode)
             return;
 
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Roslyn.Utilities;
 using CoreSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -152,5 +153,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeBraceToken,
                 semicolonToken);
         }
+    }
+
+    internal partial class ExtensionBlockDeclarationSyntax
+    {
+        public override TypeDeclarationSyntax UpdateCore(
+            CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists,
+            CoreSyntax.SyntaxList<SyntaxToken> modifiers,
+            SyntaxToken keyword,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            BaseListSyntax baseList,
+            CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            SyntaxToken openBraceToken,
+            CoreSyntax.SyntaxList<MemberDeclarationSyntax> members,
+            SyntaxToken closeBraceToken,
+            SyntaxToken semicolonToken)
+        {
+            if (identifier is not null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            if (baseList is not null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return this.Update(
+                attributeLists,
+                modifiers,
+                keyword,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                openBraceToken,
+                members,
+                closeBraceToken,
+                semicolonToken);
+        }
+
+        public override SyntaxToken Identifier => null;
+        public override BaseListSyntax BaseList => null;
     }
 }

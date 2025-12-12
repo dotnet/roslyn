@@ -5,20 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
@@ -532,10 +530,30 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ForEachStatementSyntax foreachStatement)
             {
+                var indentedExpression = IndentExpression(foreachStatement, foreachStatement.Expression, preferredIndentation);
+
+                if (match.UseCast)
+                {
+                    // User has something like `foreach (DifferentType t in collectionOfOtherType)`
+                    //
+                    // Compiler adds direct casts from the collection element type to the DifferentType (due to untyped
+                    // collections in C# 1.0).  We simulate support for that by adding a `.Cast<DifferentType>()` call
+                    // to the element we're spreading into the final collection expression.
+                    indentedExpression = InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            indentedExpression.WithoutTrailingTrivia().Parenthesize(),
+                            GenericName(
+                                Identifier(nameof(Enumerable.Cast)),
+                                TypeArgumentList([foreachStatement.Type.WithoutTrivia()]))))
+                        .WithTriviaFrom(indentedExpression)
+                        .WithAdditionalAnnotations(
+                            new SyntaxAnnotation(kind: SymbolAnnotation.Kind, "T:System.Linq.Enumerable"),
+                            Simplifier.AddImportsAnnotation);
+                }
+
                 // Create: `.. x` for `foreach (var v in x) collection.Add(v)`
-                yield return CreateCollectionElement(
-                    match.UseSpread,
-                    IndentExpression(foreachStatement, foreachStatement.Expression, preferredIndentation));
+                yield return CreateCollectionElement(match.UseSpread, indentedExpression);
             }
             else if (node is IfStatementSyntax ifStatement)
             {

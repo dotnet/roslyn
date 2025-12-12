@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
@@ -35,7 +36,7 @@ internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLa
             return;
 
         var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-        if (virtualChars.IsDefaultOrEmpty)
+        if (virtualChars.IsDefaultOrEmpty())
             return;
 
         // Can avoid any work if we got the same number of virtual characters back as characters in the string. In
@@ -45,8 +46,7 @@ internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLa
 
         foreach (var vc in virtualChars)
         {
-            // utf-16 virtual char might have either one or two in text span
-            if (vc.Span.Length > vc.Rune.Utf16SequenceLength)
+            if (vc.Span.Length > 1)
                 context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
         }
     }

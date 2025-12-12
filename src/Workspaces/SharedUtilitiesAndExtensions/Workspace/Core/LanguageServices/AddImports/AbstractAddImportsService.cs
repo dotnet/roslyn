@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,13 +21,9 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
     where TUsingOrAliasSyntax : SyntaxNode
     where TExternSyntax : SyntaxNode
 {
-    protected AbstractAddImportsService()
-    {
-    }
-
     protected abstract string Language { get; }
     protected abstract SyntaxNode? GetAlias(TUsingOrAliasSyntax usingOrAlias);
-    protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator);
+    protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(SemanticModel semanticModel, SyntaxNode? contextLocation, SyntaxGenerator generator, CancellationToken cancellationToken);
     protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
     protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
     protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
@@ -52,13 +47,14 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
     private bool HasAnyImports(SyntaxNode node) => GetUsingsAndAliases(node).Any() || GetExterns(node).Any();
 
     public bool HasExistingImport(
-        Compilation compilation,
+        SemanticModel semanticModel,
         SyntaxNode root,
         SyntaxNode? contextLocation,
         SyntaxNode import,
-        SyntaxGenerator generator)
+        SyntaxGenerator generator,
+        CancellationToken cancellationToken)
     {
-        var globalImports = GetGlobalImports(compilation, generator);
+        var globalImports = GetGlobalImports(semanticModel, contextLocation, generator, cancellationToken);
         var containers = GetAllContainers(root, contextLocation);
         return HasExistingImport(import, containers, globalImports);
     }
@@ -128,7 +124,7 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
     }
 
     public SyntaxNode AddImports(
-        Compilation compilation,
+        SemanticModel semanticModel,
         SyntaxNode root,
         SyntaxNode? contextLocation,
         IEnumerable<SyntaxNode> newImports,
@@ -138,7 +134,7 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
     {
         contextLocation ??= root;
 
-        var globalImports = GetGlobalImports(compilation, generator);
+        var globalImports = GetGlobalImports(semanticModel, contextLocation, generator, cancellationToken);
         var containers = GetAllContainers(root, contextLocation);
         var filteredImports = newImports.Where(i => !HasExistingImport(i, containers, globalImports)).ToArray();
 

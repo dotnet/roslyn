@@ -29,20 +29,19 @@ internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionS
 
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public override bool IsLiveSource()
-        => true;
+    public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+        => GetTaskListItemsAsync(this.Document, _globalOptions, cancellationToken);
 
-    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        RequestContext context, CancellationToken cancellationToken)
+    internal static async Task<ImmutableArray<DiagnosticData>> GetTaskListItemsAsync(Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
     {
-        var service = this.Document.GetLanguageService<ITaskListService>();
+        var service = document.GetLanguageService<ITaskListService>();
         if (service == null)
             return [];
 
-        var options = _globalOptions.GetTaskListOptions();
+        var options = globalOptions.GetTaskListOptions();
         var descriptors = GetAndCacheDescriptors(options.Descriptors);
 
-        var items = await service.GetTaskListItemsAsync(this.Document, descriptors, cancellationToken).ConfigureAwait(false);
+        var items = await service.GetTaskListItemsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
         if (items.Length == 0)
             return [];
 
@@ -56,9 +55,9 @@ internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionS
             warningLevel: 0,
             customTags: s_todoCommentCustomTags,
             properties: GetProperties(i.Priority),
-            projectId: this.Document.Project.Id,
-            language: this.Document.Project.Language,
-            location: new DiagnosticDataLocation(i.Span, this.Document.Id, mappedFileSpan: i.MappedSpan)));
+            projectId: document.Project.Id,
+            language: document.Project.Language,
+            location: new DiagnosticDataLocation(i.Span, document.Id, mappedFileSpan: i.MappedSpan)));
     }
 
     private static ImmutableDictionary<string, string?> GetProperties(TaskListItemPriority priority)

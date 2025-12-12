@@ -5,25 +5,28 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// This class represents an event declared in source without explicit accessors.
     /// It implicitly has thread safe accessors and an associated field (of the same
-    /// name), unless it does not have an initializer and is either extern or inside
+    /// name), unless it does not have an initializer and is extern, partial, or inside
     /// an interface, in which case it only has accessors.
     /// </summary>
     internal sealed class SourceFieldLikeEventSymbol : SourceEventSymbol
     {
         private readonly string _name;
         private readonly TypeWithAnnotations _type;
-        private readonly SynthesizedEventAccessorSymbol _addMethod;
-        private readonly SynthesizedEventAccessorSymbol _removeMethod;
+        private readonly SourceEventAccessorSymbol _addMethod;
+        private readonly SourceEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
@@ -77,11 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.GetFirstLocation(), this);
                 }
+                else if (this.IsPartial)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialEventInitializer, this.GetFirstLocation(), this);
+                }
             }
 
             // NOTE: if there's an initializer in source, we'd better create a backing field, regardless of
             // whether or not the initializer is legal.
-            if (hasInitializer || !(this.IsExtern || this.IsAbstract))
+            if (hasInitializer || !(this.IsExtern || this.IsAbstract || this.IsPartial))
             {
                 AssociatedEventField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
@@ -108,14 +115,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                     }
                 }
-                else if (!this.IsAbstract)
+                else if (!this.IsAbstract && !this.IsPartialDefinition)
                 {
                     diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.GetFirstLocation(), this);
                 }
             }
 
-            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
-            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
+            if (this.IsPartialDefinition)
+            {
+                _addMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: true, diagnostics);
+                _removeMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: false, diagnostics);
+            }
+            else
+            {
+                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
+                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
+            }
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
@@ -125,6 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             declaratorDiagnostics.Free();
         }
+
+        protected override bool AccessorsHaveImplementation => false;
 
         /// <summary>
         /// Backing field for field-like event. Will be null if the event
@@ -163,9 +180,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object?)AssociatedEventField != null ?
-                    AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
-                    AttributeLocation.Event | AttributeLocation.Method;
+                var result = AttributeLocation.Event;
+
+                if (!IsPartial || IsExtern)
+                {
+                    result |= AttributeLocation.Method;
+                }
+
+                if (AssociatedEventField is not null)
+                {
+                    result |= AttributeLocation.Field;
+                }
+
+                return result;
             }
         }
 
@@ -190,6 +217,123 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.ForceComplete(locationOpt, filter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Accessor of a <see cref="SourceFieldLikeEventSymbol"/> which is a partial definition.
+        /// </summary>
+        internal sealed class SourceEventDefinitionAccessorSymbol : SourceEventAccessorSymbol
+        {
+            internal SourceEventDefinitionAccessorSymbol(
+                SourceFieldLikeEventSymbol ev,
+                bool isAdder,
+                BindingDiagnosticBag diagnostics)
+                : base(
+                    @event: ev,
+                    syntaxReference: ev.SyntaxReference,
+                    location: ev.Location,
+                    explicitlyImplementedEventOpt: null,
+                    aliasQualifierOpt: null,
+                    isAdder: isAdder,
+                    isIterator: false,
+                    isNullableAnalysisEnabled: ev.DeclaringCompilation.IsNullableAnalysisEnabledIn(ev.CSharpSyntaxNode),
+                    isExpressionBodied: false)
+            {
+                Debug.Assert(ev.IsPartialDefinition);
+
+                CheckFeatureAvailabilityAndRuntimeSupport(ev.CSharpSyntaxNode, ev.Location, hasBody: false, diagnostics: diagnostics);
+            }
+
+            public override Accessibility DeclaredAccessibility => AssociatedEvent.DeclaredAccessibility;
+
+            public override bool IsImplicitlyDeclared => true;
+
+            internal override bool GenerateDebugInfo => true;
+
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+            {
+                return null;
+            }
+
+            protected override SourceMemberMethodSymbol? BoundAttributesSource
+            {
+                get
+                {
+                    return IsExtern && this.MethodKind == MethodKind.EventAdd
+                        ? (SourceMemberMethodSymbol?)this.AssociatedEvent.RemoveMethod
+                        : null;
+                }
+            }
+
+            protected override IAttributeTargetSymbol AttributeOwner
+            {
+                get
+                {
+                    Debug.Assert(IsPartialDefinition);
+
+                    switch (PartialImplementationPart)
+                    {
+                        case SourceCustomEventAccessorSymbol:
+                            return this;
+
+                        case SynthesizedEventAccessorSymbol:
+                            Debug.Assert(IsExtern);
+                            return AssociatedEvent;
+
+                        case null:
+                            // Might happen in error scenarios.
+                            return this;
+
+                        default:
+                            Debug.Assert(false);
+                            return this;
+                    }
+                }
+            }
+
+            internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            {
+                Debug.Assert(IsPartialDefinition);
+
+                switch (PartialImplementationPart)
+                {
+                    case SourceCustomEventAccessorSymbol customImplementationPart:
+                        return OneOrMany.Create(customImplementationPart.AttributeDeclarationSyntaxList);
+
+                    case SynthesizedEventAccessorSymbol synthesizedImplementationPart:
+                        Debug.Assert(IsExtern);
+                        return OneOrMany.Create(
+                            AssociatedEvent.AttributeDeclarationSyntaxList,
+                            synthesizedImplementationPart.AssociatedEvent.AttributeDeclarationSyntaxList);
+
+                    case null:
+                        // Might happen in error scenarios.
+                        return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+
+                    default:
+                        Debug.Assert(false);
+                        return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+                }
+            }
+
+            internal override MethodImplAttributes ImplementationAttributes
+            {
+                get
+                {
+                    Debug.Assert(IsPartialDefinition);
+
+                    if (PartialImplementationPart is { } implementationPart)
+                    {
+                        return implementationPart.ImplementationAttributes;
+                    }
+
+                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
+                    // but then we should not get to the emit stage and call this property.
+                    Debug.Assert(false);
+
+                    return base.ImplementationAttributes;
+                }
+            }
         }
     }
 }

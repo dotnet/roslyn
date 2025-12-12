@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
 
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
 [Export(typeof(DefinitionContextTracker))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
-internal class DefinitionContextTracker : ITextViewConnectionListener
+internal sealed class DefinitionContextTracker : ITextViewConnectionListener
 {
     private readonly HashSet<ITextView> _subscribedViews = [];
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -172,7 +171,8 @@ internal class DefinitionContextTracker : ITextViewConnectionListener
             if (symbol != null)
             {
                 var symbolNavigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                var definitionItem = symbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: false);
+                var definitionItem = await symbol.ToNonClassifiedDefinitionItemAsync(
+                    document.Project.Solution, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
                 var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                 if (result != null)

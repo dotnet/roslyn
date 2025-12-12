@@ -14,11 +14,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace;
 
 [UseExportProvider]
-public class ConvertNamespaceCommandHandlerTests
+public sealed class ConvertNamespaceCommandHandlerTests
 {
     internal sealed class ConvertNamespaceTestState : AbstractCommandHandlerTestState
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
             typeof(ConvertNamespaceCommandHandler));
 
         private readonly ConvertNamespaceCommandHandler _commandHandler;

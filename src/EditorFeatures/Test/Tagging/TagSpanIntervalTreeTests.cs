@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging;
 
 [UseExportProvider]
-public class TagSpanIntervalTreeTests
+public sealed class TagSpanIntervalTreeTests
 {
     private static (TagSpanIntervalTree<ITextMarkerTag>, ITextBuffer) CreateTree(string text, params Span[] spans)
     {

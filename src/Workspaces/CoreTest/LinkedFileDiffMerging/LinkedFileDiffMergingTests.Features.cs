@@ -12,8 +12,7 @@ public sealed partial class LinkedFileDiffMergingTests
 {
     [Fact]
     public void TestChangeSignature()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             """
             public class Class1
             {
@@ -93,12 +92,10 @@ public sealed partial class LinkedFileDiffMergingTests
             }
             """,
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestRename()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             """
             public class Class1
             {
@@ -178,5 +175,4 @@ public sealed partial class LinkedFileDiffMergingTests
             }
             """,
             LanguageNames.CSharp);
-    }
 }

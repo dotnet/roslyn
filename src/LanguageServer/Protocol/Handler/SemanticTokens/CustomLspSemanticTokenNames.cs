@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 /// All classification names must be explicitly mapped to an LSP semantic token type or
 /// a custom token type name defined here.
 /// </summary>
-internal class CustomLspSemanticTokenNames
+internal sealed class CustomLspSemanticTokenNames
 {
     public const string ExcludedCode = "excludedCode";
     public const string KeywordControl = "controlKeyword";
@@ -26,6 +26,9 @@ internal class CustomLspSemanticTokenNames
     public const string Punctuation = "punctuation";
     public const string StringVerbatim = "stringVerbatim";
     public const string StringEscapeCharacter = "stringEscapeCharacter";
+    public const string ArrayName = "array";
+    public const string PointerName = "pointer";
+    public const string FunctionPointerName = "functionPointer";
     public const string RecordClassName = "recordClass";
     public const string DelegateName = "delegate";
     public const string ModuleName = "module";
@@ -92,6 +95,9 @@ internal class CustomLspSemanticTokenNames
         [ClassificationTypeNames.Punctuation] = Punctuation,
         [ClassificationTypeNames.VerbatimStringLiteral] = StringVerbatim,
         [ClassificationTypeNames.StringEscapeCharacter] = StringEscapeCharacter,
+        [ClassificationTypeNames.ArrayName] = ArrayName,
+        [ClassificationTypeNames.PointerName] = PointerName,
+        [ClassificationTypeNames.FunctionPointerName] = FunctionPointerName,
         [ClassificationTypeNames.RecordClassName] = RecordClassName,
         [ClassificationTypeNames.DelegateName] = DelegateName,
         [ClassificationTypeNames.ModuleName] = ModuleName,

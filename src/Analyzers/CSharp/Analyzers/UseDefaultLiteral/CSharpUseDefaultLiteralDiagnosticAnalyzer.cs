@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,13 +12,12 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseDefaultLiteralDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
                EnforceOnBuildValues.UseDefaultLiteral,
                CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
-               fadingOption: null,
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_default_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.default_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {

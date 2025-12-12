@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasRequiredMembers = 1 << 10,
 
             HasPrimaryConstructor = 1 << 11,
+
+            /// <summary>
+            /// Set when <see cref="Syntax.ExtensionBlockDeclarationSyntax"/> is present.
+            /// </summary>            
+            AnyExtensionDeclarationSyntax = 1 << 12,
         }
 
         internal SingleTypeDeclaration(
@@ -133,6 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
+            }
+        }
+
+        public bool AnyExtensionDeclarationSyntax
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.AnyExtensionDeclarationSyntax) != 0;
             }
         }
 
@@ -260,9 +273,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (thisDecl._kind == DeclarationKind.Enum || thisDecl._kind == DeclarationKind.Delegate)
+                if (thisDecl._kind is DeclarationKind.Enum or DeclarationKind.Delegate or DeclarationKind.Extension)
                 {
-                    // oh, so close, but enums and delegates cannot be partial
+                    // oh, so close, but enums, delegates and extensions cannot be partial
                     return false;
                 }
 

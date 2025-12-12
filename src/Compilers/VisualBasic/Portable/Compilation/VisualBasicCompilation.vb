@@ -14,6 +14,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
@@ -942,7 +943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each tree As SyntaxTree In trees
                     If tree Is Nothing Then
-                        Throw New ArgumentNullException(String.Format(VBResources.Trees0, i))
+                        Throw New ArgumentNullException($"trees({i})")
                     End If
 
                     If Not tree.HasCompilationUnitRoot Then
@@ -954,7 +955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If declMap.ContainsKey(tree) Then
-                        Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, String.Format(VBResources.Trees0, i))
+                        Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, $"trees({i})")
                     End If
 
                     AddSyntaxTreeToDeclarationMapAndTable(tree, _options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged) ' declMap and declTable passed ByRef
@@ -1595,7 +1596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Global code is the entry point, ignore all other Mains.
                     If ScriptClass IsNot Nothing Then
                         For Each main In entryPointCandidates
-                            diagnostics.Add(ERRID.WRN_MainIgnored, main.Locations.First(), main)
+                            diagnostics.Add(ERRID.WRN_MainIgnored, main.GetFirstLocation(), main)
                         Next
                         Return ScriptClass.GetScriptEntryPoint()
                     End If
@@ -2533,8 +2534,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Protected Overrides Function MapToCompilation(moduleBeingBuilt As CommonPEModuleBuilder) As EmitBaseline
-            Return EmitHelpers.MapToCompilation(Me, DirectCast(moduleBeingBuilt, PEDeltaAssemblyBuilder))
+        Private Protected Overrides Function CreatePreviousToCurrentSourceAssemblyMatcher(
+            previousGeneration As EmitBaseline,
+            otherSynthesizedTypes As SynthesizedTypeMaps,
+            otherSynthesizedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+            otherDeletedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))) As SymbolMatcher
+
+            Return New VisualBasicSymbolMatcher(
+                sourceAssembly:=DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly,
+                otherAssembly:=SourceAssembly,
+                otherSynthesizedTypes,
+                otherSynthesizedMembers,
+                otherDeletedMembers)
         End Function
 
         Friend Overrides Function GenerateResources(
@@ -2603,6 +2614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
+            options As EmitDifferenceOptions,
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2614,6 +2626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken)
         End Function
@@ -2947,7 +2960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim descriptor = New AnonymousTypeDescriptor(
                 fields.ToImmutableAndFree(), Location.None, isImplicitlyDeclared:=False)
-            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
+            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded)
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(

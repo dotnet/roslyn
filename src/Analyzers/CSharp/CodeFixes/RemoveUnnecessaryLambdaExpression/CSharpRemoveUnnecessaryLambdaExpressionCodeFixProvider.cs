@@ -43,8 +43,7 @@ internal sealed partial class CSharpRemoveUnnecessaryLambdaExpressionCodeFixProv
     {
         foreach (var diagnostic in diagnostics)
         {
-            var anonymousFunction = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken) as AnonymousFunctionExpressionSyntax;
-            if (anonymousFunction is null)
+            if (diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken) is not AnonymousFunctionExpressionSyntax anonymousFunction)
                 continue;
 
             editor.ReplaceNode(anonymousFunction,

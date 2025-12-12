@@ -252,7 +252,7 @@ internal static partial class CSharpCodeStyleOptions
     public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
         CodeStyleOptionGroups.NewLinePreferences,
         "csharp_style_allow_embedded_statements_on_same_line_experimental",
-         CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine);
+        CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine);
 
     public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
         CodeStyleOptionGroups.NewLinePreferences,
@@ -295,6 +295,11 @@ internal static partial class CSharpCodeStyleOptions
     public static readonly Option2<CodeStyleOption2<bool>> PreferPrimaryConstructors = CreateOption(
         CSharpCodeStyleOptionGroups.CodeBlockPreferences,
         "csharp_style_prefer_primary_constructors",
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
+
+    public static readonly Option2<CodeStyleOption2<bool>> PreferSimplePropertyAccessors = CreateOption(
+        CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+        "csharp_style_prefer_simple_property_accessors",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
     /// <summary>

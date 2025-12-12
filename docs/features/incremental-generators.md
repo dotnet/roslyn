@@ -1022,11 +1022,11 @@ The generator would run select1 on the first and second files, producing
 select for the third file, as the input has not changed. It can just use the
 previously cached value.
 
-AdditionalText               | Select1        | Select2
------------------------------|----------------|-----------
-**Text{ Path: "diff.txt" }** | **"diff.txt"** |
-**Text{ Path: "def.txt" }**  | **"def.txt"**  |
-Text{ Path: "ghi.txt" }      | "ghi.txt"      |
+AdditionalText               | Select1              | Select2
+-----------------------------|----------------------|-----------
+**Text{ Path: "diff.txt" }** | **"diff.txt"** (new) |
+**Text{ Path: "def.txt" }**  | **"def.txt"** (new)  |
+Text{ Path: "ghi.txt" }      | "ghi.txt"  (reuse)   |
 
 Next the driver would look to run Select2. It would operate on `"diff.txt"`
 producing `"prefix_diff.txt"`, but when it comes to `"def.txt"` it can observe
@@ -1038,9 +1038,9 @@ it can just use the cached value from before. Similarly the cached state of
 
 AdditionalText               | Select1        | Select2
 -----------------------------|----------------|----------------------
-**Text{ Path: "diff.txt" }** | **"diff.txt"** | **"prefix_diff.txt"**
-**Text{ Path: "def.txt" }**  | **"def.txt"**  | "prefix_def.txt"
-Text{ Path: "ghi.txt" }      | "ghi.txt"      | "prefix_ghi.txt"
+**Text{ Path: "diff.txt" }** | **"diff.txt"** | **"prefix_diff.txt"** (new)
+**Text{ Path: "def.txt" }**  | **"def.txt"**  | "prefix_def.txt" (reuse)
+Text{ Path: "ghi.txt" }      | "ghi.txt"      | "prefix_ghi.txt" (reuse)
 
 In this way, only changes that are consequential flow through the pipeline, and
 duplicate work is avoided. If a generator only relies on `AdditionalTexts` then

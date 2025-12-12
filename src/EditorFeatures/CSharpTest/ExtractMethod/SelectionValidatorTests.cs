@@ -14,159 +14,119 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod;
 public sealed class SelectionValidatorTests : ExtractMethodBase
 {
     [Fact]
-    public async Task SelectionTest1()
-    {
-        var code = """
+    public Task SelectionTest1()
+        => TestSelectionAsync("""
             {|b:using System;|}
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest2()
-    {
-        var code = """
+    public Task SelectionTest2()
+        => TestSelectionAsync("""
             {|b:namespace A|}
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest3()
-    {
-        var code = """
+    public Task SelectionTest3()
+        => TestSelectionAsync("""
             namespace {|b:A|}
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest4()
-    {
-        var code = """
+    public Task SelectionTest4()
+        => TestSelectionAsync("""
             {|b:class|} A
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest5()
-    {
-        var code = """
+    public Task SelectionTest5()
+        => TestSelectionAsync("""
             class {|b:A|}
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest6()
-    {
-        var code = """
+    public Task SelectionTest6()
+        => TestSelectionAsync("""
             class A : {|b:object|}
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest7()
-    {
-        var code = """
+    public Task SelectionTest7()
+        => TestSelectionAsync("""
             class A : object, {|b:IDisposable|}
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest8()
-    {
-        var code = """
+    public Task SelectionTest8()
+        => TestSelectionAsync("""
             class A<{|b:T|}>
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest9()
-    {
-        var code = """
+    public Task SelectionTest9()
+        => TestSelectionAsync("""
             class A<T> where {|b:T|} : class
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest10()
-    {
-        var code = """
+    public Task SelectionTest10()
+        => TestSelectionAsync("""
             class A<T> where T : {|b:IDisposable|}
             {
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest11()
-    {
-        var code = """
+    public Task SelectionTest11()
+        => TestSelectionAsync("""
             class A
             {
                 {|b:A|} Method()
                 {
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest12()
-    {
-        var code = """
+    public Task SelectionTest12()
+        => TestSelectionAsync("""
             class A
             {
                 A Method({|b:A|} a)
                 {
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest13()
-    {
-        var code = """
+    public Task SelectionTest13()
+        => TestSelectionAsync("""
             class A
             {
                 A Method(A {|b:a|})
                 {
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest14()
-    {
-        var code = """
+    public Task SelectionTest14()
+        => TestSelectionAsync("""
             class A
             {
                 [{|b:Goo|}]
@@ -174,14 +134,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 {
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest15()
-    {
-        var code = """
+    public Task SelectionTest15()
+        => TestSelectionAsync("""
             class A
             {
                 [Goo({|b:A|}=1)]
@@ -189,14 +146,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 {
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest16()
-    {
-        var code = """
+    public Task SelectionTest16()
+        => TestSelectionAsync("""
             class A
             {
                 [Goo(A={|b:1|})]
@@ -204,74 +158,56 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 {
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest17()
-    {
-        var code = """
+    public Task SelectionTest17()
+        => TestSelectionAsync("""
             class A
             {
                 const int {|b:i|} = 1;
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest18()
-    {
-        var code = """
+    public Task SelectionTest18()
+        => TestSelectionAsync("""
             class A
             {
                 const {|b:int|} i = 1;
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest19()
-    {
-        var code = """
+    public Task SelectionTest19()
+        => TestSelectionAsync("""
             class A
             {
                 const int i = {|b:1|};
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest20()
-    {
-        var code = """
+    public Task SelectionTest20()
+        => TestSelectionAsync("""
             class A
             {
                 const int i = {|r:{|b:1 + |}2|};
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest21()
-    {
-        var code = """
+    public Task SelectionTest21()
+        => TestSelectionAsync("""
             class A
             {
                 const int {|b:i = 1 + |}2;
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest22()
-    {
-        var code = """
+    public Task SelectionTest22()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -284,14 +220,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     int b = 2;|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest23()
-    {
-        var code = """
+    public Task SelectionTest23()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -299,14 +232,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|b:int i = 1;
                 }|}
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest24()
-    {
-        var code = """
+    public Task SelectionTest24()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -316,14 +246,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endRegion
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectionTest25()
-    {
-        var code = """
+    public Task SelectionTest25()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -333,14 +260,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endRegion
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest26()
-    {
-        var code = """
+    public Task SelectionTest26()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -350,14 +274,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endregion|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest27()
-    {
-        var code = """
+    public Task SelectionTest27()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -367,14 +288,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     int i = 1;|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest28()
-    {
-        var code = """
+    public Task SelectionTest28()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -384,14 +302,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endif|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest29()
-    {
-        var code = """
+    public Task SelectionTest29()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -401,14 +316,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endif
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest30()
-    {
-        var code = """
+    public Task SelectionTest30()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -418,14 +330,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     int i = 1;|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest31()
-    {
-        var code = """
+    public Task SelectionTest31()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -436,14 +345,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endif
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest32()
-    {
-        var code = """
+    public Task SelectionTest32()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -454,14 +360,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endif
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest33()
-    {
-        var code = """
+    public Task SelectionTest33()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -471,14 +374,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endif|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectionTest34()
-    {
-        var code = """
+    public Task SelectionTest34()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -488,14 +388,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             #endregion|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectionTest35()
-    {
-        var code = """
+    public Task SelectionTest35()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -503,14 +400,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|b:// test|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest36()
-    {
-        var code = """
+    public Task SelectionTest36()
+        => TestSelectionAsync("""
             class A
             {
                 IEnumerable<int> Method1()
@@ -518,14 +412,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|r:{|b:yield return 1;|}|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest37()
-    {
-        var code = """
+    public Task SelectionTest37()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -539,14 +430,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectionTest38()
-    {
-        var code = """
+    public Task SelectionTest38()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -560,14 +448,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-    public async Task SelectionTest39()
-    {
-        var code = """
+    public Task SelectionTest39()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -575,14 +460,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|r:{|b:System|}.Console.WriteLine(1);|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-    public async Task SelectionTest40()
-    {
-        var code = """
+    public Task SelectionTest40()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -590,14 +472,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|r:{|b:System.Console|}.WriteLine(1);|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-    public async Task SelectionTest41()
-    {
-        var code = """
+    public Task SelectionTest41()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -605,14 +484,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|r:{|b:System.Console.WriteLine|}(1);|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-    public async Task SelectionTest42()
-    {
-        var code = """
+    public Task SelectionTest42()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -620,14 +496,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {|r:        System.{|b:Console|}.WriteLine(1);|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-    public async Task SelectionTest43()
-    {
-        var code = """
+    public Task SelectionTest43()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -635,14 +508,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {|r:        System.{|b:Console.WriteLine|}(1);|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-    public async Task SelectionTest44()
-    {
-        var code = """
+    public Task SelectionTest44()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -650,14 +520,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {|r:        System.Console.{|b:WriteLine|}(1);|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
-    public async Task SelectionTest45()
-    {
-        var code = """
+    public Task SelectionTest45()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -665,14 +532,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     short[,] arr = new short[,] { {|r:{|b:{ 19, 19, 19 }|}|}, { 19, 19, 19 } };
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
-    public async Task SelectionTest46()
-    {
-        var code = """
+    public Task SelectionTest46()
+        => TestSelectionAsync("""
             class A
             {
                 void Method1()
@@ -680,14 +544,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     short[,] arr = { {|r:{|b:{ 19, 19, 19 }|}|}s, { 19, 19, 19 } };
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540338")]
-    public async Task SelectionTest47()
-    {
-        var code = """
+    public Task SelectionTest47()
+        => TestSelectionAsync("""
             using System;
             class C
             {
@@ -697,14 +558,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|b:d +=|}
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact]
-    public async Task SelectIfWithReturn()
-    {
-        await TestExtractMethodAsync("""
+    public Task SelectIfWithReturn()
+        => TestExtractMethodAsync("""
             class A
             {
                 public void Method1()
@@ -737,12 +595,10 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SelectConstIfWithReturn()
-    {
-        var code = """
+    public Task SelectConstIfWithReturn()
+        => TestSelectionAsync("""
             class A
             {
                 public void Method1()
@@ -753,14 +609,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     Console.WriteLine();
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectReturnButNotAllCodePathsContainAReturn()
-    {
-        await TestExtractMethodAsync("""
+    public Task SelectReturnButNotAllCodePathsContainAReturn()
+        => TestExtractMethodAsync("""
             class A
             {
                 public void Method1(bool b1, bool b2)
@@ -799,12 +652,10 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SelectIfBranchWhereNotAllPathsReturn()
-    {
-        await TestExtractMethodAsync("""
+    public Task SelectIfBranchWhereNotAllPathsReturn()
+        => TestExtractMethodAsync("""
             class A
             {
                 int Method8(int i)
@@ -856,12 +707,10 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SelectCatchFilterClause()
-    {
-        var code = """
+    public Task SelectCatchFilterClause()
+        => TestSelectionAsync("""
             class A
             {
                 int method()
@@ -876,14 +725,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectCatchFilterClause2()
-    {
-        var code = """
+    public Task SelectCatchFilterClause2()
+        => TestSelectionAsync("""
             class A
             {
                 int method()
@@ -900,14 +746,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectWithinCatchFilterClause()
-    {
-        var code = """
+    public Task SelectWithinCatchFilterClause()
+        => TestSelectionAsync("""
             class A
             {
                 int method()
@@ -922,14 +765,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectWithinCatchFilterClause2()
-    {
-        var code = """
+    public Task SelectWithinCatchFilterClause2()
+        => TestSelectionAsync("""
             class A
             {
                 int method()
@@ -944,14 +784,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectLValueOfPlusEqualsOperator()
-    {
-        var code = """
+    public Task SelectLValueOfPlusEqualsOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method()
@@ -961,14 +798,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return i;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectRValueOfPlusEqualsOperator()
-    {
-        var code = """
+    public Task SelectRValueOfPlusEqualsOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method()
@@ -978,14 +812,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return i;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectRValueOfPredecrementOperator()
-    {
-        var code = """
+    public Task SelectRValueOfPredecrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 string method(string s, int i)
@@ -996,14 +827,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return myvar[i];
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectArrayWithDecrementIndex()
-    {
-        var code = """
+    public Task SelectArrayWithDecrementIndex()
+        => TestSelectionAsync("""
             class A
             {
                 string method(string s, int i)
@@ -1014,14 +842,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return myvar[i];
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectCastOperator()
-    {
-        var code = """
+    public Task SelectCastOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(string goo)
@@ -1030,14 +855,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return bar.Length;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectLHSOfPostIncrementOperator()
-    {
-        var code = """
+    public Task SelectLHSOfPostIncrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1045,14 +867,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:{|b:i|}++|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectPostIncrementOperator()
-    {
-        var code = """
+    public Task SelectPostIncrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1060,14 +879,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:i{|b:++|}|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectRHSOfPreIncrementOperator()
-    {
-        var code = """
+    public Task SelectRHSOfPreIncrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1075,14 +891,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:{|b:++|}i|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectPreIncrementOperator()
-    {
-        var code = """
+    public Task SelectPreIncrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1090,14 +903,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:{|b:++|}i|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectPreDecrementOperator()
-    {
-        var code = """
+    public Task SelectPreDecrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1105,14 +915,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:{|b:--|}i|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectLHSOfPostDecrementOperator()
-    {
-        var code = """
+    public Task SelectLHSOfPostDecrementOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1120,14 +927,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:{|b:i|}--|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectUnaryPlusOperator()
-    {
-        var code = """
+    public Task SelectUnaryPlusOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1136,14 +940,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return j;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectUnaryMinusOperator()
-    {
-        var code = """
+    public Task SelectUnaryMinusOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1152,14 +953,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return j;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectLogicalNegationOperator()
-    {
-        var code = """
+    public Task SelectLogicalNegationOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1168,14 +966,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return j;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectBitwiseNegationOperator()
-    {
-        var code = """
+    public Task SelectBitwiseNegationOperator()
+        => TestSelectionAsync("""
             class A
             {
                 int method(int i)
@@ -1184,14 +979,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return j;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectCastOperator2()
-    {
-        var code = """
+    public Task SelectCastOperator2()
+        => TestSelectionAsync("""
             class A
             {
                 int method(double i)
@@ -1200,14 +992,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return j;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectInvalidSubexpressionToExpand()
-    {
-        var code = """
+    public Task SelectInvalidSubexpressionToExpand()
+        => TestSelectionAsync("""
             class A
             {
                 public int method(int a, int b, int c)
@@ -1215,14 +1004,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|r:a + {|b:b + c|}|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectValidSubexpressionAndHenceDoNotExpand()
-    {
-        var code = """
+    public Task SelectValidSubexpressionAndHenceDoNotExpand()
+        => TestSelectionAsync("""
             class A
             {
                 public int method(int a, int b, int c)
@@ -1230,14 +1016,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return {|b:a + b|} + c;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectLHSOfMinusEqualsOperator()
-    {
-        var code = """
+    public Task SelectLHSOfMinusEqualsOperator()
+        => TestSelectionAsync("""
             class A
             {
                 public int method(int a, int b)
@@ -1246,14 +1029,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return a;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectInnerBlockPartially()
-    {
-        var code = """
+    public Task SelectInnerBlockPartially()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1272,14 +1052,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectInnerBlockWithoutBracesPartially()
-    {
-        var code = """
+    public Task SelectInnerBlockWithoutBracesPartially()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1296,14 +1073,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectBeginningBrace()
-    {
-        var code = """
+    public Task SelectBeginningBrace()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1314,14 +1088,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     if (true) {|r:{|b:{|} }|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectAcrossBlocks1()
-    {
-        var code = """
+    public Task SelectAcrossBlocks1()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1339,14 +1110,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectMethodParameters()
-    {
-        var code = """
+    public Task SelectMethodParameters()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1365,14 +1133,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return x + y + z;
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectChainedInvocations1()
-    {
-        var code = """
+    public Task SelectChainedInvocations1()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1396,14 +1161,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|b:a.b|}.c();
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact]
-    public async Task SelectChainedInvocations2()
-    {
-        var code = """
+    public Task SelectChainedInvocations2()
+        => TestSelectionAsync("""
             using System;
             using System.Collections;
 
@@ -1427,14 +1189,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {|r:        a.{|b:b.c()|}|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540474")]
-    public async Task GotoStatement()
-    {
-        var code = """
+    public Task GotoStatement()
+        => TestSelectionAsync("""
             using System;
             using System.Reflection.Emit; 
 
@@ -1451,53 +1210,41 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
-    public async Task BugFix6750()
-    {
-        var code = """
+    public Task BugFix6750()
+        => TestSelectionAsync("""
             using System;
 
             class Program
             {
                 int[] array = new int[{|b:1|}];
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
-    public async Task BugFix6750_1()
-    {
-        var code = """
+    public Task BugFix6750_1()
+        => TestSelectionAsync("""
             using System;
 
             class Program
             {
                 int[] array = new int[{|r:{|b:1|}|}] { 1 };
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542201")]
-    public async Task MalformedCode_NoOuterType()
-    {
-        var code = """
+    public Task MalformedCode_NoOuterType()
+        => TestSelectionAsync("""
             x(a){
             {|b:for ();|}
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542210")]
-    public async Task NoQueryContinuation()
-    {
-        var code = """
+    public Task NoQueryContinuation()
+        => TestSelectionAsync("""
             using System.Linq;
 
             class P
@@ -1510,9 +1257,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                             {|b:select y|}|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
@@ -1520,21 +1265,17 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
         => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
     [Fact, WorkItem(9931, "DevDiv_Projects/Roslyn")]
-    public async Task ExtractMethodIdentifierAtEndOfInteractiveBuffer()
-    {
-        var code = """
+    public Task ExtractMethodIdentifierAtEndOfInteractiveBuffer()
+        => TestSelectionAsync("""
             using System.Console;
             WriteLine();
 
             {|r:{|b:Diagnostic|}|}
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543020")]
-    public async Task MemberAccessStructAsExpression()
-    {
-        var code = """
+    public Task MemberAccessStructAsExpression()
+        => TestSelectionAsync("""
             struct S
             {
                 public float X;
@@ -1565,14 +1306,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return new S();
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
-    public async Task TypeOfExpression()
-    {
-        var code = """
+    public Task TypeOfExpression()
+        => TestSelectionAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1584,47 +1322,35 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     Console.WriteLine({|r:typeof({|b:Dictionary<,>|})|}.IsGenericTypeDefinition);
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-    public async Task AnonymousTypeMember1()
-    {
-        var code = """
+    public Task AnonymousTypeMember1()
+        => TestSelectionAsync("""
             using System;
             class C { void M() { {|r:var x = new { {|b:String|} = true };|} } }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-    public async Task AnonymousTypeMember2()
-    {
-        var code = """
+    public Task AnonymousTypeMember2()
+        => TestSelectionAsync("""
             using System;
             class C { void M() { 
             var String = 1;
             var x = new { {|r:{|b:String|}|} };
             } }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-    public async Task AnonymousTypeMember3()
-    {
-        var code = """
+    public Task AnonymousTypeMember3()
+        => TestSelectionAsync("""
             using System;
             class C { void M() { var x = new { String = {|b:true|} }; } }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-    public async Task AnonymousTypeMember4()
-    {
-        var code = """
+    public Task AnonymousTypeMember4()
+        => TestSelectionAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1642,14 +1368,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     }|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
-    public async Task AddressOfExpr1()
-    {
-        var code = """
+    public Task AddressOfExpr1()
+        => TestSelectionAsync("""
             class C
             {
                 unsafe void M()
@@ -1658,14 +1381,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     int* j = {|r:&{|b:i|}|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
-    public async Task AddressOfExpr2()
-    {
-        var code = """
+    public Task AddressOfExpr2()
+        => TestSelectionAsync("""
             class C
             {
                 unsafe void M()
@@ -1674,14 +1394,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     int* j = {|b:&i|};
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544627")]
-    public async Task BaseKeyword()
-    {
-        var code = """
+    public Task BaseKeyword()
+        => TestSelectionAsync("""
             class C
             {
                 void Goo()
@@ -1689,14 +1406,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     {|r:{|b:base|}.ToString();|}
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545057")]
-    public async Task RefvalueKeyword()
-    {
-        var code = """
+    public Task RefvalueKeyword()
+        => TestSelectionAsync("""
             using System;
 
             class A
@@ -1709,14 +1423,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     Console.WriteLine({|r:__refvalue(typedReference, {|b:Int32|})|});
                 }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531286")]
-    public async Task NoCrashOnThrowWithoutCatchClause()
-    {
-        var code = """
+    public Task NoCrashOnThrowWithoutCatchClause()
+        => TestSelectionAsync("""
             public class Test
             {
                 delegate int D();
@@ -1733,14 +1444,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     return 1;
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
-    }
+            """, expectedFail: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-    public async Task SimpleConditionalAccessExpressionSelectFirstExpression()
-    {
-        var code = """
+    public Task SimpleConditionalAccessExpressionSelectFirstExpression()
+        => TestSelectionAsync("""
             using System;
             class Program
             {
@@ -1754,14 +1462,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 public int Length { get; internal set; }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-    public async Task SimpleConditionalAccessExpressionSelectSecondExpression()
-    {
-        var code = """
+    public Task SimpleConditionalAccessExpressionSelectSecondExpression()
+        => TestSelectionAsync("""
             using System;
             class Program
             {
@@ -1775,14 +1480,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 public int Length { get; internal set; }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-    public async Task NestedConditionalAccessExpressionWithMemberBindingExpression()
-    {
-        var code = """
+    public Task NestedConditionalAccessExpressionWithMemberBindingExpression()
+        => TestSelectionAsync("""
             using System;
 
             class Program
@@ -1801,14 +1503,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 public int Length { get; set; }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-    public async Task NestedConditionalAccessExpressionWithMemberBindingExpressionSelectSecondExpression()
-    {
-        var code = """
+    public Task NestedConditionalAccessExpressionWithMemberBindingExpressionSelectSecondExpression()
+        => TestSelectionAsync("""
             using System;
 
             class Program
@@ -1827,14 +1526,11 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 public int Length { get; set; }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-    public async Task NestedConditionalAccessExpressionWithInvocationExpression()
-    {
-        var code = """
+    public Task NestedConditionalAccessExpressionWithInvocationExpression()
+        => TestSelectionAsync("""
             using System;
 
             class Program
@@ -1856,16 +1552,13 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 public int Length { get; set; }
             }
-            """;
-        await TestSelectionAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
     public async Task DoNotCrashPastEndOfLine()
     {
         //                    11 1
         //          012345678901 2
-        var code = "class C { }\r\n";
 
         // Markup parsing doesn't produce the right spans here, so supply one ourselves.
         // Can be removed when https://github.com/dotnet/roslyn-sdk/issues/637 is fixed
@@ -1873,6 +1566,6 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
         // This span covers just the "\n"
         var span = new TextSpan(12, 1);
 
-        await TestSelectionAsync(code, expectedFail: true, textSpanOverride: span);
+        await TestSelectionAsync("class C { }\r\n", expectedFail: true, textSpanOverride: span);
     }
 }

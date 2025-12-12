@@ -9,7 +9,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class ClientLanguageServerManager : IClientLanguageServerManager
+internal sealed class ClientLanguageServerManager : IClientLanguageServerManager
 {
     private readonly JsonRpc _jsonRpc;
 
@@ -27,13 +27,13 @@ internal class ClientLanguageServerManager : IClientLanguageServerManager
         => _jsonRpc.InvokeWithParameterObjectAsync<TResponse>(methodName, @params, cancellationToken);
 
     public async ValueTask SendRequestAsync(string methodName, CancellationToken cancellationToken)
-        => await _jsonRpc.InvokeWithCancellationAsync(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
+        => await _jsonRpc.InvokeWithParameterObjectAsync(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
 
     public async ValueTask SendRequestAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
         => await _jsonRpc.InvokeWithParameterObjectAsync(methodName, @params, cancellationToken).ConfigureAwait(false);
 
     public async ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken)
-        => await _jsonRpc.NotifyAsync(methodName).ConfigureAwait(false);
+        => await _jsonRpc.NotifyWithParameterObjectAsync(methodName).ConfigureAwait(false);
 
     public async ValueTask SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
         => await _jsonRpc.NotifyWithParameterObjectAsync(methodName, @params).ConfigureAwait(false);

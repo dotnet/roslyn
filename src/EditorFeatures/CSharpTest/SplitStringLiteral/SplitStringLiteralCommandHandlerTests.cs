@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -24,13 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-public class SplitStringLiteralCommandHandlerTests
+public sealed class SplitStringLiteralCommandHandlerTests
 {
     /// <summary>
-    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
-    /// Most tests will continue to verifyUndo, but select tests will skip it due to
-    /// this known test infrastructure issure. This bug does not represent a product
-    /// failure.
+    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033 Most tests will continue to
+    /// verifyUndo, but select tests will skip it due to this known test infrastructure issue. This bug does not
+    /// represent a product failure.
     /// </summary>
     private static void TestWorker(
         string inputMarkup,
@@ -113,14 +113,13 @@ public class SplitStringLiteralCommandHandlerTests
     }
 
     /// <summary>
-    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
-    /// Most tests will continue to verifyUndo, but select tests will skip it due to
-    /// this known test infrastructure issure. This bug does not represent a product
-    /// failure.
+    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033 Most tests will continue to
+    /// verifyUndo, but select tests will skip it due to this known test infrastructure issue. This bug does not
+    /// represent a product failure.
     /// </summary>
     private static void TestHandled(
-        string inputMarkup,
-        string expectedOutputMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string inputMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedOutputMarkup,
         bool verifyUndo = true,
         IndentStyle indentStyle = IndentStyle.Smart,
         bool useTabs = false,
@@ -135,7 +134,8 @@ public class SplitStringLiteralCommandHandlerTests
             verifyUndo, indentStyle, useTabs, endOfLine);
     }
 
-    private static void TestNotHandled(string inputMarkup)
+    private static void TestNotHandled(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string inputMarkup)
     {
         var notHandled = false;
         TestWorker(
@@ -150,250 +150,250 @@ public class SplitStringLiteralCommandHandlerTests
 
     [WpfFact]
     public void TestMissingBeforeString()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = [||]"""";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = [||]"";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingBeforeUtf8String()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = [||]""""u8;
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = [||]""u8;
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingBeforeInterpolatedString()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = [||]$"""";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = [||]$"";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterString_1()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"[||];
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = ""[||];
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterString_2()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """" [||];
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "" [||];
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterString_3()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"[||]
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = ""[||]
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterString_4()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """" [||]
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "" [||]
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_1()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""""[||];
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $""[||];
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_2()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $"""" [||];
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"" [||];
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_3()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""""[||]
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $""[||]
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterInterpolatedString_4()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $"""" [||]
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"" [||]
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterUtf8String_1()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"[||]u8;
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = ""[||]u8;
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterUtf8String_2()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"u8[||];
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = ""u8[||];
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterUtf8String_3()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"u8[||]
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = ""u8[||]
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterUtf8String_4()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""""u8 [||]
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $""u8 [||]
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingAfterUtf8String_5()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"u[||]8;
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = ""u[||]8;
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingInVerbatimString()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @""a[||]b"";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = @"a[||]b";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingInUtf8VerbatimString()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @""a[||]b""u8;
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = @"a[||]b"u8;
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingInInterpolatedVerbatimString()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $@""a[||]b"";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $@"a[||]b";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestInEmptyString()
@@ -401,22 +401,26 @@ public class SplitStringLiteralCommandHandlerTests
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""[||]"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = """" +
-            ""[||]"";
-    }
-}",
-        verifyUndo: false);
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "[||]";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "" +
+                        "[||]";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41322")]
@@ -425,8 +429,8 @@ public class SplitStringLiteralCommandHandlerTests
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-"class C\n{\n    void M()\n    {\n        var v = \"[||]\";\n    }\n}",
-"class C\n{\n    void M()\n    {\n        var v = \"\" +\n            \"[||]\";\n    }\n}",
+        "class C\n{\n    void M()\n    {\n        var v = \"[||]\";\n    }\n}",
+        "class C\n{\n    void M()\n    {\n        var v = \"\" +\n            \"[||]\";\n    }\n}",
         verifyUndo: false,
         endOfLine: "\n");
     }
@@ -437,23 +441,27 @@ public class SplitStringLiteralCommandHandlerTests
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""[||]"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = """" +
-        ""[||]"";
-    }
-}",
-        verifyUndo: false,
-        IndentStyle.Block);
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "[||]";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "" +
+                    "[||]";
+                }
+            }
+            """,
+            verifyUndo: false,
+            IndentStyle.Block);
     }
 
     [WpfFact]
@@ -462,261 +470,281 @@ public class SplitStringLiteralCommandHandlerTests
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""[||]"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = """" +
-""[||]"";
-    }
-}",
-        verifyUndo: false,
-        IndentStyle.None);
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "[||]";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "" +
+            "[||]";
+                }
+            }
+            """,
+            verifyUndo: false,
+            IndentStyle.None);
     }
 
     [WpfFact]
     public void TestInEmptyInterpolatedString()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""[||]"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $"""" +
-            $""[||]"";
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"[||]";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"" +
+                        $"[||]";
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41322")]
     public void TestInEmptyInterpolatedString_LF()
-    {
-        TestHandled(
+        => TestHandled(
 "class C\n{\n    void M()\n    {\n        var v = $\"[||]\";\n    }\n}",
 "class C\n{\n    void M()\n    {\n        var v = $\"\" +\n            $\"[||]\";\n    }\n}",
 endOfLine: "\n");
-    }
 
     [WpfFact]
     public void TestInEmptyInterpolatedString_BlockIndent()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""[||]"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $"""" +
-        $""[||]"";
-    }
-}", indentStyle: IndentStyle.Block);
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"[||]";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"" +
+                    $"[||]";
+                }
+            }
+            """, indentStyle: IndentStyle.Block);
 
     [WpfFact]
     public void TestInEmptyInterpolatedString_NoneIndent()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""[||]"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $"""" +
-$""[||]"";
-    }
-}", indentStyle: IndentStyle.None);
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"[||]";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"" +
+            $"[||]";
+                }
+            }
+            """, indentStyle: IndentStyle.None);
 
     [WpfFact]
     public void TestSimpleString1()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""now is [||]the time"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = ""now is "" +
-            ""[||]the time"";
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the time";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is " +
+                        "[||]the time";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestUtf8String_1()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""now is [||]the time""u8;
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = ""now is ""u8 +
-            ""[||]the time""u8;
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the time"u8;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is "u8 +
+                        "[||]the time"u8;
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestUtf8String_2()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""now is [||]the time""U8;
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = ""now is ""U8 +
-            ""[||]the time""U8;
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the time"U8;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is "U8 +
+                        "[||]the time"U8;
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestInterpolatedString1()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""now is [||]the { 1 + 2 } time for { 3 + 4 } all good men"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $""now is "" +
-            $""[||]the { 1 + 2 } time for { 3 + 4 } all good men"";
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is [||]the { 1 + 2 } time for { 3 + 4 } all good men";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is " +
+                        $"[||]the { 1 + 2 } time for { 3 + 4 } all good men";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestInterpolatedString2()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""now is the [||]{ 1 + 2 } time for { 3 + 4 } all good men"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $""now is the "" +
-            $""[||]{ 1 + 2 } time for { 3 + 4 } all good men"";
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is the [||]{ 1 + 2 } time for { 3 + 4 } all good men";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is the " +
+                        $"[||]{ 1 + 2 } time for { 3 + 4 } all good men";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestInterpolatedString3()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""now is the { 1 + 2 }[||] time for { 3 + 4 } all good men"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $""now is the { 1 + 2 }"" +
-            $""[||] time for { 3 + 4 } all good men"";
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is the { 1 + 2 }[||] time for { 3 + 4 } all good men";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is the { 1 + 2 }" +
+                        $"[||] time for { 3 + 4 } all good men";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingInInterpolation1()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""now is the {[||] 1 + 2 } time for { 3 + 4 } all good men"";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is the {[||] 1 + 2 } time for { 3 + 4 } all good men";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestMissingInInterpolation2()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""now is the { 1 + 2 [||]} time for { 3 + 4 } all good men"";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $"now is the { 1 + 2 [||]} time for { 3 + 4 } all good men";
+                }
+            }
+            """);
 
     [WpfFact]
     public void TestSelection()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""now is [|the|] time"";
-    }
-}");
-    }
+        => TestNotHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [|the|] time";
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
     public void TestBeforeEndQuote1()
@@ -724,34 +752,38 @@ $""[||]"";
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}[||]"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}[||]" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""[||]"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"[||]" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-        verifyUndo: false);
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -760,34 +792,38 @@ $""[||]"";
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}[||]"" +
-            $""{args[2]}"";
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}[||]" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""[||]"" +
-            $""{args[2]}"";
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"[||]" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-        verifyUndo: false);
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -796,34 +832,38 @@ $""[||]"";
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}[||]"";
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}[||]";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"" +
-            $""[||]"";
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}" +
+                        $"[||]";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-        verifyUndo: false);
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -832,34 +872,38 @@ $""[||]"";
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1[||]"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+                    var str2 = "string1[||]" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""[||]"" +
-            ""string2"" +
-            ""string3"";
-    }
-}",
-        verifyUndo: false);
+                    var str2 = "string1" +
+                        "[||]" +
+                        "string2" +
+                        "string3";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -868,34 +912,38 @@ $""[||]"";
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2[||]"" +
-            ""string3"";
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+                    var str2 = "string1" +
+                        "string2[||]" +
+                        "string3";
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""[||]"" +
-            ""string3"";
-    }
-}",
-        verifyUndo: false);
+                    var str2 = "string1" +
+                        "string2" +
+                        "[||]" +
+                        "string3";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
@@ -904,216 +952,258 @@ $""[||]"";
         // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
         // When that issue is fixed, we can reenable verifyUndo
         TestHandled(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3[||]"";
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        var str = $""somestring { args[0]}"" +
-            $""{args[1]}"" +
-            $""{args[2]}"";
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3[||]";
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var str = $"somestring { args[0]}" +
+                        $"{args[1]}" +
+                        $"{args[2]}";
 
-        var str2 = ""string1"" +
-            ""string2"" +
-            ""string3"" +
-            ""[||]"";
-    }
-}",
-        verifyUndo: false);
+                    var str2 = "string1" +
+                        "string2" +
+                        "string3" +
+                        "[||]";
+                }
+            }
+            """,
+            verifyUndo: false);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretSingleLine()
-    {
-        TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""now is [||]the ti[||]me"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = ""now is "" +
-            ""[||]the ti"" +
-            ""[||]me"";
-    }
-}");
-    }
+        => TestHandled(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the ti[||]me";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is " +
+                        "[||]the ti" +
+                        "[||]me";
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretMultiLines()
-    {
-        TestHandled(
-@"class C
-{
-    string s = ""hello w[||]orld"";
+        => TestHandled(
+            """
+            class C
+            {
+                string s = "hello w[||]orld";
 
-    void M()
-    {
-        var v = ""now is [||]the ti[||]me"";
-    }
-}",
-@"class C
-{
-    string s = ""hello w"" +
-        ""[||]orld"";
+                void M()
+                {
+                    var v = "now is [||]the ti[||]me";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                string s = "hello w" +
+                    "[||]orld";
 
-    void M()
-    {
-        var v = ""now is "" +
-            ""[||]the ti"" +
-            ""[||]me"";
-    }
-}");
-    }
+                void M()
+                {
+                    var v = "now is " +
+                        "[||]the ti" +
+                        "[||]me";
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretInterpolatedString()
-    {
-        TestHandled(
-@"class C
-{
-    string s = ""hello w[||]orld"";
+        => TestHandled(
+            """
+            class C
+            {
+                string s = "hello w[||]orld";
 
-    void M()
-    {
-        var location = ""world"";
-        var s = $""H[||]ello {location}!"";
-    }
-}",
-@"class C
-{
-    string s = ""hello w"" +
-        ""[||]orld"";
+                void M()
+                {
+                    var location = "world";
+                    var s = $"H[||]ello {location}!";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                string s = "hello w" +
+                    "[||]orld";
 
-    void M()
+                void M()
+                {
+                    var location = "world";
+                    var s = $"H" +
+                        $"[||]ello {location}!";
+                }
+            }
+            """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64812")]
+    public void TestMultiCaretPositionsAreAllSet()
     {
-        var location = ""world"";
-        var s = $""H"" +
-            $""[||]ello {location}!"";
-    }
-}");
+        var inputMarkup = """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the ti[||]me";
+                }
+            }
+            """;
+
+        var expectedMarkup = """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is " +
+                        "[||]the ti" +
+                        "[||]me";
+                }
+            }
+            """;
+
+        TestHandled(inputMarkup, expectedMarkup);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
     public void TestInStringWithKeepTabsEnabled1()
-    {
-        TestHandled(
-@"class C
-{
-	void M()
-	{
-		var s = ""Hello [||]world"";
-	}
-}",
-@"class C
-{
-	void M()
-	{
-		var s = ""Hello "" +
-			""[||]world"";
-	}
-}",
-        useTabs: true);
-    }
+        => TestHandled(
+            """
+            class C
+            {
+            	void M()
+            	{
+            		var s = "Hello [||]world";
+            	}
+            }
+            """,
+            """
+            class C
+            {
+            	void M()
+            	{
+            		var s = "Hello " +
+            			"[||]world";
+            	}
+            }
+            """,
+            useTabs: true);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
     public void TestInStringWithKeepTabsEnabled2()
-    {
-        TestHandled(
-@"class C
-{
-	void M()
-	{
-		var s = ""Hello "" +
-			""there [||]world"";
-	}
-}",
-@"class C
-{
-	void M()
-	{
-		var s = ""Hello "" +
-			""there "" +
-			""[||]world"";
-	}
-}",
-        useTabs: true);
-    }
+        => TestHandled(
+            """
+            class C
+            {
+            	void M()
+            	{
+            		var s = "Hello " +
+            			"there [||]world";
+            	}
+            }
+            """,
+            """
+            class C
+            {
+            	void M()
+            	{
+            		var s = "Hello " +
+            			"there " +
+            			"[||]world";
+            	}
+            }
+            """,
+            useTabs: true);
 
     [WpfFact]
     public void TestMissingInRawStringLiteral()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"""Hello[||]there
-world
-"""""";
-    }
-}");
-    }
+        => TestNotHandled(
+            """"
+            class C
+            {
+                void M()
+                {
+                    var v = """Hello[||]there
+            world
+            """;
+                }
+            }
+            """");
 
     [WpfFact]
     public void TestMissingInRawStringLiteralInterpolation()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""""""Hello[||]there
-world
-"""""";
-    }
-}");
-    }
+        => TestNotHandled(
+            """"
+            class C
+            {
+                void M()
+                {
+                    var v = $"""Hello[||]there
+            world
+            """;
+                }
+            }
+            """");
 
     [WpfFact]
     public void TestMissingInRawStringLiteralInterpolation_MultiBrace()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ${|#0:|}$""""""Hello[||]there
-world
-"""""";
-    }
-}");
-    }
+        => TestNotHandled(
+            """"
+            class C
+            {
+                void M()
+                {
+                    var v = ${|#0:|}$"""Hello[||]there
+            world
+            """;
+                }
+            }
+            """");
 
     [WpfFact]
     public void TestMissingInRawUtf8StringLiteral()
-    {
-        TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = """"""Hello[||]there
-world
-""""""u8;
-    }
-}");
-    }
+        => TestNotHandled(
+            """"
+            class C
+            {
+                void M()
+                {
+                    var v = """Hello[||]there
+            world
+            """u8;
+                }
+            }
+            """");
 }

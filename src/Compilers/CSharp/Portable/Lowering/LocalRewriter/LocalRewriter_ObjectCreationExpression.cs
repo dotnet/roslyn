@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? tempsBuilder = null;
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref receiverDiscard,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 node.Arguments,
                 constructor,
                 node.ArgsToParamsOpt,
@@ -183,11 +183,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(withExpr.CloneMethod is not null);
                 Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
 
+                BoundCall clone = _factory.Call(
+                        rewrittenReceiver,
+                        withExpr.CloneMethod);
+
+                Conversion c = _factory.ClassifyEmitConversion(clone, type);
+                Debug.Assert(c.IsReference || c.IsIdentity);
                 expression = _factory.Convert(
                     type,
-                    _factory.Call(
-                        rewrittenReceiver,
-                        withExpr.CloneMethod));
+                    clone,
+                    c);
             }
 
             return MakeExpressionWithInitializer(
@@ -412,7 +417,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)createInstance != null)
             {
-                rewrittenObjectCreation = _factory.Convert(node.Type, _factory.Call(null, createInstance, callGetTypeFromCLSID));
+                BoundCall instance = _factory.Call(null, createInstance, callGetTypeFromCLSID);
+                Debug.Assert(instance.Type.IsObjectType());
+                Conversion c = _factory.ClassifyEmitConversion(instance, node.Type);
+                Debug.Assert(c.IsReference);
+                rewrittenObjectCreation = _factory.Convert(node.Type, instance, c);
             }
             else
             {

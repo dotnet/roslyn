@@ -7,48 +7,47 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Roslyn.LanguageServer.Protocol;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml
-{
-    internal static class XamlCapabilities
-    {
-        /// <summary>
-        /// The currently supported set of XAML LSP Server capabilities
-        /// </summary>
-        public static VSInternalServerCapabilities Current => new()
-        {
-            CompletionProvider = new CompletionOptions
-            {
-                ResolveProvider = true,
-                TriggerCharacters = ["<", " ", ":", ".", "=", "\"", "'", "{", ",", "("],
-                AllCommitCharacters = [.. RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString())]
-            },
-            HoverProvider = true,
-            FoldingRangeProvider = new FoldingRangeOptions { },
-            DocumentFormattingProvider = true,
-            DocumentRangeFormattingProvider = true,
-            DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">" },
-            OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["=", "/"] },
-            TextDocumentSync = new TextDocumentSyncOptions
-            {
-                Change = TextDocumentSyncKind.None,
-                OpenClose = false
-            },
-            SupportsDiagnosticRequests = true,
-            LinkedEditingRangeProvider = new LinkedEditingRangeOptions { },
-            ExecuteCommandProvider = new ExecuteCommandOptions { Commands = [StringConstants.CreateEventHandlerCommand] },
-            DefinitionProvider = true,
-        };
+namespace Microsoft.VisualStudio.LanguageServices.Xaml;
 
-        /// <summary>
-        /// An empty set of capabilities used to disable the XAML LSP Server
-        /// </summary>
-        public static VSServerCapabilities None => new()
+internal static class XamlCapabilities
+{
+    /// <summary>
+    /// The currently supported set of XAML LSP Server capabilities
+    /// </summary>
+    public static VSInternalServerCapabilities Current => new()
+    {
+        CompletionProvider = new CompletionOptions
         {
-            TextDocumentSync = new TextDocumentSyncOptions
-            {
-                Change = TextDocumentSyncKind.None,
-                OpenClose = false
-            },
-        };
-    }
+            ResolveProvider = true,
+            TriggerCharacters = ["<", " ", ":", ".", "=", "\"", "'", "{", ",", "("],
+            AllCommitCharacters = [.. RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString())]
+        },
+        HoverProvider = true,
+        FoldingRangeProvider = new FoldingRangeOptions { },
+        DocumentFormattingProvider = true,
+        DocumentRangeFormattingProvider = true,
+        DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">" },
+        OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["=", "/"] },
+        TextDocumentSync = new TextDocumentSyncOptions
+        {
+            Change = TextDocumentSyncKind.None,
+            OpenClose = false
+        },
+        SupportsDiagnosticRequests = true,
+        LinkedEditingRangeProvider = new LinkedEditingRangeOptions { },
+        ExecuteCommandProvider = new ExecuteCommandOptions { Commands = [StringConstants.CreateEventHandlerCommand] },
+        DefinitionProvider = true,
+    };
+
+    /// <summary>
+    /// An empty set of capabilities used to disable the XAML LSP Server
+    /// </summary>
+    public static VSServerCapabilities None => new()
+    {
+        TextDocumentSync = new TextDocumentSyncOptions
+        {
+            Change = TextDocumentSyncKind.None,
+            OpenClose = false
+        },
+    };
 }

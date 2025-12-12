@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnnecessaryCastTests_AsTests(ITestOutputHelper logger)
       : base(logger)
@@ -29,9 +29,8 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
         => (new CSharpRemoveUnnecessaryCastDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryCastCodeFixProvider());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")]
-    public async Task DoNotRemoveCastToErrorType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToErrorType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -44,12 +43,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545146")]
-    public async Task ParenthesizeToKeepParseTheSame2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ParenthesizeToKeepParseTheSame2()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -75,12 +72,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
-    public async Task DoNotRemoveTypeParameterCastToObject()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveTypeParameterCastToObject()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Ð¡
             {
@@ -90,12 +85,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
-    public async Task DoNotRemoveCastInIsTest()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastInIsTest()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -109,12 +102,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
-    public async Task DoNotRemoveCastNeedForUserDefinedOperator()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastNeedForUserDefinedOperator()
+        => TestMissingInRegularAndScriptAsync(
             """
             class A
             {
@@ -132,12 +123,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545143")]
-    public async Task DoNotRemovePointerCast1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemovePointerCast1()
+        => TestMissingInRegularAndScriptAsync(
             """
             unsafe class C
             {
@@ -147,15 +136,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545144")]
-    public async Task DoNotRemoveCastToObjectFromDelegateComparison()
-    {
-        // The cast below can't be removed because it would result in the Delegate
-        // op_Equality operator overload being used over reference equality.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToObjectFromDelegateComparison()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -169,12 +153,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545145")]
-    public async Task DoNotRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -189,12 +171,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545157")]
-    public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -214,12 +194,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545158")]
-    public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -240,12 +218,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545158")]
-    public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -267,12 +243,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545747")]
-    public async Task DoNotRemoveCastWhichChangesTypeOfInferredLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastWhichChangesTypeOfInferredLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -282,12 +256,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545159")]
-    public async Task DoNotRemoveNeededCastToIListOfObject()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNeededCastToIListOfObject()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -308,12 +280,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545287"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
-    public async Task RemoveUnneededCastInParameterDefaultValue()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInParameterDefaultValue()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -331,12 +301,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545289")]
-    public async Task RemoveUnneededCastInReturnStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInReturnStatement()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -356,12 +324,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
-    public async Task RemoveUnneededCastInLambda1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInLambda1()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -383,12 +349,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
-    public async Task RemoveUnneededCastInLambda2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInLambda2()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -410,12 +374,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
-    public async Task RemoveUnneededCastInLambda3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInLambda3()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -437,12 +399,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
-    public async Task RemoveUnneededCastInLambda4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInLambda4()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -464,12 +424,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-    public async Task RemoveUnneededCastInConditionalExpression1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInConditionalExpression1()
+        => TestInRegularAndScriptAsync(
         """
         class Test
         {
@@ -493,12 +451,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-    public async Task RemoveUnneededCastInConditionalExpression2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInConditionalExpression2()
+        => TestInRegularAndScriptAsync(
         """
         class Test
         {
@@ -522,12 +478,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-    public async Task DoNotRemoveNeededCastInConditionalExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNeededCastInConditionalExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Test
             {
@@ -538,12 +492,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
-    public async Task DoNotRemoveIllegalAsCastInsideADelegateConstructor()
-    {
-        await TestMissingAsync(
+    public Task DoNotRemoveIllegalAsCastInsideADelegateConstructor()
+        => TestMissingAsync(
         """
         using System;
         class Test
@@ -558,12 +510,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             public static void M1(int i) { }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545422")]
-    public async Task RemoveUnneededCastInsideCaseLabel()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInsideCaseLabel()
+        => TestInRegularAndScriptAsync(
         """
         class Test
         {
@@ -591,13 +541,11 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545595")]
     [Fact(Skip = "529787")]
-    public async Task RemoveUnneededCastInCollectionInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInCollectionInitializer()
+        => TestInRegularAndScriptAsync(
         """
         using System.Collections.Generic;
 
@@ -621,13 +569,11 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
     [Fact(Skip = "529787")]
-    public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastWhichInCollectionInitializer1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -650,13 +596,11 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
     [Fact(Skip = "529787")]
-    public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastWhichInCollectionInitializer2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -679,12 +623,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545607")]
-    public async Task RemoveUnneededCastInArrayInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnneededCastInArrayInitializer()
+        => TestInRegularAndScriptAsync(
         """
         class X
         {
@@ -706,12 +648,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545608")]
-    public async Task DoNotRemoveNecessaryCastWithImplicitUserDefinedConversion()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastWithImplicitUserDefinedConversion()
+        => TestMissingInRegularAndScriptAsync(
             """
             class X
             {
@@ -727,16 +667,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545941")]
-    public async Task DoNotRemoveNecessaryCastWithImplicitConversionInThrow()
-    {
-        // The cast below can't be removed because the throw statement expects
-        // an expression of type Exception -- not an expression convertible to
-        // Exception.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastWithImplicitConversionInThrow()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -753,16 +687,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545981")]
-    public async Task DoNotRemoveNecessaryCastInThrow()
-    {
-        // The cast below can't be removed because the throw statement expects
-        // an expression of type Exception -- not an expression convertible to
-        // Exception.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInThrow()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -775,12 +703,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545941")]
-    public async Task RemoveUnnecessaryCastInThrow()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnnecessaryCastInThrow()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -804,12 +730,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545945")]
-    public async Task DoNotRemoveNecessaryDowncast()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryDowncast()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -819,12 +743,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545606")]
-    public async Task DoNotRemoveNecessaryCastFromNullToTypeParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastFromNullToTypeParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class X
             {
@@ -834,12 +756,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545744")]
-    public async Task DoNotRemoveNecessaryCastInImplicitlyTypedArray()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInImplicitlyTypedArray()
+        => TestMissingInRegularAndScriptAsync(
             """
             class X
             {
@@ -851,12 +771,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545750")]
-    public async Task RemoveUnnecessaryCastToBaseType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnnecessaryCastToBaseType()
+        => TestInRegularAndScriptAsync(
         """
         class X
         {
@@ -886,12 +804,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545855")]
-    public async Task DoRemoveIllegalAsCastOnLambda()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoRemoveIllegalAsCastOnLambda()
+        => TestMissingInRegularAndScriptAsync(
         """
         using System;
         using System.Collections.Generic;
@@ -916,12 +832,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
-    public async Task RemoveUnnecessaryCastInQueryExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnnecessaryCastInQueryExpression()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -949,12 +863,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
-    public async Task DoNotRemoveNecessaryCastInQueryExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInQueryExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -977,12 +889,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")]
-    public async Task DoNotRemoveNecessaryCastFromTypeParameterToInterface()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastFromTypeParameterToInterface()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1032,12 +942,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")]
-    public async Task RemoveUnnecessaryCastFromTypeParameterToInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnnecessaryCastFromTypeParameterToInterface()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -1078,52 +986,50 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """,
-"""
- using System;
+        """
+         using System;
 
- interface IIncrementable
- {
-     int Value { get; }
-     void Increment();
- }
+         interface IIncrementable
+         {
+             int Value { get; }
+             void Increment();
+         }
 
- struct S : IIncrementable
- {
-     public int Value { get; private set; }
-     public void Increment() { Value++; }
- }
+         struct S : IIncrementable
+         {
+             public int Value { get; private set; }
+             public void Increment() { Value++; }
+         }
 
- class C: IIncrementable
- {
-     public int Value { get; private set; }
-     public void Increment() { Value++; }
- }
+         class C: IIncrementable
+         {
+             public int Value { get; private set; }
+             public void Increment() { Value++; }
+         }
 
- static class Program
- {
-     static void Main()
-     {
-         Goo(new S(), new C());
-     }
+         static class Program
+         {
+             static void Main()
+             {
+                 Goo(new S(), new C());
+             }
 
-     static void Goo<TAny, TClass>(TAny x, TClass y) 
-         where TAny : IIncrementable
-         where TClass : class, IIncrementable
-     {
-         ((IIncrementable)x).Increment(); // False Unnecessary Cast
-         y.Increment(); // Unnecessary Cast - OK
+             static void Goo<TAny, TClass>(TAny x, TClass y) 
+                 where TAny : IIncrementable
+                 where TClass : class, IIncrementable
+             {
+                 ((IIncrementable)x).Increment(); // False Unnecessary Cast
+                 y.Increment(); // Unnecessary Cast - OK
 
-         Console.WriteLine(x.Value);
-         Console.WriteLine(y.Value);
-     }
- }
- """);
-    }
+                 Console.WriteLine(x.Value);
+                 Console.WriteLine(y.Value);
+             }
+         }
+         """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
-    public async Task DoNotCrashOnIncompleteMethodDeclaration()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoNotCrashOnIncompleteMethodDeclaration()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1156,12 +1062,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")]
-    public async Task RemoveUnnecessaryCastToNullable1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnnecessaryCastToNullable1()
+        => TestInRegularAndScriptAsync(
         """
         class X
         {
@@ -1183,12 +1087,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545850")]
-    public async Task RemoveSurroundingParentheses()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveSurroundingParentheses()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1210,12 +1112,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
-    public async Task DoNotRemoveNecessaryCastFromTypeParameterToObject()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastFromTypeParameterToObject()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1227,12 +1127,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545858")]
-    public async Task DoNotRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1246,12 +1144,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529842")]
-    public async Task DoNotRemoveNecessaryCastInTernaryExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInTernaryExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1270,12 +1166,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
-    public async Task RemoveCastInConstructorInitializer1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastInConstructorInitializer1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1291,12 +1185,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 C() : this("") { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545958"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
-    public async Task RemoveCastInConstructorInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastInConstructorInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections;
 
@@ -1318,12 +1210,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 C() : this("") { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545957")]
-    public async Task DoNotRemoveCastInConstructorInitializer3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastInConstructorInitializer3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1336,12 +1226,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545842")]
-    public async Task RemoveCastToNullableInArithmeticExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToNullableInArithmeticExpression()
+        => TestInRegularAndScriptAsync(
             """
             static class C
             {
@@ -1365,12 +1253,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
-    public async Task DoNotRemoveCastFromStringTypeToObjectInReferenceEquality()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastFromStringTypeToObjectInReferenceEquality()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1383,14 +1269,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545962")]
-    public async Task DoNotRemoveCastWhenExpressionDoesntBind()
-    {
-        // Note: The cast below can't be removed because its expression doesn't bind.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastWhenExpressionDoesntBind()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1402,30 +1284,20 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545944")]
-    public async Task DoNotRemoveNecessaryCastBeforePointerDereference1()
-    {
-        // Note: The cast below can't be removed because it would result in *null,
-        // which is illegal.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastBeforePointerDereference1()
+        => TestMissingInRegularAndScriptAsync(
             """
             unsafe class C
             {
                 int x = *([|null as int*|]);
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545978")]
-    public async Task DoNotRemoveNecessaryCastBeforePointerDereference2()
-    {
-        // Note: The cast below can't be removed because it would result in dereferencing
-        // void*, which is illegal.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastBeforePointerDereference2()
+        => TestMissingInRegularAndScriptAsync(
             """
             unsafe class C
             {
@@ -1436,12 +1308,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
-    public async Task DoNotRemoveCastToByteFromIntInConditionalExpression_CSharp8()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToByteFromIntInConditionalExpression_CSharp8()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1451,12 +1321,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
-    public async Task DoNotRemoveCastToByteFromIntInConditionalExpression_CSharp9()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToByteFromIntInConditionalExpression_CSharp9()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1466,16 +1334,12 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 
     #region Interface Casts
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545889")]
-    public async Task DoNotRemoveCastToInterfaceForUnsealedType()
-    {
-        // Note: The cast below can't be removed because X is not sealed.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToInterfaceForUnsealedType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1501,12 +1365,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
-    public async Task DoRemoveCastToInterfaceForSealedType1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoRemoveCastToInterfaceForSealedType1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1549,12 +1411,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
-    public async Task DoRemoveCastToInterfaceForSealedType2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoRemoveCastToInterfaceForSealedType2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1603,12 +1463,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
-    public async Task DoNotRemoveCastToInterfaceForSealedType3()
-    {
-        await TestMissingAsync(
+    public Task DoNotRemoveCastToInterfaceForSealedType3()
+        => TestMissingAsync(
             """
             using System;
 
@@ -1635,15 +1493,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
-    public async Task DoNotRemoveCastToInterfaceForSealedType4()
-    {
-        // Note: The cast below can't be removed (even though C is sealed)
-        // because the unspecified optional parameter default values differ.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToInterfaceForSealedType4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1665,12 +1518,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
-    public async Task DoRemoveCastToInterfaceForSealedTypeWhenDefaultValuesAreDifferentButParameterIsPassed()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoRemoveCastToInterfaceForSealedTypeWhenDefaultValuesAreDifferentButParameterIsPassed()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1713,16 +1564,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoNotRemoveCastToInterfaceForSealedType6()
-    {
-        // Note: The cast below can't be removed (even though C is sealed)
-        // because the specified named arguments refer to parameters that
-        // appear at different positions in the member signatures.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToInterfaceForSealedType6()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1744,12 +1589,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoNotRemoveCastToInterfaceForSealedType7()
-    {
-        await TestMissingAsync(
+    public Task DoNotRemoveCastToInterfaceForSealedType7()
+        => TestMissingAsync(
             """
             using System;
 
@@ -1774,16 +1617,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoNotRemoveCastToInterfaceForSealedType8()
-    {
-        // Note: The cast below can't be removed (even though C is sealed)
-        // because the specified named arguments refer to parameters that
-        // appear at different positions in the member signatures.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToInterfaceForSealedType8()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1808,16 +1645,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545883")]
-    public async Task DoNotRemoveCastToInterfaceForSealedType9()
-    {
-        // Note: The cast below can't be removed (even though C is sealed)
-        // because it would result in binding to a Dispose method that doesn't
-        // implement IDisposable.Dispose().
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToInterfaceForSealedType9()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.IO;
@@ -1836,15 +1667,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545887")]
-    public async Task DoNotRemoveCastToInterfaceForStruct1()
-    {
-        // Note: The cast below can't be removed because the cast boxes 's' and
-        // unboxing would change program behavior.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToInterfaceForStruct1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1872,15 +1698,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834")]
-    public async Task RemoveCastToInterfaceForStruct2()
-    {
-        // Note: The cast below can be removed because we are sure to have
-        // a fresh copy of the struct from the GetEnumerator() method.
-
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToInterfaceForStruct2()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         using System.Collections.Generic;
@@ -1918,15 +1739,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544655")]
-    public async Task RemoveCastToICloneableForDelegate()
-    {
-        // Note: The cast below can be removed because delegates are implicitly
-        // sealed.
-
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToICloneableForDelegate()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -1952,15 +1768,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545926")]
-    public async Task RemoveCastToICloneableForArray()
-    {
-        // Note: The cast below can be removed because arrays are implicitly
-        // sealed.
-
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToICloneableForArray()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -1986,15 +1797,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
-    public async Task RemoveCastToIConvertibleForEnum()
-    {
-        // Note: The cast below can be removed because enums are implicitly
-        // sealed.
-
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToIConvertibleForEnum()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -2020,16 +1826,14 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     #endregion
 
     #region ParamArray Parameter Casts
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545141")]
-    public async Task DoNotRemoveCastToObjectInParamArrayArg1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToObjectInParamArrayArg1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2046,12 +1850,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task DoNotRemoveCastToIntArrayInParamArrayArg2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToIntArrayInParamArrayArg2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2068,12 +1870,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task DoNotRemoveCastToObjectArrayInParamArrayArg3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToObjectArrayInParamArrayArg3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2090,12 +1890,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToObjectArrayInParamArrayArg1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToObjectArrayInParamArrayArg1()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -2119,12 +1917,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToStringArrayInParamArrayArg2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToStringArrayInParamArrayArg2()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -2148,12 +1944,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToIntArrayInParamArrayArg3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToIntArrayInParamArrayArg3()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -2177,12 +1971,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToObjectArrayInParamArrayArg4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToObjectArrayInParamArrayArg4()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -2206,12 +1998,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToObjectInParamArrayArg5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToObjectInParamArrayArg5()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -2235,12 +2025,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task RemoveCastToObjectArrayInParamArrayWithNamedArgument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastToObjectArrayInParamArrayWithNamedArgument()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2263,19 +2051,14 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 static void Goo(params object[] x) { }
             }
             """);
-    }
 
     #endregion
 
     #region ForEach Statements
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-    public async Task DoNotRemoveNecessaryCastInForEach1()
-    {
-        // The cast below can't be removed because it would result an error
-        // in the foreach statement.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInForEach1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections;
 
@@ -2290,15 +2073,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-    public async Task DoNotRemoveNecessaryCastInForEach2()
-    {
-        // The cast below can't be removed because it would result an error
-        // in the foreach statement.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInForEach2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2313,16 +2091,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-    public async Task DoNotRemoveNecessaryCastInForEach3()
-    {
-        // The cast below can't be removed because it would result an error
-        // in the foreach statement since C doesn't contain a GetEnumerator()
-        // method.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInForEach3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections;
 
@@ -2350,15 +2122,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-    public async Task DoNotRemoveNecessaryCastInForEach4()
-    {
-        // The cast below can't be removed because it would result in
-        // C.GetEnumerator() being called rather than D.GetEnumerator().
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInForEach4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections;
@@ -2393,15 +2160,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
-    public async Task DoNotRemoveNecessaryCastInForEach5()
-    {
-        // The cast below can't be removed because it would change the
-        // type of 'x'.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInForEach5()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2420,17 +2182,12 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     #endregion
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545925")]
-    public async Task DoNotRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
-    {
-        // Note: The cast below can't be removed because the parameter list
-        // of Goo and its override have different default values.
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2452,15 +2209,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545925")]
-    public async Task RemoveCastIfOverriddenMethodHaveCompatibleParameterList()
-    {
-        // Note: The cast below can be removed because the parameter list
-        // of Goo and its override have the same default values.
-
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastIfOverriddenMethodHaveCompatibleParameterList()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2504,15 +2256,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529916")]
-    public async Task RemoveCastInReceiverForMethodGroup()
-    {
-        // Note: The cast below can be removed because the it results in
-        // the same method group.
-
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastInReceiverForMethodGroup()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2540,12 +2287,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 static void Goo(this string x) { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609497")]
-    public async Task Bugfix_609497()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_609497()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2564,13 +2309,11 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624252")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
-    public async Task DoNotRemoveCastIfArgumentIsRestricted_TypedReference()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastIfArgumentIsRestricted_TypedReference()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2591,12 +2334,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2630,12 +2371,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C<T>
             {
@@ -2681,12 +2420,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2697,12 +2434,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2713,12 +2448,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2729,12 +2462,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2745,12 +2476,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
-    public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2784,12 +2513,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
-    public async Task DoNotUnnecessaryCastFromTypeParameterToObject()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotUnnecessaryCastFromTypeParameterToObject()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2801,12 +2528,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640136")]
-    public async Task RemoveUnnecessaryCastAndParseCorrect()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnnecessaryCastAndParseCorrect()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2832,12 +2557,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/626026")]
-    public async Task DoNotRemoveCastIfUserDefinedExplicitCast()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastIfUserDefinedExplicitCast()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2860,12 +2583,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")]
-    public async Task DoNotRemoveNecessaryCastInSwitchExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveNecessaryCastInSwitchExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication23
             {
@@ -2891,13 +2612,11 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2761")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
-    public async Task DoNotRemoveCastFromBaseToDerivedWithExplicitReference()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastFromBaseToDerivedWithExplicitReference()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2917,12 +2636,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3254")]
-    public async Task DoNotRemoveCastToTypeParameterWithExceptionConstraint()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToTypeParameterWithExceptionConstraint()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2937,12 +2654,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3254")]
-    public async Task DoNotRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2957,12 +2672,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
-    public async Task DoNotRemoveCastThatChangesShapeOfAnonymousTypeObject()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastThatChangesShapeOfAnonymousTypeObject()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2972,12 +2685,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
-    public async Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2997,12 +2708,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18978")]
-    public async Task DoNotRemoveCastOnCallToMethodWithParamsArgs()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnCallToMethodWithParamsArgs()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3018,12 +2727,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoRemoveCastOnCallToMethodWithIncorrectParamsArgs()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoRemoveCastOnCallToMethodWithIncorrectParamsArgs()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3052,12 +2759,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotRemoveCastOnCallToMethodWithCorrectParamsArgs()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnCallToMethodWithCorrectParamsArgs()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3072,12 +2777,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18978")]
-    public async Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3108,12 +2811,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgs()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnCallToAttributeWithParamsArgs()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Reflection;
@@ -3135,12 +2836,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29264")]
-    public async Task RemoveCastOnDictionaryIndexer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastOnDictionaryIndexer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Reflection;
@@ -3173,12 +2872,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -3194,12 +2891,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -3215,12 +2910,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -3236,12 +2929,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -3272,12 +2963,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoNotRemoveCastOfNullToParamsArg()
-    {
-        await TestMissingAsync(
+    public Task DoNotRemoveCastOfNullToParamsArg()
+        => TestMissingAsync(
             """
             using System;
             using System.Reflection;
@@ -3297,12 +2986,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task RemoveCastOnCallToAttributeWithParamsArgsWithImplicitCast()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveCastOnCallToAttributeWithParamsArgsWithImplicitCast()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -3333,12 +3020,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -3352,12 +3037,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """, parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -3371,12 +3054,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """, parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -3390,12 +3071,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """, parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27239")]
-    public async Task DoNotOfferToRemoveCastWhereNoConversionExists()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotOfferToRemoveCastWhereNoConversionExists()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3408,12 +3087,10 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28412")]
-    public async Task DoNotOfferToRemoveCastWhenAccessingHiddenProperty()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotOfferToRemoveCastWhenAccessingHiddenProperty()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Collections.Generic;
             class Fruit
             {
@@ -3432,5 +3109,4 @@ public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnost
                 }
             }
             """);
-    }
 }

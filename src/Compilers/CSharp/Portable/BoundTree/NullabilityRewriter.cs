@@ -99,13 +99,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundBinaryOperator binary => binary.Update(
                         binary.OperatorKind,
-                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
+                        binary.BinaryOperatorMethod is { } binaryOperatorMethod ? binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binaryOperatorMethod)) : binary.Data,
                         binary.ResultKind,
                         leftChild,
                         right,
                         type!),
-                    // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
-                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ConstrainedToTypeOpt, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type!),
+
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(
+                        logical.OperatorKind,
+                        GetUpdatedSymbol(logical, logical.LogicalOperator),
+                        logical.TrueOperator,
+                        logical.FalseOperator,
+                        logical.TrueFalseOperandPlaceholder,
+                        logical.TrueFalseOperandConversion,
+                        logical.ConstrainedToTypeOpt,
+                        logical.ResultKind,
+                        logical.OriginalUserDefinedOperatorsOpt,
+                        leftChild,
+                        right,
+                        type!),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
 
@@ -120,6 +132,71 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(currentBinary != null);
             return currentBinary!;
+        }
+
+        public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            // Use an explicit stack to avoid blowing the managed stack when visiting deeply-recursive
+            // binary nodes
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern? currentBinary = node;
+
+            do
+            {
+                stack.Push(currentBinary);
+                currentBinary = currentBinary.Left as BoundBinaryPattern;
+            }
+            while (currentBinary is not null);
+
+            Debug.Assert(stack.Count > 0);
+            var leftChild = (BoundPattern)Visit(stack.Peek().Left);
+
+            do
+            {
+                currentBinary = stack.Pop();
+
+                TypeSymbol inputType = GetUpdatedSymbol(currentBinary, currentBinary.InputType);
+                TypeSymbol narrowedType = GetUpdatedSymbol(currentBinary, currentBinary.NarrowedType);
+
+                var right = (BoundPattern)Visit(currentBinary.Right);
+
+                currentBinary = currentBinary.Update(currentBinary.Disjunction, leftChild, right, inputType, narrowedType);
+
+                leftChild = currentBinary;
+            }
+            while (stack.Count > 0);
+
+            return currentBinary;
+        }
+
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = GetUpdatedArray(node, node.OriginalUserDefinedOperatorsOpt);
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
+            BoundExpression? leftConversion = node.LeftConversion;
+            BoundValuePlaceholder? finalPlaceholder = node.FinalPlaceholder;
+            BoundExpression? finalConversion = node.FinalConversion;
+            BoundCompoundAssignmentOperator updatedNode;
+
+            var op = node.Operator;
+
+            if (op.Method is not null)
+            {
+                op = new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, GetUpdatedSymbol(node, op.Method), op.ConstrainedToTypeOpt);
+            }
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, node.Type);
+            }
+            return updatedNode;
         }
 
         private T GetUpdatedSymbol<T>(BoundNode expr, T sym) where T : Symbol?
@@ -164,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (updatedDelegateType is null)
                 {
                     Debug.Assert(updatedContaining is object);
-                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind, lambda.RefCustomModifiers);
                 }
                 else
                 {

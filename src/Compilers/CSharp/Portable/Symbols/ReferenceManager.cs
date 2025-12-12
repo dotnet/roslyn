@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -506,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     implicitReferenceResolutions,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
-                                    ReferenceEquals(corLibrary, assemblySymbol) ? null! : corLibrary, // https://github.com/dotnet/roslyn/issues/40751 Unnecessary suppression
+                                    ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
                                     modules,
                                     moduleReferences,
                                     assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),

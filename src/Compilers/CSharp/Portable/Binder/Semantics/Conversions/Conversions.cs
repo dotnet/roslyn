@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
@@ -188,125 +190,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                if (!_binder.HasCollectionExpressionApplicableConstructor(
+                        node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
 
-                if (_binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
-                {
-                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
-                }
-                else if (elements.Length > 0 &&
+                if (elements.Length > 0 &&
                     !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
             }
 
-            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType);
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                if (element is BoundCollectionExpressionWithElement)
-                {
-                    // Collection arguments do not affect convertibility.
-                    continue;
-                }
-                Conversion elementConversion = GetCollectionExpressionElementConversion(element, elementType, elementKeyValueTypes, ref useSiteInfo);
+                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
                 if (!elementConversion.Exists)
                 {
                     builder.Free();
                     return Conversion.NoConversion;
                 }
+
                 builder.Add(elementConversion);
             }
 
-            var elementConversions = builder.ToImmutableAndFree();
-            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, elementConversions);
-        }
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
 
-        private Conversion GetCollectionExpressionElementConversion(
-            BoundNode element,
-            TypeSymbol elementType,
-            (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            switch (element)
+            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                case BoundCollectionExpressionSpreadElement spreadElement:
-                    {
-                        var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
-                        if (enumeratorInfo is { })
-                        {
-                            var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement.Syntax, elementType, enumeratorInfo, ref useSiteInfo);
-                            if (elementConversion.Exists)
-                            {
-                                return elementConversion;
-                            }
-                            else if (elementKeyValueTypes is (var keyType, var valueType) &&
-                                IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
-                            {
-                                var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
-                                var valueConversion = ClassifyImplicitConversionFromType(itemValueType, valueType, ref useSiteInfo);
-                                if (keyConversion.Exists && valueConversion.Exists)
-                                {
-                                    return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case BoundKeyValuePairElement keyValuePairElement:
-                    {
-                        if (elementKeyValueTypes is (var keyType, var valueType))
-                        {
-                            var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType, ref useSiteInfo);
-                            var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType, ref useSiteInfo);
-                            if (keyConversion.Exists && valueConversion.Exists)
-                            {
-                                return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
-                            }
-                        }
-                    }
-                    break;
-                case BoundExpression expressionElement:
-                    {
-                        var elementConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
-                        if (elementConversion.Exists)
-                        {
-                            return elementConversion;
-                        }
-                        else if (expressionElement.Type is { } &&
-                            elementKeyValueTypes is (var keyType, var valueType) &&
-                            IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
-                        {
-                            var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
-                            var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
-                            if (keyConversion.Exists && valueConversion.Exists)
-                            {
-                                return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
-                            }
-                        }
-                    }
-                    break;
+                return element switch
+                {
+                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
+                };
             }
-            return Conversion.NoConversion;
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
-            SyntaxNode syntax,
+            BoundCollectionExpressionSpreadElement element,
             TypeSymbol targetType,
-            ForEachEnumeratorInfo enumeratorInfo,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // This should be conversion from type rather than conversion from expression.
-            // The difference is in handling of dynamic, and fixing this would be a breaking
-            // change for that case. For instance, the following would become an error:
-            // dynamic[] x = [1, 2, 3];
-            // int[] y = [.. x];
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return Conversion.NoConversion;
+            }
             return ClassifyImplicitConversionFromExpression(
-                new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType),
+                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
         }
@@ -318,22 +251,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static MethodGroupResolution ResolveDelegateOrFunctionPointerMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, bool isFunctionPointer, in CallingConventionInfo callingConventionInfo, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            MethodGroupResolution resolution;
             if ((object)delegateInvokeMethodOpt != null)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
-                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
+                resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
                     options: OverloadResolution.Options.InferWithDynamic | OverloadResolution.Options.IsMethodGroupConversion |
                              (isFunctionPointer ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
-                    returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
+                    acceptOnlyMethods: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
                     callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
-                return resolution;
             }
             else
             {
-                return binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
+                resolution = binder.ResolveMethodGroup(source, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion, acceptOnlyMethods: true);
             }
+
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+            return resolution;
         }
 
         /// <summary>
@@ -395,10 +331,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         if (resolution.MethodGroup.IsExtensionMethodGroup)
                         {
-                            Debug.Assert(method.IsExtensionMethod);
+                            Debug.Assert(method.IsExtensionMethod || method.IsExtensionBlockMember());
 
-                            var thisParameter = method.Parameters[0];
-                            if (!thisParameter.Type.IsReferenceType)
+                            ParameterSymbol thisParameter;
+
+                            if (method.IsExtensionMethod)
+                            {
+                                thisParameter = method.Parameters[0];
+                            }
+                            else if (method.IsStatic)
+                            {
+                                thisParameter = null;
+                            }
+                            else
+                            {
+                                thisParameter = method.ContainingType.ExtensionParameter;
+                            }
+
+                            if (thisParameter?.Type.IsReferenceType == false)
                             {
                                 // Extension method '{0}' defined on value type '{1}' cannot be used to create delegates
                                 diagnostics.Add(
@@ -519,9 +469,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType)
+            if (methodGroup.IsExtensionMethodGroup)
             {
-                return Conversion.NoConversion;
+                if (!(method.IsExtensionBlockMember() && method.IsStatic) && !Binder.GetReceiverParameter(method).Type.IsReferenceType)
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
             //cannot capture stack-only types.
@@ -546,9 +499,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            Debug.Assert(method.ParameterCount == parameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
+            bool isExtensionMethod = methodGroup.IsExtensionMethodGroup && !method.IsExtensionBlockMember();
+            Debug.Assert(method.ParameterCount == parameterCount + (isExtensionMethod ? 1 : 0));
 
-            return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
+            return new Conversion(ConversionKind.MethodGroup, method, isExtensionMethod: isExtensionMethod);
         }
 
         public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

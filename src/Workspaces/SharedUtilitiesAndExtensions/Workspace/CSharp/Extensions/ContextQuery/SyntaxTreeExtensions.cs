@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -759,8 +760,8 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
     }
@@ -2830,12 +2831,14 @@ internal static partial class SyntaxTreeExtensions
         // is/as/with are valid after expressions.
         if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
         {
-            // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
+            // 'is/as/with/switch' not allowed after a anonymous-method/lambda.
             if (expression is AnonymousFunctionExpressionSyntax)
                 return false;
 
+            // is/as/with/switch also not allowed after a naked method group reference (e.g. `this.ToString is`).
+            // They are allowed after a method invocation (e.g. `this.ToString() is`).
             var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol && expression is not InvocationExpressionSyntax)
                 return false;
 
             // However, many names look like expressions.  For example:
@@ -3068,7 +3071,6 @@ internal static partial class SyntaxTreeExtensions
     public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
     {
         return targetToken.IsKind(SyntaxKind.AsteriskToken) &&
-               targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
-               targetToken == functionPointerType.AsteriskToken;
+               targetToken.GetPreviousToken().IsKind(SyntaxKind.DelegateKeyword);
     }
 }

@@ -7,35 +7,50 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
 internal abstract partial class AbstractEditorInlineRenameService
 {
-    private class InlineRenameLocationSet : IInlineRenameLocationSet
+    private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
     {
+        public static async Task<InlineRenameLocationSet> CreateAsync(
+            SymbolInlineRenameInfo renameInfo,
+            LightweightRenameLocations renameLocationSet,
+            CancellationToken cancellationToken)
+        {
+            var solution = renameLocationSet.Solution;
+            var validLocations = renameLocationSet.Locations.Where(RenameLocation.ShouldRename);
+            var locations = await validLocations.SelectAsArrayAsync(static (loc, solution, ct) => ConvertLocationAsync(solution, loc, ct), solution, cancellationToken).ConfigureAwait(false);
+
+            return new InlineRenameLocationSet(renameInfo, renameLocationSet, locations);
+        }
+
         private readonly LightweightRenameLocations _renameLocationSet;
         private readonly SymbolInlineRenameInfo _renameInfo;
 
         public IList<InlineRenameLocation> Locations { get; }
 
-        public InlineRenameLocationSet(
+        private InlineRenameLocationSet(
             SymbolInlineRenameInfo renameInfo,
-            LightweightRenameLocations renameLocationSet)
+            LightweightRenameLocations renameLocationSet,
+            ImmutableArray<InlineRenameLocation> locations)
         {
             _renameInfo = renameInfo;
             _renameLocationSet = renameLocationSet;
-            this.Locations = renameLocationSet.Locations.Where(RenameLocation.ShouldRename)
-                                                        .Select(ConvertLocation)
-                                                        .ToImmutableArray();
+            this.Locations = locations;
         }
 
-        private InlineRenameLocation ConvertLocation(RenameLocation location)
+        private static async ValueTask<InlineRenameLocation> ConvertLocationAsync(Solution solution, RenameLocation location, CancellationToken cancellationToken)
         {
-            return new InlineRenameLocation(
-                _renameLocationSet.Solution.GetDocument(location.DocumentId), location.Location.SourceSpan);
+            var document = await solution.GetRequiredDocumentAsync(location.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+            Contract.ThrowIfTrue(location.DocumentId.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument());
+            return new InlineRenameLocation(document, location.Location.SourceSpan);
         }
 
         public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(
@@ -44,7 +59,7 @@ internal abstract partial class AbstractEditorInlineRenameService
             CancellationToken cancellationToken)
         {
             var conflicts = await _renameLocationSet.ResolveConflictsAsync(
-                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), cancellationToken).ConfigureAwait(false);
 
             return new InlineRenameReplacementInfo(conflicts);
         }

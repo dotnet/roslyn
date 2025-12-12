@@ -650,15 +650,7 @@ namespace Microsoft.CodeAnalysis.Text
                         {
                             var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
 
-#if NET8_0_OR_GREATER
-                            // Defer to the platform to do the reversal.  It ships with a vectorized
-                            // implementation for this on .NET 8 and above.
-                            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
-#else
-                            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
-                            for (var i = 0; i < shortSpan.Length; i++)
-                                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
-#endif
+                            ReverseEndianness(shortSpan);
                         }
 
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
@@ -678,6 +670,19 @@ namespace Microsoft.CodeAnalysis.Text
                     s_contentHashPool.Free(hash);
                 }
             }
+        }
+
+        internal static void ReverseEndianness(Span<short> shortSpan)
+        {
+#if NET8_0_OR_GREATER
+            // Defer to the platform to do the reversal.  It ships with a vectorized
+            // implementation for this on .NET 8 and above.
+            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
+#else
+            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
+            for (var i = 0; i < shortSpan.Length; i++)
+                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
+#endif
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
@@ -719,25 +724,46 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var builder = PooledStringBuilder.GetInstance();
-            var buffer = s_charArrayPool.Allocate();
+            var tempBuffer = s_charArrayPool.Allocate();
+            string result;
 
             int position = Math.Max(Math.Min(span.Start, this.Length), 0);
             int length = Math.Min(span.End, this.Length) - position;
+
+#if NET
+            result = string.Create(length, (this, position, length, tempBuffer), static (buffer, arg) =>
+            {
+                var (sourceText, position, length, tempBuffer) = arg;
+
+                while (buffer.Length > 0)
+                {
+                    int copyLength = Math.Min(tempBuffer.Length, length);
+                    sourceText.CopyTo(position, tempBuffer, 0, copyLength);
+                    tempBuffer.AsSpan(0, copyLength).CopyTo(buffer);
+
+                    buffer = buffer[copyLength..];
+                    length -= copyLength;
+                    position += copyLength;
+                }
+            });
+#else
+            var builder = PooledStringBuilder.GetInstance();
             builder.Builder.EnsureCapacity(length);
 
             while (position < this.Length && length > 0)
             {
-                int copyLength = Math.Min(buffer.Length, length);
-                this.CopyTo(position, buffer, 0, copyLength);
-                builder.Builder.Append(buffer, 0, copyLength);
+                int copyLength = Math.Min(tempBuffer.Length, length);
+                this.CopyTo(position, tempBuffer, 0, copyLength);
+                builder.Builder.Append(tempBuffer, 0, copyLength);
                 length -= copyLength;
                 position += copyLength;
             }
 
-            s_charArrayPool.Free(buffer);
+            result = builder.ToStringAndFree();
+#endif
 
-            return builder.ToStringAndFree();
+            s_charArrayPool.Free(tempBuffer);
+            return result;
         }
 
         #region Changes

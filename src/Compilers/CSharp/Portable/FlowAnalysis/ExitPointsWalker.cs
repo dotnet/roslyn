@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.YieldReturnStatement:
                     case BoundKind.AwaitExpression:
                     case BoundKind.UsingStatement:
-                    case BoundKind.ForEachStatement when ((BoundForEachStatement)pending.Branch).AwaitOpt != null:
+                    case BoundKind.ForEachStatement when ((BoundForEachStatement)pending.Branch).EnumeratorInfoOpt is { MoveNextAwaitableInfo: not null }:
                         // We don't do anything with yield return statements, async using statement, async foreach statement, or await expressions;
                         // they are treated as if they are not jumps.
                         continue;

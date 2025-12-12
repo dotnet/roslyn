@@ -27,6 +27,16 @@
         <target state="translated">Converter a tupla em refatoração de struct</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="new">Copilot change analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="new">Copilot proposal adjuster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">Localizador de tipo dependente</target>
@@ -57,9 +67,14 @@
         <target state="translated">Encapsular a refatoração de campo</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">Conclusão da importação do método de extensão</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="new">Extension member import completion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="new">Extension message handler</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -80,6 +95,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">Margem de herança</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

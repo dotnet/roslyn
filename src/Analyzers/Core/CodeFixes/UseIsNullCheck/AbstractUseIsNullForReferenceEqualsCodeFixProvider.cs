@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -39,9 +38,7 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
         {
             var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
             var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
-            context.RegisterCodeFix(
-                CodeAction.Create(title, GetDocumentUpdater(context), title),
-                context.Diagnostics);
+            RegisterCodeFix(context, title, title);
         }
 
         return Task.CompletedTask;

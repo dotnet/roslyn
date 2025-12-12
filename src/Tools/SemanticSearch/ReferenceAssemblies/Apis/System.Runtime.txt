@@ -1,4 +1,4 @@
-# Generated, do not update manually
+﻿# Generated, do not update manually
 System.AccessViolationException
 System.AccessViolationException.#ctor
 System.AccessViolationException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)
@@ -6225,6 +6225,24 @@ System.Threading.CancellationToken.get_None
 System.Threading.CancellationToken.get_WaitHandle
 System.Threading.CancellationToken.op_Equality(System.Threading.CancellationToken,System.Threading.CancellationToken)
 System.Threading.CancellationToken.op_Inequality(System.Threading.CancellationToken,System.Threading.CancellationToken)
+System.Threading.CancellationTokenSource
+System.Threading.CancellationTokenSource.#ctor
+System.Threading.CancellationTokenSource.#ctor(System.Int32)
+System.Threading.CancellationTokenSource.#ctor(System.TimeSpan)
+System.Threading.CancellationTokenSource.#ctor(System.TimeSpan,System.TimeProvider)
+System.Threading.CancellationTokenSource.Cancel
+System.Threading.CancellationTokenSource.Cancel(System.Boolean)
+System.Threading.CancellationTokenSource.CancelAfter(System.Int32)
+System.Threading.CancellationTokenSource.CancelAfter(System.TimeSpan)
+System.Threading.CancellationTokenSource.CancelAsync
+System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken)
+System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken,System.Threading.CancellationToken)
+System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken[])
+System.Threading.CancellationTokenSource.Dispose
+System.Threading.CancellationTokenSource.Dispose(System.Boolean)
+System.Threading.CancellationTokenSource.TryReset
+System.Threading.CancellationTokenSource.get_IsCancellationRequested
+System.Threading.CancellationTokenSource.get_Token
 System.Threading.Tasks.ConcurrentExclusiveSchedulerPair
 System.Threading.Tasks.ConcurrentExclusiveSchedulerPair.#ctor
 System.Threading.Tasks.ConcurrentExclusiveSchedulerPair.#ctor(System.Threading.Tasks.TaskScheduler)

@@ -24,18 +24,19 @@ public class BasicOutlining : AbstractEditorTest
     [IdeFact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task Outlining()
     {
-        var input = @"
-[|Imports System
-Imports System.Text|]
+        MarkupTestFile.GetSpans("""
 
-[|Namespace Acme
-    [|Module Module1
-        [|Sub Main()
-            
-        End Sub|]
-    End Module|]
-End Namespace|]";
-        MarkupTestFile.GetSpans(input, out var text, out var spans);
+            [|Imports System
+            Imports System.Text|]
+
+            [|Namespace Acme
+                [|Module Module1
+                    [|Sub Main()
+                        
+                    End Sub|]
+                End Module|]
+            End Namespace|]
+            """, out var text, out var spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
         var actualSpansWithState = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
         var actualSpans = actualSpansWithState.Select(span => span.Span);

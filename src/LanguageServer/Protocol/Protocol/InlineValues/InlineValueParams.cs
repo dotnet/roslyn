@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class InlineValueParams : ITextDocumentParams, IWorkDoneProgressParams
+internal sealed class InlineValueParams : ITextDocumentParams, IWorkDoneProgressParams
 {
     /// <summary>
     /// The text document.

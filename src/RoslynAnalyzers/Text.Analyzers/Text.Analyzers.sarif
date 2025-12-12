@@ -1,0 +1,105 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Humanizer",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
+        "name": "Text.Analyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "CA1704": {
+          "id": "CA1704",
+          "shortDescription": "Identifiers should be spelled correctly",
+          "fullDescription": "The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.",
+          "defaultLevel": "warning",
+          "helpUri": "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1704",
+          "properties": {
+            "category": "Naming",
+            "isEnabledByDefault": true,
+            "typeName": "IdentifiersShouldBeSpelledCorrectlyAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "PortedFromFxCop",
+              "Telemetry",
+              "EnabledRuleInAggressiveMode"
+            ]
+          }
+        },
+        "CA1714": {
+          "id": "CA1714",
+          "shortDescription": "Flags enums should have plural names",
+          "fullDescription": "A public enumeration has the System.FlagsAttribute attribute, and its name does not end in \"\"s\"\". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.",
+          "defaultLevel": "warning",
+          "helpUri": "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1714",
+          "properties": {
+            "category": "Naming",
+            "isEnabledByDefault": false,
+            "typeName": "EnumsShouldHavePluralNamesAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "PortedFromFxCop",
+              "Telemetry",
+              "EnabledRuleInAggressiveMode"
+            ]
+          }
+        },
+        "CA1717": {
+          "id": "CA1717",
+          "shortDescription": "Only FlagsAttribute enums should have plural names",
+          "fullDescription": "Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.",
+          "defaultLevel": "warning",
+          "helpUri": "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1717",
+          "properties": {
+            "category": "Naming",
+            "isEnabledByDefault": false,
+            "typeName": "EnumsShouldHavePluralNamesAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "PortedFromFxCop",
+              "Telemetry",
+              "EnabledRuleInAggressiveMode"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Text.CSharp.Analyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
+        "name": "Text.VisualBasic.Analyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    }
+  ]
+}

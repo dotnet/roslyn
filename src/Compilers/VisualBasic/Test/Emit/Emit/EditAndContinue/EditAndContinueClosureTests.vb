@@ -4,11 +4,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
-Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -2275,6 +2272,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       67 (0x43)
   .maxstack  2
@@ -2300,6 +2298,7 @@ End Class
   IL_0040:  stloc.s    V_5
   IL_0042:  ret
 }
+_Lambda$__1-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2308,6 +2307,7 @@ End Class
   IL_0006:  newobj     0x06000007
   IL_000b:  throw
 }
+_Lambda$__1-1
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -2317,6 +2317,7 @@ End Class
   IL_0007:  nop
   IL_0008:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2328,6 +2329,7 @@ End Class
   IL_0009:  stfld      0x04000004
   IL_000e:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2335,6 +2337,7 @@ End Class
   IL_0001:  call       0x0A00000C
   IL_0006:  ret
 }
+_Lambda$__0#1
 {
   // Code size       14 (0xe)
   .maxstack  8
@@ -2392,6 +2395,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       66 (0x42)
   .maxstack  2
@@ -2417,6 +2421,7 @@ End Class
   IL_003f:  stloc.s    V_4
   IL_0041:  ret
 }
+_Lambda$__1-0
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -2426,6 +2431,7 @@ End Class
   IL_0007:  nop
   IL_0008:  ret
 }
+_Lambda$__1-1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2434,6 +2440,7 @@ End Class
   IL_0006:  newobj     0x06000007
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2445,6 +2452,7 @@ End Class
   IL_0009:  stfld      0x04000004
   IL_000e:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2452,6 +2460,7 @@ End Class
   IL_0001:  call       0x0A00000C
   IL_0006:  ret
 }
+_Lambda$__1#1
 {
   // Code size       14 (0xe)
   .maxstack  8
@@ -2512,6 +2521,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-1#1", ".ctor")
 
                         g.VerifyIL("
+F
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -2532,6 +2542,7 @@ End Class
   IL_0032:  stloc.3
   IL_0033:  ret
 }
+_Lambda$__2-0
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -2541,6 +2552,7 @@ End Class
   IL_0007:  nop
   IL_0008:  ret
 }
+_Lambda$__2-1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2549,6 +2561,7 @@ End Class
   IL_0006:  newobj     0x06000008
   IL_000b:  throw
 }
+_Lambda$__2-1#1
 {
   // Code size       14 (0xe)
   .maxstack  8
@@ -2559,6 +2572,7 @@ End Class
   IL_000c:  nop
   IL_000d:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2617,6 +2631,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0")
 
                         g.VerifyIL("
+F
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -2634,6 +2649,7 @@ End Class
   IL_001c:  stloc.3
   IL_001d:  ret
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -2691,6 +2707,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0", ".ctor", ".ctor", ".cctor", "_Lambda$__1-0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       41 (0x29)
   .maxstack  2
@@ -2709,6 +2726,7 @@ End Class
   IL_0027:  stloc.3
   IL_0028:  ret
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2717,6 +2735,7 @@ End Class
   IL_0006:  newobj     0x06000009
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2728,6 +2747,7 @@ End Class
   IL_0009:  stfld      0x04000002
   IL_000e:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2735,6 +2755,7 @@ End Class
   IL_0001:  call       0x0A00000B
   IL_0006:  ret
 }
+.cctor
 {
   // Code size       11 (0xb)
   .maxstack  8
@@ -2742,6 +2763,7 @@ End Class
   IL_0005:  stsfld     0x04000003
   IL_000a:  ret
 }
+_Lambda$__1-0#1
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2776,6 +2798,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0#1", ".ctor", "_Lambda$__0#2")
 
                         g.VerifyIL("
+F
 {
   // Code size       32 (0x20)
   .maxstack  2
@@ -2791,6 +2814,7 @@ End Class
   IL_001d:  stloc.s    V_5
   IL_001f:  ret
 }
+_Lambda$__1-0#1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2799,6 +2823,7 @@ End Class
   IL_0006:  newobj     0x06000009
   IL_000b:  throw
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2806,6 +2831,7 @@ End Class
   IL_0001:  call       0x0A00000E
   IL_0006:  ret
 }
+_Lambda$__0#2
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2869,6 +2895,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", ".ctor", "_Lambda$__2-0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       76 (0x4c)
   .maxstack  2
@@ -2895,6 +2922,7 @@ End Class
   IL_004a:  stloc.3
   IL_004b:  ret
 }
+_Lambda$__2-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2903,6 +2931,7 @@ End Class
   IL_0006:  newobj     0x0600000B
   IL_000b:  throw
 }
+_Lambda$__2-1
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2913,6 +2942,7 @@ End Class
   IL_0005:  ldloc.0
   IL_0006:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2924,6 +2954,7 @@ End Class
   IL_0009:  stfld      0x04000004
   IL_000e:  ret
 }
+_Lambda$__2-0#1
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2977,6 +3008,7 @@ End Class
                         g.VerifyMethodDefNames("F", ".ctor", "_Lambda$__0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -2992,6 +3024,7 @@ End Class
   IL_001a:  stloc.2
   IL_001b:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2999,6 +3032,7 @@ End Class
   IL_0001:  call       0x0A000007
   IL_0006:  ret
 }
+_Lambda$__0#1
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3032,6 +3066,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0#1", ".ctor")
 
                         g.VerifyIL("
+F
 {
   // Code size        4 (0x4)
   .maxstack  1
@@ -3040,6 +3075,7 @@ End Class
   IL_0002:  stloc.3
   IL_0003:  ret
 }
+_Lambda$__0#1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3048,6 +3084,7 @@ End Class
   IL_0006:  newobj     0x06000005
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -3123,6 +3160,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
+F
 {
   // Code size      128 (0x80)
   .maxstack  3
@@ -3171,6 +3209,7 @@ End Class
   IL_007c:  stloc.s    V_5
   IL_007e:  br.s       IL_0011
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3182,6 +3221,7 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3190,6 +3230,7 @@ End Class
   IL_0006:  newobj     0x06000007
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -3201,6 +3242,7 @@ End Class
   IL_0009:  stfld      0x04000005
   IL_000e:  ret
 }
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3214,6 +3256,7 @@ End Class
   IL_0010:  stfld      0x04000006
   IL_0015:  ret
 }
+_Lambda$__1#1
 {
   // Code size       24 (0x18)
   .maxstack  2
@@ -3289,6 +3332,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       96 (0x60)
   .maxstack  3
@@ -3330,6 +3374,7 @@ End Class
   IL_005c:  stloc.s    V_5
   IL_005e:  br.s       IL_0011
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3341,6 +3386,7 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3349,6 +3395,7 @@ End Class
   IL_0006:  newobj     0x0600000B
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -3360,6 +3407,7 @@ End Class
   IL_0009:  stfld      0x04000005
   IL_000e:  ret
 }
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3373,6 +3421,7 @@ End Class
   IL_0010:  stfld      0x04000006
   IL_0015:  ret
 }
+_Lambda$__1#1
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3459,7 +3508,8 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1", "_Lambda$__2#1", ".ctor")
 
                         g.VerifyIL("
- {
+F
+{
   // Code size      208 (0xd0)
   .maxstack  3
   IL_0000:  nop
@@ -3528,6 +3578,7 @@ End Class
   IL_00c9:  stloc.s    V_7
   IL_00cb:  br         IL_0014
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3539,6 +3590,7 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3547,6 +3599,7 @@ End Class
   IL_0006:  newobj     0x0600000B
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -3558,6 +3611,7 @@ End Class
   IL_0009:  stfld      0x04000006
   IL_000e:  ret
 }
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3571,6 +3625,7 @@ End Class
   IL_0010:  stfld      0x04000007
   IL_0015:  ret
 }
+_Lambda$__1#1
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -3587,6 +3642,7 @@ End Class
   IL_001b:  ldloc.0
   IL_001c:  ret
 }
+_Lambda$__2#1
 {
   // Code size       41 (0x29)
   .maxstack  2
@@ -3607,6 +3663,7 @@ End Class
   IL_0027:  ldloc.0
   IL_0028:  ret
 }
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3682,6 +3739,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__2", "_Lambda$__1", ".ctor", "_Lambda$__2#1")
 
                         g.VerifyIL("
+F
 {
   // Code size      106 (0x6a)
   .maxstack  3
@@ -3727,6 +3785,7 @@ End Class
   IL_0066:  stloc.s    V_6
   IL_0068:  br.s       IL_0011
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3738,6 +3797,7 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__2
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3746,6 +3806,7 @@ End Class
   IL_0006:  newobj     0x06000008
   IL_000b:  throw
 }
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3757,6 +3818,7 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -3768,6 +3830,7 @@ End Class
   IL_0009:  stfld      0x04000005
   IL_000e:  ret
 }
+_Lambda$__2#1
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3834,6 +3897,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0")
 
                         g.VerifyIL("
+F
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -3852,6 +3916,7 @@ End Class
   IL_0021:  stloc.3
   IL_0022:  ret
 }
+_Lambda$__0
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -3916,6 +3981,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0")
 
                         g.VerifyIL("
+F
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -3934,6 +4000,7 @@ End Class
   IL_0021:  stloc.2
   IL_0022:  ret
 }
+_Lambda$__0
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -3997,6 +4064,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor", "_Lambda$__1-0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -4013,6 +4081,7 @@ End Class
   IL_0025:  stloc.1
   IL_0026:  ret
 }
+_Lambda$__1-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -4021,6 +4090,7 @@ End Class
   IL_0006:  newobj     0x06000006
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -4032,6 +4102,7 @@ End Class
   IL_0009:  stfld      0x04000003
   IL_000e:  ret
 }
+_Lambda$__1-0#1
 {
   // Code size       15 (0xf)
   .maxstack  1

@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             builder.Append("T:");
             PartVisitor.Instance.Visit(symbol, builder);
+            if (symbol.IsExtension)
+            {
+                builder.Append('.');
+                builder.Append(symbol.ExtensionMarkerName);
+            }
 
             return null;
         }

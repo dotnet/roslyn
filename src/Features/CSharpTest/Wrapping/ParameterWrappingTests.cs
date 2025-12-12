@@ -13,48 +13,41 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class ParameterWrappingTests : AbstractWrappingTests
+public sealed class ParameterWrappingTests : AbstractWrappingTests
 {
     [Fact]
-    public async Task TestMissingWithSyntaxError()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSyntaxError()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]int i, int j {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithSelection()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSelection()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([|int|] i, int j) {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInBody()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInBody()
+        => TestMissingAsync(
             """
             class C {
                 void Goo(int i, int j) {[||]
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInAttributes()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInAttributes()
+        => TestMissingAsync(
             """
             class C {
                 [||][Attr]
@@ -62,24 +55,20 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithOpenTokenTrailingComment()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithOpenTokenTrailingComment()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]/**/int i, int j) {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithItemLeadingComment()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithItemLeadingComment()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]
@@ -87,12 +76,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithItemTrailingComment()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithItemTrailingComment()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]
@@ -100,12 +87,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithCommaTrailingComment()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithCommaTrailingComment()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]
@@ -113,12 +98,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithLastItemTrailingComment()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithLastItemTrailingComment()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]
@@ -127,12 +110,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithCloseTokenLeadingComment()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithCloseTokenLeadingComment()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]
@@ -141,12 +122,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithOpenTokenLeadingComment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithOpenTokenLeadingComment()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo/**/([||]int i, int j) {
@@ -161,12 +140,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithCloseTokenTrailingComment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithCloseTokenTrailingComment()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo([||]int i, int j)/**/ {
@@ -181,24 +158,20 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithSingleParameter()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithSingleParameter()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]int i) {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMultiLineParameter()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMultiLineParameter()
+        => TestMissingAsync(
             """
             class C {
                 void Goo([||]int i, int j =
@@ -206,12 +179,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader1()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 [||]void Goo(int i, int j) {
@@ -225,12 +196,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader2()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void [||]Goo(int i, int j) {
@@ -244,12 +213,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader3()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 [||]public void Goo(int i, int j) {
@@ -263,12 +230,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInHeader4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInHeader4()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public void Goo(int i, int j)[||] {
@@ -282,12 +247,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTwoParamWrappingCases()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestTwoParamWrappingCases()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]int i, int j) {
@@ -323,12 +286,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestThreeParamWrappingCases()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestThreeParamWrappingCases()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]int i, int j, int k) {
@@ -367,12 +328,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test_AllOptions_NoInitialMatches()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_AllOptions_NoInitialMatches()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -420,12 +379,10 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Test_LongWrapping_ShortIds()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_LongWrapping_ShortIds()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -434,84 +391,82 @@ public class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int j,
-             int k,
-             int l,
-             int m,
-             int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i,
-        int j,
-        int k,
-        int l,
-        int m,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int j,
-        int k,
-        int l,
-        int m,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int j, int k, int l, int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int j, int k, int l, int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int j,
-             int k, int l,
-             int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int j, int k,
-        int l, int m, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int j,
-        int k, int l, int m,
-        int n) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(30),
+            """
+            class C {
+                void Goo(int i,
+                         int j,
+                         int k,
+                         int l,
+                         int m,
+                         int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int j,
+                    int k,
+                    int l,
+                    int m,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int j,
+                    int k,
+                    int l,
+                    int m,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int j, int k, int l, int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int j, int k, int l, int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int j,
+                         int k, int l,
+                         int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int j, int k,
+                    int l, int m, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int j,
+                    int k, int l, int m,
+                    int n) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task Test_LongWrapping_VariadicLengthIds()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_LongWrapping_VariadicLengthIds()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -520,89 +475,87 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int jj,
-             int kkkk,
-             int llllllll,
-             int mmmmmmmmmmmmmmmm,
-             int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i,
-        int jj,
-        int kkkk,
-        int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk,
-             int llllllll,
-             int mmmmmmmmmmmmmmmm,
-             int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int llllllll,
-        int mmmmmmmmmmmmmmmm,
-        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(30),
+            """
+            class C {
+                void Goo(int i,
+                         int jj,
+                         int kkkk,
+                         int llllllll,
+                         int mmmmmmmmmmmmmmmm,
+                         int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int jj,
+                    int kkkk,
+                    int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk,
+                         int llllllll,
+                         int mmmmmmmmmmmmmmmm,
+                         int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int llllllll,
+                    int mmmmmmmmmmmmmmmm,
+                    int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -611,78 +564,76 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int iiiii,
-             int jjjjj,
-             int kkkkk,
-             int lllll,
-             int mmmmm,
-             int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii, int jjjjj,
-        int kkkkk, int lllll,
-        int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii,
-        int jjjjj, int kkkkk,
-        int lllll, int mmmmm,
-        int nnnnn) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(30),
+            """
+            class C {
+                void Goo(int iiiii,
+                         int jjjjj,
+                         int kkkkk,
+                         int lllll,
+                         int mmmmm,
+                         int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii, int jjjjj,
+                    int kkkkk, int lllll,
+                    int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii,
+                    int jjjjj, int kkkkk,
+                    int lllll, int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -691,60 +642,58 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(20),
-"""
-class C {
-    void Goo(int iiiii,
-             int jjjjj,
-             int kkkkk,
-             int lllll,
-             int mmmmm,
-             int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii,
-        int jjjjj,
-        int kkkkk,
-        int lllll,
-        int mmmmm,
-        int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(20),
+            """
+            class C {
+                void Goo(int iiiii,
+                         int jjjjj,
+                         int kkkkk,
+                         int lllll,
+                         int mmmmm,
+                         int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii,
+                    int jjjjj,
+                    int kkkkk,
+                    int lllll,
+                    int mmmmm,
+                    int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task Test_LongWrapping_VariadicLengthIds2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_LongWrapping_VariadicLengthIds2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -753,85 +702,83 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int jj,
-             int kkkk,
-             int lll,
-             int mm,
-             int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk, int lll,
-             int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(30),
+            """
+            class C {
+                void Goo(int i,
+                         int jj,
+                         int kkkk,
+                         int lll,
+                         int mm,
+                         int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk, int lll,
+                         int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task Test_DoNotOfferExistingOption1()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferExistingOption1()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]int i,
@@ -843,74 +790,72 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
-"""
-class C {
-    void Goo(
-        int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk, int lll,
-             int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(30),
+            """
+            class C {
+                void Goo(
+                    int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk, int lll,
+                         int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task Test_DoNotOfferExistingOption2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task Test_DoNotOfferExistingOption2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Goo([||]
@@ -923,73 +868,71 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
-"""
-class C {
-    void Goo(int i,
-             int jj,
-             int kkkk,
-             int lll,
-             int mm,
-             int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i,
-        int jj,
-        int kkkk,
-        int lll,
-        int mm,
-        int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj, int kkkk, int lll, int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-             int kkkk, int lll,
-             int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(
-        int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""",
-"""
-class C {
-    void Goo(int i, int jj,
-        int kkkk, int lll,
-        int mm, int n) {
-    }
-}
-""");
-    }
+            GetIndentionColumn(30),
+            """
+            class C {
+                void Goo(int i,
+                         int jj,
+                         int kkkk,
+                         int lll,
+                         int mm,
+                         int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i,
+                    int jj,
+                    int kkkk,
+                    int lll,
+                    int mm,
+                    int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj, int kkkk, int lll, int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                         int kkkk, int lll,
+                         int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(
+                    int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """,
+            """
+            class C {
+                void Goo(int i, int jj,
+                    int kkkk, int lll,
+                    int mm, int n) {
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestInConstructor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInConstructor()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public [||]C(int i, int j) {
@@ -1003,12 +946,23 @@ class C {
                 }
             }
             """);
-    }
+
+    [Fact]
+    public Task TestInPrimaryConstructor()
+        => TestInRegularAndScriptAsync(
+            """
+            class [||]C(int i, int j) {
+            }
+            """,
+            """
+            class C(int i,
+                    int j) {
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38986")]
-    public async Task TestInConstructorWithSyntaxErrorAfter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInConstructorWithSyntaxErrorAfter()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public [||]C(int i, int j) : base(,) {
@@ -1022,12 +976,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInIndexer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInIndexer()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public int [||]this[int i, int j] => 0;
@@ -1039,12 +991,10 @@ class C {
                                 int j] => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInOperator()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInOperator()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public shared int operator [||]+(C c1, C c2) => 0;
@@ -1056,12 +1006,10 @@ class C {
                                              C c2) => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInDelegate()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInDelegate()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public delegate int [||]D(C c1, C c2);
@@ -1073,12 +1021,10 @@ class C {
                                       C c2);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInParenthesizedLambda()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInParenthesizedLambda()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo()
@@ -1098,12 +1044,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInParenthesizedLambda2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInParenthesizedLambda2()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo()
@@ -1123,12 +1067,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnSimpleLambda()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnSimpleLambda()
+        => TestMissingAsync(
             """
             class C {
                 void Goo()
@@ -1138,12 +1080,10 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalFunction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo()
@@ -1163,170 +1103,139 @@ class C {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRecord_Semicolon()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRecord_Semicolon()
+        => TestInRegularAndScriptAsync(
 "record R([||]int I, string S);",
 """
 record R(int I,
          string S);
 """);
-    }
 
     [Fact]
-    public async Task TestClass_Semicolon()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestClass_Semicolon()
+        => TestInRegularAndScriptAsync(
 "class R([||]int I, string S);",
 """
 class R(int I,
         string S);
 """);
-    }
 
     [Fact]
-    public async Task TestInterface_Semicolon()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInterface_Semicolon()
+        => TestInRegularAndScriptAsync(
 "interface R([||]int I, string S);",
 """
 interface R(int I,
             string S);
 """);
-    }
 
     [Fact]
-    public async Task TestRecord_Braces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRecord_Braces()
+        => TestInRegularAndScriptAsync(
 "record R([||]int I, string S) { }",
 """
 record R(int I,
          string S) { }
 """);
-    }
 
     [Fact]
-    public async Task TestClass_Braces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestClass_Braces()
+        => TestInRegularAndScriptAsync(
 "class R([||]int I, string S) { }",
 """
 class R(int I,
         string S) { }
 """);
-    }
 
     [Fact]
-    public async Task TestInterface_Braces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInterface_Braces()
+        => TestInRegularAndScriptAsync(
 "interface R([||]int I, string S) { }",
 """
 interface R(int I,
             string S) { }
 """);
-    }
 
     [Fact]
-    public async Task TestRecordStruct_Semicolon()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRecordStruct_Semicolon()
+        => TestInRegularAndScriptAsync(
 "record struct R([||]int I, string S);",
 """
 record struct R(int I,
                 string S);
 """, new TestParameters(TestOptions.RegularPreview));
-    }
 
     [Fact]
-    public async Task TestStruct_Semicolon()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestStruct_Semicolon()
+        => TestInRegularAndScriptAsync(
 "struct R([||]int I, string S);",
 """
 struct R(int I,
          string S);
 """, new TestParameters(TestOptions.RegularPreview));
-    }
 
     [Fact]
-    public async Task TestRecordStruct_Braces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRecordStruct_Braces()
+        => TestInRegularAndScriptAsync(
 "record struct R([||]int I, string S) { }",
 """
 record struct R(int I,
                 string S) { }
 """, new TestParameters(TestOptions.RegularPreview));
-    }
 
     [Fact]
-    public async Task TestStruct_Braces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestStruct_Braces()
+        => TestInRegularAndScriptAsync(
 "struct R([||]int I, string S) { }",
 """
 struct R(int I,
          string S) { }
 """, new TestParameters(TestOptions.RegularPreview));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61362")]
-    public async Task TestWithMissingParameterList()
-    {
-        await TestMissingAsync(
+    public Task TestWithMissingParameterList()
+        => TestMissingAsync(
             """
             class C {
                 public void UpsertRecord<T>[||]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestWithMissingStartToken1()
-    {
-        await TestMissingAsync(
+    public Task TestWithMissingStartToken1()
+        => TestMissingAsync(
             """
             class C {
                 public void UpsertRecord<T>[||])
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestWithMissingStartToken2()
-    {
-        await TestMissingAsync(
+    public Task TestWithMissingStartToken2()
+        => TestMissingAsync(
             """
             class C {
                 public void UpsertRecord<T>[||] int i, int j)
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestWithMissingEndToken1()
-    {
-        await TestMissingAsync(
+    public Task TestWithMissingEndToken1()
+        => TestMissingAsync(
             """
             class C {
                 public void UpsertRecord<T>([||]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestWithMissingEndToken2()
-    {
-        await TestMissingAsync(
+    public Task TestWithMissingEndToken2()
+        => TestMissingAsync(
             """
             class C {
                 public void UpsertRecord<T>([||]int i, int j
             }
             """);
-    }
 }

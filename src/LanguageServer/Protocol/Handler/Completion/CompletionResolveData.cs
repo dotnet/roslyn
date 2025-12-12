@@ -4,13 +4,12 @@
 
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
-{
-    /// <summary>
-    /// Provides the intermediate data passed from CompletionHandler to CompletionResolveHandler.
-    /// Passed along via <see cref="LSP.CompletionItem.Data"/>.
-    /// <param name="ResultId">the resultId associated with the completion created on original request.</param>
-    /// <param name="TextDocument">the text document associated with the completion request to resolve.</param>
-    /// </summary>
-    internal sealed record CompletionResolveData(long ResultId, LSP.TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);
-}
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+
+/// <summary>
+/// Provides the intermediate data passed from CompletionHandler to CompletionResolveHandler.
+/// Passed along via <see cref="LSP.CompletionItem.Data"/>.
+/// <param name="ResultId">the resultId associated with the completion created on original request.</param>
+/// <param name="TextDocument">the text document associated with the completion request to resolve.</param>
+/// </summary>
+internal sealed record CompletionResolveData(long ResultId, LSP.TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);

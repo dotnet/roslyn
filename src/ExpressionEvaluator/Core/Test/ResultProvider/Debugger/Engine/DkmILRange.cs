@@ -9,8 +9,6 @@
 
 #endregion
 
-using System;
-
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
     public readonly struct DkmILRange

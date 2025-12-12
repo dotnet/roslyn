@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup;
 
 [ExportLanguageServiceFactory(typeof(ICodeCleanerService), LanguageNames.CSharp), Shared]
-internal class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
+internal sealed class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

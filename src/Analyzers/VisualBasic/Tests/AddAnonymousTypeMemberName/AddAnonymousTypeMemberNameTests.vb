@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAnonymousTypeMe
 
         <Fact>
         Public Async Function Test1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     sub M()
@@ -35,7 +35,7 @@ end class")
 
         <Fact>
         Public Async Function TestExistingName1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     sub M()
@@ -52,7 +52,7 @@ end class")
 
         <Fact>
         Public Async Function TestExistingName2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     sub M()
@@ -69,7 +69,7 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     sub M()
@@ -86,7 +86,7 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
 {
@@ -107,7 +107,7 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     sub M()

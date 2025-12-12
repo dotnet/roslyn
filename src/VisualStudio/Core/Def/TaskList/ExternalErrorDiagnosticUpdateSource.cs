@@ -17,17 +17,18 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
-using static Microsoft.ServiceHub.Framework.ServiceBrokerClient;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+
 /// <summary>
 /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.
 /// VS workspaces calls into us when a build is invoked or completed in Visual Studio.
@@ -39,9 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
-    private readonly IDiagnosticAnalyzerService _diagnosticService;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly CancellationToken _disposalToken;
     private readonly IServiceBroker _serviceBroker;
 
     /// <summary>
@@ -66,23 +64,38 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExternalErrorDiagnosticUpdateSource(
         VisualStudioWorkspace workspace,
-        IDiagnosticAnalyzerService diagnosticService,
         IAsynchronousOperationListenerProvider listenerProvider,
         [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
         IThreadingContext threadingContext)
     {
-        _disposalToken = threadingContext.DisposalToken;
         _workspace = workspace;
-        _diagnosticService = diagnosticService;
-        _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
 
         _serviceBroker = serviceBroker;
         _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
             TimeSpan.Zero,
             processBatchAsync: ProcessTaskQueueItemsAsync,
-            _listener,
-            _disposalToken
-        );
+            listenerProvider.GetListener(FeatureAttribute.ErrorList),
+            threadingContext.DisposalToken);
+
+        // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
+        KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
+        {
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
+            {
+                if (e.Activated)
+                {
+                    OnSolutionBuildStarted();
+                }
+                else
+                {
+                    // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                    _workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
+                    OnSolutionBuildCompleted();
+                }
+            };
+
+            OnSolutionBuildStarted();
+        });
     }
 
     private async ValueTask ProcessTaskQueueItemsAsync(ImmutableSegmentedList<Func<CancellationToken, Task>> list, CancellationToken cancellationToken)
@@ -90,8 +103,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         foreach (var workItem in list)
             await workItem(cancellationToken).ConfigureAwait(false);
     }
-
-    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
 
     public void Dispose()
     {
@@ -107,8 +118,14 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// for the given <paramref name="projectId"/> during the current build in progress.
     /// This API is only intended to be invoked from <see cref="ProjectExternalErrorReporter"/> while a build is in progress.
     /// </summary>
-    public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
-        => GetBuildInProgressState()?.IsSupportedDiagnosticId(projectId, id) ?? false;
+    public async Task<bool> IsSupportedDiagnosticIdAsync(ProjectId projectId, string id, CancellationToken cancellationToken)
+    {
+        var state = GetBuildInProgressState();
+        if (state is null)
+            return false;
+
+        return await state.IsSupportedDiagnosticIdAsync(projectId, id, cancellationToken).ConfigureAwait(false);
+    }
 
     public void ClearErrors(ProjectId projectId)
     {
@@ -181,7 +198,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             var path = group.Key;
             var pathAsUri = ProtocolConversions.CreateAbsoluteUri(path);
 
-            var convertedDiagnostics = group.Select(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution)).ToImmutableArray();
+            var convertedDiagnostics = group.SelectAsArray(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution));
             if (convertedDiagnostics.Any())
             {
                 var collection = new DiagnosticCollection(pathAsUri, documentVersionNumber: -1, diagnostics: convertedDiagnostics);
@@ -297,82 +314,51 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         lock (_gate)
         {
-            if (_stateDoNotAccessDirectly == null)
-            {
-                // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
-                // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
-            }
-
+            // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+            // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+            // between build and diagnostic service, but this at least make us to consistent inside of our code.
+            _stateDoNotAccessDirectly ??= new InProgressState(_workspace.CurrentSolution);
             return _stateDoNotAccessDirectly;
         }
     }
 
-    private sealed class InProgressState
+    private sealed class InProgressState(Solution solution)
     {
-        private readonly ExternalErrorDiagnosticUpdateSource _owner;
-
         /// <summary>
         /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
         /// </summary>
-        /// <remarks>
-        /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
-        /// </remarks>
-        private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = [];
+        private ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
 
-        public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
+        public Solution Solution { get; } = solution;
+
+        public async Task<bool> IsSupportedDiagnosticIdAsync(ProjectId projectId, string id, CancellationToken cancellationToken)
         {
-            _owner = owner;
-            Solution = solution;
-        }
+            var lazyIds = _allDiagnosticIdMap.TryGetValue(projectId, out var temp)
+                ? temp
+                : GetLazyIdsSlow();
 
-        public Solution Solution { get; }
+            var ids = await lazyIds.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return ids.Contains(id);
 
-        public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
-            => GetOrCreateSupportedDiagnosticIds(projectId).Contains(id);
-
-        private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
-            ProjectId projectId,
-            Dictionary<ProjectId, ImmutableHashSet<string>> diagnosticIdMap,
-            Func<ImmutableHashSet<string>> computeDiagnosticIds)
-        {
-            lock (diagnosticIdMap)
+            AsyncLazy<ImmutableHashSet<string>> GetLazyIdsSlow()
             {
-                if (diagnosticIdMap.TryGetValue(projectId, out var ids))
+                return ImmutableInterlocked.GetOrAdd(ref _allDiagnosticIdMap, projectId, projectId => AsyncLazy.Create(async cancellationToken =>
                 {
-                    return ids;
-                }
-            }
+                    var project = Solution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        // projectId no longer exist
+                        return [];
+                    }
 
-            var computedIds = computeDiagnosticIds();
+                    // set ids set
+                    var builder = ImmutableHashSet.CreateBuilder<string>();
+                    var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                    var descriptorMap = await service.GetDiagnosticDescriptorsPerReferenceAsync(project, cancellationToken).ConfigureAwait(false);
+                    builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
-            lock (diagnosticIdMap)
-            {
-                diagnosticIdMap[projectId] = computedIds;
-                return computedIds;
-            }
-        }
-
-        private ImmutableHashSet<string> GetOrCreateSupportedDiagnosticIds(ProjectId projectId)
-        {
-            return GetOrCreateDiagnosticIds(projectId, _allDiagnosticIdMap, ComputeSupportedDiagnosticIds);
-
-            ImmutableHashSet<string> ComputeSupportedDiagnosticIds()
-            {
-                var project = Solution.GetProject(projectId);
-                if (project == null)
-                {
-                    // projectId no longer exist
-                    return [];
-                }
-
-                // set ids set
-                var builder = ImmutableHashSet.CreateBuilder<string>();
-                var descriptorMap = Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(_owner.AnalyzerInfoCache, project);
-                builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-                return builder.ToImmutable();
+                    return builder.ToImmutable();
+                }));
             }
         }
     }

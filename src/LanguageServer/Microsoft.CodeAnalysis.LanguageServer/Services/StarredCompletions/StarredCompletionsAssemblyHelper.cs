@@ -11,6 +11,7 @@ using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+
 internal static class StarredCompletionAssemblyHelper
 {
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";
@@ -28,7 +29,7 @@ internal static class StarredCompletionAssemblyHelper
     /// A gate to guard the actual creation of <see cref="s_completionProvider"/>. This just prevents us from trying to create the provider more than once; once the field is set it
     /// won't change again.
     /// </summary>
-    private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+    private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
     private static bool s_previousCreationFailed = false;
     private static CompletionProvider? s_completionProvider;
 

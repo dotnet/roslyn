@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UseCoalesceExpression;
 namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer :
+internal sealed class CSharpUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer :
     AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer<
         SyntaxKind,
         ExpressionSyntax,

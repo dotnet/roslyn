@@ -4,15 +4,13 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
-using Xunit;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {

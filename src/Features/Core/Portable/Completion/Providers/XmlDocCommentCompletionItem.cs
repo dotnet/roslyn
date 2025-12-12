@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -23,8 +23,8 @@ internal static class XmlDocCommentCompletionItem
             displayTextSuffix: "",
             glyph: Glyph.Keyword,
             properties: [
-                KeyValuePairUtil.Create(BeforeCaretText, beforeCaretText),
-                KeyValuePairUtil.Create(AfterCaretText, afterCaretText)],
+                KeyValuePair.Create(BeforeCaretText, beforeCaretText),
+                KeyValuePair.Create(AfterCaretText, afterCaretText)],
             rules: rules,
             isComplexTextEdit: true);
     }

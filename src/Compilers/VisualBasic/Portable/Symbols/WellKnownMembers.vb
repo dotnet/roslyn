@@ -442,10 +442,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     targetSymbolKind = SymbolKind.Method
                     targetMethodKind = MethodKind.PropertyGet
 
-                Case MemberFlags.PropertySet
-                    targetSymbolKind = SymbolKind.Method
-                    targetMethodKind = MethodKind.PropertySet
-
                 Case MemberFlags.Field
                     targetSymbolKind = SymbolKind.Field
 

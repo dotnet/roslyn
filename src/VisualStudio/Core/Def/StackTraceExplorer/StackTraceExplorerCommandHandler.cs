@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
+internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
 {
     private readonly RoslynPackage _package;
     private readonly IThreadingContext _threadingContext;

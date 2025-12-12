@@ -10,6 +10,6 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class RangeFormattingClientCapabilities : DynamicRegistrationSetting
+internal sealed class RangeFormattingClientCapabilities : DynamicRegistrationSetting
 {
 }

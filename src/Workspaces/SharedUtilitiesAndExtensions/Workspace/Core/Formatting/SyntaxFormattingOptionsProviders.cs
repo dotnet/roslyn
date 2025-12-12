@@ -14,12 +14,10 @@ internal static class SyntaxFormattingOptionsProviders
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, Host.LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options);
 
-    public static ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
-        => GetSyntaxFormattingOptionsAsync(document, document.GetRequiredLanguageService<ISyntaxFormattingService>(), cancellationToken);
-
-    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormatting formatting, CancellationToken cancellationToken)
+    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var formatting = document.GetRequiredLanguageService<ISyntaxFormattingService>();
         return formatting.GetFormattingOptions(configOptions);
     }
 

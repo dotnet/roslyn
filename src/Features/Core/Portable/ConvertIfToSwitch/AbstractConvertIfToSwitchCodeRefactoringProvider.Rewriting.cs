@@ -12,22 +12,21 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch;
 
 internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
     TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>
 {
-    public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature);
-    public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
+    public abstract SyntaxNode CreateSwitchExpressionStatement(TExpressionSyntax target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature);
+    public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, TExpressionSyntax target, IEnumerable<SyntaxNode> sectionList);
     public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
     public abstract SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label, Feature feature);
     protected abstract SyntaxTriviaList GetLeadingTriviaToTransfer(SyntaxNode syntaxToRemove);
 
     private async Task<Document> UpdateDocumentAsync(
         Document document,
-        SyntaxNode target,
+        TExpressionSyntax target,
         TIfStatementSyntax ifStatement,
         ImmutableArray<AnalyzedSwitchSection> sections,
         Feature feature,
@@ -47,8 +46,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         @switch = @switch
             .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
             .WithTrailingTrivia(lastNode.GetTrailingTrivia())
-            .WithAdditionalAnnotations(Formatter.Annotation)
-            .WithAdditionalAnnotations(Simplifier.Annotation);
+            .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
 
         var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
         root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);

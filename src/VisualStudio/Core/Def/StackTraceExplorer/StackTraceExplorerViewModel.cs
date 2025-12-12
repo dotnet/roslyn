@@ -5,35 +5,31 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerViewModel : ViewModelBase
+internal sealed class StackTraceExplorerViewModel : ViewModelBase
 {
     private readonly IThreadingContext _threadingContext;
     private readonly Workspace _workspace;
     public ObservableCollection<FrameViewModel> Frames { get; } = [];
 
-    private bool _isLoading;
     private readonly ClassificationTypeMap _classificationTypeMap;
     private readonly IClassificationFormatMap _formatMap;
 
     public bool IsLoading
     {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
+        get;
+        set => SetProperty(ref field, value);
     }
-
-    private FrameViewModel? _selection;
     public FrameViewModel? Selection
     {
-        get => _selection;
-        set => SetProperty(ref _selection, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public bool IsListVisible => Frames.Count > 0;
@@ -54,7 +50,6 @@ internal class StackTraceExplorerViewModel : ViewModelBase
         _threadingContext = threadingContext;
         _workspace = workspace;
 
-        workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         _classificationTypeMap = classificationTypeMap;
         _formatMap = formatMap;
 
@@ -103,15 +98,6 @@ internal class StackTraceExplorerViewModel : ViewModelBase
     {
         NotifyPropertyChanged(nameof(IsListVisible));
         NotifyPropertyChanged(nameof(IsInstructionTextVisible));
-    }
-
-    private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-    {
-        if (e.Kind == WorkspaceChangeKind.SolutionChanged)
-        {
-            Selection = null;
-            Frames.Clear();
-        }
     }
 
     private FrameViewModel GetViewModel(ParsedFrame frame)

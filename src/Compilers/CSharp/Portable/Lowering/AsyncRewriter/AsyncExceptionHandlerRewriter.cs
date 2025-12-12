@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private AwaitCatchFrame _currentAwaitCatchFrame;
         private AwaitFinallyFrame _currentAwaitFinallyFrame = new AwaitFinallyFrame();
         private bool _inCatchWithoutAwaits;
+        private bool _needsFinalThrow;
 
         private AsyncExceptionHandlerRewriter(
             MethodSymbol containingMethod,
@@ -129,7 +130,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
+            loweredStatement = rewriter.FinalizeMethodBody(loweredStatement);
+
             return loweredStatement;
+        }
+
+        private BoundStatement FinalizeMethodBody(BoundStatement loweredStatement)
+        {
+            if (loweredStatement == null)
+            {
+                return null;
+            }
+
+            // When we add a `switch (pendingBranch)` to the end of the try block,
+            // this can result in a method body that cannot be proven to terminate.
+            // While we can technically prove it by doing a full data flow analysis,
+            // this is effectively the halting problem, and the runtime will not do
+            // this analysis. The resulting IL will be technically invalid, and if it's
+            // not wrapped in another state machine (a la the compiler async rewriter),
+            // the runtime will refuse to load it. For runtime async, where we are effectively
+            // emitting the result of this rewriter directly, we need to ensure that
+            // we always emit a throw at the end of the try block when the switch is present.
+            // This ensures that the method can be proven to terminate, and the runtime will
+            // accept it. This throw will never be reached, and we could potentially do a
+            // more sophisticated analysis to determine if it is needed by pushing control
+            // flow analysis through the bound nodes, see https://github.com/dotnet/roslyn/pull/78970.
+            // This is risky, however, and for now we are taking the conservative approach
+            // of always emitting the throw.
+            BoundStatement result = loweredStatement;
+            if (_needsFinalThrow)
+            {
+                result = _F.Block(
+                    loweredStatement,
+                    _F.Throw(_F.Null(_F.SpecialType(SpecialType.System_Object)))
+                );
+            }
+
+            return result;
         }
 
         public override BoundNode VisitTryStatement(BoundTryStatement node)
@@ -354,6 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cases.Add(caseStatement);
             }
 
+            _needsFinalThrow = true;
             return _F.Switch(_F.Local(pendingBranchVar), cases.ToImmutableAndFree());
         }
 
@@ -402,22 +440,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement UnpendException(LocalSymbol pendingExceptionLocal)
         {
+            // If this is runtime async, we don't need to create a second local for the exception,
+            // as the pendingExceptionLocal will not be hoisted to a state machine by a future rewrite.
+            if (_F.Compilation.IsRuntimeAsyncEnabledIn(_F.CurrentFunction))
+            {
+                // pendingExceptionLocal is already an object
+                // so we can just use it directly
+                return checkAndThrow(pendingExceptionLocal);
+            }
+
             // create a temp. 
             // pendingExceptionLocal will certainly be captured, no need to access it over and over.
             LocalSymbol obj = _F.SynthesizedLocal(_F.SpecialType(SpecialType.System_Object));
             var objInit = _F.Assignment(_F.Local(obj), _F.Local(pendingExceptionLocal));
 
             // throw pendingExceptionLocal;
-            BoundStatement rethrow = Rethrow(obj);
-
             return _F.Block(
                     ImmutableArray.Create<LocalSymbol>(obj),
                     objInit,
-                    _F.If(
-                        _F.ObjectNotEqual(
-                            _F.Local(obj),
-                            _F.Null(obj.Type)),
-                        rethrow));
+                    checkAndThrow(obj));
+
+            BoundStatement checkAndThrow(LocalSymbol obj)
+            {
+                BoundStatement rethrow = Rethrow(obj);
+
+                BoundStatement checkAndThrow = _F.If(
+                            _F.ObjectNotEqual(
+                                _F.Local(obj),
+                                _F.Null(obj.Type)),
+                            rethrow);
+                return checkAndThrow;
+            }
         }
 
         private BoundStatement Rethrow(LocalSymbol obj)
@@ -511,6 +564,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         handlers.ToImmutableAndFree()),
                     _F.HiddenSequencePoint(),
                     _F.Label(handledLabel));
+
+                // It's possible that all catches end in rethrows, and the method ends after them. In such scenarios,
+                // after the above switch will be "reachable", but have no statements to execute. In practice such code
+                // in unreachable, but this is the halting problem. To ensure we have valid IL, we append a final throw
+                // to the method, and if further basic block optimization determines that it's unreachable, then it'll be
+                // trimmed.
+                _needsFinalThrow = true;
             }
 
             _currentAwaitCatchFrame = origAwaitCatchFrame;
@@ -553,11 +613,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
             var catchTemp = _F.SynthesizedLocal(catchType);
+            BoundLocal carchTempRef = _F.Local(catchTemp);
+            TypeSymbol pendingCaughtExceptionType = currentAwaitCatchFrame.pendingCaughtException.Type;
+            Debug.Assert(pendingCaughtExceptionType.IsObjectType());
+            Conversion c = _F.ClassifyEmitConversion(carchTempRef, pendingCaughtExceptionType);
+            Debug.Assert(c.IsImplicit);
+            Debug.Assert(c.IsReference || c.IsIdentity);
 
             var storePending = _F.AssignmentExpression(
                         _F.Local(currentAwaitCatchFrame.pendingCaughtException),
-                        _F.Convert(currentAwaitCatchFrame.pendingCaughtException.Type,
-                            _F.Local(catchTemp)));
+                        _F.Convert(pendingCaughtExceptionType,
+                                   carchTempRef,
+                                   c));
 
             var setPendingCatchNum = _F.Assignment(
                             _F.Local(currentAwaitCatchFrame.pendingCatch),
@@ -668,11 +735,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenSource != null)
             {
                 // exceptionSource = (exceptionSourceType)pendingCaughtException;
+                BoundLocal pendingExceptionRef = _F.Local(currentAwaitCatchFrame.pendingCaughtException);
+                TypeSymbol rewrittenSourceType = rewrittenSource.Type;
+                Debug.Assert(pendingExceptionRef.Type.IsObjectType());
+                Conversion c = _F.ClassifyEmitConversion(pendingExceptionRef, rewrittenSourceType);
+                Debug.Assert(c.IsReference || c.IsIdentity);
                 assignSource = _F.AssignmentExpression(
                                     rewrittenSource,
                                     _F.Convert(
-                                        rewrittenSource.Type,
-                                        _F.Local(currentAwaitCatchFrame.pendingCaughtException)));
+                                        rewrittenSourceType,
+                                        pendingExceptionRef,
+                                        c));
             }
 
             return assignSource;
@@ -706,14 +779,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldContainingSymbol = _F.CurrentFunction;
             var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+            var oldNeedsFinalThrow = _needsFinalThrow;
 
             _F.CurrentFunction = node.Symbol;
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
+            _needsFinalThrow = false;
 
-            var result = base.VisitLambda(node);
+            var result = (BoundLambda)base.VisitLambda(node);
+            result = result.Update(
+                result.UnboundLambda,
+                result.Symbol,
+                (BoundBlock)FinalizeMethodBody(result.Body),
+                node.Diagnostics,
+                node.Binder,
+                node.Type);
 
             _F.CurrentFunction = oldContainingSymbol;
             _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
+            _needsFinalThrow = oldNeedsFinalThrow;
 
             return result;
         }
@@ -722,14 +805,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldContainingSymbol = _F.CurrentFunction;
             var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+            var oldNeedsFinalThrow = _needsFinalThrow;
 
             _F.CurrentFunction = node.Symbol;
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
+            _needsFinalThrow = false;
 
-            var result = base.VisitLocalFunctionStatement(node);
+            var result = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
+            result = result.Update(node.Symbol, (BoundBlock)FinalizeMethodBody(result.Body), (BoundBlock)FinalizeMethodBody(result.ExpressionBody));
 
             _F.CurrentFunction = oldContainingSymbol;
             _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
+            _needsFinalThrow = oldNeedsFinalThrow;
 
             return result;
         }

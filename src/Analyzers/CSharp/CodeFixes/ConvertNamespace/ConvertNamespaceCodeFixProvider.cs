@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
@@ -41,10 +40,7 @@ internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeF
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
             });
 
-        context.RegisterCodeFix(
-            CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
-            context.Diagnostics);
-
+        RegisterCodeFix(context, title, equivalenceKey);
         return Task.CompletedTask;
     }
 

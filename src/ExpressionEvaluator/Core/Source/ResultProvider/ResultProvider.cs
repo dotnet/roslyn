@@ -17,8 +17,6 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.Debugger.Metadata;
-using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -1012,6 +1010,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (runtimeType.IsTupleCompatible(out cardinality))
             {
                 return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
+            }
+
+            if (InlineArrayHelpers.TryGetInlineArrayInfo(runtimeType, out int inlineArrayLength, out Type inlineArrayElementType))
+            {
+                // Inline arrays are always 1D, zero-based arrays.
+                return ArrayExpansion.CreateExpansion(
+                        elementTypeAndInfo: new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, inlineArrayElementType), null),
+                        sizes: new ReadOnlyCollection<int>([inlineArrayLength]),
+                        lowerBounds: new ReadOnlyCollection<int>([0]));
             }
 
             return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false, supportsFavorites);

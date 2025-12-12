@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\CSharpFixAllSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ArgumentGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AttributeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConstructorGenerator.cs" />
@@ -62,7 +63,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UsingDirectiveSyntaxExtensions.cs" />
+<<<<<<< HEAD
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WithElementSyntaxExtensions.cs" />
+=======
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\TypingFormattingRule.cs" />
+>>>>>>> upstream/features/collection-expression-arguments
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.Indenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpAddImportsService.cs" />
@@ -86,7 +92,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpReplaceDiscardDeclarationsWithAssignmentsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\InitializeParameterHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableSyntaxAnnotationEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\CSharpSemanticModelReuseLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxIterator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CSharpSimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableExtensions.cs" />

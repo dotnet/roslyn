@@ -15,4 +15,7 @@
     <ProjectReference Include="..\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" />
+  </ItemGroup>
 </Project>

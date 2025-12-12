@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
+public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 {
     [Fact]
     public async Task ChangeNamespace_InvalidFolderName1()
@@ -20,8 +20,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         // No change namespace action because the folder name is not valid identifier
         var (folder, filePath) = CreateDocumentFilePath(["3B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -34,8 +33,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     </Document>
                 </Project>
             </Workspace>
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+            """, expectedSourceOriginal: null);
     }
 
     [Fact]
@@ -46,8 +44,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         // No change namespace action because the folder name is not valid identifier
         var (folder, filePath) = CreateDocumentFilePath(["B.3C", "D"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -60,8 +57,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     </Document>
                 </Project>
             </Workspace>
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+            """, expectedSourceOriginal: null);
     }
 
     [Fact]
@@ -71,8 +67,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -84,18 +79,14 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
                 {
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -105,8 +96,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}};
@@ -116,17 +106,13 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C;
 
             class Class1
             {
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -136,8 +122,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -159,10 +144,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 delegate void D1;
@@ -179,8 +161,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void Class1.M1() { }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -191,8 +172,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -224,10 +204,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 /// <summary>
@@ -241,9 +218,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public void M1() { }
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 using A.B.C;
@@ -258,8 +233,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -269,8 +243,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "A.B.C.D";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -296,10 +269,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 /// <summary>
@@ -310,9 +280,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Imports A.B.C
 
             ''' <summary>
@@ -322,8 +290,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             Public Class VBClass
                 Public ReadOnly Property C1 As Class1
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -334,8 +301,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -365,10 +331,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             using Foo;
             using Foo.Bar;
             using Foo.Bar.Baz;
@@ -382,8 +345,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     private Class4 c4;
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -394,8 +356,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -425,10 +386,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             using Foo;
             using Foo.Bar;
             using Foo.Bar.Baz;
@@ -442,8 +400,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     private Class4 c4;
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -454,8 +411,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -484,10 +440,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
@@ -498,9 +451,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using A.B.C;
 
             namespace Foo
@@ -515,8 +466,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -527,8 +477,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -549,10 +498,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 interface Interface1
@@ -560,9 +506,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1(Interface1 c1);
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 using A.B.C;
@@ -572,8 +516,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void Interface1.M1(Interface1 c1){}
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -584,8 +527,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -615,19 +557,14 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace NS1
             {
                 using A.B.C;
@@ -645,8 +582,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -657,8 +593,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -688,10 +623,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
@@ -702,9 +634,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using System;
             using A.B.C;
             using Class1Alias = A.B.C.Class1;
@@ -721,8 +651,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -732,8 +661,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">using System;
@@ -749,10 +677,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             using System;
 
             // Comments before declaration.
@@ -763,8 +688,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             // Comments before closing brace
             // Comments after declaration.
 
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -774,8 +698,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -796,10 +719,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             delegate void D1;
 
             interface Class1
@@ -814,8 +734,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 void Class1.M1() { }
             }
 
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -826,8 +745,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -856,10 +774,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             class Class1
             {
             }
@@ -868,9 +783,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 class RefClass
@@ -883,8 +796,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -895,8 +807,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -917,18 +828,13 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             interface Interface1
             {
                 void M1(Interface1 c1);
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 class RefClass : Interface1
@@ -936,8 +842,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void Interface1.M1(Interface1 c1){}
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -948,8 +853,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -973,17 +877,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             class MyClass
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 class RefClass
@@ -995,8 +894,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1007,8 +905,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1036,10 +933,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             using Foo;
             using Foo.Bar;
             using Foo.Bar.Baz;
@@ -1051,8 +945,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 private Class4 c4;
             }
 
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -1063,8 +956,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1094,17 +986,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             class Class1
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace NS1
             {
                 class Class2
@@ -1120,8 +1007,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1132,8 +1018,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1163,10 +1048,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             class Class1
             {
             }
@@ -1175,9 +1057,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using System;
             using Class1Alias = Class1;
 
@@ -1193,8 +1073,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1202,8 +1081,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
         var defaultNamespace = "A";
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">using System;
@@ -1214,10 +1092,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             using System;
 
             namespace A.B.C
@@ -1226,8 +1101,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -1235,8 +1109,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
         var defaultNamespace = "A";
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -1255,10 +1128,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 delegate void D1;
@@ -1275,8 +1145,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void Class1.M1() { }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
     }
 
     [Fact]
@@ -1286,8 +1155,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">class [||]Class1 
@@ -1311,10 +1179,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
@@ -1325,9 +1190,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using A.B.C;
 
             namespace Foo
@@ -1342,8 +1205,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1352,8 +1214,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var defaultNamespace = "A";
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">interface [||]Interface1 
@@ -1369,10 +1230,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 interface Interface1
@@ -1380,9 +1238,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1(Interface1 c1);
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using A.B.C;
 
             namespace Foo
@@ -1392,8 +1248,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void Interface1.M1(Interface1 c1){}
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1402,8 +1257,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var defaultNamespace = "A";
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -1431,10 +1285,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
@@ -1444,8 +1295,68 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     private Class4 c4;
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34707")]
+    public async Task ChangeFromGlobalNamespace_DoNotSimplifyUnrelatedCode()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        await TestChangeNamespaceAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            class [||]Class1 
+            { 
+                private A.Class2 c2;
+                private A.B.Class3 c3;
+                private A.B.C.Class4 c4;
+
+                void M1()
+                {
+                    int i = 0;
+                    // This cast should not be touched.
+                    int j = (int)i;
+                }
+            }</Document>
+
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace A
+            {
+                class Class2{}
+
+                namespace B
+                {
+                    class Class3 {}
+
+                    namespace C
+                    {
+                        class Class4 {}    
+                    }
+                }
+            }</Document>
+                </Project>
+            </Workspace>
+            """, """
+            namespace A.B.C
+            {
+                class Class1
+                {
+                    private Class2 c2;
+                    private Class3 c3;
+                    private Class4 c4;
+            
+                    void M1()
+                    {
+                        int i = 0;
+                        // This cast should not be touched.
+                        int j = (int)i;
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -1455,8 +1366,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">class [||]Class1
@@ -1483,19 +1393,14 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace NS1
             {
                 using System;
@@ -1516,8 +1421,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1527,8 +1431,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">class [||]Class1 
@@ -1556,10 +1459,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 class Class1
@@ -1570,9 +1470,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using A.B.C;
             using Class1Alias = Class1;
 
@@ -1590,8 +1488,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1601,8 +1498,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "A.B.C.D";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1620,26 +1516,20 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 public class Class1
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Imports A.B.C
 
             Public Class VBClass
                 Public ReadOnly Property C1 As Class1
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1649,8 +1539,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "A.B.C.D";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
@@ -1668,24 +1557,18 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 public class Class1
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Public Class VBClass
                 Public ReadOnly Property C1 As A.B.C.Class1
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1694,8 +1577,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var defaultNamespace = "A";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">public class [||]Class1
@@ -1709,26 +1591,20 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 public class Class1
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Imports A.B.C
 
             Public Class VBClass
                 Public ReadOnly Property C1 As Class1
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1737,8 +1613,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var defaultNamespace = "A";
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">/// &lt;summary&gt;
@@ -1758,10 +1633,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
 
@@ -1772,9 +1644,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using A.B.C;
 
             namespace Foo
@@ -1786,8 +1656,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1797,8 +1666,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1816,22 +1684,16 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             public class Class1
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Public Class VBClass
                 Public ReadOnly Property C1 As Class1
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1841,8 +1703,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "Foo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1863,17 +1724,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Namespace</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             public class MyClass
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Namespace Foo
                 Public Class VBClass
                     Public ReadOnly Property C1 As Global.MyClass
@@ -1882,8 +1738,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 Public Class MyClass
                 End Class
             End Namespace
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact]
@@ -1894,8 +1749,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
@@ -1922,10 +1776,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             /// <summary>
             /// See <see cref="Class1"/>
             /// See <see cref="Class1"/>
@@ -1934,9 +1785,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 /// <summary>
@@ -1947,8 +1796,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
@@ -1958,8 +1806,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{defaultNamespace}}
@@ -1980,10 +1827,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            $$"""
+            """, $$"""
             namespace A.B.C
             {
                 public static class Extensions
@@ -1991,9 +1835,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public static bool Foo(this Class1 c1) => true;
                 }
             }
-            """;
-        var expectedSourceReference =
-            $$"""
+            """, $$"""
             namespace {{defaultNamespace}}
             {
                 using System;
@@ -2004,8 +1846,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public bool Bar(Class1 c1) => c1.Foo();
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
@@ -2015,8 +1856,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]A
@@ -2037,10 +1877,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            $$"""
+            """, $$"""
             namespace A.B.C
             {
                 public static class Extensions
@@ -2048,9 +1885,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public static bool Foo(this Class1 c1) => true;
                 }
             }
-            """;
-        var expectedSourceReference =
-            $$"""
+            """, $$"""
             using System;
             using A.B.C;
 
@@ -2061,8 +1896,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public bool Bar(Class1 c1) => Extensions.Foo(c1);
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
@@ -2072,8 +1906,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]A
@@ -2097,10 +1930,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 public static class Extensions
@@ -2111,9 +1941,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 public class Class2
                 { }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using System;
             using A.B.C;
 
@@ -2124,8 +1952,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Foo() : true;
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
@@ -2135,8 +1962,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "A.B.C.D";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">using System;
@@ -2159,22 +1985,17 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            $$"""
+            """, $$"""
             using System;
 
             namespace {{defaultNamespace}}
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this string s) => true;
+                    public static bool Foo(this String s) => true;
                 }
             }
-            """;
-        var expectedSourceReference =
-            $"""
+            """, $"""
             Imports {defaultNamespace}
 
             Public Class VBClass
@@ -2182,8 +2003,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     Return s.Foo()
                 End Function
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
@@ -2194,8 +2014,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var documentPath1 = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{documentPath1.folder}}" FilePath="{{documentPath1.filePath}}">namespace [||]{{declaredNamespace}}
@@ -2219,10 +2038,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 enum Enum1
@@ -2232,9 +2048,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     C
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             using A.B.C;
 
             namespace Foo
@@ -2247,8 +2061,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
@@ -2259,8 +2072,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var documentPath1 = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{documentPath1.folder}}" FilePath="{{documentPath1.filePath}}">namespace [||]{{declaredNamespace}}
@@ -2284,10 +2096,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             enum Enum1
             {
                 A,
@@ -2295,9 +2104,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 C
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             namespace Foo
             {
                 class RefClass
@@ -2308,8 +2115,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     }
                 }
             }
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
@@ -2319,8 +2125,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "A.B.C.D";
 
         var documentPath1 = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{documentPath1.folder}}" FilePath="{{documentPath1.filePath}}"> 
@@ -2343,10 +2148,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             namespace A.B.C
             {
                 public enum Enum1
@@ -2356,16 +2158,13 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     C
                 }
             }
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Public Class VBClass
                 Sub M()
                     Dim x = A.B.C.Enum1.A
                 End Sub
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
@@ -2375,8 +2174,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         var declaredNamespace = "A.B.C.D";
 
         var documentPath1 = CreateDocumentFilePath([], "File1.cs");
-        var code =
-            $$"""
+        await TestChangeNamespaceAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{documentPath1.folder}}" FilePath="{{documentPath1.filePath}}">namespace [||]{{declaredNamespace}}
@@ -2397,10 +2195,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             End Class</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedSourceOriginal =
-            """
+            """, """
             public enum Enum1
             {
                 A,
@@ -2408,16 +2203,13 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 C
             }
 
-            """;
-        var expectedSourceReference =
-            """
+            """, """
             Public Class VBClass
                 Sub M()
                     Dim x = Enum1.A
                 End Sub
             End Class
-            """;
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+            """);
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
@@ -2428,9 +2220,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         // No change namespace action because the folder name is not valid identifier
         var (topLevelProgramFolder, topLevelProgramFilePath) = CreateDocumentFilePath(["3B", "C"], "Program.cs");
         var (duplicateProgramFolder, _) = CreateDocumentFilePath([], "Program.cs");
-
-        var code =
-$$"""
+        await TestChangeNamespaceAsync($$"""
 <Workspace>
     <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
         <Document Folders="{{duplicateProgramFolder}}" FilePath="{{duplicateProgramFolder}}"> 
@@ -2447,7 +2237,6 @@ Console.WriteLine("Hello Two");
         </Document>
     </Project>
 </Workspace>
-""";
-        await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+""", expectedSourceOriginal: null);
     }
 }

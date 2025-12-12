@@ -15,35 +15,36 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class ActiveStatementTests_Methods : EditingTestBase
+public sealed class ActiveStatementTests_Methods : EditingTestBase
 {
     #region Methods
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740443")]
     public void Method_Delete_Leaf1()
     {
-        var src1 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        <AS:1>Goo(1);</AS:1>
-    }
+        var src1 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    <AS:1>Goo(1);</AS:1>
+                }
 
-    static void Goo(int a)
-    {
-        <AS:0>Console.WriteLine(a);</AS:0>
-    }
-}";
-        var src2 = @"
-<AS:0>class C</AS:0>
-{
-    static void Main(string[] args)
-    {
-        <AS:1>Goo(1);</AS:1>
-    }
-}
-";
+                static void Goo(int a)
+                {
+                    <AS:0>Console.WriteLine(a);</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            <AS:0>class C</AS:0>
+            {
+                static void Main(string[] args)
+                {
+                    <AS:1>Goo(1);</AS:1>
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
@@ -60,23 +61,24 @@ class C
     [Fact]
     public void Method_Rename_Leaf1()
     {
-        var src1 = @"
-class C
-{
-    static void Goo(int a)
-    {
-        <AS:0>Console.WriteLine(a);</AS:0>
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Boo(int a)
-    {
-        <AS:0>Console.WriteLine(a);</AS:0>
-    }
-}
-";
+        var src1 = """
+            class C
+            {
+                static void Goo(int a)
+                {
+                    <AS:0>Console.WriteLine(a);</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Boo(int a)
+                {
+                    <AS:0>Console.WriteLine(a);</AS:0>
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
@@ -158,42 +160,43 @@ class C
     [Fact]
     public void Update_Inner_GenericMethod()
     {
-        var src1 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        C c = new C();
-        int a = 5;
-        int b = 10;
-        <AS:1>c.Swap(ref a, ref b);</AS:1>
-    }
+        var src1 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    C c = new C();
+                    int a = 5;
+                    int b = 10;
+                    <AS:1>c.Swap(ref a, ref b);</AS:1>
+                }
 
-    void Swap<T>(ref T lhs, ref T rhs) where T : System.IComparable<T>
-    {
-        <AS:0>Console.WriteLine(""hello"");</AS:0>
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        while (true)
-        {
-            C c = new C();
-            int a = 5;
-            int b = 10;
-            <AS:1>c.Swap(ref b, ref a);</AS:1>
-        }
-    }
+                void Swap<T>(ref T lhs, ref T rhs) where T : System.IComparable<T>
+                {
+                    <AS:0>Console.WriteLine("hello");</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    while (true)
+                    {
+                        C c = new C();
+                        int a = 5;
+                        int b = 10;
+                        <AS:1>c.Swap(ref b, ref a);</AS:1>
+                    }
+                }
 
-    void Swap<T>(ref T lhs, ref T rhs) where T : System.IComparable<T>
-    {
-        <AS:0>Console.WriteLine(""hello"");</AS:0>
-    }
-}
-";
+                void Swap<T>(ref T lhs, ref T rhs) where T : System.IComparable<T>
+                {
+                    <AS:0>Console.WriteLine("hello");</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -204,36 +207,37 @@ class C
     [Fact]
     public void Update_Inner_ParameterType_GenericMethod()
     {
-        var src1 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        <AS:1>Swap(5,6);</AS:1>
-    }
+        var src1 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    <AS:1>Swap(5,6);</AS:1>
+                }
 
-    static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
-    {
-        <AS:0>Console.WriteLine(""hello"");</AS:0>
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        while (true)
-        {
-            <AS:1>Swap(null, null);</AS:1>
-        }
-    }
+                static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
+                {
+                    <AS:0>Console.WriteLine("hello");</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    while (true)
+                    {
+                        <AS:1>Swap(null, null);</AS:1>
+                    }
+                }
 
-    static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
-    {
-        <AS:0>Console.WriteLine(""hello"");</AS:0>
-    }
-}
-";
+                static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
+                {
+                    <AS:0>Console.WriteLine("hello");</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -244,33 +248,34 @@ class C
     [Fact]
     public void Update_Leaf_GenericMethod()
     {
-        var src1 = @"
-class C
-{
-    static void Main()
-    {
-        <AS:1>Swap(5,6);</AS:1>
-    }
+        var src1 = """
+            class C
+            {
+                static void Main()
+                {
+                    <AS:1>Swap(5,6);</AS:1>
+                }
 
-    static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
-    {
-        <AS:0>Console.WriteLine(""hello"");</AS:0>
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Main()
-    {
-        <AS:1>Swap(5,6);</AS:1>
-    }
+                static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
+                {
+                    <AS:0>Console.WriteLine("hello");</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Main()
+                {
+                    <AS:1>Swap(5,6);</AS:1>
+                }
 
-    static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
-    {
-        <AS:0>Console.WriteLine(""hello world!"");</AS:0>
-    }
-}
-";
+                static void Swap<T>(T lhs, T rhs) where T : System.IComparable<T>
+                {
+                    <AS:0>Console.WriteLine("hello world!");</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -289,36 +294,38 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749458")]
     public void Update_Leaf_AsyncMethod()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test f = new Test();
-        <AS:1>string result = f.WaitAsync().Result;</AS:1>
-    }
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test f = new Test();
+                    <AS:1>string result = f.WaitAsync().Result;</AS:1>
+                }
 
-    public async Task<string> WaitAsync()
-    {
-        <AS:0>await Task.Delay(1000);</AS:0>
-        return ""Done"";
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test f = new Test();
-        <AS:1>string result = f.WaitAsync().Result;</AS:1>
-    }
+                public async Task<string> WaitAsync()
+                {
+                    <AS:0>await Task.Delay(1000);</AS:0>
+                    return "Done";
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test f = new Test();
+                    <AS:1>string result = f.WaitAsync().Result;</AS:1>
+                }
 
-    public async Task<string> WaitAsync()
-    {
-        <AS:0>await Task.Delay(100);</AS:0>
-        return ""Done"";
-    }
-}";
+                public async Task<string> WaitAsync()
+                {
+                    <AS:0>await Task.Delay(100);</AS:0>
+                    return "Done";
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -329,36 +336,38 @@ class Test
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
     public void Update_Inner_AsyncMethod()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test f = new Test();
-        <AS:1>string result = f.WaitAsync(5).Result;</AS:1>
-    }
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test f = new Test();
+                    <AS:1>string result = f.WaitAsync(5).Result;</AS:1>
+                }
 
-    public async Task<string> WaitAsync(int millis)
-    {
-        <AS:0>await Task.Delay(millis);</AS:0>
-        return ""Done"";
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test f = new Test();
-        <AS:1>string result = f.WaitAsync(6).Result;</AS:1>
-    }
+                public async Task<string> WaitAsync(int millis)
+                {
+                    <AS:0>await Task.Delay(millis);</AS:0>
+                    return "Done";
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test f = new Test();
+                    <AS:1>string result = f.WaitAsync(6).Result;</AS:1>
+                }
 
-    public async Task<string> WaitAsync(int millis)
-    {
-        <AS:0>await Task.Delay(millis);</AS:0>
-        return ""Done"";
-    }
-}";
+                public async Task<string> WaitAsync(int millis)
+                {
+                    <AS:0>await Task.Delay(millis);</AS:0>
+                    return "Done";
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -369,42 +378,44 @@ class Test
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
     public void Update_Initializer_MultipleVariables1()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        <AS:1>int a = F()</AS:1>, b = G();
-    }
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    <AS:1>int a = F()</AS:1>, b = G();
+                }
 
-    public int F()
-    {
-        <AS:0>return 1;</AS:0>
-    }
+                public int F()
+                {
+                    <AS:0>return 1;</AS:0>
+                }
 
-    public int G()
-    {
-        return 2;
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        <AS:1>int a = G()</AS:1>, b = F();
-    }
+                public int G()
+                {
+                    return 2;
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    <AS:1>int a = G()</AS:1>, b = F();
+                }
 
-    public int F()
-    {
-        <AS:0>return 1;</AS:0>
-    }
+                public int F()
+                {
+                    <AS:0>return 1;</AS:0>
+                }
 
-    public int G()
-    {
-        return 2;
-    }
-}";
+                public int G()
+                {
+                    return 2;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -415,42 +426,44 @@ class Test
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
     public void Update_Initializer_MultipleVariables2()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        int a = F(), <AS:1>b = G()</AS:1>;
-    }
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    int a = F(), <AS:1>b = G()</AS:1>;
+                }
 
-    public int F()
-    {
-        <AS:0>return 1;</AS:0>
-    }
+                public int F()
+                {
+                    <AS:0>return 1;</AS:0>
+                }
 
-    public int G()
-    {
-        return 2;
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        int a = G(), <AS:1>b = F()</AS:1>;
-    }
+                public int G()
+                {
+                    return 2;
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    int a = G(), <AS:1>b = F()</AS:1>;
+                }
 
-    public int F()
-    {
-        <AS:0>return 1;</AS:0>
-    }
+                public int F()
+                {
+                    <AS:0>return 1;</AS:0>
+                }
 
-    public int G()
-    {
-        return 2;
-    }
-}";
+                public int G()
+                {
+                    return 2;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -461,27 +474,28 @@ class Test
     [Fact]
     public void MethodUpdateWithLocalVariables()
     {
-        var src1 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        int <N:0.0>a = 1</N:0.0>;
-        int <N:0.1>b = 2</N:0.1>;
-        <AS:0>System.Console.WriteLine(a + b);</AS:0>
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        int <N:0.1>b = 2</N:0.1>;
-        int <N:0.0>a = 1</N:0.0>;
-        <AS:0>System.Console.WriteLine(a + b);</AS:0>
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    int <N:0.0>a = 1</N:0.0>;
+                    int <N:0.1>b = 2</N:0.1>;
+                    <AS:0>System.Console.WriteLine(a + b);</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    int <N:0.1>b = 2</N:0.1>;
+                    int <N:0.0>a = 1</N:0.0>;
+                    <AS:0>System.Console.WriteLine(a + b);</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -708,20 +722,20 @@ class C
     [Fact]
     public void Property_ExpressionBodyToBlockBody_NonLeaf()
     {
-        var src1 = @"
-class C 
-{ 
-    int P => <AS:1>M()</AS:1>; 
-    int M() { <AS:0>return 1;</AS:0> } 
-}
-";
-        var src2 = @"
-class C 
-{ 
-    int P { get <AS:1>{</AS:1> return M(); } } 
-    int M() { <AS:0>return 1;</AS:0> } 
-}
-";
+        var src1 = """
+            class C 
+            { 
+                int P => <AS:1>M()</AS:1>; 
+                int M() { <AS:0>return 1;</AS:0> } 
+            }
+            """;
+        var src2 = """
+            class C 
+            { 
+                int P { get <AS:1>{</AS:1> return M(); } } 
+                int M() { <AS:0>return 1;</AS:0> } 
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -732,20 +746,20 @@ class C
     [Fact]
     public void Property_ExpressionBody_NonLeaf()
     {
-        var src1 = @"
-class C 
-{ 
-    int P => <AS:1>M()</AS:1>; 
-    int M() { <AS:0>return 1;</AS:0> } 
-}
-";
-        var src2 = @"
-class C 
-{ 
-    int P => <AS:1>M()</AS:1>; 
-    int M() { <AS:0>return 2;</AS:0> } 
-}
-";
+        var src1 = """
+            class C 
+            { 
+                int P => <AS:1>M()</AS:1>; 
+                int M() { <AS:0>return 1;</AS:0> } 
+            }
+            """;
+        var src2 = """
+            class C 
+            { 
+                int P => <AS:1>M()</AS:1>; 
+                int M() { <AS:0>return 2;</AS:0> } 
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -784,20 +798,20 @@ class C
     [Fact]
     public void Property_BlockBodyToExpressionBody_NonLeaf()
     {
-        var src1 = @"
-class C 
-{ 
-    int P { get { <AS:1>return M();</AS:1> } } 
-    int M() { <AS:0>return 1;</AS:0> } 
-}
-";
-        var src2 = @"
-class C 
-{ 
-    int P => <AS:1>M()</AS:1>; 
-    int M() { <AS:0>return 1;</AS:0> } 
-}
-";
+        var src1 = """
+            class C 
+            { 
+                int P { get { <AS:1>return M();</AS:1> } } 
+                int M() { <AS:0>return 1;</AS:0> } 
+            }
+            """;
+        var src2 = """
+            class C 
+            { 
+                int P => <AS:1>M()</AS:1>; 
+                int M() { <AS:0>return 1;</AS:0> } 
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
@@ -870,20 +884,20 @@ class C
     [Fact]
     public void Indexer_ExpressionBody_NonLeaf()
     {
-        var src1 = @"
-class C 
-{ 
-    int this[int index] => <AS:1>M()</AS:1>; 
-    int M() { <AS:0>return 1;</AS:0> } 
-}
-";
-        var src2 = @"
-class C 
-{ 
-    int this[int index] => <AS:1>M()</AS:1>; 
-    int M() { <AS:0>return 2;</AS:0> } 
-}
-";
+        var src1 = """
+            class C 
+            { 
+                int this[int index] => <AS:1>M()</AS:1>; 
+                int M() { <AS:0>return 1;</AS:0> } 
+            }
+            """;
+        var src2 = """
+            class C 
+            { 
+                int this[int index] => <AS:1>M()</AS:1>; 
+                int M() { <AS:0>return 2;</AS:0> } 
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -893,42 +907,44 @@ class C
     [Fact]
     public void Update_Leaf_Indexers1()
     {
-        var src1 = @"
-class Test
-{
-    static void Main()
-    {
-        var c = new C<int>();
-        <AS:1>c[0] = 1;</AS:1>
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main()
+                {
+                    var c = new C<int>();
+                    <AS:1>c[0] = 1;</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get => 0;
-        set { <AS:0>value = i;</AS:0> }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main()
-    {
-        var c = new C<int>();
-        <AS:1>c[0] = 1;</AS:1>
-    }
-}
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get => 0;
+                    set { <AS:0>value = i;</AS:0> }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main()
+                {
+                    var c = new C<int>();
+                    <AS:1>c[0] = 1;</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get => 0;
-        set { <AS:0>value = i + 1;</AS:0> }
-    }
-}";
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get => 0;
+                    set { <AS:0>value = i + 1;</AS:0> }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -944,48 +960,50 @@ class C<T>
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
     public void Update_Inner_Indexers_Setter()
     {
-        var src1 = @"
-using System;
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        <AS:1>stringCollection[0] = ""hello"";</AS:1>
-        Console.WriteLine(stringCollection[0]);
-    }
-}
+        var src1 = """
+            using System;
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    <AS:1>stringCollection[0] = "hello";</AS:1>
+                    Console.WriteLine(stringCollection[0]);
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i]; }
-        set { <AS:0>arr[i] = value;</AS:0> }
-    }
-}";
-        var src2 = @"
-using System;
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        <AS:1>stringCollection[1] = ""hello"";</AS:1>
-        Console.WriteLine(stringCollection[0]);
-    }
-}
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { return arr[i]; }
+                    set { <AS:0>arr[i] = value;</AS:0> }
+                }
+            }
+            """;
+        var src2 = """
+            using System;
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    <AS:1>stringCollection[1] = "hello";</AS:1>
+                    Console.WriteLine(stringCollection[0]);
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i]; }
-        set { <AS:0>arr[i+1] = value;</AS:0> }
-    }
-}";
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { return arr[i]; }
+                    set { <AS:0>arr[i+1] = value;</AS:0> }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -997,42 +1015,44 @@ class SampleCollection<T>
     [Fact]
     public void Update_Leaf_Indexers_Getter()
     {
-        var src1 = @"
-class Test
-{
-    static void Main()
-    {
-        var c = new C<int>();
-        <AS:1>Console.WriteLine(c[0]);</AS:1>
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main()
+                {
+                    var c = new C<int>();
+                    <AS:1>Console.WriteLine(c[0]);</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get { <AS:0>return 0;</AS:0> }
-        set { }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main()
-    {
-        var c = new C<int>();
-        <AS:1>Console.WriteLine(c[0]);</AS:1>
-    }
-}
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get { <AS:0>return 0;</AS:0> }
+                    set { }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main()
+                {
+                    var c = new C<int>();
+                    <AS:1>Console.WriteLine(c[0]);</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get { <AS:0>return 1;</AS:0> }
-        set { }
-    }
-}";
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get { <AS:0>return 1;</AS:0> }
+                    set { }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1048,46 +1068,48 @@ class C<T>
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
     public void Update_Inner_Indexers2()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        stringCollection[0] = ""hello"";
-        <AS:1>Console.WriteLine(stringCollection[0]);</AS:1>
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    stringCollection[0] = "hello";
+                    <AS:1>Console.WriteLine(stringCollection[0]);</AS:1>
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { <AS:0>return arr[i];</AS:0> }
-        set { arr[i] = value; }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        stringCollection[0] = ""hello"";
-        <AS:1>Console.WriteLine(stringCollection[1]);</AS:1>
-    }
-}
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { <AS:0>return arr[i];</AS:0> }
+                    set { arr[i] = value; }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    stringCollection[0] = "hello";
+                    <AS:1>Console.WriteLine(stringCollection[1]);</AS:1>
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { <AS:0>return arr[0];</AS:0> }
-        set { arr[i] = value; }
-    }
-}";
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { <AS:0>return arr[0];</AS:0> }
+                    set { arr[i] = value; }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1099,42 +1121,44 @@ class SampleCollection<T>
     [Fact]
     public void Deleted_Leaf_Indexers_Setter()
     {
-        var src1 = @"
-class Test
-{
-    static void Main()
-    {
-        var c = new C<int>();
-        <AS:1>c[0] = 1;</AS:1>
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main()
+                {
+                    var c = new C<int>();
+                    <AS:1>c[0] = 1;</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get => 0;
-        set { <AS:0>throw null;</AS:0> }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main()
-    {
-        var c = new C<int>();
-        <AS:1>c[0] = 1;</AS:1>
-    }
-}
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get => 0;
+                    set { <AS:0>throw null;</AS:0> }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main()
+                {
+                    var c = new C<int>();
+                    <AS:1>c[0] = 1;</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get => 0;
-        set { <AS:0>}</AS:0>
-    }
-}";
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get => 0;
+                    set { <AS:0>}</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1150,45 +1174,47 @@ class C<T>
     [Fact]
     public void Deleted_Inner_Indexers_Setter()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        <AS:1>stringCollection[0] = ""hello"";</AS:1>
-        Console.WriteLine(stringCollection[0]);
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    <AS:1>stringCollection[0] = "hello";</AS:1>
+                    Console.WriteLine(stringCollection[0]);
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i]; }
-        set { <AS:0>arr[i] = value;</AS:0> }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        <AS:1>Console.WriteLine(stringCollection[0]);</AS:1>
-    }
-}
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { return arr[i]; }
+                    set { <AS:0>arr[i] = value;</AS:0> }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    <AS:1>Console.WriteLine(stringCollection[0]);</AS:1>
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i]; }
-        set { <AS:0>arr[i] = value;</AS:0> }
-    }
-}";
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { return arr[i]; }
+                    set { <AS:0>arr[i] = value;</AS:0> }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1199,42 +1225,44 @@ class SampleCollection<T>
     [Fact]
     public void Deleted_Leaf_Indexers_Getter()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        var c = new C<int>();
-        <AS:1>Console.WriteLine(c[0]);</AS:1>
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    var c = new C<int>();
+                    <AS:1>Console.WriteLine(c[0]);</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get { <AS:0>return 1;</AS:0> }
-        set { }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        var c = new C<int>();
-        <AS:1>Console.WriteLine(c[0]);</AS:1>
-    }
-}
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get { <AS:0>return 1;</AS:0> }
+                    set { }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    var c = new C<int>();
+                    <AS:1>Console.WriteLine(c[0]);</AS:1>
+                }
+            }
 
-class C<T>
-{
-    public T this[int i]
-    {
-        get { <AS:0>}</AS:0>
-        set { }
-    }
-}";
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get { <AS:0>}</AS:0>
+                    set { }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1250,45 +1278,47 @@ class C<T>
     [Fact]
     public void Deleted_Inner_Indexers_Getter()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        stringCollection[0] = ""hello"";
-        <AS:1>Console.WriteLine(stringCollection[0]);</AS:1>
-    }
-}
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    stringCollection[0] = "hello";
+                    <AS:1>Console.WriteLine(stringCollection[0]);</AS:1>
+                }
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { <AS:0>return arr[i];</AS:0> }
-        set { arr[i] = value; }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        SampleCollection<string> stringCollection = new SampleCollection<string>();
-        stringCollection[0] = ""hello"";
-    <AS:1>}</AS:1>
-}
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { <AS:0>return arr[i];</AS:0> }
+                    set { arr[i] = value; }
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    SampleCollection<string> stringCollection = new SampleCollection<string>();
+                    stringCollection[0] = "hello";
+                <AS:1>}</AS:1>
+            }
 
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { <AS:0>return arr[i];</AS:0> }
-        set { arr[i] = value; }
-    }
-}";
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+                public T this[int i]
+                {
+                    get { <AS:0>return arr[i];</AS:0> }
+                    set { arr[i] = value; }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1351,34 +1381,36 @@ class SampleCollection<T>
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
     public void Update_Leaf_OverloadedOperator()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test t1 = new Test(5);
-        Test t2 = new Test(5);
-        <AS:1>Test t3 = t1 + t2;</AS:1>
-    }
-    public static Test operator +(Test t1, Test t2)
-    {
-        <AS:0>return new Test(t1.a + t2.a);</AS:0>
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test t1 = new Test(5);
-        Test t2 = new Test(5);
-        <AS:1>Test t3 = t1 + t2;</AS:1>
-    }
-    public static Test operator +(Test t1, Test t2)
-    {
-        <AS:0>return new Test(t1.a + 2 * t2.a);</AS:0>
-    }
-}";
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test t1 = new Test(5);
+                    Test t2 = new Test(5);
+                    <AS:1>Test t3 = t1 + t2;</AS:1>
+                }
+                public static Test operator +(Test t1, Test t2)
+                {
+                    <AS:0>return new Test(t1.a + t2.a);</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test t1 = new Test(5);
+                    Test t2 = new Test(5);
+                    <AS:1>Test t3 = t1 + t2;</AS:1>
+                }
+                public static Test operator +(Test t1, Test t2)
+                {
+                    <AS:0>return new Test(t1.a + 2 * t2.a);</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
@@ -1388,42 +1420,44 @@ class Test
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
     public void Update_Inner_OverloadedOperator()
     {
-        var src1 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test t1 = new Test(5);
-        Test t2 = new Test(5);
-        <AS:1>Test t3 = t1 + t2;</AS:1>
-    }
-    public static Test operator +(Test t1, Test t2)
-    {
-        <AS:0>return new Test(t1.a + t2.a);</AS:0>
-    }
-    public static Test operator *(Test t1, Test t2)
-    {
-        return new Test(t1.a * t2.a);
-    }
-}";
-        var src2 = @"
-class Test
-{
-    static void Main(string[] args)
-    {
-        Test t1 = new Test(5);
-        Test t2 = new Test(5);
-        <AS:1>Test t3 = t1 * t2;</AS:1>
-    }
-    public static Test operator +(Test t1, Test t2)
-    {
-        <AS:0>return new Test(t1.a + t2.a);</AS:0>
-    }
-    public static Test operator *(Test t1, Test t2)
-    {
-        return new Test(t1.a * t2.a);
-    }
-}";
+        var src1 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test t1 = new Test(5);
+                    Test t2 = new Test(5);
+                    <AS:1>Test t3 = t1 + t2;</AS:1>
+                }
+                public static Test operator +(Test t1, Test t2)
+                {
+                    <AS:0>return new Test(t1.a + t2.a);</AS:0>
+                }
+                public static Test operator *(Test t1, Test t2)
+                {
+                    return new Test(t1.a * t2.a);
+                }
+            }
+            """;
+        var src2 = """
+            class Test
+            {
+                static void Main(string[] args)
+                {
+                    Test t1 = new Test(5);
+                    Test t2 = new Test(5);
+                    <AS:1>Test t3 = t1 * t2;</AS:1>
+                }
+                public static Test operator +(Test t1, Test t2)
+                {
+                    <AS:0>return new Test(t1.a + t2.a);</AS:0>
+                }
+                public static Test operator *(Test t1, Test t2)
+                {
+                    return new Test(t1.a * t2.a);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 

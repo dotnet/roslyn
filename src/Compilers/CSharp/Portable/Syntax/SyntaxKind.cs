@@ -421,6 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         FileKeyword = 8449,
         /// <summary>Represents <see langword="allows"/>.</summary>
         AllowsKeyword = 8450,
+        /// <summary>Represents <see langword="extension"/>.</summary>
+        ExtensionKeyword = 8451,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -583,6 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CrefParameterList = 8603,
         CrefBracketedParameterList = 8604,
         CrefParameter = 8605,
+        ExtensionMemberCref = 8607,
 
         // names & type-names
         IdentifierName = 8616,
@@ -925,7 +928,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionExpression = 9076,
         ExpressionElement = 9077,
         SpreadElement = 9078,
-        KeyValuePairElement = 9079,
-        WithElement = 9080,
+
+        ExtensionBlockDeclaration = 9079,
+
+        IgnoredDirectiveTrivia = 9080,
+
+        WithElement = 9081,
     }
 }

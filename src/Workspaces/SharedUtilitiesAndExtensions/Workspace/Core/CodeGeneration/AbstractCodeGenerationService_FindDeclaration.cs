@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -83,7 +82,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             return false;
         }
 
-#if !CODE_STYLE
+#if WORKSPACE
         // If we are avoiding generating into files marked as generated (but are still regular files)
         // then check accordingly. This is distinct from the prior check in that we as a fallback
         // will generate into these files is we have no alternative.

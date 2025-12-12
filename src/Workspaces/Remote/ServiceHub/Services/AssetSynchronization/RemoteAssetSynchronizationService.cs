@@ -50,7 +50,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     {
         var documentTrackingService = GetWorkspace().Services.GetRequiredService<IDocumentTrackingService>() as RemoteDocumentTrackingService;
         documentTrackingService?.SetActiveDocument(documentId);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask SynchronizeTextChangesAsync(
@@ -66,12 +66,13 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 
             var metricName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededMetricName : SynchronizeTextChangesAsyncFailedMetricName;
             var keyName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededKeyName : SynchronizeTextChangesAsyncFailedKeyName;
-            TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(m =>
+            TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(static (m, args) =>
             {
+                var (keyName, metricName) = args;
                 m[TelemetryLogging.KeyName] = keyName;
                 m[TelemetryLogging.KeyValue] = 1L;
                 m[TelemetryLogging.KeyMetricName] = metricName;
-            }));
+            }, (keyName, metricName)));
 
             return;
 

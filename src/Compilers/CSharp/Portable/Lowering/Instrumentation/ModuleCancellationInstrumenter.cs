@@ -7,9 +7,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -210,7 +210,8 @@ internal sealed class ModuleCancellationInstrumenter(
                         methodDefinition.TypeParameters,
                         typeMap1: null,
                         overload.TypeParameters,
-                        typeMap))
+                        typeMap,
+                        TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     var result = overload.AsMember(method.ContainingType);
                     return (result.Arity > 0) ? result.Construct(method.TypeArgumentsWithAnnotations) : result;

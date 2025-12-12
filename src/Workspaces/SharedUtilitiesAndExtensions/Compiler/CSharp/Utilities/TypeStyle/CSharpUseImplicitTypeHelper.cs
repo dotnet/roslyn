@@ -79,19 +79,13 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     protected override bool IsStylePreferred(in State state)
     {
         var stylePreferences = state.TypeStylePreference;
-
-        if (state.IsInIntrinsicTypeContext)
+        return state.Context switch
         {
-            return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
-        }
-        else if (state.IsTypeApparentInContext)
-        {
-            return stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
-        }
-        else
-        {
-            return stylePreferences.HasFlag(UseVarPreference.Elsewhere);
-        }
+            Context.BuiltInType => stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes),
+            Context.TypeIsApparent => stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent),
+            Context.Elsewhere => stylePreferences.HasFlag(UseVarPreference.Elsewhere),
+            _ => throw ExceptionUtilities.UnexpectedValue(state.Context),
+        };
     }
 
     internal override bool TryAnalyzeVariableDeclaration(
@@ -104,16 +98,10 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
 
         // If there exists a type named var, return.
         var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-        if (conflict?.IsKind(SymbolKind.NamedType) == true)
-        {
+        if (conflict is INamedTypeSymbol)
             return false;
-        }
 
-        if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
-            typeName.Parent.Parent is (kind:
-                SyntaxKind.LocalDeclarationStatement or
-                SyntaxKind.ForStatement or
-                SyntaxKind.UsingStatement))
+        if (typeName is { Parent: VariableDeclarationSyntax variableDeclaration, Parent.Parent: (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement) })
         {
             // implicitly typed variables cannot be constants.
             if (variableDeclaration.Parent is LocalDeclarationStatementSyntax { IsConst: true })
@@ -122,18 +110,14 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
             if (variableDeclaration.Variables is not [{ Initializer.Value: var initializer } variable])
                 return false;
 
-            // Do not suggest var replacement for stackalloc span expressions.
-            // This will change the bound type from a span to a pointer.
-            if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType))
+            // Do not suggest var replacement for stackalloc span expressions. This will change the bound type from a
+            // span to a pointer.  Note: this only applies to `var v = stackalloc ...;`  If `stackalloc` is anywhere
+            // lower (including `var v = (stackalloc ...);`), then this is will be a span, and it will be ok to change
+            // to use 'var'.
+            if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType) &&
+                initializer is StackAllocArrayCreationExpressionSyntax)
             {
-                var containsStackAlloc = initializer
-                    .DescendantNodesAndSelf(descendIntoChildren: node => node is not AnonymousFunctionExpressionSyntax)
-                    .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
-
-                if (containsStackAlloc)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (AssignmentSupportsStylePreference(
@@ -321,7 +305,7 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
             return declaredType.Equals(initializerType) &&
                 declaredType is
                 {
-                    Name: nameof(Func<int>) or nameof(Action<int>),
+                    Name: nameof(Func<>) or nameof(Action<>),
                     ContainingSymbol: INamespaceSymbol { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
                 };
         }

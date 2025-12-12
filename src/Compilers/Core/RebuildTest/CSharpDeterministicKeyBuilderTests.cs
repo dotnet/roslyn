@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void VerifyUpToDate()
         {
             verifyCount<ParseOptions>(11);
-            verifyCount<CSharpParseOptions>(12);
+            verifyCount<CSharpParseOptions>(13);
             verifyCount<CompilationOptions>(63);
             verifyCount<CSharpCompilationOptions>(9);
 
@@ -500,82 +500,84 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(0, result);
 
             var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
-            var expected = @$"
-{{
-  ""compilation"": {{
-    ""publicKey"": """",
-    ""options"": {{
-      ""outputKind"": ""DynamicallyLinkedLibrary"",
-      ""moduleName"": ""test.dll"",
-      ""scriptClassName"": ""Script"",
-      ""mainTypeName"": null,
-      ""cryptoPublicKey"": """",
-      ""cryptoKeyFile"": null,
-      ""delaySign"": null,
-      ""publicSign"": false,
-      ""checkOverflow"": false,
-      ""platform"": ""AnyCpu"",
-      ""optimizationLevel"": ""Debug"",
-      ""generalDiagnosticOption"": ""Default"",
-      ""warningLevel"": 4,
-      ""deterministic"": true,
-      ""debugPlusMode"": false,
-      ""referencesSupersedeLowerVersions"": false,
-      ""reportSuppressedDiagnostics"": false,
-      ""nullableContextOptions"": ""Disable"",
-      ""specificDiagnosticOptions"": [],
-      ""localtime"": null,
-      ""unsafe"": false,
-      ""topLevelBinderFlags"": ""None"",
-      ""usings"": []
-    }},
-    ""syntaxTrees"": [
-      {{
-        ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}"",
-        ""text"": {{
-          ""checksum"": ""2326e849c5bb80ded5ef51743244896b812672aa03119ee8788cdc3b356f88"",
-          ""checksumAlgorithm"": ""Sha256"",
-          ""encodingName"": ""Unicode (UTF-8)""
-        }},
-        ""parseOptions"": {{
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""None"",
-          ""language"": ""C#"",
-          ""features"": {{
-            ""debug-determinism"": ""true""
-          }},
-          ""languageVersion"": ""CSharp13"",
-          ""specifiedLanguageVersion"": ""Default"",
-          ""preprocessorSymbols"": []
-        }}
-      }}
+            var expected = $$"""
+
+{
+  "compilation": {
+    "publicKey": "",
+    "options": {
+      "outputKind": "DynamicallyLinkedLibrary",
+      "moduleName": "test.dll",
+      "scriptClassName": "Script",
+      "mainTypeName": null,
+      "cryptoPublicKey": "",
+      "cryptoKeyFile": null,
+      "delaySign": null,
+      "publicSign": false,
+      "checkOverflow": false,
+      "platform": "AnyCpu",
+      "optimizationLevel": "Debug",
+      "generalDiagnosticOption": "Default",
+      "warningLevel": 4,
+      "deterministic": true,
+      "debugPlusMode": false,
+      "referencesSupersedeLowerVersions": false,
+      "reportSuppressedDiagnostics": false,
+      "nullableContextOptions": "Disable",
+      "specificDiagnosticOptions": [],
+      "localtime": null,
+      "unsafe": false,
+      "topLevelBinderFlags": "None",
+      "usings": []
+    },
+    "syntaxTrees": [
+      {
+        "fileName": "{{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}}",
+        "text": {
+          "checksum": "2326e849c5bb80ded5ef51743244896b812672aa03119ee8788cdc3b356f88",
+          "checksumAlgorithm": "Sha256",
+          "encodingName": "Unicode (UTF-8)"
+        },
+        "parseOptions": {
+          "kind": "Regular",
+          "specifiedKind": "Regular",
+          "documentationMode": "None",
+          "language": "C#",
+          "features": {
+            "debug-determinism": "true"
+          },
+          "languageVersion": "{{LanguageVersionFacts.CurrentVersion}}",
+          "specifiedLanguageVersion": "Default",
+          "preprocessorSymbols": []
+        }
+      }
     ]
-  }},
-  ""additionalTexts"": [],
-  ""analyzers"": [],
-  ""generators"": [],
-  ""emitOptions"": {{
-    ""emitMetadataOnly"": false,
-    ""tolerateErrors"": false,
-    ""includePrivateMembers"": true,
-    ""instrumentationKinds"": [],
-    ""subsystemVersion"": {{
-      ""major"": 0,
-      ""minor"": 0
-    }},
-    ""fileAlignment"": 0,
-    ""highEntropyVirtualAddressSpace"": false,
-    ""baseAddress"": ""0"",
-    ""debugInformationFormat"": ""PortablePdb"",
-    ""outputNameOverride"": ""test.dll"",
-    ""pdbFilePath"": ""{Roslyn.Utilities.JsonWriter.EscapeString(pdbFile.FilePath)}"",
-    ""pdbChecksumAlgorithm"": ""SHA256"",
-    ""runtimeMetadataVersion"": null,
-    ""defaultSourceFileEncoding"": null,
-    ""fallbackSourceFileEncoding"": null
-  }}
-}}";
+  },
+  "additionalTexts": [],
+  "analyzers": [],
+  "generators": [],
+  "emitOptions": {
+    "emitMetadataOnly": false,
+    "tolerateErrors": false,
+    "includePrivateMembers": true,
+    "instrumentationKinds": [],
+    "subsystemVersion": {
+      "major": 0,
+      "minor": 0
+    },
+    "fileAlignment": 0,
+    "highEntropyVirtualAddressSpace": false,
+    "baseAddress": "0",
+    "debugInformationFormat": "PortablePdb",
+    "outputNameOverride": "test.dll",
+    "pdbFilePath": "{{Roslyn.Utilities.JsonWriter.EscapeString(pdbFile.FilePath)}}",
+    "pdbChecksumAlgorithm": "SHA256",
+    "runtimeMetadataVersion": null,
+    "defaultSourceFileEncoding": null,
+    "fallbackSourceFileEncoding": null
+  }
+}
+""";
             AssertJson(expected, json, "toolsVersions", "references", "extensions");
         }
     }

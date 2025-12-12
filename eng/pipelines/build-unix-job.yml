@@ -27,7 +27,9 @@ jobs:
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
 
-    - script: ./eng/build.sh --ci --build --publish --pack --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
+    - template: build-file-based-apps.yml
+
+    - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
 
     - script: ./eng/prepare-tests.sh

@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             FilePathToStreamMap.Add(Path.Combine(BuildPaths.WorkingDirectory, filePath), new TestableFile(content));
         }
 
-        private void AddReference(string filePath, byte[] imageBytes)
-        {
-            FilePathToStreamMap.Add(Path.Combine(BuildPaths.SdkDirectory!, filePath), new TestableFile(imageBytes));
-        }
-
         private void AddOutputFile(ref string? filePath)
         {
             if (filePath is object)

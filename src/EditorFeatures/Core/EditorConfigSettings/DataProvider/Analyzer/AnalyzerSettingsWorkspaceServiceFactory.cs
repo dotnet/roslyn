@@ -4,8 +4,8 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class AnalyzerSettingsWorkspaceServiceFactory(
-    IDiagnosticAnalyzerService analyzerService,
+    IThreadingContext threadingContext,
     IGlobalOptionService globalOptionService) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new AnalyzerSettingsProviderFactory(workspaceServices.Workspace, analyzerService, globalOptionService);
+        => new AnalyzerSettingsProviderFactory(threadingContext, workspaceServices.Workspace, globalOptionService);
 }

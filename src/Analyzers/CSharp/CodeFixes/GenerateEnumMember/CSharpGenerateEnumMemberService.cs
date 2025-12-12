@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember;
 
@@ -24,7 +24,8 @@ internal sealed partial class CSharpGenerateEnumMemberService() :
 
     protected override bool TryInitializeIdentifierNameState(
         SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,
-        out SyntaxToken identifierToken, out ExpressionSyntax simpleNameOrMemberAccessExpression)
+        out SyntaxToken identifierToken,
+        [NotNullWhen(true)] out ExpressionSyntax? simpleNameOrMemberAccessExpression)
     {
         identifierToken = identifierName.Identifier;
         if (identifierToken.ValueText != string.Empty &&
@@ -37,7 +38,7 @@ internal sealed partial class CSharpGenerateEnumMemberService() :
             // If we're being invoked, then don't offer this, offer generate method instead.
             // Note: we could offer to generate a field with a delegate type.  However, that's
             // very esoteric and probably not what most users want.
-            if (simpleNameOrMemberAccessExpression.Parent.Kind()
+            if (simpleNameOrMemberAccessExpression.GetRequiredParent().Kind()
                     is SyntaxKind.InvocationExpression
                     or SyntaxKind.ObjectCreationExpression
                     or SyntaxKind.GotoStatement

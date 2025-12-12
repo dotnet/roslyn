@@ -3055,7 +3055,7 @@ class J : I
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [DllImport("goo")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
                 // (20,19): error CS1503: Argument 1: cannot convert from 'short' to 'sbyte'
@@ -7704,7 +7704,6 @@ class C
 {
     static void Main()
     {
-#pragma warning disable 1998
         Goo(async () => { return 0; ; });
         Goo(async () => { return 0; });
         Goo(async () => 0);
@@ -7739,7 +7738,6 @@ class C
 {
     static void Main()
     {
-#pragma warning disable 1998
         Goo(() => async () => { return 0; ; });
         Goo(() => async () => { return 0; });
         Goo(() => async () => 0);
@@ -7771,7 +7769,6 @@ class C
 {
     static void Main()
     {
-#pragma warning disable 1998
         Goo(async () => { return () => 0; });
         Goo(async () => { return () => (short)0; });
     }
@@ -7910,9 +7907,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>)' and 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -7990,9 +7987,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>)'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8032,9 +8029,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>)' and 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8074,9 +8071,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])' and 'Program.Bar<T, V>.Create(Func<T, bool>)'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8114,9 +8111,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>, params int[])'
+    // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params int[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params int[])").WithLocation(23, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params int[])").WithLocation(23, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -10589,9 +10586,9 @@ class Program
         Console.WriteLine(a + b);
     }
 }").VerifyDiagnostics(
-                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
+                // (15,29): error CS9342: Operator resolution is ambiguous between the following members: 'Test.operator +(in Test, Test)' and 'Test.operator +(Test, in Test)'
                 //         Console.WriteLine(a + b);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Test.operator +(in Test, Test)", "Test.operator +(Test, in Test)").WithLocation(15, 29));
         }
 
         [Fact]
@@ -10614,9 +10611,9 @@ class Program
         Console.WriteLine(a + b);
     }
 }").VerifyDiagnostics(
-                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
-                //         Console.WriteLine(a + b);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
+            // (15,29): error CS9342: Operator resolution is ambiguous between the following members: 'Test.operator +(Test, in Test)' and 'Test.operator +(in Test, Test)'
+            //         Console.WriteLine(a + b);
+            Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Test.operator +(Test, in Test)", "Test.operator +(in Test, Test)").WithLocation(15, 29));
         }
 
         [Fact]
@@ -11947,6 +11944,89 @@ class B : A
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
+        public void ParamsErrorSuppression_StringConvertibleToObject()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(char c, params object[] args) { }
+                    
+                    static void Test(string[] arr)
+                    {
+                        M(arr, "test");
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,11): error CS1503: Argument 1: cannot convert from 'string[]' to 'char'
+                //         M(arr, "test");
+                Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(7, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
+        public void ParamsErrorSuppression_IntNotConvertibleToString()
+        {
+            var source = """
+                class C
+                {
+                    static void M(char c, params string[] args) { }
+                    
+                    static void Test()
+                    {
+                        M(1, 2);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'char'
+                //         M(1, 2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "char").WithLocation(7, 11),
+                // (7,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         M(1, 2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(7, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
+        public void ParamsErrorSuppression_Issue43920()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(int x, params object[] args) { }
+                    
+                    static void Test()
+                    {
+                        M("wrong", "test");
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,11): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //         M("wrong", "test");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""wrong""").WithArguments("1", "string", "int").WithLocation(7, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
+        public void ParamsErrorSuppression_Issue43920_StringParams()
+        {
+            var source = """
+                class Program
+                {
+                    static void A(string a, params string[] b) { }
+                    
+                    static void Test()
+                    {
+                        A(1, "test");
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         A(1, "test");
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(7, 11));
         }
     }
 }

@@ -154,7 +154,7 @@ dotnet_diagnostic.IDE0055.severity = warning
 # https://github.com/dotnet/roslyn-analyzers/issues/7436 - False positives from valid GetDeclaredSymbol calls
 dotnet_diagnostic.RS1039.severity = none
 
-# These xUnit analyzers were disabled temporarily to let us move to the 
+# These xUnit analyzers were disabled temporarily to let us move to the
 # new xUnit and get past several component governance issues. The
 # following issue tracks enabling them
 #

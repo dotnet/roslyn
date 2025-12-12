@@ -4,9 +4,12 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -636,6 +639,209 @@ namespace System
 
             var comp = CreateEmptyCompilation(new[] { source, Stubs });
             comp.VerifyEmitDiagnostics(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78627")]
+        public void TargetTypedTupleErrorRecovery_Return()
+        {
+            var source = """
+                class C
+                {
+                    public C(int i, string s) { }
+
+                    (object, C) M()
+                    {
+                        return (default, new(1,));
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,32): error CS1525: Invalid expression term ')'
+                //         return (default, new(1,));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 32));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Null(tupleTypeInfo.Type);
+            Assert.Equal("(System.Object, C)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var firstTupleArgExpr = tupleExpression.Arguments[0].Expression;
+            var firstTupleArgInfo = model.GetTypeInfo(firstTupleArgExpr);
+            Assert.Equal("System.Object", firstTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", firstTupleArgInfo.ConvertedType.ToTestDisplayString());
+
+            var secondTupleArgExpr = tupleExpression.Arguments[1].Expression;
+            var secondTupleArgInfo = model.GetTypeInfo(secondTupleArgExpr);
+            Assert.Equal("C", secondTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", secondTupleArgInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78627")]
+        public void TargetTypedTupleErrorRecovery_VariableDeclaration()
+        {
+            var source = """
+                class C
+                {
+                    public C(int i, string s) { }
+
+                    void M()
+                    {
+                        (C, long) t = (new(3,), 89);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS1525: Invalid expression term ')'
+                //         (C, long) t = (new(3,), 89);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 30));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Null(tupleTypeInfo.Type);
+            Assert.Equal("(C, System.Int64)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var firstTupleArgExpr = tupleExpression.Arguments[0].Expression;
+            var firstTupleArgInfo = model.GetTypeInfo(firstTupleArgExpr);
+            Assert.Equal("C", firstTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", firstTupleArgInfo.ConvertedType.ToTestDisplayString());
+
+            var secondTupleArgExpr = tupleExpression.Arguments[1].Expression;
+            var secondTupleArgInfo = model.GetTypeInfo(secondTupleArgExpr);
+            Assert.Equal("System.Int32", secondTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int64", secondTupleArgInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78627")]
+        public void TargetTypedTupleErrorRecovery_Assignment()
+        {
+            var source = """
+                class C
+                {
+                    public C(int i, string s) { }
+
+                    void M()
+                    {
+                        (C, object) t;
+                        t = (new(3,), "");
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,20): error CS1525: Invalid expression term ')'
+                //         t = (new(3,), "");
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 20));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Null(tupleTypeInfo.Type);
+            Assert.Equal("(C, System.Object)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var firstTupleArgExpr = tupleExpression.Arguments[0].Expression;
+            var firstTupleArgInfo = model.GetTypeInfo(firstTupleArgExpr);
+            Assert.Equal("C", firstTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", firstTupleArgInfo.ConvertedType.ToTestDisplayString());
+
+            var secondTupleArgExpr = tupleExpression.Arguments[1].Expression;
+            var secondTupleArgInfo = model.GetTypeInfo(secondTupleArgExpr);
+            Assert.Equal("System.String", secondTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", secondTupleArgInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78627")]
+        public void TargetTypedTupleErrorRecovery_Call()
+        {
+            var source = """
+                class C
+                {
+                    public C(int i, string s) { }
+
+                    void M()
+                    {
+                        N((8, new(9,)));
+                    }
+
+                    void N((int?, C) arg) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS1525: Invalid expression term ')'
+                //         N((8, new(9,)));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 21));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Null(tupleTypeInfo.Type);
+            Assert.Equal("(System.Int32?, C)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var firstTupleArgExpr = tupleExpression.Arguments[0].Expression;
+            var firstTupleArgInfo = model.GetTypeInfo(firstTupleArgExpr);
+            Assert.Equal("System.Int32", firstTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", firstTupleArgInfo.ConvertedType.ToTestDisplayString());
+
+            var secondTupleArgExpr = tupleExpression.Arguments[1].Expression;
+            var secondTupleArgInfo = model.GetTypeInfo(secondTupleArgExpr);
+            Assert.Equal("C", secondTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", secondTupleArgInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78627")]
+        public void TargetTypedTupleErrorRecovery_Cast()
+        {
+            var source = """
+                class C
+                {
+                    public C(int i, string s) { }
+
+                    void M()
+                    {
+                        var t = ((object, C))(null, new(47,));
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,44): error CS1525: Invalid expression term ')'
+                //         var t = ((object, C))(null, new(47,));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 44));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Null(tupleTypeInfo.Type);
+            Assert.Equal("(System.Object, C)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var firstTupleArgExpr = tupleExpression.Arguments[0].Expression;
+            var firstTupleArgInfo = model.GetTypeInfo(firstTupleArgExpr);
+            Assert.Null(firstTupleArgInfo.Type);
+            Assert.Equal("System.Object", firstTupleArgInfo.ConvertedType.ToTestDisplayString());
+
+            var secondTupleArgExpr = tupleExpression.Arguments[1].Expression;
+            var secondTupleArgInfo = model.GetTypeInfo(secondTupleArgExpr);
+            Assert.Equal("C", secondTupleArgInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", secondTupleArgInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

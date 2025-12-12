@@ -9,35 +9,36 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
-{
-    /// <summary>
-    /// Interaction logic for FormattingWrappingOptionPage.xaml
-    /// </summary>
-    internal class WrappingViewModel : AbstractOptionPreviewViewModel
-    {
-        private const string s_blockPreview = @"
-class C
-{
-//[
-    public int Goo { get; set; }
-//]    
-}";
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 
-        private const string s_declarationPreview = @"
-class C{
-    void goo()
-    {
-//[
-        int i = 0; string name = ""John"";
-//]
-    }
-}";
-
-        public WrappingViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
+/// <summary>
+/// Interaction logic for FormattingWrappingOptionPage.xaml
+/// </summary>
+internal sealed class WrappingViewModel : AbstractOptionPreviewViewModel
+{
+    private const string s_blockPreview = """
+        class C
         {
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.WrappingPreserveSingleLine, CSharpVSResources.Leave_block_on_single_line, s_blockPreview, this, optionStore));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, CSharpVSResources.Leave_statements_and_member_declarations_on_the_same_line, s_declarationPreview, this, optionStore));
+        //[
+            public int Goo { get; set; }
+        //]    
         }
+        """;
+
+    private const string s_declarationPreview = """
+        class C{
+            void goo()
+            {
+        //[
+                int i = 0; string name = "John";
+        //]
+            }
+        }
+        """;
+
+    public WrappingViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
+    {
+        Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.WrappingPreserveSingleLine, CSharpVSResources.Leave_block_on_single_line, s_blockPreview, this, optionStore));
+        Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, CSharpVSResources.Leave_statements_and_member_declarations_on_the_same_line, s_declarationPreview, this, optionStore));
     }
 }

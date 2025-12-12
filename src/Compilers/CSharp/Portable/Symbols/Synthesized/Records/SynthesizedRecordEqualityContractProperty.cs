@@ -4,10 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -100,7 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
         {
-            if (overriding.ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+            var baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            if (baseType.IsObjectType())
+            {
+                return;
+            }
+
+            // If the base type is not a record, ERR_BadRecordBase will already be reported.
+            // Don't cascade an override error in this case.
+            if (!baseType.IsRecord)
             {
                 return;
             }
@@ -116,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var overridden = overriding.OverriddenProperty;
 
                 if (overridden is object &&
-                    !overridden.ContainingType.Equals(overriding.ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions))
+                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
                 {
                     reportAnError = true;
                 }
@@ -124,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, baseType);
             }
         }
 
@@ -155,14 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-            {
-                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-                Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
+            public override bool IsImplicitlyDeclared => true;
 
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 

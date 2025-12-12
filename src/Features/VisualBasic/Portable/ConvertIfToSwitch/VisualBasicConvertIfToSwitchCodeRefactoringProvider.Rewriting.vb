@@ -3,9 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
@@ -19,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                 {BinaryOperatorKind.GreaterThanOrEqual, (SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.GreaterThanEqualsToken)}
             }
 
-        Public Overrides Function CreateSwitchExpressionStatement(target As SyntaxNode, sections As ImmutableArray(Of AnalyzedSwitchSection), feature As Feature) As SyntaxNode
+        Public Overrides Function CreateSwitchExpressionStatement(target As ExpressionSyntax, sections As ImmutableArray(Of AnalyzedSwitchSection), feature As Feature) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Overrides Function CreateSwitchStatement(ifStatement As ExecutableStatementSyntax, expression As SyntaxNode, sectionList As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Public Overrides Function CreateSwitchStatement(ifStatement As ExecutableStatementSyntax, expression As ExpressionSyntax, sectionList As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return VisualBasicSyntaxGenerator.Instance.SwitchStatement(expression, sectionList)
         End Function
 

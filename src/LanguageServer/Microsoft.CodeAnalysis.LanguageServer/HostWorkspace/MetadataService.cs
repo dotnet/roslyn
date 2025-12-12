@@ -44,7 +44,7 @@ internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
             }
         }
 
-        private class ThrowingExecutableReference : PortableExecutableReference
+        private sealed class ThrowingExecutableReference : PortableExecutableReference
         {
             private readonly IOException _ex;
 

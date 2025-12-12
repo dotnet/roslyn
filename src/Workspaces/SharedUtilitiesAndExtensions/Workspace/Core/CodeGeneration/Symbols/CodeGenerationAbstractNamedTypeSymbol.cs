@@ -7,12 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -128,4 +123,11 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public bool IsSerializable => false;
 
     public bool IsFileLocal => Modifiers.IsFile;
+
+#if !ROSLYN_4_12_OR_LOWER
+    public bool IsExtension => false;
+    public string ExtensionGroupingName => null;
+    public string ExtensionMarkerName => null;
+    public IParameterSymbol ExtensionParameter => null;
+#endif
 }

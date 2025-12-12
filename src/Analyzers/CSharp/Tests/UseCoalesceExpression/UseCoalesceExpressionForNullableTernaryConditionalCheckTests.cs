@@ -16,21 +16,16 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseCoalesceExpressionForNullableTernaryConditionalCheckTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer(),
             new UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider());
 
     [Fact]
-    public async Task TestOnLeft_Equals()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnLeft_Equals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -53,12 +48,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnLeft_NotEquals()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnLeft_NotEquals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -81,12 +74,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComplexExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -109,12 +100,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParens1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestParens1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -137,12 +126,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -167,12 +154,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -195,12 +180,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -223,12 +206,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")]
-    public async Task TestInExpressionOfT()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInExpressionOfT()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -253,12 +234,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
-    public async Task TestNotWithTargetTyping1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithTargetTyping1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -270,12 +249,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
-    public async Task TestWithNonTargetTyping1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithNonTargetTyping1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -298,12 +275,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
-    public async Task TestNotWithTargetTyping2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithTargetTyping2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -314,12 +289,10 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 public string InterpolatedText => $"{([||]Index.HasValue ? Index.Value : "???")}: rest of the text";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
-    public async Task TestWithNonTargetTyping2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithNonTargetTyping2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -340,5 +313,4 @@ public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : Abst
                 public string InterpolatedText => $"{(Index ?? 0)}: rest of the text";
             }
             """);
-    }
 }

@@ -27,8 +27,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
     : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
-        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        FadingOptions.FadeOutUnusedMembers)
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule])
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -238,6 +237,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                 symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
                 symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeParameterInitializerOperation, OperationKind.ParameterInitializer);
+                symbolStartContext.RegisterOperationAction(AnalyzeFunctionParameterDefaults, OperationKind.AnonymousFunction, OperationKind.LocalFunction);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
 
@@ -442,6 +443,87 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
+        private void AnalyzeParameterInitializerOperation(OperationAnalysisContext operationContext)
+        {
+            var parameterInitializer = (IParameterInitializerOperation)operationContext.Operation;
+            var value = parameterInitializer.Value;
+
+            if (value is null || value.Syntax is null)
+                return;
+
+            var semanticModel = parameterInitializer.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            AnalyzeDefaultValueSyntax(semanticModel, value.Syntax, operationContext.CancellationToken);
+        }
+
+        private void AnalyzeFunctionParameterDefaults(OperationAnalysisContext operationContext)
+        {
+            var semanticModel = operationContext.Operation.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            var parameters = operationContext.Operation switch
+            {
+                IAnonymousFunctionOperation anonymousFunction => anonymousFunction.Symbol.Parameters,
+                ILocalFunctionOperation localFunction => localFunction.Symbol.Parameters,
+                _ => default,
+            };
+
+            if (parameters.IsDefaultOrEmpty)
+                return;
+
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+            var cancellationToken = operationContext.CancellationToken;
+
+            foreach (var parameter in parameters)
+            {
+                if (!parameter.HasExplicitDefaultValue)
+                    continue;
+
+                foreach (var reference in parameter.DeclaringSyntaxReferences)
+                {
+                    var parameterSyntax = reference.GetSyntax(cancellationToken);
+                    var equalsValueSyntax = syntaxFacts.GetDefaultOfParameter(parameterSyntax);
+
+                    if (equalsValueSyntax is null)
+                        continue;
+
+                    var valueSyntax = syntaxFacts.GetValueOfEqualsValueClause(equalsValueSyntax);
+
+                    if (valueSyntax is null)
+                        continue;
+
+                    AnalyzeDefaultValueSyntax(semanticModel, valueSyntax, cancellationToken);
+                }
+            }
+        }
+
+        private void AnalyzeDefaultValueSyntax(
+            SemanticModel semanticModel,
+            SyntaxNode valueSyntax,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+
+            foreach (var node in valueSyntax.DescendantNodesAndSelf())
+            {
+                if (!syntaxFacts.IsSimpleName(node))
+                    continue;
+
+                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+
+                foreach (var symbol in symbolInfo.GetAllSymbols())
+                {
+                    if (IsCandidateSymbol(symbol))
+                        OnSymbolUsage(symbol, ValueUsageInfo.Read);
+                }
+            }
+        }
+
         private void AnalyzeLoopOperation(OperationAnalysisContext operationContext)
         {
             var operation = operationContext.Operation;
@@ -583,8 +665,16 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                             continue;
 
                         // Do not flag ref-fields that are not read.  A ref-field can exist to have side effects by
-                        // writing into some other location when a write happens to it.
-                        if (member is IFieldSymbol { IsReadOnly: false, RefKind: RefKind.Ref })
+                        // writing into some other location when a write happens to it.  Note: this includes `readonly
+                        // ref` fields as well.  It's still legal to assign a normal value into a `readonly ref` field.
+                        // It's just not allowed to overwrite it *with another ref*.  In other words:
+                        //
+                        //      _readonlyRefField = value;     // is fine.
+                        //      _readonlyRefField = ref value; // is not.
+                        //
+                        // So as long as it is a ref-field, we don't care if it is unread, but is written to.  We must
+                        // continue allowing it.
+                        if (member is IFieldSymbol { RefKind: RefKind.Ref })
                             continue;
                     }
 
@@ -765,10 +855,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         {
             foreach (var attribute in symbol.GetAttributes())
             {
-                if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                    attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                if (attribute.AttributeClass == _debuggerDisplayAttributeType)
                 {
-                    builder.Add(value);
+                    // Add the constructor argument (Value parameter)
+                    if (attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                    {
+                        builder.Add(value);
+                    }
+
+                    // Add the Name and Type named parameters
+                    foreach (var namedArgument in attribute.NamedArguments)
+                    {
+                        if (namedArgument is
+                            {
+                                Key: "Name" or "Type",
+                                Value: { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string namedValue },
+                            })
+                        {
+                            builder.Add(namedValue);
+                        }
+                    }
                 }
             }
         }

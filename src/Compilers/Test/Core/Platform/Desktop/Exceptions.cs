@@ -17,27 +17,23 @@ namespace Roslyn.Test.Utilities.Desktop
     public class RuntimePeVerifyException : Exception
     {
         public string Output { get; }
-        public string ExePath { get; }
 
         protected RuntimePeVerifyException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             Output = info.GetString(nameof(Output));
-            ExePath = info.GetString(nameof(ExePath));
         }
 
-        public RuntimePeVerifyException(string output, string exePath)
-            : base(GetMessageFromResult(output, exePath))
+        public RuntimePeVerifyException(string output)
+            : base(output)
         {
             Output = output;
-            ExePath = exePath;
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue(nameof(Output), Output);
-            info.AddValue(nameof(ExePath), ExePath);
         }
     }
 }

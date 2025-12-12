@@ -4,13 +4,13 @@
 
 Imports System.IO
 Imports System.Text.RegularExpressions
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -2001,7 +2001,7 @@ End Module
   IL_01e4:  ret
 }
 ]]>,
-            sequencePoints:="Program+VB$StateMachine_0_Test2.MoveNext")
+            sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
@@ -12877,6 +12877,57 @@ End Module
 ]]>)
         End Sub
 
+        <Fact>
+        Public Sub MethodImplOptionsAsyncIsBlocked()
+            Dim code = "
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Class C
+    <MethodImpl(MethodImplOptions.Async)>
+    Public Shared Sub M1()
+        Throw New NotImplementedException()
+    End Sub
+
+    <MethodImpl(MethodImplOptions.Async)>
+    Public Shared Function M2() As Task
+        Throw New NotImplementedException()
+    End Function
+
+    <MethodImpl(MethodImplOptions.Async)>
+    Public Shared Async Function M3() As Task
+        Throw New NotImplementedException()
+    End Function
+
+    <MethodImpl(MethodImplOptions.Async Or MethodImplOptions.Synchronized)>
+    Public Shared Sub M4()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilation(code, targetFramework:=TargetFramework.Net100)
+            comp.AssertTheseDiagnostics(
+<errors><![CDATA[
+BC37337: 'MethodImplAttribute.Async' cannot be manually applied to methods.
+    <MethodImpl(MethodImplOptions.Async)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37337: 'MethodImplAttribute.Async' cannot be manually applied to methods.
+    <MethodImpl(MethodImplOptions.Async)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37337: 'MethodImplAttribute.Async' cannot be manually applied to methods.
+    <MethodImpl(MethodImplOptions.Async)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Public Shared Async Function M3() As Task
+                                 ~~
+BC37337: 'MethodImplAttribute.Async' cannot be manually applied to methods.
+    <MethodImpl(MethodImplOptions.Async Or MethodImplOptions.Synchronized)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></errors>
+            )
+        End Sub
     End Class
 End Namespace
 

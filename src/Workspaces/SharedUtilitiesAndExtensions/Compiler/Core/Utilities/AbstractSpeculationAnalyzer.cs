@@ -45,8 +45,6 @@ internal abstract class AbstractSpeculationAnalyzer<
     private readonly bool _skipVerificationForReplacedNode;
     private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
     private readonly bool _isNewSemanticModelSpeculativeModel;
-
-    private SyntaxNode? _lazySemanticRootOfOriginalExpression;
     private TExpressionSyntax? _lazyReplacedExpression;
     private SyntaxNode? _lazySemanticRootOfReplacedExpression;
     private SemanticModel? _lazySpeculativeSemanticModel;
@@ -87,7 +85,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         _failOnOverloadResolutionFailuresInOriginalCode = failOnOverloadResolutionFailuresInOriginalCode;
         _isNewSemanticModelSpeculativeModel = true;
         _lazyReplacedExpression = null;
-        _lazySemanticRootOfOriginalExpression = null;
+        SemanticRootOfOriginalExpression = null;
         _lazySemanticRootOfReplacedExpression = null;
         _lazySpeculativeSemanticModel = null;
     }
@@ -134,18 +132,21 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// field initializer, default parameter initializer or type syntax node.
     /// It serves as the root node for all semantic analysis for this syntax replacement.
     /// </summary>
+    [AllowNull]
     public SyntaxNode SemanticRootOfOriginalExpression
     {
         get
         {
-            if (_lazySemanticRootOfOriginalExpression == null)
+            if (field == null)
             {
-                _lazySemanticRootOfOriginalExpression = GetSemanticRootForSpeculation(this.OriginalExpression);
-                RoslynDebug.AssertNotNull(_lazySemanticRootOfOriginalExpression);
+                field = GetSemanticRootForSpeculation(this.OriginalExpression);
+                RoslynDebug.AssertNotNull(field);
             }
 
-            return _lazySemanticRootOfOriginalExpression;
+            return field;
         }
+
+        private set;
     }
 
     /// <summary>
@@ -753,9 +754,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// </summary>
     private static bool IsSymbolSystemObjectInstanceMethod([NotNullWhen(true)] ISymbol? symbol)
     {
-        return symbol != null
-            && symbol.IsKind(SymbolKind.Method)
-            && symbol.ContainingType.SpecialType == SpecialType.System_Object
+        return symbol is IMethodSymbol { ContainingType.SpecialType: SpecialType.System_Object }
             && !symbol.IsOverridable()
             && !symbol.IsStaticType();
     }
@@ -1033,10 +1032,8 @@ internal abstract class AbstractSpeculationAnalyzer<
         if (receiver != null)
         {
             var receiverType = semanticModel.GetTypeInfo(receiver).Type;
-            if (receiverType.IsKind(SymbolKind.TypeParameter) && !receiverType.IsReferenceType)
-            {
+            if (receiverType is ITypeParameterSymbol { IsReferenceType: false })
                 return !IsReceiverUniqueInstance(receiver, semanticModel);
-            }
         }
 
         return false;
@@ -1048,13 +1045,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, SemanticModel semanticModel)
     {
         var receiverSymbol = semanticModel.GetSymbolInfo(receiver).GetAnySymbol();
-
-        if (receiverSymbol == null)
-            return false;
-
-        return receiverSymbol.IsKind(SymbolKind.Method) ||
-               receiverSymbol.IsIndexer() ||
-               receiverSymbol.IsKind(SymbolKind.Property);
+        return receiverSymbol is IMethodSymbol or IPropertySymbol;
     }
 
     private bool SymbolsHaveCompatibleParameterLists(ISymbol originalSymbol, ISymbol newSymbol, TExpressionSyntax originalInvocation)

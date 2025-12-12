@@ -7,11 +7,6 @@
         <target state="translated">Fehler beim Generieren der Dokumentation für diesen Code</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">Für den Bezeichner "{0}" ist eine Inline-Umbenennungssitzung aktiv. Rufen Sie die Inline-Umbenennung erneut auf, um auf zusätzliche Optionen zuzugreifen. Sie können den Bezeichner, der gerade umbenannt wird, jederzeit weiterbearbeiten.</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
-      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Änderungen werden übernommen</target>
@@ -37,19 +32,14 @@
         <target state="translated">Copilot überlegt...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot">
-        <source>Describe with Copilot</source>
-        <target state="translated">Mit Copilot beschreiben</target>
+      <trans-unit id="Describe">
+        <source>Describe</source>
+        <target state="new">Describe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">“Describe with Copilot“ ist nicht verfügbar, da das referenzierte Dokument von Ihrer Organisation ausgeschlossen wurde.
-
-
-
-
-</target>
+      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="new">'Describe' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -447,6 +437,11 @@
         <target state="translated">Benutzermember – Eigenschaften</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Arrays">
+        <source>User Types - Arrays</source>
+        <target state="new">User Types - Arrays</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Benutzertypen - Klassen</target>
@@ -462,9 +457,19 @@
         <target state="translated">Benutzertypen - Aufzählungen</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Function_Pointers">
+        <source>User Types - Function Pointers</source>
+        <target state="new">User Types - Function Pointers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Benutzertypen - Schnittstellen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Pointers">
+        <source>User Types - Pointers</source>
+        <target state="new">User Types - Pointers</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
@@ -987,11 +992,6 @@
         <target state="translated">Bereich des vorherigen gleichgeordneten Elements wird gesucht...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">Umbenennen: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Engine muss an das Interactive-Fenster angefügt werden.</target>
@@ -1074,8 +1074,8 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="translated">Signatur ändern</target>
-        <note />
+        <target state="needs-review-translation">Signatur ändern</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
@@ -1107,17 +1107,10 @@
         <target state="translated">Automatische Formatierung</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">Wir können den Fehler beheben, indem die Struktur der "out/ref"-Parameter nicht erstellt wird. 
-Möchten Sie fortfahren?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="translated">Signatur ändern:</target>
-        <note />
+        <target state="needs-review-translation">Signatur ändern:</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
@@ -1172,11 +1165,6 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">_Änderungen in der Vorschau anzeigen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">Anwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1247,16 +1235,6 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">Zur Implementierung wechseln</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">Neuer Name: "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">Alle hervorgehobenen Speicherorte ändern, um mit dem Umbenennen zu beginnen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

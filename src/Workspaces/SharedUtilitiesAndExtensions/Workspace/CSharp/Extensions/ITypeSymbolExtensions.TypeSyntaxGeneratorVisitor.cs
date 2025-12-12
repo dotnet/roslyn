@@ -19,15 +19,19 @@ using static SyntaxFactory;
 
 internal partial class ITypeSymbolExtensions
 {
-    private class TypeSyntaxGeneratorVisitor : SymbolVisitor<TypeSyntax>
+    private sealed class TypeSyntaxGeneratorVisitor(bool nameOnly) : SymbolVisitor<TypeSyntax>
     {
-        private readonly bool _nameOnly;
-
         private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
         private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
 
-        private TypeSyntaxGeneratorVisitor(bool nameOnly)
-            => _nameOnly = nameOnly;
+        private static readonly QualifiedNameSyntax SystemObjectType =
+            QualifiedName(
+                AliasQualifiedName(
+                    CreateGlobalIdentifier(),
+                    IdentifierName("System")),
+                IdentifierName("Object"));
+
+        private readonly bool _nameOnly = nameOnly;
 
         public static TypeSyntaxGeneratorVisitor Create(bool nameOnly = false)
             => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
@@ -186,16 +190,12 @@ internal partial class ITypeSymbolExtensions
             }
 
             if (symbol.Name == string.Empty || symbol.IsAnonymousType)
-            {
-                return CreateSystemObject();
-            }
+                return SystemObjectType;
 
             if (symbol.TypeParameters.Length == 0)
             {
                 if (symbol.TypeKind == TypeKind.Error && symbol.Name == "var")
-                {
-                    return CreateSystemObject();
-                }
+                    return SystemObjectType;
 
                 return symbol.Name.ToIdentifierName();
             }
@@ -210,13 +210,7 @@ internal partial class ITypeSymbolExtensions
         }
 
         public static QualifiedNameSyntax CreateSystemObject()
-        {
-            return QualifiedName(
-                AliasQualifiedName(
-                    CreateGlobalIdentifier(),
-                    IdentifierName("System")),
-                IdentifierName("Object"));
-        }
+            => SystemObjectType;
 
         private static IdentifierNameSyntax CreateGlobalIdentifier()
             => IdentifierName(GlobalKeyword);
@@ -253,7 +247,7 @@ internal partial class ITypeSymbolExtensions
 
             foreach (var element in symbol.TupleElements)
             {
-                var name = element.IsImplicitlyDeclared ? default : Identifier(element.Name);
+                var name = element.IsImplicitlyDeclared ? default : element.Name.ToIdentifierToken();
                 list = list.Add(TupleElement(element.Type.GenerateTypeSyntax(), name));
             }
 

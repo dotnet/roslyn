@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -16,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
@@ -107,7 +104,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 // No need to lock the dictionary here.  Processing only is called once, after all mutation work is done.
                 foreach (var (method, diagnostic) in methodToDiagnostic)
                 {
-                    if (method.IsInitOnly && method.AssociatedSymbol is IPropertySymbol owningProperty)
+                    if (method is { IsInitOnly: true, AssociatedSymbol: IPropertySymbol owningProperty })
                     {
                         // Iff we have an init method that we want to mark as readonly, we can only do so if there is no
                         // `get` accessor, or if the `get` method is already `readonly` or would determined we want to
@@ -184,8 +181,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
         // An init accessor in a readonly property is already readonly.  No need to analyze it.  Note: there is no way
         // to tell this symbolically.  We have to check to the syntax here.
-        if (owningMethod.IsInitOnly &&
-            owningMethod.AssociatedSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } &&
+        if (owningMethod is { IsInitOnly: true, AssociatedSymbol: IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } } &&
             reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax property &&
             property.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
         {
@@ -333,6 +329,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
             if (operation is IInlineArrayAccessOperation)
             {
+                // to determine if this is safe to make into a ReadOnlySpan or not.
+                if (operation.Type.IsSpan())
+                    return true;
+
                 // If we're writing into an inline-array off of 'this'.  Then we can't make this `readonly`.
                 if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
                     return true;

@@ -8,13 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 
@@ -72,8 +71,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
         var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var spanNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true)
-            .GetAncestorsOrThis<TExpressionSyntax>().FirstOrDefault();
+        var spanNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true).GetAncestorOrThis<TExpressionSyntax>();
         if (spanNode == null)
             return;
 

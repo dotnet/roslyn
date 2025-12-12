@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
         private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
-        private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
+        private readonly Cci.ICustomAttribute? _compilerGeneratedAttribute;
 
         private readonly string _name;
 
@@ -90,10 +90,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> _synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
-        // synthesized top-level types (for inline arrays and collection expression types currently)
-        private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedTopLevelTypes;
-        private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
-
         // field types for different block sizes.
         private readonly ConcurrentDictionary<(uint Size, ushort Alignment), Cci.ITypeReference> _dataFieldTypes = new ConcurrentDictionary<(uint Size, ushort Alignment), Cci.ITypeReference>();
 
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt16Type,
             Cci.ITypeReference systemInt32Type,
             Cci.ITypeReference systemInt64Type,
-            Cci.ICustomAttribute compilerGeneratedAttribute)
+            Cci.ICustomAttribute? compilerGeneratedAttribute)
         {
             RoslynDebug.Assert(systemObject != null);
             RoslynDebug.Assert(systemValueType != null);
@@ -142,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 if (submissionSlotIndex >= 0)
                 {
-                    name += submissionSlotIndex.ToString();
+                    name += submissionSlotIndex.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 }
 
                 if (moduleBuilder.CurrentGenerationOrdinal > 0)
@@ -182,9 +178,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Sort methods.
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
-
-            // Sort top-level types.
-            _orderedTopLevelTypes = _synthesizedTopLevelTypes.OrderBy(kvp => kvp.Key).Select(kvp => (Cci.INamespaceTypeDefinition)kvp.Value).AsImmutable();
 
             // Sort nested types.
             _orderedNestedTypes = _dataFieldTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).OfType<ExplicitSizeStruct>()
@@ -327,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue(
             string text,
             CommonPEModuleBuilder moduleBuilder,
-            SyntaxNode syntaxNode,
+            SyntaxNode? syntaxNode,
             DiagnosticBag diagnostics)
         {
             if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
@@ -354,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
                     diagnostics.Add(messageProvider.CreateDiagnostic(
                         messageProvider.ERR_DataSectionStringLiteralHashCollision,
-                        syntaxNode.GetLocation(),
+                        syntaxNode?.GetLocation() ?? Location.None,
                         previousText[..Math.Min(previousText.Length, 500)]));
                 }
 
@@ -382,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
                 TryAddSynthesizedMethod(BytesToStringHelper.Create(
-                    moduleBuilder: (ITokenDeferral)ModuleBuilder,
+                    moduleBuilder: ModuleBuilder,
                     containingType: this,
                     encodingUtf8: encodingUtf8,
                     encodingGetString: encodingGetString,
@@ -469,51 +462,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _orderedSynthesizedMethods;
         }
 
-        public IEnumerable<Cci.IMethodDefinition> GetTopLevelAndNestedTypeMethods(EmitContext context)
-        {
-            Debug.Assert(IsFrozen);
-            foreach (var type in _orderedTopLevelTypes)
-            {
-                foreach (var method in type.GetMethods(context))
-                {
-                    yield return method;
-                }
-
-                foreach (var nestedType in type.GetNestedTypes(context))
-                {
-                    foreach (var method in nestedType.GetMethods(context))
-                    {
-                        yield return method;
-                    }
-                }
-            }
-        }
-
         // Get method by name, if one exists. Otherwise return null.
         internal Cci.IMethodDefinition? GetMethod(string name)
         {
             Cci.IMethodDefinition? method;
             _synthesizedMethods.TryGetValue(name, out method);
             return method;
-        }
-
-        internal bool TryAddSynthesizedType(Cci.INamespaceTypeDefinition type)
-        {
-            Debug.Assert(!IsFrozen);
-            Debug.Assert(type.Name is { });
-            return _synthesizedTopLevelTypes.TryAdd(type.Name, type);
-        }
-
-        internal Cci.INamespaceTypeDefinition? GetSynthesizedType(string name)
-        {
-            _synthesizedTopLevelTypes.TryGetValue(name, out var type);
-            return type;
-        }
-
-        internal IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypes()
-        {
-            Debug.Assert(IsFrozen);
-            return _orderedTopLevelTypes;
         }
 
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
@@ -582,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return HashToHex(hash.AsSpan());
         }
 
-        private static string HashToHex(ReadOnlySpan<byte> hash)
+        public static string HashToHex(ReadOnlySpan<byte> hash)
         {
 #if NET9_0_OR_GREATER
             return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
@@ -743,14 +697,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             var stringField = new DataSectionStringField("s", this);
 
-            var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
+            var staticConstructor = synthesizeStaticConstructor(containingType.ModuleBuilder, this, dataField, stringField, bytesToStringHelper, diagnostics);
 
             _fields = [stringField];
             _methods = [staticConstructor];
 
             static Cci.IMethodDefinition synthesizeStaticConstructor(
-                ITokenDeferral module,
-                Cci.INamespaceTypeDefinition containingType,
+                CommonPEModuleBuilder module,
+                Cci.ITypeDefinition containingType,
                 MappedField dataField,
                 DataSectionStringField stringField,
                 Cci.IMethodDefinition bytesToStringHelper,
@@ -759,23 +713,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var ilBuilder = new ILBuilder(
                     module,
                     new LocalSlotManager(slotAllocator: null),
+                    diagnostics,
                     OptimizationLevel.Release,
                     areLocalsZeroed: false);
 
                 // Push the `byte*` field's address.
                 ilBuilder.EmitOpCode(ILOpCode.Ldsflda);
-                ilBuilder.EmitToken(dataField, null, diagnostics);
+                ilBuilder.EmitToken(dataField, null);
 
                 // Push the byte size.
                 ilBuilder.EmitIntConstant(dataField.MappedData.Length);
 
                 // Call `<PrivateImplementationDetails>.BytesToString(byte*, int)`.
                 ilBuilder.EmitOpCode(ILOpCode.Call, -1);
-                ilBuilder.EmitToken(bytesToStringHelper, null, diagnostics);
+                ilBuilder.EmitToken(bytesToStringHelper, null);
 
                 // Store into the corresponding `string` field.
                 ilBuilder.EmitOpCode(ILOpCode.Stsfld);
-                ilBuilder.EmitToken(stringField, null, diagnostics);
+                ilBuilder.EmitToken(stringField, null);
 
                 ilBuilder.EmitRet(isVoid: true);
                 ilBuilder.Realize();
@@ -951,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class InstrumentationPayloadRootField : SynthesizedStaticField
     {
         internal InstrumentationPayloadRootField(Cci.INamedTypeDefinition containingType, int analysisIndex, Cci.ITypeReference payloadType)
-            : base("PayloadRoot" + analysisIndex.ToString(), containingType, payloadType)
+            : base("PayloadRoot" + analysisIndex.ToString(System.Globalization.CultureInfo.InvariantCulture), containingType, payloadType)
         {
         }
 
@@ -1012,6 +967,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
 
         public sealed override Cci.INestedTypeReference AsNestedTypeReference => this;
+
+        bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => true;
     }
 
     /// <summary>
@@ -1173,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public static BytesToStringHelper Create(
-            ITokenDeferral moduleBuilder,
+            CommonPEModuleBuilder moduleBuilder,
             Cci.INamespaceTypeDefinition containingType,
             Cci.IMethodReference encodingUtf8,
             Cci.IMethodReference encodingGetString,
@@ -1182,12 +1139,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var ilBuilder = new ILBuilder(
                 moduleBuilder,
                 new LocalSlotManager(slotAllocator: null),
+                diagnostics,
                 OptimizationLevel.Release,
                 areLocalsZeroed: false);
 
             // Call `Encoding.get_UTF8()`.
             ilBuilder.EmitOpCode(ILOpCode.Call, 1);
-            ilBuilder.EmitToken(encodingUtf8, null, diagnostics);
+            ilBuilder.EmitToken(encodingUtf8, null);
 
             // Push the `byte*`.
             ilBuilder.EmitOpCode(ILOpCode.Ldarg_0);
@@ -1197,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Call `Encoding.GetString(byte*, int)`.
             ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
-            ilBuilder.EmitToken(encodingGetString, null, diagnostics);
+            ilBuilder.EmitToken(encodingGetString, null);
 
             // Return.
             ilBuilder.EmitRet(isVoid: false);

@@ -10,6 +10,7 @@ Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' check that System.Object is available. 
             ' Although submission semantically doesn't have a base class we need to emit one.
             Dim info = baseType.GetUseSiteInfo()
-            diagnostics.Add(info, Locations(0))
+            diagnostics.Add(info, GetFirstLocation())
 
             Return If(Me.TypeKind = TypeKind.Submission, Nothing, baseType)
         End Function

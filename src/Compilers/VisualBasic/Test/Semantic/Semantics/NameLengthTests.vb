@@ -3,13 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 'Imports Microsoft.CodeAnalysis.VisualBasic.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Xunit
-Imports Microsoft.Cci
-Imports System
-Imports System.Xml.Linq
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class NameLengthTests : Inherits BasicTestBase

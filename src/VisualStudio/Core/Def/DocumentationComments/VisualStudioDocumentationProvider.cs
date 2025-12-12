@@ -9,11 +9,10 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationComments;
 
-internal class VisualStudioDocumentationProvider : DocumentationProvider
+internal sealed class VisualStudioDocumentationProvider : DocumentationProvider
 {
     private readonly string _filePath;
     private readonly IVsXMLMemberIndexService _memberIndexService;

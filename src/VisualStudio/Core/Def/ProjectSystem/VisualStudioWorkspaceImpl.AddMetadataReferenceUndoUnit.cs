@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal partial class VisualStudioWorkspaceImpl
 {
-    private class AddMetadataReferenceUndoUnit : AbstractAddRemoveUndoUnit
+    private sealed class AddMetadataReferenceUndoUnit : AbstractAddRemoveUndoUnit
     {
         private readonly string _filePath;
 

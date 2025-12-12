@@ -16,20 +16,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// Implement this abstract type to provide fix all/multiple occurrences code fixes for source code problems.
 /// Alternatively, you can use any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/>.
 /// </summary>
-public abstract class FixAllProvider : IFixAllProvider
+public abstract class FixAllProvider : IRefactorOrFixAllProvider
 {
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
 
-    /// <summary>
-    /// Gets the supported scopes for fixing all occurrences of a diagnostic.
-    /// By default, it returns the following scopes:
-    /// (a) <see cref="FixAllScope.Document"/>
-    /// (b) <see cref="FixAllScope.Project"/> and
-    /// (c) <see cref="FixAllScope.Solution"/>
-    /// </summary>
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
+
+    CodeActionCleanup IRefactorOrFixAllProvider.Cleanup => this.Cleanup;
+
+    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     /// <summary>
     /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -78,6 +75,14 @@ public abstract class FixAllProvider : IFixAllProvider
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
+        return Create(fixAllAsync, supportedFixAllScopes, CodeActionCleanup.Default);
+    }
+
+    internal static FixAllProvider Create(
+        Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        CodeActionCleanup cleanup)
+    {
         if (fixAllAsync is null)
             throw new ArgumentNullException(nameof(fixAllAsync));
 
@@ -87,18 +92,21 @@ public abstract class FixAllProvider : IFixAllProvider
         if (supportedFixAllScopes.Contains(FixAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
-        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
+        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes, cleanup);
     }
 
     #region IFixAllProvider implementation
-    Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
+    Task<CodeAction?> IRefactorOrFixAllProvider.GetCodeActionAsync(IRefactorOrFixAllContext fixAllContext)
         => this.GetFixAsync((FixAllContext)fixAllContext);
     #endregion
 
     private sealed class CallbackDocumentBasedFixAllProvider(
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
+        internal override CodeActionCleanup Cleanup { get; } = cleanup;
+
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
             => fixAllAsync(context, document, diagnostics);
     }

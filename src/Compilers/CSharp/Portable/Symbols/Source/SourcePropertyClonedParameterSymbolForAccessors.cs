@@ -28,5 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
                 this.ContainingSymbol);
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _originalParam.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _originalParam.HasInterpolatedStringHandlerArgumentError;
     }
 }

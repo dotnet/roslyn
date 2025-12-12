@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -384,6 +385,152 @@ namespace Microsoft.CodeAnalysis.CSharp
             return op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement;
         }
 
+        public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+        {
+            return VisitIncrementOperator(node, used: true);
+        }
+
+        private BoundExpression VisitIncrementOperator(BoundIncrementOperator node, bool used)
+        {
+            if (node.MethodOpt?.IsStatic == false)
+            {
+                return VisitInstanceIncrementOperator(node, used);
+            }
+            else
+            {
+                return VisitBuiltInOrStaticIncrementOperator(node);
+            }
+        }
+
+        private BoundExpression VisitInstanceIncrementOperator(BoundIncrementOperator node, bool used)
+        {
+            Debug.Assert(node.MethodOpt is { });
+            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.IsExtensionBlockMember()));
+
+            SyntaxNode syntax = node.Syntax;
+
+            if (!used)
+            {
+                Debug.Assert(node.Type.IsVoidType());
+                return BoundCall.Synthesized(syntax,
+                                             ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, VisitExpression(node.Operand)),
+                                             initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                             node.MethodOpt);
+            }
+
+            TypeSymbol? operandType = node.Operand.Type; //type of the variable being incremented
+            Debug.Assert(operandType is { });
+            Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.AllIgnoreOptions));
+
+            if (!IsPrefix(node))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            if (operandType.IsReferenceType)
+            {
+                BoundAssignmentOperator tempAssignment;
+                BoundLocal boundTemp;
+
+                boundTemp = _factory.StoreToTemp(VisitExpression(node.Operand), out tempAssignment);
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: [boundTemp.LocalSymbol],
+                    sideEffects:
+                        [
+                            tempAssignment,
+                            BoundCall.Synthesized(syntax,
+                                                  ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, boundTemp),
+                                                  initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                                  node.MethodOpt)
+                        ],
+                    value: boundTemp,
+                    type: operandType);
+            }
+
+            Debug.Assert(node.OperandConversion is null);
+
+            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Operand, rightOpt: null, node.MethodOpt, node.OperatorKind.IsChecked(), AssignmentKind.IncrementDecrement);
+        }
+
+        private BoundExpression MakeInstanceCompoundAssignmentOperatorResult(SyntaxNode syntax, BoundExpression left, BoundExpression? rightOpt, MethodSymbol operatorMethod, bool isChecked, AssignmentKind assignmentKind)
+        {
+            TypeSymbol? operandType = left.Type; //type of the variable being incremented
+            Debug.Assert(operandType is { });
+
+            ArrayBuilder<LocalSymbol> tempSymbols = ArrayBuilder<LocalSymbol>.GetInstance();
+            ArrayBuilder<BoundExpression> tempInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+
+            // This will be filled in with the LHS that uses temporaries to prevent
+            // double-evaluation of side effects.
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(left, tempInitializers, tempSymbols, isDynamicAssignment: false);
+            Debug.Assert(TypeSymbol.Equals(operandType, transformedLHS.Type, TypeCompareKind.AllIgnoreOptions));
+
+            BoundAssignmentOperator tempAssignment;
+            BoundLocal boundTemp;
+
+            boundTemp = _factory.StoreToTemp(transformedLHS, out tempAssignment);
+            tempSymbols.Add(boundTemp.LocalSymbol);
+
+            tempInitializers.Add(tempAssignment);
+
+            rightOpt = VisitExpression(rightOpt);
+
+            if (operandType.IsValueType)
+            {
+                BoundCall increment = makeIncrementCall(syntax, boundTemp, rightOpt, operatorMethod);
+                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked, assignmentKind);
+
+                tempInitializers.Add(increment);
+                tempInitializers.Add(assignBack);
+            }
+            else
+            {
+                if (rightOpt is not null)
+                {
+                    BoundLocal capturedRight = _factory.StoreToTemp(rightOpt, out tempAssignment);
+                    tempSymbols.Add(capturedRight.LocalSymbol);
+                    tempInitializers.Add(tempAssignment);
+                    rightOpt = capturedRight;
+                }
+
+                BoundCall increment = makeIncrementCall(syntax, boundTemp, rightOpt, operatorMethod);
+                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked, assignmentKind);
+
+                //  (object)default(T) != null
+                var isNotClass = _factory.IsNotNullReference(_factory.Default(operandType));
+                tempInitializers.Add(
+                    _factory.Conditional(
+                        isNotClass,
+                        new BoundSequence(
+                            syntax: syntax,
+                            locals: [],
+                            sideEffects: [increment, assignBack],
+                            value: boundTemp,
+                            type: operandType),
+                        increment,
+                        operandType,
+                        isRef: false));
+            }
+
+            return new BoundSequence(
+                syntax: syntax,
+                locals: tempSymbols.ToImmutableAndFree(),
+                sideEffects: tempInitializers.ToImmutableAndFree(),
+                value: boundTemp,
+                type: operandType);
+
+            static BoundCall makeIncrementCall(SyntaxNode syntax, BoundLocal boundTemp, BoundExpression? rightOpt, MethodSymbol operatorMethod)
+            {
+                return BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, operatorMethod, rightOpt is null ? [] : [rightOpt]);
+            }
+
+            BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked, AssignmentKind assignmentKind)
+            {
+                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, assignmentKind);
+            }
+        }
+
         /// <summary>
         /// The rewrites are as follows: suppose the operand x is a variable of type X. The
         /// chosen increment/decrement operator is modelled as a static method on a type T,
@@ -422,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="node">The unary operator expression representing the increment/decrement.</param>
         /// <returns>A bound sequence that uses a temp to achieve the correct side effects and return value.</returns>
-        public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+        public BoundExpression VisitBuiltInOrStaticIncrementOperator(BoundIncrementOperator node)
         {
             bool isPrefix = IsPrefix(node);
             bool isDynamic = node.OperatorKind.IsDynamic();
@@ -435,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamic);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
@@ -452,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // prefix:  (X)(T.Increment((T)operand)))
             // postfix: (X)(T.Increment((T)temp)))
-            var newValue = makeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
+            var newValue = makeBuiltInOrStaticIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
 
             // there are two strategies for completing the rewrite.
             // The reason is that indirect assignments read the target of the assignment before evaluating 
@@ -474,6 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             if (isIndirectOrInstanceField(transformedLHS))
             {
+                Debug.Assert(transformedLHS is not BoundPropertyAccess);
                 return rewriteWithRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
             else
@@ -513,16 +661,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
-                ImmutableArray<BoundExpression> assignments = ImmutableArray.Create<BoundExpression>(
-                    MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, isCompoundAssignment: false),
-                    MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, isCompoundAssignment: false));
+                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment));
+
+                if (!isPrefix && IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                {
+                    // We need to create a tree that ensures that receiver of 'set' is evaluated after the increment operation
+                    BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
+                    tempSymbols.Add(incrementResult.LocalSymbol);
+                    tempInitializers.Add(assignmentToTemp);
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement));
+                }
+                else
+                {
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement));
+                }
 
                 // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
                 // postfix: Seq( operand initializers; temp = operand;          operand = (T)(temp + 1); result: temp)
                 return new BoundSequence(
                     syntax: syntax,
                     locals: tempSymbols.ToImmutableAndFree(),
-                    sideEffects: tempInitializers.ToImmutableAndFree().Concat(assignments),
+                    sideEffects: tempInitializers.ToImmutableAndFree(),
                     value: boundTemp,
                     type: boundTemp.Type);
             }
@@ -541,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var tempValue = isPrefix ? newValue : MakeRValue(operand);
                 Debug.Assert(tempValue.Type is { });
-                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, isCompoundAssignment: false);
+                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment);
 
                 var operandValue = isPrefix ? boundTemp : newValue;
                 var tempAssignedAndOperandValue = new BoundSequence(
@@ -553,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  operand = Seq{temp = (T)(operand + 1);  temp;}
                 // postfix: operand = Seq{temp = operand;        ;  (T)(temp + 1);}
-                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, isCompoundAssignment: false);
+                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement);
 
                 // prefix:  Seq{operand initializers; operand = Seq{temp = (T)(operand + 1);  temp;}          result: temp}
                 // postfix: Seq{operand initializers; operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}
@@ -566,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: boundTemp.Type);
             }
 
-            BoundExpression makeIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
+            BoundExpression makeBuiltInOrStaticIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
             {
                 if (node.OperatorKind.IsDynamic())
                 {
@@ -576,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression result;
                 if (node.OperatorKind.OperandTypes() == UnaryOperatorKind.UserDefined)
                 {
-                    result = MakeUserDefinedIncrementOperator(node, rewrittenValueToIncrement);
+                    result = MakeUserDefinedStaticIncrementOperator(node, rewrittenValueToIncrement);
                 }
                 else
                 {
@@ -627,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return replacement;
         }
 
-        private BoundExpression MakeUserDefinedIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
+        private BoundExpression MakeUserDefinedStaticIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
         {
             Debug.Assert(node.MethodOpt is { });
             Debug.Assert(node.MethodOpt.ParameterCount == 1);

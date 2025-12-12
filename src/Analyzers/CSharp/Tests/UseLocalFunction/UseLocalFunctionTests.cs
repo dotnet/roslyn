@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public UseLocalFunctionTests(ITestOutputHelper logger)
        : base(logger)
@@ -29,9 +29,8 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
     private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
     [Fact]
-    public async Task TestMissingBeforeCSharp7()
-    {
-        await TestMissingAsync(
+    public Task TestMissingBeforeCSharp7()
+        => TestMissingAsync(
             """
             using System;
 
@@ -51,12 +50,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestMissingIfWrittenAfter()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfWrittenAfter()
+        => TestMissingAsync(
             """
             using System;
 
@@ -78,12 +75,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingIfWrittenInside()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfWrittenInside()
+        => TestMissingAsync(
             """
             using System;
 
@@ -104,12 +99,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingForErrorType()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForErrorType()
+        => TestMissingAsync(
             """
             class C
             {
@@ -128,12 +121,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingForMultipleVariables()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForMultipleVariables()
+        => TestMissingAsync(
             """
             using System;
 
@@ -153,12 +144,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingForField()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForField()
+        => TestMissingAsync(
             """
             using System;
 
@@ -175,12 +164,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                     };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_SimpleLambda_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SimpleLambda_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -219,12 +206,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_ParenLambdaNoType_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_ParenLambdaNoType_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -263,12 +248,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_ParenLambdaWithType_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_ParenLambdaWithType_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -307,12 +290,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_AnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_AnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -351,12 +332,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_SimpleLambda_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SimpleLambda_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -385,12 +364,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_ParenLambdaNoType_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_ParenLambdaNoType_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -419,12 +396,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleInitialization_ParenLambdaWithType_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_ParenLambdaWithType_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -453,12 +428,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_SimpleLambda_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SimpleLambda_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -497,12 +470,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_SimpleLambda_Block_ExtraParens()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SimpleLambda_Block_ExtraParens()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -541,12 +512,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_ParenLambdaNoType_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_ParenLambdaNoType_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -585,12 +554,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_ParenLambdaWithType_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_ParenLambdaWithType_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -629,12 +596,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_AnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_AnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -673,12 +638,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_SimpleLambda_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SimpleLambda_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -707,12 +670,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_ParenLambdaNoType_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_ParenLambdaNoType_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -741,12 +702,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCastInitialization_ParenLambdaWithType_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_ParenLambdaWithType_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -775,12 +734,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_WrongName()
-    {
-        await TestMissingAsync(
+    public Task TestSplitInitialization_WrongName()
+        => TestMissingAsync(
             """
             using System;
 
@@ -801,12 +758,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_InitializedToOtherValue()
-    {
-        await TestMissingAsync(
+    public Task TestSplitInitialization_InitializedToOtherValue()
+        => TestMissingAsync(
             """
             using System;
 
@@ -827,12 +782,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_SimpleLambda_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SimpleLambda_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -872,12 +825,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -917,12 +868,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_SimpleLambda_Block_DefaultLiteral()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SimpleLambda_Block_DefaultLiteral()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -965,12 +914,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
         // 7.1 is required for default literals, so 7.2 should be sufficient
         // and is used in other tests
         new TestParameters(parseOptions: CSharp72ParseOptions));
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1010,12 +957,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression_var()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression_var()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1055,12 +1000,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_ParenLambdaNoType_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_ParenLambdaNoType_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1100,12 +1043,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_ParenLambdaWithType_Block()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_ParenLambdaWithType_Block()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1145,12 +1086,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_AnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_AnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1190,12 +1129,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_SimpleLambda_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SimpleLambda_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1225,12 +1162,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_ParenLambdaNoType_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_ParenLambdaNoType_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1260,12 +1195,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSplitInitialization_ParenLambdaWithType_ExprBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_ParenLambdaWithType_ExprBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1295,12 +1228,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1333,12 +1264,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1371,12 +1300,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1410,12 +1337,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1449,12 +1374,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1495,12 +1418,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInWithParameters()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInWithParameters()
+        => TestInRegularAndScriptAsync(
             """
             delegate void D(in int p);
             class C
@@ -1523,12 +1444,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
             """,
         // Run with 7.2 to get read-only references
         new TestParameters(parseOptions: CSharp72ParseOptions));
-    }
 
     [Fact]
-    public async Task TestRefReadOnlyWithReturnType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRefReadOnlyWithReturnType()
+        => TestInRegularAndScriptAsync(
             """
             delegate ref readonly int D();
             class C
@@ -1549,12 +1468,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestMissingIfConvertedToNonDelegate()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfConvertedToNonDelegate()
+        => TestMissingAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1571,12 +1488,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void AssertSame(object expected, object actual) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestAvailableIfConvertedToDelegate()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfConvertedToDelegate()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1609,12 +1524,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void AssertSame(Func<string, Task> expected, object actual) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestNotAvailableIfConvertedToSystemDelegate()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotAvailableIfConvertedToSystemDelegate()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1629,12 +1542,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void M(Delegate expected) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestNotAvailableIfConvertedToSystemMulticastDelegate()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotAvailableIfConvertedToSystemMulticastDelegate()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1649,12 +1560,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void M(MulticastDelegate expected) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestAvailableIfConvertedToCoContraVariantDelegate0()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfConvertedToCoContraVariantDelegate0()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1683,13 +1592,11 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void M(Func<object, string> expected) { }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestAvailableIfConvertedToCoContraVariantDelegate1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfConvertedToCoContraVariantDelegate1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1718,13 +1625,11 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void M(Func<string, object> expected) { }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestAvailableIfConvertedToCoContraVariantDelegate2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfConvertedToCoContraVariantDelegate2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1753,13 +1658,11 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void M(Func<string, object> expected) { }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23118")]
-    public async Task TestAvailableIfConvertedToCoContraVariantDelegate3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfConvertedToCoContraVariantDelegate3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1788,12 +1691,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 public static void M(Func<string, object> expected) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22672")]
-    public async Task TestMissingIfAdded()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfAdded()
+        => TestMissingAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -1813,12 +1714,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22672")]
-    public async Task TestMissingIfUsedInMemberAccess1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfUsedInMemberAccess1()
+        => TestMissingAsync(
             """
             using System;
 
@@ -1837,12 +1736,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
-    public async Task TestMissingIfUsedInMemberAccess2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfUsedInMemberAccess2()
+        => TestMissingAsync(
             """
             using System;
 
@@ -1864,12 +1761,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22672")]
-    public async Task TestMissingIfUsedInExpressionTree()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfUsedInExpressionTree()
+        => TestMissingAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -1889,12 +1784,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24344")]
-    public async Task TestMissingIfUsedInExpressionTree2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfUsedInExpressionTree2()
+        => TestMissingAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -1910,12 +1803,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
-    public async Task TestWithInvokeMethod1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithInvokeMethod1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1952,12 +1843,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
-    public async Task TestWithInvokeMethod2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithInvokeMethod2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1994,12 +1883,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
-    public async Task TestWithInvokeMethod3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithInvokeMethod3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2042,12 +1929,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23150")]
-    public async Task TestWithInvokeMethod4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithInvokeMethod4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2090,12 +1975,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
-    public async Task TestWithRecursiveInvokeMethod1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithRecursiveInvokeMethod1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2119,12 +2002,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
-    public async Task TestWithRecursiveInvokeMethod2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithRecursiveInvokeMethod2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2148,12 +2029,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364935495")]
-    public async Task TestWithNestedInvokeMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNestedInvokeMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2178,12 +2057,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNestedRecursiveInvokeMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNestedRecursiveInvokeMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2207,12 +2084,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithDefaultParameter1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithDefaultParameter1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2235,12 +2110,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364655480")]
-    public async Task TestWithDefaultParameter2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithDefaultParameter2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2263,12 +2136,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithDefaultParameter3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithDefaultParameter3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2291,12 +2162,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24760#issuecomment-364764542")]
-    public async Task TestWithUnmatchingParameterList1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithUnmatchingParameterList1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2319,12 +2188,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithUnmatchingParameterList2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithUnmatchingParameterList2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2347,12 +2214,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithAsyncLambdaExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithAsyncLambdaExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2377,12 +2242,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithAsyncAnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithAsyncAnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2407,12 +2270,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithParameterlessAnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithParameterlessAnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2443,12 +2304,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 event EventHandler E;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24764")]
-    public async Task TestWithNamedArguments1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNamedArguments1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2477,12 +2336,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24764")]
-    public async Task TestWithNamedArguments2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNamedArguments2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2513,12 +2370,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNamedArgumentsAndBrokenCode1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNamedArgumentsAndBrokenCode1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2549,12 +2404,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNamedArgumentsAndBrokenCode2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNamedArgumentsAndBrokenCode2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2587,12 +2440,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNamedAndDefaultArguments()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNamedAndDefaultArguments()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2624,12 +2475,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNamedAndDefaultArgumentsAndNestedRecursiveInvocations_FixAll()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNamedAndDefaultArgumentsAndNestedRecursiveInvocations_FixAll()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2681,12 +2530,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2709,12 +2556,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2737,12 +2582,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine2Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine2Async()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2765,12 +2608,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine2MultiToken()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine2MultiToken()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2791,12 +2632,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2819,12 +2658,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2847,12 +2684,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2875,12 +2710,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSimpleInitialization_SingleLine4Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleInitialization_SingleLine4Async()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2903,12 +2736,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestCastInitialization_SingleLine1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SingleLine1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2931,12 +2762,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestCastInitialization_SingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SingleLine2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2959,12 +2788,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestCastInitialization_SingleLine2Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SingleLine2Async()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -2987,12 +2814,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestCastInitialization_SingleLine3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SingleLine3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3015,12 +2840,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestCastInitialization_SingleLine4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SingleLine4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3043,12 +2866,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestCastInitialization_SingleLine4Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCastInitialization_SingleLine4Async()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3071,12 +2892,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSplitInitialization_SingleLine1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SingleLine1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3100,12 +2919,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSplitInitialization_SingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SingleLine2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3129,12 +2946,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSplitInitialization_SingleLine2Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SingleLine2Async()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3158,12 +2973,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSplitInitialization_SingleLine3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SingleLine3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3187,12 +3000,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSplitInitialization_SingleLine4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SingleLine4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3216,12 +3027,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23872")]
-    public async Task TestSplitInitialization_SingleLine4Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSplitInitialization_SingleLine4Async()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3245,12 +3054,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
-    public async Task TestNotAvailableIfTypeParameterChanged1()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableIfTypeParameterChanged1()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3269,12 +3076,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
-    public async Task TestNotAvailableIfTypeParameterChanged2()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableIfTypeParameterChanged2()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3296,12 +3101,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
-    public async Task TestNotAvailableIfTypeParameterChanged3()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableIfTypeParameterChanged3()
+        => TestMissingAsync(
             """
             public class Class<T>
             {
@@ -3318,12 +3121,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
-    public async Task TestNotAvailableIfTypeParameterChanged4()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableIfTypeParameterChanged4()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3345,13 +3146,11 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27950")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
-    public async Task TestAvailableIfTypeParameterNotChanged1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfTypeParameterNotChanged1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3390,12 +3189,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23149")]
-    public async Task TestAvailableIfTypeParameterNotChanged2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableIfTypeParameterNotChanged2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3434,13 +3231,11 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56963")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/26526")]
-    public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableWithCastIntroducedIfAssignedToVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3467,12 +3262,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26526")]
-    public async Task TestAvailableWithCastIntroducedForGenericTypeInference1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableWithCastIntroducedForGenericTypeInference1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3507,12 +3300,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26526")]
-    public async Task TestAvailableWithCastIntroducedForGenericTypeInference2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableWithCastIntroducedForGenericTypeInference2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3555,12 +3346,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAvailableWithCastIntroducedForOverloadResolution()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableWithCastIntroducedForOverloadResolution()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3607,12 +3396,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3659,12 +3446,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestNotAvailableWithInvalidDeclaration()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableWithInvalidDeclaration()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3682,12 +3467,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestNotAvailableWithInvalidDeclaration2()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableWithInvalidDeclaration2()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3705,12 +3488,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestNotAvailableWithInvalidDeclaration3()
-    {
-        await TestMissingAsync(
+    public Task TestNotAvailableWithInvalidDeclaration3()
+        => TestMissingAsync(
             """
             using System;
 
@@ -3728,12 +3509,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestWithInvalidUnrelatedCode()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithInvalidUnrelatedCode()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3768,12 +3547,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestWithInvalidUnrelatedCode2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithInvalidUnrelatedCode2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3808,12 +3585,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestWithObsoleteCode()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithObsoleteCode()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3860,12 +3635,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29793")]
-    public async Task TestWithDeclarationWarning()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithDeclarationWarning()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3902,12 +3675,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMakeStaticIfNoCaptures()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMakeStaticIfNoCaptures()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3946,12 +3717,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotMakeStaticIfCaptures()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDoNotMakeStaticIfCaptures()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3992,12 +3761,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithAsyncLambdaExpression_MakeStatic()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithAsyncLambdaExpression_MakeStatic()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -4022,12 +3789,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNullableParameterAndReturn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithNullableParameterAndReturn()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -4054,12 +3819,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithDiscardParameters()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithDiscardParameters()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4078,12 +3841,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithOptionalParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithOptionalParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4108,12 +3869,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithParamsArray()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithParamsArray()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4138,12 +3897,10 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68439")]
-    public async Task TestImplicitlyTypedLambdaCSharp10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestImplicitlyTypedLambdaCSharp10()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4162,13 +3919,11 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
-    }
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68439")]
-    public async Task TestImplicitlyTypedLambdaCSharp9()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestImplicitlyTypedLambdaCSharp9()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4179,5 +3934,4 @@ public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBas
             }
             """,
             new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 }

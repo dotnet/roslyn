@@ -22,7 +22,6 @@
     <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
@@ -46,13 +45,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" />
-    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" />
     <PackageReference Include="Xunit.Combinatorial" PrivateAssets="all" />
-
-    <!-- This is needed by the Progression and Graph Model APIs at runtime  -->
-    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.Measurement" NoWarn="NU1605" IncludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" IncludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Threading.Tasks" />

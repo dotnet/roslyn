@@ -52,11 +52,13 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TObjectCreationExpressionSyntax objectCreationExpression,
         CancellationToken cancellationToken)
     {
-        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
-        if (state is null)
+        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+
+        // If we didn't find something we're assigned to, then we can't continue.  
+        if (state.ValuePattern == default)
             return default;
 
-        this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
+        this.Initialize(state, objectCreationExpression);
         return this.AnalyzeWorker(cancellationToken).PostMatches;
     }
 
@@ -69,8 +71,10 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     protected sealed override bool TryAddMatches(
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
+        out bool changesSemantics,
         CancellationToken cancellationToken)
     {
+        changesSemantics = false;
         using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);

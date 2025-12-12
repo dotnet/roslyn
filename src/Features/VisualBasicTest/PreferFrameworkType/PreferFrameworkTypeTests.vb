@@ -208,7 +208,7 @@ End Class
 Class C
     Protected i As Int32
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -223,7 +223,7 @@ End Class
 Class C
     Protected i As Int32 = 5
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -238,7 +238,7 @@ End Class
 Class C
     Public Delegate Function PerformCalculation(x As Integer, y As Integer) As Int32
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -253,7 +253,7 @@ End Class
 Class C
     Public Property X As Int64
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -270,7 +270,7 @@ Imports System.Collections.Generic
 Class C
     Public Property X As List(Of Int64)
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -287,7 +287,7 @@ Class C
     Public Function F() As Int32
     End Function
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -304,7 +304,7 @@ Class C
     Public Sub F(x As Int32)
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -327,7 +327,7 @@ Class C
         Method(Of Int32)()
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -346,7 +346,7 @@ Class C
         Dim x As Int32 = 5
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -365,7 +365,7 @@ Class C
         Dim x = Int32.MaxValue
     End Sub
 End Class
-", options:=FrameworkTypeInMemberAccess)
+", New TestParameters(options:=FrameworkTypeInMemberAccess))
         End Function
 
         <Fact>
@@ -384,7 +384,7 @@ Class C
         Dim x = Int32.Parse(""1"")
     End Sub
 End Class
-", options:=FrameworkTypeInMemberAccess)
+", New TestParameters(options:=FrameworkTypeInMemberAccess))
         End Function
 
         <Fact>
@@ -403,7 +403,7 @@ Class C
     Public Sub Test()
     End Sub
 End Class
-", options:=FrameworkTypeInMemberAccess)
+", New TestParameters(options:=FrameworkTypeInMemberAccess))
         End Function
 
         <Fact>
@@ -422,7 +422,7 @@ Class C
          Dim x = GetType(Int32)
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -441,7 +441,7 @@ Class C
         Dim func3 As Func(Of Integer, Integer) = Function(z As Int32) z + 1
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -460,7 +460,7 @@ Class C
         Dim z = New DateTime(2016, 8, 23)
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -479,7 +479,7 @@ Class C
         Dim k As Int32() = New Integer(3) {}
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -498,7 +498,7 @@ Class C
         Dim k As Integer() = New Int32(3) {0, 1, 2, 3}
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -519,7 +519,7 @@ Class C
         Dim a As List(Of Int32()(,)(,,,))
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -540,7 +540,7 @@ Class C
         Next
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -561,7 +561,7 @@ Class C
         Next
     End Sub
 End Class
-", options:=FrameworkTypeInDeclaration)
+", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
 
         <Fact>
@@ -580,7 +580,7 @@ Class C
         ' This is a comment
         Dim x As Int32
     End Sub
-End Class", options:=FrameworkTypeInDeclaration)
+End Class", New TestParameters(options:=FrameworkTypeInDeclaration))
         End Function
     End Class
 End Namespace

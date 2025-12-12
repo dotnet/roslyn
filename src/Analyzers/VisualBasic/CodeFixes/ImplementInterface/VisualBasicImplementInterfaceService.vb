@@ -10,21 +10,20 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ImplementInterface
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     <ExportLanguageService(GetType(IImplementInterfaceService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicImplementInterfaceService
-        Inherits AbstractImplementInterfaceService
+    Partial Friend NotInheritable Class VisualBasicImplementInterfaceService
+        Inherits AbstractImplementInterfaceService(Of TypeBlockSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
 
         Protected Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
@@ -38,6 +37,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         Protected Overrides Function AllowDelegateAndEnumConstraints(options As ParseOptions) As Boolean
             Return False
         End Function
+
+        Protected Overrides Function IsTypeInInterfaceBaseList(type As SyntaxNode) As Boolean
+            Return TypeOf type?.Parent Is ImplementsStatementSyntax
+        End Function
+
+        Protected Overrides Sub AddInterfaceTypes(typeDeclaration As TypeBlockSyntax, result As ArrayBuilder(Of SyntaxNode))
+            For Each implementsStatement In typeDeclaration.Implements
+                For Each interfaceType In implementsStatement.Types
+                    result.Add(interfaceType)
+                Next
+            Next
+        End Sub
 
         Protected Overrides Function TryInitializeState(
                 document As Document, model As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken,

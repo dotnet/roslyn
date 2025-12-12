@@ -7,19 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class InlineRenameInProcess
+internal sealed partial class InlineRenameInProcess
 {
     public async Task InvokeAsync(CancellationToken cancellationToken)
     {
@@ -47,14 +44,6 @@ internal partial class InlineRenameInProcess
 
     public async Task VerifyStringInFlyout(string expected, CancellationToken cancellationToken)
     {
-        var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-        var isRenameFlyoutEnabled = optionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
-        if (!isRenameFlyoutEnabled)
-        {
-            Contract.Fail("Inline rename flyout is disabled");
-            return;
-        }
-
         var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
         var vsTextView = await vsTextManager.GetActiveViewAsync(JoinableTaskFactory, cancellationToken);
         var testViewHost = await vsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);

@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,9 +30,6 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
     internal override string Language => LanguageNames.CSharp;
 
     public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
-
-    protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-        => base.IsAwaitKeywordContext(syntaxContext);
 
     /// <summary>
     /// Gets the span start where async keyword should go.
@@ -53,7 +50,8 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
         };
     }
 
-    protected override TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
+    protected override async Task<TextChange?> GetReturnTypeChangeAsync(
+        Solution solution, SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
     {
         var existingReturnType = declaration switch
         {
@@ -70,26 +68,83 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
         if (existingReturnType is null)
             return null;
 
-        var newTypeName = GetNewTypeName(existingReturnType);
+        var newTypeName = await GetNewTypeNameAsync().ConfigureAwait(false);
 
         if (newTypeName is null)
             return null;
 
         return new TextChange(existingReturnType.Span, newTypeName);
 
-        string? GetNewTypeName(TypeSyntax existingReturnType)
+        async ValueTask<string?> GetNewTypeNameAsync()
         {
             // `void => Task`
             if (existingReturnType is PredefinedTypeSyntax { Keyword: (kind: SyntaxKind.VoidKeyword) })
+            {
+                // Don't change void to Task if this method is used as an event handler
+                if (await IsMethodUsedAsEventHandlerAsync().ConfigureAwait(false))
+                    return null;
+
                 return nameof(Task);
+            }
 
             // Don't change the return type if we don't understand it, or it already seems task-like.
             var taskLikeTypes = new KnownTaskTypes(semanticModel.Compilation);
             var returnType = semanticModel.GetTypeInfo(existingReturnType, cancellationToken).Type;
-            if (returnType is null or IErrorTypeSymbol || taskLikeTypes.IsTaskLike(returnType))
+            if (returnType is null or IErrorTypeSymbol ||
+                taskLikeTypes.IsTaskLike(returnType) ||
+                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) ||
+                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType))
+            {
                 return null;
+            }
 
             return $"{nameof(Task)}<{existingReturnType}>";
+        }
+
+        async ValueTask<bool> IsMethodUsedAsEventHandlerAsync()
+        {
+            if (declaration is not MethodDeclarationSyntax methodDeclaration)
+                return false;
+
+            var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
+            if (methodSymbol is not IMethodSymbol method)
+                return false;
+
+            var containingType = method.ContainingType;
+            if (containingType is null)
+                return false;
+
+            // For perf, only search for usages of the containing method within the same file. This may miss something
+            // in the case of a partial type, but it allows us to easily scope this to a single document.
+            var document = solution.GetDocument(containingType.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == methodDeclaration.SyntaxTree)?.SyntaxTree);
+            if (document is null)
+                return false;
+
+            var references = await SymbolFinder.FindReferencesAsync(
+                methodSymbol, solution, [document], cancellationToken).ConfigureAwait(false);
+
+            foreach (var group in references.SelectMany(r => r.Locations).GroupBy(l => l.Location.SourceTree))
+            {
+                var tree = group.Key;
+                if (tree != methodDeclaration.SyntaxTree)
+                    continue;
+
+                foreach (var location in group)
+                {
+                    var node = location.Location.FindNode(cancellationToken) as ExpressionSyntax;
+                    if (node.IsRightSideOfDot())
+                        node = node.GetRequiredParent() as ExpressionSyntax;
+
+                    if (node?.Parent is AssignmentExpressionSyntax(kind: SyntaxKind.AddAssignmentExpression or SyntaxKind.SubtractAssignmentExpression) assignment)
+                    {
+                        var leftSymbol = semanticModel.GetSymbolInfo(assignment.Left, cancellationToken).GetAnySymbol();
+                        if (leftSymbol is IEventSymbol)
+                            return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 

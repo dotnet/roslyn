@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [Export(typeof(AlwaysActivateInProcLanguageClient))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-internal class AlwaysActivateInProcLanguageClient(
+internal sealed class AlwaysActivateInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
@@ -117,6 +117,15 @@ internal class AlwaysActivateInProcLanguageClient(
         }
 
         serverCapabilities.SpellCheckingProvider = true;
+
+        // Enable go to definition, find all references, and go to implementation capabilities for experimentation.
+        // These are enabled regardless of the LSP feature flag to allow clients to call these handlers.
+        serverCapabilities.DefinitionProvider = true;
+        serverCapabilities.ReferencesProvider = new ReferenceOptions
+        {
+            WorkDoneProgress = true,
+        };
+        serverCapabilities.ImplementationProvider = true;
 
         return serverCapabilities;
     }

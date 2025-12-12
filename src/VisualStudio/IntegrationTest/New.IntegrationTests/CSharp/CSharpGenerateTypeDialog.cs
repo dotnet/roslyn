@@ -25,14 +25,16 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
     [IdeFact]
     public async Task OpenAndCloseDialog()
     {
-        await SetUpEditorAsync(@"class C
-{
-    void Method() 
-    { 
-        $$A a;    
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class C
+            {
+                void Method() 
+                { 
+                    $$A a;    
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
@@ -53,14 +55,16 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
         var project = ProjectName;
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"class C
-{
-    void Method() 
-    { 
-        $$A a;    
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class C
+            {
+                void Method() 
+                { 
+                    $$A a;    
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
@@ -77,22 +81,26 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
 
         await TestServices.SolutionExplorer.OpenFileAsync(vbProj, "GenerateTypeTest.vb", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Public Interface A
-End Interface
-", actualText);
+        Assert.Contains("""
+            Public Interface A
+            End Interface
+
+            """, actualText);
 
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"using VBProj;
+        Assert.Contains("""
+            using VBProj;
 
-class C
-{
-    void Method() 
-    { 
-        A a;    
-    }
-}
-", actualText);
+            class C
+            {
+                void Method() 
+                { 
+                    A a;    
+                }
+            }
+
+            """, actualText);
 
     }
 }

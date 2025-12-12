@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing;
 [ExportLanguageService(typeof(ITestMethodFinder), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpTestMethodFinder([ImportMany] IEnumerable<ITestFrameworkMetadata> testFrameworks) : AbstractTestMethodFinder<MethodDeclarationSyntax>(testFrameworks)
+internal sealed class CSharpTestMethodFinder([ImportMany] IEnumerable<ITestFrameworkMetadata> testFrameworks) : AbstractTestMethodFinder<MethodDeclarationSyntax>(testFrameworks)
 {
     protected override bool DescendIntoChildren(SyntaxNode node)
     {

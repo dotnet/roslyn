@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -18,7 +16,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class WorkaroundsInProcess
+internal sealed partial class WorkaroundsInProcess
 {
     public async Task RemoveConflictingKeyBindingsAsync(CancellationToken cancellationToken)
     {
@@ -64,40 +62,6 @@ internal partial class WorkaroundsInProcess
 
         // Wait for operations dispatched to the main thread without other tracking
         await WaitForApplicationIdleAsync(cancellationToken);
-    }
-
-    private static bool s_gitHubCopilotWorkaroundApplied = false;
-
-    /// <summary>
-    /// GitHub Copilot opens it's output window and steals focus randomly after a file is open. This forces that to happen sooner.
-    /// </summary>
-    public async Task WaitForGitHubCoPilotAsync(CancellationToken cancellationToken)
-    {
-        if (s_gitHubCopilotWorkaroundApplied)
-            return;
-
-        await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-        var shell = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
-        var packageGuid = new Guid("{22818076-b98c-4525-b959-c9e12ff2433c}");
-
-        if (ErrorHandler.Succeeded(shell.IsPackageInstalled(packageGuid, out var fInstalled)) && fInstalled != 0)
-        {
-            shell.LoadPackage(packageGuid, out _);
-
-            var tempFile = Path.Combine(Path.GetTempPath(), "GitHubCopilotWorkaround.txt");
-            File.WriteAllText(tempFile, "");
-            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFile, VSConstants.LOGVIEWID.Code_guid, out _, out _, out var windowFrame, out _);
-
-            await Task.Delay(TimeSpan.FromSeconds(10));
-
-            windowFrame.CloseFrame(grfSaveOptions: 0);
-
-            // Opening a file implicitly created a "solution" so close it so other tests don't care
-            await TestServices.SolutionExplorer.CloseSolutionAsync(cancellationToken);
-
-            s_gitHubCopilotWorkaroundApplied = true;
-        }
     }
 
     public async Task DisableAutoSurroundAsync(CancellationToken cancellationToken)

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 internal static class FunctionIdExtensions
 {
     private static readonly Lazy<ImmutableDictionary<FunctionId, string>> s_functionIdsToString = new(
-        () => Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>().ToImmutableDictionary(f => f, f => f.ToString()));
+        () => Enum.GetValues<FunctionId>().ToImmutableDictionary(f => f, f => f.ToString()));
 
     public static string Convert(this FunctionId functionId) => s_functionIdsToString.Value[functionId];
 }

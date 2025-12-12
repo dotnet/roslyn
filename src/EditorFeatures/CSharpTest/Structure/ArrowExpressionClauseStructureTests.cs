@@ -19,9 +19,8 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
         => new ArrowExpressionClauseStructureProvider();
 
     [Fact]
-    public async Task TestArrowExpressionClause_Method1()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Method1()
+        => VerifyBlockSpansAsync(
             """
             class C
             {
@@ -31,12 +30,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
             }
             """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Method2()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Method2()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -47,12 +44,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Method3()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Method3()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -64,12 +59,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Method4()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Method4()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -80,12 +73,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Method5()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Method5()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -97,12 +88,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Property1()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Property1()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -112,12 +101,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Property2()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Property2()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -128,12 +115,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Property3()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Property3()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -145,12 +130,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Property4()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Property4()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -161,12 +144,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_Property5()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_Property5()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -178,12 +159,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestArrowExpressionClause_LocalFunction()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_LocalFunction()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -196,12 +175,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76820")]
-    public async Task TestArrowExpressionClause_DirectiveOutsideOfArrow()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_DirectiveOutsideOfArrow()
+        => VerifyBlockSpansAsync(
             """
             class C
             {
@@ -215,12 +192,10 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
             }
             """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76820")]
-    public async Task TestArrowExpressionClause_DirectiveInsideOfArrow()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestArrowExpressionClause_DirectiveInsideOfArrow()
+        => VerifyBlockSpansAsync(
             """
             class C
             {
@@ -233,5 +208,4 @@ public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNo
             }
             """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType;
@@ -247,7 +246,7 @@ internal sealed class CSharpGenerateTypeService() :
                 if (simpleName.Parent is QualifiedNameSyntax parent)
                 {
                     var leftSymbol = semanticModel.GetSymbolInfo(parent.Left, cancellationToken).Symbol;
-                    if (leftSymbol != null && leftSymbol.IsKind(SymbolKind.Namespace))
+                    if (leftSymbol is INamespaceSymbol)
                         generateTypeServiceStateOptions.IsMembersWithModule = true;
                 }
             }
@@ -422,27 +421,19 @@ internal sealed class CSharpGenerateTypeService() :
     private static IMethodSymbol GetMethodSymbolIfPresent(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
         if (expression == null)
-        {
             return null;
-        }
 
         var memberGroup = semanticModel.GetMemberGroup(expression, cancellationToken);
         if (memberGroup.Length != 0)
-        {
-            return memberGroup.ElementAt(0).IsKind(SymbolKind.Method) ? (IMethodSymbol)memberGroup.ElementAt(0) : null;
-        }
+            return memberGroup.ElementAt(0) as IMethodSymbol;
 
         var expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-        if (expressionType.IsDelegateType())
-        {
-            return ((INamedTypeSymbol)expressionType).DelegateInvokeMethod;
-        }
+        if (expressionType is INamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: var invokeMethod })
+            return invokeMethod;
 
         var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-        if (expressionSymbol.IsKind(SymbolKind.Method))
-        {
-            return (IMethodSymbol)expressionSymbol;
-        }
+        if (expressionSymbol is IMethodSymbol method)
+            return method;
 
         return null;
     }
@@ -783,7 +774,7 @@ internal sealed class CSharpGenerateTypeService() :
         return CodeGenerationSymbolFactory.CreatePropertySymbol(
             attributes: [],
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             explicitInterfaceImplementations: default,
             name: propertyName.Identifier.ValueText,
             type: propertyType,

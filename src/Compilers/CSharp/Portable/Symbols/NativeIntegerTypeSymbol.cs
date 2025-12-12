@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -184,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
         {
             if (other is null)
@@ -297,6 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal sealed override string? ExtensionGroupingName => null;
+
+        internal sealed override string? ExtensionMarkerName => null;
+
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
             private readonly NativeIntegerTypeSymbol _type;
@@ -365,11 +373,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
+        {
+            if (UnderlyingMethod.TryGetThisParameter(out ParameterSymbol? underlyingThisParameter))
+            {
+                thisParameter = underlyingThisParameter != null
+                    ? new ThisParameterSymbol(this, _container)
+                    : null;
+                return true;
+            }
+
+            thisParameter = null;
+            return false;
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
 
         internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
@@ -397,6 +421,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
+
+        internal override int TryGetOverloadResolutionPriority()
+            => UnderlyingMethod.TryGetOverloadResolutionPriority();
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
@@ -434,9 +464,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
 
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

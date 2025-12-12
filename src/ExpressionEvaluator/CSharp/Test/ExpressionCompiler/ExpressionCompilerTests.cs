@@ -22,9 +22,9 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
-using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -11252,6 +11252,747 @@ public struct Buffer4
  IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
  IL_0008:  ret
 }");
+        }
+
+        [Fact]
+        public void FieldKeyword_01()
+        {
+            var source = @"
+class C
+{
+    public int P1
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P2
+    {
+        get
+        {
+#line 100
+            return 15;
+#line 200
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P3
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P2>k__BackingField""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_02()
+        {
+            var source = @"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+#line 300
+            _ = value;
+#line 400
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.set_P",
+                atLineNumber: 300, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this, System.Int32 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_03()
+        {
+            var source = @"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return local(); 
+
+            int local()
+            {  
+#line 100
+                return field;
+#line 200
+            }
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<get_P>g__local|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_04()
+        {
+            var source = @"
+class C
+{
+    public int P
+    {
+        get
+        {
+            int x = 1;
+            System.Func<int> d = local;
+            return d(); 
+
+            int local()
+            {  
+#line 100
+                return field + x;
+#line 200
+            }
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass2_0.<get_P>g__local|0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass2_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0006:  ldfld      ""int C.<P>k__BackingField""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_05()
+        {
+            var source = @"
+class C
+{
+    public int P
+    {
+        get
+        {
+            System.Func<int> d = int () =>
+            {  
+#line 100
+                return field;
+#line 200
+            };
+
+            return d(); 
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<get_P>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_06()
+        {
+            var source = @"
+class C
+{
+    public int P
+    {
+        get
+        {
+            int x = 1;
+
+            System.Func<int> d = int () =>
+            {  
+#line 100
+                return field + x;
+#line 200
+            };
+
+            return d(); 
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass2_0.<get_P>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass2_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0006:  ldfld      ""int C.<P>k__BackingField""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_07()
+        {
+            var source = @"
+class C
+{
+    public System.Collections.Generic.IEnumerable<int> P
+    {
+        get
+        {
+            foreach (var i in field)
+            {
+#line 100
+                yield return i;
+#line 200
+            }
+        }
+    } = [];
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<get_P>d__2.MoveNext",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Collections.Generic.IEnumerable<System.Int32> <>x.<>m0(C.<get_P>d__2 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (bool V_0,
+            int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<get_P>d__2.<>4__this""
+  IL_0006:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<P>k__BackingField""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_08()
+        {
+            var source = @"
+class C<T>
+{
+    public T P2
+    {
+        get
+        {
+#line 100
+            return field;
+#line 200
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x<T>.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("T <>x<T>.<>m0(C<T> <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.<P2>k__BackingField""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_09()
+        {
+            var source =
+@"
+class C
+{
+    public int P1
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P2
+    {
+        get
+        {
+#line 100
+            return field;
+#line 200
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P3
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.get_P2", atLineNumber: 100);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileAssignment(
+                    target: "field",
+                    expr: "field + 1",
+                    error: out error,
+                    testData: testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int C.<P2>k__BackingField""
+  IL_0007:  ldc.i4.1
+  IL_0008:  add
+  IL_0009:  stfld      ""int C.<P2>k__BackingField""
+  IL_000e:  ret
+}
+");
+            });
+        }
+
+        [Fact]
+        public void FieldKeyword_10()
+        {
+            var source = @"
+class C
+{
+    public static int P1
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public static int P2
+    {
+        get
+        {
+#line 100
+            return field;
+#line 200
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public static int P3
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0()", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldsfld     ""int C.<P2>k__BackingField""
+  IL_0005:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldKeyword_11()
+        {
+            var source = @"
+class C
+{
+    public static int P1
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public static int P2
+    {
+        get
+        {
+#line 100
+            throw null;
+#line 200
+        }
+        set
+        {
+        }
+    }
+
+    public static int P3
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "field",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81171")]
+        public void Extension_01()
+        {
+            var source = """
+public class C
+{
+    public static void Main()
+    {
+#line 999
+        var y = 5.Property;
+        System.Console.WriteLine(y);
+    }
+}
+
+public static class E
+{
+    extension(int i)
+    {
+        public int Property => 42;
+    }
+}
+""";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            // First verify the base compilation is valid
+            compilation0.VerifyEmitDiagnostics();
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main", atLineNumber: 999);
+
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+
+                var result = context.CompileExpression(
+                    "5.Property",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: testData);
+
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL("""
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0) //y
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       "int E.get_Property(int)"
+  IL_0006:  ret
+}
+""");
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81171")]
+        public void Extension_02()
+        {
+            var source = """
+public class C
+{
+    public static void Main()
+    {
+#line 999
+        var y = int.Method();
+        System.Console.WriteLine(y);
+    }
+}
+
+public static class E
+{
+    extension(int)
+    {
+        public static int Method() => 42;
+    }
+}
+""";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            // First verify the base compilation is valid
+            compilation0.VerifyEmitDiagnostics();
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main", atLineNumber: 999);
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+
+                var result = context.CompileExpression(
+                    "int.Method()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: testData);
+
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL("""
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (int V_0) //y
+  IL_0000:  call       "int E.Method()"
+  IL_0005:  ret
+}
+""");
+            });
         }
     }
 }

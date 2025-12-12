@@ -26,7 +26,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 {
     private static readonly DiagnosticDescriptorComparer s_comparer = new();
 
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
     private readonly BulkObservableCollection<BaseItem> _items = [];
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -37,25 +36,19 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     protected ProjectId ProjectId { get; }
     protected IAnalyzersCommandHandler CommandHandler { get; }
 
-    /// <summary>
-    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
-    /// <see langword="null"/> again.
-    /// </summary>
-    private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     public BaseDiagnosticAndGeneratorItemSource(
         IThreadingContext threadingContext,
         Workspace workspace,
         ProjectId projectId,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
         Workspace = workspace;
         ProjectId = projectId;
         CommandHandler = commandHandler;
-        _diagnosticAnalyzerService = diagnosticAnalyzerService;
 
         _workQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Idle,
@@ -64,20 +57,24 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             _cancellationTokenSource.Token);
     }
 
+    /// <summary>
+    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
+    /// <see langword="null"/> again.
+    /// </summary>
     protected AnalyzerReference? AnalyzerReference
     {
-        get => _analyzerReference_DoNotAccessDirectly;
+        get;
         set
         {
-            Contract.ThrowIfTrue(_analyzerReference_DoNotAccessDirectly != null);
+            Contract.ThrowIfTrue(field != null);
             if (value is null)
                 return;
 
-            _analyzerReference_DoNotAccessDirectly = value;
+            field = value;
 
             // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
             // to now get the items for this source.
-            Workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
             _workQueue.AddWork();
         }
     }
@@ -101,7 +98,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
         if (project is null || !project.AnalyzerReferences.Contains(analyzerReference))
         {
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
 
             _cancellationTokenSource.Cancel();
 
@@ -117,13 +115,11 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             return;
         }
 
-        // Currently only project analyzers show in Solution Explorer, so isHostAnalyzer is always false.
-        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference, isHostAnalyzer: false);
-        var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
-            project, analyzerReference).ConfigureAwait(false);
+        var (latestDiagnosticItems, latestSourceGeneratorItems) = await GetLatestItemsAsync(
+            project, analyzerReference, cancellationToken).ConfigureAwait(false);
 
         // If we computed the same set of items as the last time, we can bail out now.
-        if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
+        if (_items.SequenceEqual([.. latestDiagnosticItems, .. latestSourceGeneratorItems]))
             return;
 
         // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
@@ -133,27 +129,36 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         try
         {
             _items.Clear();
-            _items.AddRange(newDiagnosticItems);
-            _items.AddRange(newSourceGeneratorItems);
+            _items.AddRange(latestDiagnosticItems);
+            _items.AddRange(latestSourceGeneratorItems);
         }
         finally
         {
             _items.EndBulkOperation();
         }
+    }
 
-        return;
+    private async Task<(ImmutableArray<BaseItem>, ImmutableArray<BaseItem>)> GetLatestItemsAsync(
+        Project project,
+        AnalyzerReference analyzerReference,
+        CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
 
-        ImmutableArray<BaseItem> GenerateDiagnosticItems(
-            Project project,
-            AnalyzerReference analyzerReference,
-            bool isHostAnalyzer)
+        var latestDiagnosticItems = await GenerateDiagnosticItemsAsync().ConfigureAwait(false);
+        var latestSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync().ConfigureAwait(false);
+
+        return (latestDiagnosticItems, latestSourceGeneratorItems);
+
+        async Task<ImmutableArray<BaseItem>> GenerateDiagnosticItemsAsync()
         {
             var generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
             var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return analyzerReference.GetAnalyzers(project.Language)
-                .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+            var descriptors = await GetDiagnosticDescriptorsAsync().ConfigureAwait(false);
+
+            return descriptors
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .SelectAsArray(g =>
@@ -161,15 +166,37 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(
                         project.CompilationOptions!,
-                        isHostAnalyzer ? analyzerConfigOptions?.ConfigOptionsWithFallback : analyzerConfigOptions?.ConfigOptionsWithoutFallback,
+                        analyzerConfigOptions?.ConfigOptionsWithoutFallback,
                         analyzerConfigOptions?.TreeOptions);
                     return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 });
         }
 
-        async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync(
-            Project project,
-            AnalyzerReference analyzerReference)
+        async ValueTask<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync()
+        {
+            // Call out to oop to do this if possible.  This way we don't actually load the analyzers in proc.
+            // this also allows 
+            if (client is not null &&
+                analyzerReference is AnalyzerFileReference analyzerFileReference)
+            {
+                var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
+                    project,
+                    (service, solutionChecksum, cancellationToken) => service.GetDiagnosticDescriptorsAsync(
+                        solutionChecksum, project.Id, analyzerFileReference.FullPath, project.Language, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                // If the call fails, the OOP substrate will have already reported an error
+                if (!result.HasValue)
+                    return [];
+
+                return result.Value.SelectAsArray(d => d.ToDiagnosticDescriptor());
+            }
+
+            // Otherwise, do the work in process.
+            return await project.GetDiagnosticDescriptorsAsync(analyzerReference, cancellationToken).ConfigureAwait(false);
+        }
+
+        async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync()
         {
             var identifies = await GetIdentitiesAsync().ConfigureAwait(false);
             return identifies.SelectAsArray(
@@ -180,23 +207,20 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         {
             // Can only remote AnalyzerFileReferences over to the oop side.  If we have another form of reference (like
             // in tests), we'll just fall back to loading these in process.
-            if (analyzerReference is AnalyzerFileReference analyzerFileReference)
+            if (client is not null &&
+                analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
-                var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client is not null)
-                {
-                    var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
-                        project,
-                        (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
-                            solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
+                    project,
+                    (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
+                        solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-                    // If the call fails, the OOP substrate will have already reported an error
-                    if (!result.HasValue)
-                        return [];
+                // If the call fails, the OOP substrate will have already reported an error
+                if (!result.HasValue)
+                    return [];
 
-                    return result.Value;
-                }
+                return result.Value;
             }
 
             // Do the work in process.
@@ -204,7 +228,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {

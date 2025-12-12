@@ -10,22 +10,21 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+
+internal sealed partial class CSharpLanguageService : ICSharpProjectHost
 {
-    internal partial class CSharpLanguageService : ICSharpProjectHost
+    public void BindToProject(ICSharpProjectRoot projectRoot, IVsHierarchy hierarchy)
     {
-        public void BindToProject(ICSharpProjectRoot projectRoot, IVsHierarchy hierarchy)
-        {
-            var projectName = Path.GetFileName(projectRoot.GetFullProjectName()); // GetFullProjectName returns the path to the project file w/o the extension?
+        var projectName = Path.GetFileName(projectRoot.GetFullProjectName()); // GetFullProjectName returns the path to the project file w/o the extension?
 
-            var project = new CSharpProjectShim(
-                projectRoot,
-                projectName,
-                hierarchy,
-                this.SystemServiceProvider,
-                this.Package.ComponentModel.GetService<IThreadingContext>());
+        var project = new CSharpProjectShim(
+            projectRoot,
+            projectName,
+            hierarchy,
+            this.SystemServiceProvider,
+            this.Package.ComponentModel.GetService<IThreadingContext>());
 
-            projectRoot.SetProjectSite(project);
-        }
+        projectRoot.SetProjectSite(project);
     }
 }

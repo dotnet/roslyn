@@ -6,15 +6,14 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure
-{
-    internal sealed class OmniSharpBlockStructure
-    {
-        public ImmutableArray<OmniSharpBlockSpan> Spans { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure;
 
-        public OmniSharpBlockStructure(ImmutableArray<OmniSharpBlockSpan> spans)
-        {
-            Spans = spans;
-        }
+internal sealed class OmniSharpBlockStructure
+{
+    public ImmutableArray<OmniSharpBlockSpan> Spans { get; }
+
+    public OmniSharpBlockStructure(ImmutableArray<OmniSharpBlockSpan> spans)
+    {
+        Spans = spans;
     }
 }

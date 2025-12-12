@@ -17,6 +17,31 @@
         <target state="translated">添加所需的单行控制语句的大括号</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_using_0">
+        <source>Add 'using {0};'</source>
+        <target state="new">Add 'using {0};'</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_using_0_and_simplify_all_occurrences">
+        <source>Add 'using {0};' and simplify all occurrences</source>
+        <target state="new">Add 'using {0};' and simplify all occurrences</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adds_a_NuGet_package_reference">
+        <source>Adds a NuGet package reference.</source>
+        <target state="new">Adds a NuGet package reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_project_reference">
+        <source>Adds a project reference.</source>
+        <target state="new">Adds a project reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_an_SDK_reference">
+        <source>Adds an SDK reference.</source>
+        <target state="new">Adds an SDK reference.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
         <target state="translated">应用“{0}”</target>
@@ -132,6 +157,16 @@
         <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_property_name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
+      <trans-unit id="Build_property_value">
+        <source>Value</source>
+        <target state="new">Value</target>
+        <note>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">更改为 "as" 表达式</target>
@@ -142,10 +177,20 @@
         <target state="translated">更改为强制转换</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_extension_methods_to_extension">
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="new">Convert '{0}' extension methods to extension</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
         <target state="translated">将“{0}”转换为 record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
+        <source>Convert all extension methods in '{0}' to extension</source>
+        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -182,6 +227,11 @@
         <target state="translated">转换为逐字字符串</target>
         <note />
       </trans-unit>
+      <trans-unit id="Defines_a_build_property">
+        <source>Defines a build property.</source>
+        <target state="new">Defines a build property.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">在项目中启用可为 null 的引用类型</target>
@@ -201,6 +251,21 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">尽可能将私有字段设置为“只读”</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Package_name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Package_version">
+        <source>Version</source>
+        <target state="new">Version</target>
+        <note>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Project_directive_file_path">
+        <source>path</source>
+        <target state="new">path</target>
+        <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>

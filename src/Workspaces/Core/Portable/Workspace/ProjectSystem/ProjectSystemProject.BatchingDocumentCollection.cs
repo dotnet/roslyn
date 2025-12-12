@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -68,6 +68,18 @@ internal sealed partial class ProjectSystemProject
         private readonly Action<Workspace, DocumentId> _documentRemoveAction;
         private readonly Func<Solution, DocumentId, TextLoader, Solution> _documentTextLoaderChangedAction;
         private readonly WorkspaceChangeKind _documentChangedWorkspaceKind;
+
+        /// <summary>
+        /// An <see cref="AsyncBatchingWorkQueue"/> for processing updates to dynamic files. This is lazily created the first time we see
+        /// a change to process, since dynamic files are only used in certain Razor scenarios and most projects won't ever have one.
+        /// </summary>
+        /// <remarks>
+        /// This is used for two reasons: first, if we have a flurry of events we want to deduplicate them. But it also ensures ordering -- if we were to get a change to
+        /// a dynamic file while we're already processing another change, we want to ensure that the first change is processed before the second one. Otherwise we might
+        /// end up with the updates being applied out of order (since we're not always holding a lock while calling to the dynamic file info provider) and we might end up with
+        /// an old version stuck in the workspace.
+        /// </remarks>
+        private AsyncBatchingWorkQueue<(string projectSystemFilePath, string workspaceFilePath)>? _dynamicFilesToRefresh;
 
         public BatchingDocumentCollection(ProjectSystemProject project,
             Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
@@ -213,7 +225,7 @@ internal sealed partial class ProjectSystemProject
 
             _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
 
-            if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
+            if (_project._dynamicFileInfoProvidersSubscribedTo.Add(fileInfoProvider))
             {
                 // subscribe to the event when we use this provider the first time
                 fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
@@ -439,55 +451,67 @@ internal sealed partial class ProjectSystemProject
         /// <summary>
         /// Process file content changes
         /// </summary>
-        /// <param name="projectSystemFilePath">filepath given from project system</param>
-        /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath</param>
+        /// <param name="projectSystemFilePath">File path given from project system for the .cshtml file</param>
+        /// <param name="workspaceFilePath">File path for the equivalent .cs document used in workspace. it might be different than projectSystemFilePath.</param>
         public void ProcessDynamicFileChange(string projectSystemFilePath, string workspaceFilePath)
         {
-            using (_project._gate.DisposableWait())
+            InterlockedOperations.Initialize(ref _dynamicFilesToRefresh, () =>
             {
-                // If our project has already been removed, this is a stale notification, and we can disregard.
-                if (_project.HasBeenRemoved)
+                return new AsyncBatchingWorkQueue<(string, string)>(
+                    TimeSpan.FromMilliseconds(200), // 200 chosen with absolutely no evidence whatsoever
+                    ProcessDynamicFileChangesAsync,
+                    EqualityComparer<(string, string)>.Default, // uses ordinal string comparison which is what we want
+                    _project._projectSystemProjectFactory.WorkspaceListener,
+                    _project._asynchronousFileChangeProcessingCancellationTokenSource.Token);
+            });
+
+            _dynamicFilesToRefresh.AddWork((projectSystemFilePath, workspaceFilePath));
+        }
+
+        private async ValueTask ProcessDynamicFileChangesAsync(ImmutableSegmentedList<(string projectSystemFilePath, string workspaceFilePath)> batch, CancellationToken cancellationToken)
+        {
+            foreach (var (projectSystemPath, workspaceFilePath) in batch)
+            {
+                DocumentId? documentId;
+                IDynamicFileInfoProvider? fileInfoProvider;
+
+                using (await _project._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    return;
+                    // If our project has already been removed, and we can disregard everything and just 'return'
+                    if (_project.HasBeenRemoved)
+                        return;
+
+                    // For everything else, if it's not here 'continue' to the next item in the batch.
+                    if (!_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out documentId))
+                        continue;
+
+                    if (!_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out fileInfoProvider))
+                        continue;
                 }
 
-                if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
-                {
-                    // We create file watching prior to pushing the file to the workspace in batching, so it's
-                    // possible we might see a file change notification early. In this case, toss it out. Since
-                    // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                    // check without taking the main workspace lock. We don't have to check for documents removed in
-                    // the batch, since those have already been removed out of _documentPathsToDocumentIds.
-                    if (_documentsAddedInBatch.Any(d => d.Id == documentId))
-                    {
-                        return;
-                    }
+                // Now that we've got all our basic data, let's fetch the new document outside the lock, since this could be expensive.
+                var fileInfo = await fileInfoProvider.GetDynamicFileInfoAsync(
+                    _project.Id, _project._filePath, projectSystemPath, CancellationToken.None).ConfigureAwait(false);
+                Contract.ThrowIfNull(fileInfo, "We previously received a dynamic file for this path, and we're responding to a change, so we expect to get a new one.");
 
-                    Contract.ThrowIfFalse(_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider));
-
-                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
+                await _project._projectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w =>
                     {
                         if (w.IsDocumentOpen(documentId))
                         {
                             return;
                         }
 
-                        // we do not expect JTF to be used around this code path. and contract of fileInfoProvider is it being real free-threaded
-                        // meaning it can't use JTF to go back to UI thread.
-                        // so, it is okay for us to call regular ".Result" on a task here.
-                        var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
-                            _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                        // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here.
+                        // If the document is longer present, that could mean we unloaded the project, or the dynamic file was removed while we had released the lock.
+                        var documentToReload = w.CurrentSolution.GetDocument(documentId);
 
-                        Contract.ThrowIfNull(fileInfo, "We previously received a dynamic file for this path, and we're responding to a change, so we expect to get a new one.");
+                        if (documentToReload is null)
+                            return;
 
-                        // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                        var attributes = w.CurrentSolution.GetRequiredDocument(documentId).State.Attributes;
-
-                        var documentInfo = new DocumentInfo(attributes, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
+                        var documentInfo = new DocumentInfo(documentToReload.State.Attributes, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
 
                         w.OnDocumentReloaded(documentInfo);
-                    });
-                }
+                    }, cancellationToken).ConfigureAwait(false);
             }
         }
 

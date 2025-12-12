@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 // setting this however still ensures the AfterTest portion runs which will clear out the existing catalog, and ensure that
 // no other test accidentally uses the default catalog later if that other test is missing [UseExportProvider].
 [UseExportProvider]
-public class DefaultMefHostTests
+public sealed class DefaultMefHostTests
 {
     [Fact]
     public void TestDefaultCompositionIncludesFeaturesLayer()

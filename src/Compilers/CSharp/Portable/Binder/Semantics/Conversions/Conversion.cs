@@ -136,13 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, constructor, constructorUsedInExpandedForm, elementConversions));
         }
 
-        internal static Conversion CreateKeyValuePairConversion(Conversion keyConversion, Conversion valueConversion)
-        {
-            return new Conversion(
-                ConversionKind.KeyValuePair,
-                new NestedUncommonData([keyConversion, valueConversion]));
-        }
-
         private Conversion(
             ConversionKind kind,
             UncommonData? uncommonData = null)
@@ -565,22 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             constructor = null;
             isExpanded = false;
             return CollectionExpressionTypeKind.None;
-        }
-
-        internal bool TryGetKeyValueConversions(out Conversion keyConversion, out Conversion valueConversion)
-        {
-            if (Kind == ConversionKind.KeyValuePair)
-            {
-                Debug.Assert(_uncommonData is NestedUncommonData { _nestedConversionsOpt: [_, _] });
-                var nestedConversions = ((NestedUncommonData)_uncommonData)._nestedConversionsOpt;
-                keyConversion = nestedConversions[0];
-                valueConversion = nestedConversions[1];
-                return true;
-            }
-
-            keyConversion = NoConversion;
-            valueConversion = NoConversion;
-            return false;
         }
 
         // CONSIDER: public?

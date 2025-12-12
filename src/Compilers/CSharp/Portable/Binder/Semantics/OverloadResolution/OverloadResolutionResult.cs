@@ -128,6 +128,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal TMember PickRepresentativeMember()
+        {
+            Debug.Assert(HasAnyApplicableMember);
+
+            if (Succeeded)
+            {
+                return BestResult.Member;
+            }
+
+            if (ResultsBuilder.FirstOrDefault(r => r.Result.Kind == MemberResolutionKind.Worse).Member is { } worse)
+            {
+                return worse;
+            }
+
+            return GetAllApplicableMembers()[0];
+        }
+
         /// <summary>
         /// Returns all methods in the group that are applicable, <see cref="HasAnyApplicableMember"/>.
         /// </summary>
@@ -201,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
             TypeSymbol delegateOrFunctionPointerType = null,
-            bool isParamsModifierValidation = false) where T : Symbol
+            bool isParamsModifierValidation = false,
+            bool isExtension = false) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
 
@@ -220,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // however, be more than one.  We'll check for that first, since applicable candidates are
             // always better than inapplicable candidates.
 
-            if (HadAmbiguousBestMethods(diagnostics, symbols, location))
+            if (HadAmbiguousBestMethods(binder.Compilation, diagnostics, symbols, location, isExtension))
             {
                 return;
             }
@@ -243,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Obviously, there can't be a LessDerived cycle, since we break type hierarchy cycles during
             // symbol table construction.)
 
-            if (HadAmbiguousWorseMethods(diagnostics, symbols, location, queryClause != null, receiver, name))
+            if (HadAmbiguousWorseMethods(binder.Compilation, diagnostics, symbols, location, queryClause != null, receiver, name, isExtension))
             {
                 return;
             }
@@ -505,7 +523,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but no argument was supplied for it then the first such method is 
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
-                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0)
+                            // Special case for collection expressions and 'params' arrays. Note: if the collection
+                            // expression has a 'with' element, we want to do normal diagnostic reporting as we want
+                            // to give accurate information about the arguments they supplied and the end construct
+                            // signature they were trying to create.
+                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0 &&
+                                !binder.BindingCollectionExpressionWithArguments)
                             {
                                 if (receiver is null)
                                 {
@@ -774,10 +797,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    diagnostics.Add(new DiagnosticInfoWithSymbols(
-                        ErrorCode.ERR_NoSuchMemberOrExtension,
-                        new object[] { instanceArgument.Type, inferenceFailed.Member.Name },
-                        symbols), location);
+                    if (inferenceFailed.Member.Kind == SymbolKind.Method)
+                    {
+                        // error CS0411: The type arguments for method 'M<T>(T)' cannot be inferred
+                        // from the usage. Try specifying the type arguments explicitly.
+                        diagnostics.Add(new DiagnosticInfoWithSymbols(
+                            ErrorCode.ERR_CantInferMethTypeArgs,
+                            new object[] { inferenceFailed.Member },
+                            symbols), location);
+                    }
+                    else
+                    {
+                        diagnostics.Add(new DiagnosticInfoWithSymbols(
+                            ErrorCode.ERR_NoSuchMemberOrExtension,
+                            new object[] { instanceArgument.Type, inferenceFailed.Member.Name },
+                            symbols), location);
+                    }
                 }
 
                 return true;
@@ -895,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to required formal parameter 'y'.
 
             TMember badMember = bad.Member;
-            ImmutableArray<ParameterSymbol> parameters = badMember.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = badMember.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
             int badParamIndex = bad.Result.BadParameter;
             string badParamName;
             if (badParamIndex == parameters.Length)
@@ -932,21 +967,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // error CS1729: 'M' does not contain a constructor that takes n arguments
             // error CS1593: Delegate 'M' does not take n arguments
             // error CS8757: Function pointer 'M' does not take n arguments
+            // error CS9405: No overload for method 'M' takes n 'with(...)' element arguments
 
             FunctionPointerMethodSymbol functionPointerMethodBeingInvoked = symbols.IsDefault || symbols.Length != 1
                 ? null
                 : symbols[0] as FunctionPointerMethodSymbol;
 
-            (ErrorCode code, object target) = (typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked) switch
+            var isWithElementValidation = arguments.Arguments.Count > 0 && !symbols.IsDefaultOrEmpty && symbols[0] is SynthesizedCollectionBuilderProjectedMethodSymbol;
+
+            (ErrorCode code, object target) = (typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked, isWithElementValidation) switch
             {
-                (object t, _, _) => (ErrorCode.ERR_BadCtorArgCount, t),
-                (_, object t, _) => (ErrorCode.ERR_BadDelArgCount, t),
-                (_, _, object t) => (ErrorCode.ERR_BadFuncPointerArgCount, t),
+                (object t, _, _, _) => (ErrorCode.ERR_BadCtorArgCount, t),
+                (_, object t, _, _) => (ErrorCode.ERR_BadDelArgCount, t),
+                (_, _, object t, _) => (ErrorCode.ERR_BadFuncPointerArgCount, t),
+                (_, _, _, true) => (ErrorCode.ERR_BadCollectionArgumentsArgCount, name),
                 _ => (ErrorCode.ERR_BadArgCount, name)
             };
 
             int argCount = arguments.Arguments.Count;
-            if (arguments.IsExtensionMethodInvocation)
+            if (arguments.IncludesReceiverAsArgument)
             {
                 argCount--;
             }
@@ -1114,8 +1153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ErrorCode.ERR_BadArgTypesForCollectionAdd or ErrorCode.ERR_InitializerAddHasParamModifiers
                 // as there is no explicit call to Add method.
 
-                int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
-                var parameters = method.GetParameters();
+                int argumentOffset = arguments.IncludesReceiverAsArgument ? 1 : 0;
+                var parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
 
                 for (int i = argumentOffset; i < parameters.Length; i++)
                 {
@@ -1156,6 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember method,
             int arg)
         {
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider adjusting or removing the argument index for displaying in diagnostic
             BoundExpression argument = arguments.Argument(arg);
             if (argument.HasAnyErrors)
             {
@@ -1169,7 +1209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Early out: if the bad argument is an __arglist parameter then simply report that:
 
-            if (method.GetIsVararg() && parm == method.GetParameterCount())
+            var parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
+            if (method.GetIsVararg() && parm == parameters.Length)
             {
                 // NOTE: No SymbolDistinguisher required, since one of the arguments is "__arglist".
 
@@ -1184,12 +1225,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ParameterSymbol parameter = method.GetParameters()[parm];
-            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
+            ParameterSymbol parameter = parameters[parm];
+            bool isLastParameter = parameters.Length == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParameter = parameter.RefKind;
 
-            if (arguments.IsExtensionMethodThisArgument(arg))
+            if (arguments.IsExtensionMethodReceiverArgument(arg))
             {
                 Debug.Assert(refArg == RefKind.None);
                 if (refParameter == RefKind.Ref || refParameter == RefKind.In)
@@ -1301,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argument.Kind != BoundKind.DiscardExpression || argument.HasExpressionType());
                 Debug.Assert(argument.Display != null);
 
-                if (arguments.IsExtensionMethodThisArgument(arg))
+                if (arguments.IsExtensionMethodReceiverArgument(arg))
                 {
                     Debug.Assert((arg == 0) && (parm == arg));
                     Debug.Assert(!badArg.Result.ConversionForArg(parm).IsImplicit);
@@ -1386,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool HadAmbiguousWorseMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)
+        private bool HadAmbiguousWorseMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name, bool isExtension)
         {
             MemberResolutionResult<TMember> worseResult1;
             MemberResolutionResult<TMember> worseResult2;
@@ -1412,9 +1453,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
                 diagnostics.Add(
                     CreateAmbiguousCallDiagnosticInfo(
-                        worseResult1.LeastOverriddenMember.OriginalDefinition,
-                        worseResult2.LeastOverriddenMember.OriginalDefinition,
-                        symbols),
+                        compilation,
+                        worseResult1.LeastOverriddenMember.ConstructedFrom(),
+                        worseResult2.LeastOverriddenMember.ConstructedFrom(),
+                        symbols,
+                        isExtension),
                     location);
             }
 
@@ -1450,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private bool HadAmbiguousBestMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
+        private bool HadAmbiguousBestMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isExtension)
         {
             MemberResolutionResult<TMember> validResult1;
             MemberResolutionResult<TMember> validResult2;
@@ -1461,13 +1504,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            Debug.Assert(false, "Add tests if this is triggered. https://github.com/dotnet/roslyn/issues/80507");
+
             // error CS0121: The call is ambiguous between the following methods or properties:
             // 'P.Ambiguous(object, string)' and 'P.Ambiguous(string, object)'
             diagnostics.Add(
                 CreateAmbiguousCallDiagnosticInfo(
-                    validResult1.LeastOverriddenMember.OriginalDefinition,
-                    validResult2.LeastOverriddenMember.OriginalDefinition,
-                    symbols),
+                    compilation,
+                    validResult1.LeastOverriddenMember.ConstructedFrom(),
+                    validResult2.LeastOverriddenMember.ConstructedFrom(),
+                    symbols,
+                    isExtension),
                 location);
 
             return true;
@@ -1502,20 +1549,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
+        internal static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(CSharpCompilation compilation, Symbol first, Symbol second, ImmutableArray<Symbol> symbols, bool isExtension)
         {
-            var arguments = (first.ContainingNamespace != second.ContainingNamespace) ?
-                new object[]
-                    {
-                            new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                            new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                    } :
-                new object[]
-                    {
-                            first,
-                            second
-                    };
-            return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, arguments, symbols);
+            // error: The extension resolution is ambiguous between the following members: 'first' and 'second'
+            // OR
+            // error: The call is ambiguous between the following methods or properties: 'first' and 'second'
+            var distinguisher = new SymbolDistinguisher(compilation, first, second);
+            return new DiagnosticInfoWithSymbols(isExtension ? ErrorCode.ERR_AmbigExtension : ErrorCode.ERR_AmbigCall, [distinguisher.First, distinguisher.Second], symbols);
         }
 
         [Conditional("DEBUG")]

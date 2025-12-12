@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
@@ -72,6 +73,8 @@ internal sealed class RefKeywordRecommender() : AbstractSyntacticSingleKeywordRe
             // SyntaxKind.VolatileKeyword, // fields cannot be byref
         };
 
+    protected override int PreselectMatchPriority => SymbolMatchPriority.PreferRequiredKeyword;
+
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;
@@ -84,6 +87,50 @@ internal sealed class RefKeywordRecommender() : AbstractSyntacticSingleKeywordRe
             context.TargetToken.IsXmlCrefParameterModifierContext() ||
             IsValidNewByRefContext(syntaxTree, position, context, cancellationToken) ||
             IsAllowsRefStructConstraintContext(context);
+    }
+
+    protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        if (!context.TargetToken.IsConstructorOrMethodParameterArgumentContext())
+            return false;
+
+        var parent = context.TargetToken.GetAncestor(n => n is ArgumentListSyntax);
+        if (parent is not ArgumentListSyntax argumentList)
+            return false;
+
+        var symbol = context.SemanticModel.GetSymbolInfo(argumentList.GetRequiredParent(), cancellationToken).GetAnySymbol();
+        if (symbol is not IMethodSymbol methodSymbol)
+            return false;
+
+        var parameter = DetermineParameter();
+        return parameter?.RefKind is RefKind.Ref or RefKind.RefReadOnlyParameter;
+
+        IParameterSymbol? DetermineParameter()
+        {
+            if (context.TargetToken.IsKind(SyntaxKind.ColonToken))
+            {
+                if (context.TargetToken.Parent is NameColonSyntax nameColon)
+                    return methodSymbol.Parameters.FirstOrDefault(p => p.Name == nameColon.Name.Identifier.ValueText);
+            }
+            else if (context.TargetToken.Kind() == SyntaxKind.OpenParenToken)
+            {
+                return methodSymbol.Parameters.FirstOrDefault();
+            }
+            else if (context.TargetToken.Kind() == SyntaxKind.CommaToken)
+            {
+                var index = argumentList.Arguments.GetWithSeparators().IndexOf(context.TargetToken);
+                if (index >= 0)
+                {
+                    // Foo(a,       Comma index is '1', argument index is '1'
+                    // Foo(a,b,     Comma index is '3', argument index is '2'
+                    // Foo(a,b,c,   Comma index is '5', argument index is '3'
+                    var argumentIndex = (index + 1) / 2;
+                    return methodSymbol.Parameters.ElementAtOrDefault(argumentIndex);
+                }
+            }
+
+            return null;
+        }
     }
 
     private static bool IsAllowsRefStructConstraintContext(CSharpSyntaxContext context)
@@ -142,7 +189,7 @@ internal sealed class RefKeywordRecommender() : AbstractSyntacticSingleKeywordRe
             syntaxTree.IsGlobalMemberDeclarationContext(position, syntaxTree.IsScript() ? RefGlobalMemberScriptModifiers : RefGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: RefMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken);
     }
@@ -217,6 +264,6 @@ internal sealed class RefKeywordRecommender() : AbstractSyntacticSingleKeywordRe
     private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken);
     }
 }

@@ -14,12 +14,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_NoOptions()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$()
@@ -27,10 +29,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a)
@@ -38,15 +37,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(TODO);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_SingleLocal()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$()
@@ -55,10 +54,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a)
@@ -67,15 +63,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_NotOnInaccessibleLocal()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$()
@@ -84,10 +80,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     int x = 7;
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a)
@@ -96,15 +89,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     int x = 7;
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_MultipleLocals()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$()
@@ -114,10 +107,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int a)
@@ -127,15 +117,16 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(y);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_SingleParameter()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(0),
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 void M$$(int x)
@@ -143,11 +134,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(1);
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(0),
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 void M(int x, int a)
@@ -155,15 +142,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(1, x);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_SingleField()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 int x = 8;
@@ -173,10 +160,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 int x = 8;
@@ -186,15 +170,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(x);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_SingleProperty()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 int X { get; set; }
@@ -204,10 +188,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class C
             {
                 int X { get; set; }
@@ -217,15 +198,15 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(X);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task AddOptionalParameter_CallsiteInferred_ImplicitlyConvertable()
     {
-        var markup = """
+        var updatedSignature = new[] {
+            AddedParameterOrExistingIndex.CreateAdded("B", "b", CallSiteKind.Inferred) };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B { }
             class D : B { }
 
@@ -237,10 +218,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M();
                 }
             }
-            """;
-        var updatedSignature = new[] {
-            AddedParameterOrExistingIndex.CreateAdded("B", "b", CallSiteKind.Inferred) };
-        var updatedCode = """
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
             class B { }
             class D : B { }
 
@@ -252,8 +230,6 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(d);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 }

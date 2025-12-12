@@ -29,7 +29,7 @@ internal static class RichNavOptions
 [DefaultScope]
 [Name(PredefinedScopeFilterNames.LoadedSolutionScopeFilter)]
 [Order(Before = PredefinedScopeFilterNames.AllItemsScopeFilter)]
-internal class LoadedSolutionScopeFilterFactory : IReplacingScopeFilterFactory
+internal sealed class LoadedSolutionScopeFilterFactory : IReplacingScopeFilterFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -80,7 +80,7 @@ internal abstract class RoslynFilterHandler : FilterHandlerBase
     }
 }
 
-internal class LoadedSolutionFilterHandler : RoslynFilterHandler
+internal sealed class LoadedSolutionFilterHandler : RoslynFilterHandler
 {
     private const int LoadedSolutionFilterHandlerFilterId = 20;
     public LoadedSolutionFilterHandler(string displayName)
@@ -95,7 +95,7 @@ internal class LoadedSolutionFilterHandler : RoslynFilterHandler
 [DeferCreation(OptionName = RichNavOptions.RichNavAvailableOptionName)] // This factory will not be loaded unless this option is set to Boolean true
 [Name(AllSourcesFilterHandlerFactory.AllSourcesScopeFilter)]
 [Order(Before = PredefinedScopeFilterNames.EntireRepositoryScopeFilter)]
-internal class AllSourcesFilterHandlerFactory : IScopeFilterFactory
+internal sealed class AllSourcesFilterHandlerFactory : IScopeFilterFactory
 {
     private const string AllSourcesScopeFilter = "All Sources";
 
@@ -109,7 +109,7 @@ internal class AllSourcesFilterHandlerFactory : IScopeFilterFactory
         => new AllSourcesFilterHandler();
 }
 
-internal class AllSourcesFilterHandler : RoslynFilterHandler
+internal sealed class AllSourcesFilterHandler : RoslynFilterHandler
 {
     private const int AllSourcesFilterHandlerFilterId = 22;
 
@@ -125,7 +125,7 @@ internal class AllSourcesFilterHandler : RoslynFilterHandler
 [DeferCreation(OptionName = RichNavOptions.RichNavAvailableOptionName)] // This factory will not be loaded unless this option is set to Boolean true
 [Name(PredefinedScopeFilterNames.EntireRepositoryScopeFilter)]
 [Order(Before = PredefinedScopeFilterNames.LoadedSolutionScopeFilter)]
-internal class EntireRepositoryFilterHandlerFactory : IScopeFilterFactory
+internal sealed class EntireRepositoryFilterHandlerFactory : IScopeFilterFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -137,7 +137,7 @@ internal class EntireRepositoryFilterHandlerFactory : IScopeFilterFactory
         => new EntireRepositoryFilterHandler();
 }
 
-internal class EntireRepositoryFilterHandler : RoslynFilterHandler
+internal sealed class EntireRepositoryFilterHandler : RoslynFilterHandler
 {
     private const int EntireRepositoryFilterHandlerFilterId = 21;
 
@@ -147,7 +147,7 @@ internal class EntireRepositoryFilterHandler : RoslynFilterHandler
     }
 }
 
-internal class ItemOriginFilter : IEntryFilter
+internal sealed class ItemOriginFilter : IEntryFilter
 {
     private readonly ItemOrigin _targetOrigin;
 

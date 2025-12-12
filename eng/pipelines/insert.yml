@@ -50,6 +50,9 @@ parameters:
     type: string
     default: ''
 
+  - name: cherryPick
+    type: string
+
 steps:
   - checkout: none
   
@@ -63,12 +66,7 @@ steps:
       $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
       $response = Invoke-RestMethod -Headers @{Authorization = $authorization} "${{ parameters.publishDataURI }}"
       $branchName = "${{ parameters.sourceBranch }}"
-      $branchData = $response.branches.$branchName
-      if (!$branchData)
-      {
-        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
-        $branchData = $response.branches.main
-      }
+      $insertionData = $response.branchInfo
 
       # Set our template variables to reasonable defaults
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
@@ -81,27 +79,27 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.DropPath]$('(default)')"
 
       Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
-      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($branchData.vsBranch)"
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($insertionData.vsBranch)"
 
       # Overwrite the default template variables with the values from PublishData for this sourceBranch
-      if ($null -ne $branchData.insertionCreateDraftPR)
+      if ($null -ne $insertionData.insertionCreateDraftPR)
       {
-        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($insertionData.insertionCreateDraftPR)"
       }
 
-      if ($null -ne $branchData.insertionCreateDraftPR)
+      if ($null -ne $insertionData.insertionCreateDraftPR)
       {
-        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $insertionData.insertionCreateDraftPR)"
       }
 
-      if ($null -ne $branchData.insertionTitlePrefix)
+      if ($null -ne $insertionData.insertionTitlePrefix)
       {
-        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($branchData.insertionTitlePrefix)"
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($insertionData.insertionTitlePrefix)"
       }
 
-      if ($null -ne $branchData.insertToolset)
+      if ($null -ne $insertionData.insertToolset)
       {
-        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($branchData.insertToolset)"
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($insertionData.insertToolset)"
       }
 
     displayName: Set Variables from PublishData
@@ -183,7 +181,7 @@ steps:
       .\RIT\tools\net472\OneOffInsertion.ps1 `
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
-        -cherryPick "(default)" `
+        -cherryPick "${{ parameters.cherryPick }}" `
         -userName "$(Template.BuildUserName)" `
         -password "$(Template.BuildPassword)" `
         -componentUserName "$(Template.ComponentUserName)" `

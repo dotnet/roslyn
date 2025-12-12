@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -282,31 +281,34 @@ internal static class FormattingExtensions
                 var (firstToken, lastToken) = nodeOrToken.AsNode(out var childNode)
                     ? (childNode.GetFirstToken(includeZeroWidth: true), childNode.GetLastToken(includeZeroWidth: true))
                     : (nodeOrToken.AsToken(), nodeOrToken.AsToken());
-                yield return GetSpan(firstToken, lastToken);
+                yield return GetSpanIncludingPreviousAndNextTokens(firstToken, lastToken);
             }
         }
     }
 
-    internal static TextSpan GetSpan(SyntaxToken firstToken, SyntaxToken lastToken)
+    /// <summary>
+    /// Attempt to get a span that encompassed these tokens, but is expanded to go from the normal start of the
+    /// token that precedes them to the normal end of the token that follows.  If there is no token that precedes
+    /// or follows, then we expand to consume at least the full span of the <paramref name="firstToken"/> and 
+    /// <paramref name="lastToken"/> so that we at least will try to format any trivia on them.
+    /// </summary>
+    internal static TextSpan GetSpanIncludingPreviousAndNextTokens(SyntaxToken firstToken, SyntaxToken lastToken)
     {
         var previousToken = firstToken.GetPreviousToken();
+        var start = previousToken.RawKind != 0
+            ? previousToken.SpanStart
+            : firstToken.FullSpan.Start;
+
         var nextToken = lastToken.GetNextToken();
+        var end = nextToken.RawKind != 0
+            ? nextToken.Span.End
+            : lastToken.FullSpan.End;
 
-        if (previousToken.RawKind != 0)
-        {
-            firstToken = previousToken;
-        }
-
-        if (nextToken.RawKind != 0)
-        {
-            lastToken = nextToken;
-        }
-
-        return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
+        return TextSpan.FromBounds(start, end);
     }
 
     internal static TextSpan GetElasticSpan(SyntaxToken token)
-        => GetSpan(token, token);
+        => GetSpanIncludingPreviousAndNextTokens(token, token);
 
     private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
     {

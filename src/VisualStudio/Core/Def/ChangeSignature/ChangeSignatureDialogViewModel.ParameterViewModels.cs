@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 
-internal partial class ChangeSignatureDialogViewModel
+internal sealed partial class ChangeSignatureDialogViewModel
 {
     public abstract class ParameterViewModel
     {
@@ -93,9 +93,17 @@ internal partial class ChangeSignatureDialogViewModel
         }
 
         public virtual string CallSiteValue => string.Empty;
+
+        public string RemovedParameterAutomationText
+        {
+            get
+            {
+                return string.Format(ServicesVSResources.Removed_0, FullAutomationText);
+            }
+        }
     }
 
-    public class AddedParameterViewModel : ParameterViewModel
+    public sealed class AddedParameterViewModel : ParameterViewModel
     {
         public override Parameter Parameter => _addedParameter;
         private readonly AddedParameter _addedParameter;
@@ -122,8 +130,19 @@ internal partial class ChangeSignatureDialogViewModel
         {
             get
             {
-                var baseText = base.FullAutomationText;
-                return ServicesVSResources.Added_Parameter + baseText + string.Format(ServicesVSResources.Inserting_call_site_value_0, CallSite);
+                var typeText = Type;
+                if (TypeWarningVisibility is Visibility.Visible)
+                {
+                    typeText = string.Format(ServicesVSResources.Warning_0_does_not_bind_to_type, Type);
+                }
+
+                var text = $"{Modifier} {typeText} {ParameterName}";
+                if (!string.IsNullOrWhiteSpace(Default))
+                {
+                    text += $" = {Default}";
+                }
+
+                return ServicesVSResources.Added_Parameter + text + string.Format(ServicesVSResources.Inserting_call_site_value_0, CallSite);
             }
         }
 
@@ -152,7 +171,7 @@ internal partial class ChangeSignatureDialogViewModel
         public override string DefaultValue => _addedParameter.DefaultValue;
     }
 
-    public class ExistingParameterViewModel : ParameterViewModel
+    public sealed class ExistingParameterViewModel : ParameterViewModel
     {
         public IParameterSymbol ParameterSymbol => _existingParameter.Symbol;
 

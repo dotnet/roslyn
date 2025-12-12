@@ -76,15 +76,16 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 
         var debugSessionId = getNextId();
 
-        log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
+        log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(static (map, args) =>
         {
+            var (data, debugSessionId) = args;
             map["SolutionSessionId"] = data.SolutionSessionId.ToString("B").ToUpperInvariant();
             map[SessionId] = debugSessionId;
             map["SessionCount"] = data.EditSessionData.Count(session => session.InBreakState);
             map["EmptySessionCount"] = data.EmptyEditSessionCount;
             map["HotReloadSessionCount"] = data.EditSessionData.Count(session => !session.InBreakState);
             map["EmptyHotReloadSessionCount"] = data.EmptyHotReloadEditSessionCount;
-        }));
+        }, (data, debugSessionId)));
 
         foreach (var editSessionData in data.EditSessionData)
         {
@@ -95,17 +96,21 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
                 map[SessionId] = debugSessionId;
                 map[EditSessionId] = editSessionId;
 
-                map["HadCompilationErrors"] = editSessionData.HadCompilationErrors;
-                map["HadRudeEdits"] = editSessionData.HadRudeEdits;
+                // Syntax errors
+                map["HadCompilationErrors"] = editSessionData.HasSyntaxErrors;
+
+                // Blocking rude edits
+                map["HadRudeEdits"] = editSessionData.HadBlockingRudeEdits;
 
                 // Changes made to source code during the edit session were valid - they were significant and no rude edits were reported.
                 // The changes still might fail to emit (see EmitDeltaErrorIdCount).
                 map["HadValidChanges"] = editSessionData.HadValidChanges;
                 map["HadValidInsignificantChanges"] = editSessionData.HadValidInsignificantChanges;
 
+                // all rude edits (errors and warnings)
                 map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
 
-                // Number of emit errors.
+                // Number of emit errors. These are any errors only produced during emitting deltas and do not include document analysis errors.
                 map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
 
                 // False for Hot Reload session, true or missing for EnC session (missing in older data that did not have this property).
@@ -148,7 +153,7 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 
                     map["RudeEditKind"] = editKind;
                     map["RudeEditSyntaxKind"] = syntaxKind;
-                    map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
+                    map["RudeEditBlocking"] = editSessionData.HadBlockingRudeEdits;
                     map["RudeEditProjectId"] = ProjectIdToPii(projectId);
                 }));
             }

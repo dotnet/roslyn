@@ -228,6 +228,7 @@ namespace Microsoft.CodeAnalysis
 
         // pseudo-custom attributes:
         public abstract int ERR_PermissionSetAttributeFileReadError { get; }
+        public abstract int ERR_MethodImplAttributeAsyncCannotBeUsed { get; }
 
         // PDB writing:
         public abstract int ERR_EncodinglessSyntaxTree { get; }
@@ -239,12 +240,14 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_MetadataNameTooLong { get; }
         public abstract int ERR_EncReferenceToAddedMember { get; }
         public abstract int ERR_TooManyUserStrings { get; }
+        public abstract int ERR_TooManyUserStrings_RestartRequired { get; }
         public abstract int ERR_PeWritingFailure { get; }
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingSymbol { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
         public abstract int ERR_FunctionPointerTypesInAttributeNotSupported { get; }
         public abstract int ERR_DataSectionStringLiteralHashCollision { get; }
+        public abstract int ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime { get; }
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }

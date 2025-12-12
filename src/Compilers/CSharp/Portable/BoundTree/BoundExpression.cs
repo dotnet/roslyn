@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
                 // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
                 Debug.Assert(this.WasCompilerGenerated ||
-                    this.Syntax is
-                        InvocationExpressionSyntax or
-                        ConstructorInitializerSyntax or
-                        PrimaryConstructorBaseTypeSyntax { ArgumentList: { } } or
-                        WithElementSyntax,
+                    this.Syntax is InvocationExpressionSyntax
+                                or ConstructorInitializerSyntax
+                                or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } }
+                                or WithElementSyntax
+                                or CollectionExpressionSyntax,
                     $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
 
                 if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
@@ -158,6 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     internal partial class BoundValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
+    }
+
+    internal partial class BoundCollectionBuilderElementsPlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
@@ -408,9 +413,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override ConstantValue? ConstantValueOpt => Data?.ConstantValue;
 
-        public override Symbol? ExpressionSymbol => this.Method;
+        public override Symbol? ExpressionSymbol => this.BinaryOperatorMethod;
 
-        internal MethodSymbol? Method => Data?.Method;
+        public MethodSymbol? BinaryOperatorMethod => OperatorKind.IsDynamic() ? null : Data?.Method;
+        public MethodSymbol? LeftTruthOperatorMethod => OperatorKind.IsDynamic() && OperatorKind.IsLogical() ? Data?.Method : null;
 
         internal TypeSymbol? ConstrainedToType => Data?.ConstrainedToType;
 
@@ -423,6 +429,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundUserDefinedConditionalLogicalOperator
     {
+        private partial void Validate()
+        {
+            Debug.Assert(LogicalOperator.ParameterCount == 2);
+            Debug.Assert(TrueOperator.ParameterCount == 1);
+            Debug.Assert(FalseOperator.ParameterCount == 1);
+        }
+
         public override Symbol ExpressionSymbol
         {
             get { return this.LogicalOperator; }
@@ -482,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion UpdateOperand(BoundExpression operand)
         {
-            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.OriginalUserDefinedConversionsOpt, this.Type);
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type);
         }
 
         /// <summary>
@@ -661,66 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool SuppressVirtualCalls
         {
             get { return true; }
-        }
-    }
-
-    // NOTE: this type exists in order to hide the presence of {Value,Type}Expression inside of a
-    //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
-    //       a constructor that may spuriously set hasErrors to true if either field had errors.
-    //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
-    internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
-    {
-        public Symbol ValueSymbol { get; }
-        public BoundExpression ValueExpression { get; }
-        public ReadOnlyBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
-        public BoundExpression TypeExpression { get; }
-        public ReadOnlyBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
-
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> typeDiagnostics)
-        {
-            Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.ValueSymbol = valueSymbol;
-            this.ValueExpression = valueExpression;
-            this.ValueDiagnostics = valueDiagnostics;
-            this.TypeExpression = typeExpression;
-            this.TypeDiagnostics = typeDiagnostics;
-        }
-
-        // operator==, operator!=, GetHashCode, and Equals are needed by the generated bound tree.
-
-        public static bool operator ==(BoundTypeOrValueData a, BoundTypeOrValueData b)
-        {
-            return (object)a.ValueSymbol == (object)b.ValueSymbol &&
-                (object)a.ValueExpression == (object)b.ValueExpression &&
-                a.ValueDiagnostics == b.ValueDiagnostics &&
-                (object)a.TypeExpression == (object)b.TypeExpression &&
-                a.TypeDiagnostics == b.TypeDiagnostics;
-        }
-
-        public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)
-        {
-            return !(a == b);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is BoundTypeOrValueData && (BoundTypeOrValueData)obj == this;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(ValueSymbol.GetHashCode(),
-                Hash.Combine(ValueExpression.GetHashCode(),
-                Hash.Combine(ValueDiagnostics.GetHashCode(),
-                Hash.Combine(TypeExpression.GetHashCode(), TypeDiagnostics.GetHashCode()))));
-        }
-
-        bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
-        {
-            return b == this;
         }
     }
 

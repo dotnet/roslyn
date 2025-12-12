@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal sealed partial class TemporaryStorageService
 {
-    private unsafe class DirectMemoryAccessStreamReader : TextReaderWithLength
+    private sealed unsafe class DirectMemoryAccessStreamReader : TextReaderWithLength
     {
         private char* _position;
         private readonly char* _end;

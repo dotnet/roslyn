@@ -11,6 +11,6 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class MonikerClientCapabilities : DynamicRegistrationSetting
+internal sealed class MonikerClientCapabilities : DynamicRegistrationSetting
 {
 }

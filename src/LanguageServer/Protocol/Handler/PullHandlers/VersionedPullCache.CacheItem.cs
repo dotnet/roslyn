@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -10,10 +9,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData>
+internal abstract partial class VersionedPullCache<TVersion, TState, TComputedData>
 {
     /// <summary>
-    /// Internal cache item that updates state for a particular <see cref="Workspace"/> and <see cref="ProjectOrDocumentId"/> in <see cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}"/>
+    /// Internal cache item that updates state for a particular <see cref="Workspace"/> and <see cref="ProjectOrDocumentId"/> in <see cref="VersionedPullCache{TVersion, TState, TComputedData}"/>
     /// This type ensures that the state for a particular key is never updated concurrently for the same key (but different key states can be concurrent).
     /// </summary>
     private sealed class CacheItem(string uniqueKey)
@@ -45,7 +44,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         /// </list>
         /// 
         /// </summary>
-        private (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion, Checksum dataChecksum)? _lastResult;
+        private (string resultId, TVersion version, Checksum dataChecksum)? _lastResult;
 
         /// <summary>
         /// Updates the values for this cache entry.  Guarded by <see cref="_gate"/>
@@ -53,7 +52,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         /// Returns <see langword="null"/> if the previousPullResult can be re-used, otherwise returns a new resultId and the new data associated with it.
         /// </summary>
         public async Task<(string, TComputedData)?> UpdateCacheItemAsync(
-            VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData> cache,
+            VersionedPullCache<TVersion, TState, TComputedData> cache,
             PreviousPullResult? previousPullResult,
             bool isFullyLoaded,
             TState state,
@@ -64,38 +63,27 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
             // This means that the computation of new data for this item only occurs sequentially.
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                TCheapVersion cheapVersion;
-                TExpensiveVersion expensiveVersion;
+                TVersion version;
 
                 // Check if the version we have in the cache matches the request version.  If so we can re-use the resultId.
                 if (isFullyLoaded &&
                     _lastResult is not null &&
                     _lastResult.Value.resultId == previousPullResult?.PreviousResultId)
                 {
-                    cheapVersion = await cache.ComputeCheapVersionAsync(state, cancellationToken).ConfigureAwait(false);
-                    if (cheapVersion != null && cheapVersion.Equals(_lastResult.Value.cheapVersion))
-                    {
-                        // The client's resultId matches our cached resultId and the cheap version is an
-                        // exact match for our current cheap version. We return early here to avoid calculating
-                        // expensive versions as we know nothing is changed.
-                        return null;
-                    }
-
                     // The current cheap version does not match the last reported.  This may be because we've forked
                     // or reloaded a project, so fall back to calculating the full expensive version to determine if
                     // anything is actually changed.
-                    expensiveVersion = await cache.ComputeExpensiveVersionAsync(state, cancellationToken).ConfigureAwait(false);
-                    if (expensiveVersion != null && expensiveVersion.Equals(_lastResult.Value.expensiveVersion))
+                    version = await cache.ComputeVersionAsync(state, cancellationToken).ConfigureAwait(false);
+                    if (version != null && version.Equals(_lastResult.Value.version))
                     {
                         return null;
                     }
                 }
                 else
                 {
-                    // The versions we have in our cache (if any) do not match the ones provided by the client (if any).
+                    // The version we have in our cache does not match the one provided by the client (if any).
                     // We need to calculate new results.
-                    cheapVersion = await cache.ComputeCheapVersionAsync(state, cancellationToken).ConfigureAwait(false);
-                    expensiveVersion = await cache.ComputeExpensiveVersionAsync(state, cancellationToken).ConfigureAwait(false);
+                    version = await cache.ComputeVersionAsync(state, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Compute the new result for the request.
@@ -112,7 +100,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
                     // subsequent requests will always fail the version comparison check (the resultId is still associated with the older version even
                     // though we reused it here for a newer version) and will trigger re-computation.
                     // By storing the updated version with the resultId we can short circuit earlier in the version checks.
-                    _lastResult = (_lastResult.Value.resultId, cheapVersion, expensiveVersion, dataChecksum);
+                    _lastResult = (_lastResult.Value.resultId, version, dataChecksum);
                     return null;
                 }
                 else
@@ -128,7 +116,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
                     // Note that we can safely update the map before computation as any cancellation or exception
                     // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                     newResultId = $"{uniqueKey}:{cache.GetNextResultId()}";
-                    _lastResult = (newResultId, cheapVersion, expensiveVersion, dataChecksum);
+                    _lastResult = (newResultId, version, dataChecksum);
                     return (newResultId, data);
                 }
             }

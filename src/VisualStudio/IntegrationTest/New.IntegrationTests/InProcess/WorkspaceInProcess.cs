@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
@@ -24,7 +25,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class WorkspaceInProcess
+internal sealed partial class WorkspaceInProcess
 {
     private static bool s_initializedAsyncSaveListener;
     private static IVsRunningDocTableEvents? s_runningDocTableEventListener;
@@ -160,16 +161,14 @@ internal partial class WorkspaceInProcess
         await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
     }
 
-    public async Task WaitForRenameAsync(CancellationToken cancellationToken)
-    {
-        await WaitForAllAsyncOperationsAsync(
+    public Task WaitForRenameAsync(CancellationToken cancellationToken)
+        => WaitForAllAsyncOperationsAsync(
             [
                 FeatureAttribute.Rename,
                 FeatureAttribute.RenameTracking,
                 FeatureAttribute.InlineRenameFlyout,
             ],
             cancellationToken);
-    }
 
     /// <summary>
     /// This event listener is an adapter to expose asynchronous file save operations to Roslyn via its standard

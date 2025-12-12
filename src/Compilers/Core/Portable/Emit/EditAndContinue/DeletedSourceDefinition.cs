@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
@@ -17,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         public readonly T OldDefinition;
 
         private readonly Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> _typesUsedByDeletedMembers;
+        private readonly IEnumerable<ICustomAttribute> _attributes;
 
         /// <summary>
         /// Constructs a deleted definition
@@ -26,19 +26,19 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         /// Cache of type definitions used in signatures of deleted members. Used so that if a method 'C M(C c)' is deleted
         /// we use the same <see cref="DeletedSourceTypeDefinition"/> instance for the method return type, and the parameter type.
         /// </param>
-        protected DeletedSourceDefinition(T oldDefinition, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
+        protected DeletedSourceDefinition(T oldDefinition, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers, ICustomAttribute? deletedAttribute)
         {
             OldDefinition = oldDefinition;
 
             _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
+            _attributes = deletedAttribute != null ? [deletedAttribute] : [];
         }
 
         public bool IsEncDeleted
             => true;
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
-            // attributes shouldn't be emitted for deleted definitions
-            => throw ExceptionUtilities.Unreachable();
+            => _attributes;
 
         public ISymbolInternal? GetInternalSymbol()
             => OldDefinition.GetInternalSymbol();

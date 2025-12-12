@@ -7,9 +7,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -123,6 +124,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 if (node.Text is "functionType")
+                {
+                    return true;
+                }
+
+                if (node.Text is "aliasOpt" or "boundContainingTypeOpt" or "boundDimensionsOpt" or "deconstructMethod"
+                    && node.Value is null)
                 {
                     return true;
                 }

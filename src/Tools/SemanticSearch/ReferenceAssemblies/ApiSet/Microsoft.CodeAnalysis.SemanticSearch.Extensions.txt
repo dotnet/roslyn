@@ -1,0 +1,4 @@
++T:*
+-M:Microsoft.CodeAnalysis.SemanticSearch.Extensions.ProjectModel.#ctor*
+-M:Microsoft.CodeAnalysis.SemanticSearch.Extensions.ProjectModel.GetChanges*
+-M:Microsoft.CodeAnalysis.SemanticSearch.Extensions.ResxFile.GetContent*

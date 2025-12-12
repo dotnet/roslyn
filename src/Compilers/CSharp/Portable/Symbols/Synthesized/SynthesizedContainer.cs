@@ -9,8 +9,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -23,19 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<TypeParameterSymbol> _constructedFromTypeParameters;
 
-        protected SynthesizedContainer(string name, MethodSymbol containingMethod)
+        protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParametersToAlphaRename)
         {
             Debug.Assert(name != null);
             Name = name;
-            if (containingMethod == null)
-            {
-                TypeMap = TypeMap.Empty;
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                TypeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, out _typeParameters, out _constructedFromTypeParameters);
-            }
+            _constructedFromTypeParameters = typeParametersToAlphaRename;
+            TypeMap = TypeMap.Empty.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: false, out _typeParameters);
         }
 
         protected SynthesizedContainer(string name)
@@ -52,6 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual MethodSymbol Constructor => null;
 
         internal sealed override bool IsInterface => this.TypeKind == TypeKind.Interface;
+
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {

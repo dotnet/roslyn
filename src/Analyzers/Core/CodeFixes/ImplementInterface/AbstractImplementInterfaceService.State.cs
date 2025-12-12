@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     internal sealed class State(
         Document document,
@@ -40,7 +40,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation => Info.MembersWithoutExplicitImplementation;
 
         public static State? Generate(
-            AbstractImplementInterfaceService service,
+            AbstractImplementInterfaceService<TTypeDeclarationSyntax> service,
             Document document,
             SemanticModel model,
             SyntaxNode interfaceNode,

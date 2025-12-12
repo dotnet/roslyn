@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo;
 
 [Trait(Traits.Feature, Traits.Features.NavigateTo)]
-public class NavigateToTests : AbstractNavigateToTests
+public sealed class NavigateToTests : AbstractNavigateToTests
 {
     protected override string Language => "csharp";
 
@@ -27,18 +27,15 @@ public class NavigateToTests : AbstractNavigateToTests
         => EditorTestWorkspace.CreateCSharp(content, composition: composition);
 
     [Theory, CombinatorialData]
-    public async Task NoItemsForEmptyFile(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "", async w =>
+    public Task NoItemsForEmptyFile(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "", async w =>
         {
             Assert.Empty(await _aggregator.GetItemsAsync("Hello"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindClass(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -48,12 +45,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindRecord(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindRecord(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             record Goo
             {
@@ -63,12 +58,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindRecordClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindRecordClass(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             record class Goo
             {
@@ -78,7 +71,6 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
     public async Task FindRecordStruct(TestHost testHost, Composition composition)
@@ -122,9 +114,8 @@ public class NavigateToTests : AbstractNavigateToTests
     }
 
     [Theory, CombinatorialData]
-    public async Task FindVerbatimClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindVerbatimClass(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class @static
             {
@@ -138,12 +129,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 item = (await _aggregator.GetItemsAsync("@static")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "static", "[|static|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindNestedClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindNestedClass(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -159,12 +148,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("DogBed")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "DogBed", "[|DogBed|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindMemberInANestedClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindMemberInANestedClass(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -183,12 +170,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Method")).Single();
                 VerifyNavigateToResultItem(item, "Method", "[|Method|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo.Bar.DogBed", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindGenericClassWithConstraints(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindGenericClassWithConstraints(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             using System.Collections;
 
@@ -200,12 +185,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindGenericMethodWithConstraints(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindGenericMethodWithConstraints(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             using System;
 
@@ -220,12 +203,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]<T>(T)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo<U>", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPartialClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindPartialClass(TestHost testHost, Composition composition)
+        => TestAsync(
         testHost, composition, """
             public partial class Goo
             {
@@ -243,12 +224,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var expecteditem1 = new NavigateToItem("Goo", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null);
                 VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindTypesInMetadata(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindTypesInMetadata(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             using System;
 
@@ -258,12 +237,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
                 Assert.Equal(0, items.Count());
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindClassInNamespace(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindClassInNamespace(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             namespace Bar
             {
@@ -276,12 +253,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindStruct(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindStruct(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             struct Bar
             {
@@ -291,12 +266,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("B")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructureInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindEnum(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindEnum(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             enum Colors
             {
@@ -309,12 +282,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Colors")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Colors", "[|Colors|]", PatternMatchKind.Exact, NavigateToItemKind.Enum, Glyph.EnumInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindEnumMember(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindEnumMember(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             enum Colors
             {
@@ -327,12 +298,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("R")).Single();
                 VerifyNavigateToResultItem(item, "Red", "[|R|]ed", PatternMatchKind.Prefix, NavigateToItemKind.EnumItem, Glyph.EnumMemberPublic);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindField1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindField1(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -343,12 +312,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("b")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|b|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindField2(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindField2(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -359,12 +326,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindField3(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindField3(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -374,12 +339,10 @@ public class NavigateToTests : AbstractNavigateToTests
             {
                 Assert.Empty(await _aggregator.GetItemsAsync("ar"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindVerbatimField(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindVerbatimField(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -394,12 +357,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 item = (await _aggregator.GetItemsAsync("@string")).Single();
                 VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPtrField1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindPtrField1(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -409,12 +370,10 @@ public class NavigateToTests : AbstractNavigateToTests
             {
                 Assert.Empty(await _aggregator.GetItemsAsync("ar"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPtrField2(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindPtrField2(TestHost testHost, Composition composition)
+        => TestAsync(
         testHost, composition, """
             class Goo
             {
@@ -425,12 +384,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("b")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|b|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindConstField(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindConstField(TestHost testHost, Composition composition)
+        => TestAsync(
         testHost, composition, """
             class Goo
             {
@@ -441,34 +398,26 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Constant, Glyph.ConstantPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindIndexer(TestHost testHost, Composition composition)
-    {
-        var program = @"class Goo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }";
-        await TestAsync(testHost, composition, program, async w =>
+    public Task FindIndexer(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, @"class Goo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }", async w =>
         {
             var item = (await _aggregator.GetItemsAsync("this")).Single();
             VerifyNavigateToResultItem(item, "this", "[|this|][int]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindEvent(TestHost testHost, Composition composition)
-    {
-        var program = "class Goo { public event EventHandler ChangedEventHandler; }";
-        await TestAsync(testHost, composition, program, async w =>
+    public Task FindEvent(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class Goo { public event EventHandler ChangedEventHandler; }", async w =>
         {
             var item = (await _aggregator.GetItemsAsync("CEH")).Single();
             VerifyNavigateToResultItem(item, "ChangedEventHandler", "[|C|]hanged[|E|]vent[|H|]andler", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Event, Glyph.EventPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindAutoProperty(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindAutoProperty(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -479,12 +428,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("B")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Property, Glyph.PropertyPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindMethod(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -495,12 +442,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
                 VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindVerbatimMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindVerbatimMethod(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -515,12 +460,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 item = (await _aggregator.GetItemsAsync("@static")).Single();
                 VerifyNavigateToResultItem(item, "static", "[|static|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindParameterizedMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindParameterizedMethod(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -533,12 +476,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
                 VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(int, string)", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindConstructor(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindConstructor(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -551,12 +492,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindParameterizedConstructor(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindParameterizedConstructor(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -569,12 +508,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindStaticConstructor(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindStaticConstructor(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -587,12 +524,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|].static Goo()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPartialMethods(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "partial class Goo { partial void Bar(); } partial class Goo { partial void Bar() { Console.Write(\"hello\"); } }", async w =>
+    public Task FindPartialMethods(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "partial class Goo { partial void Bar(); } partial class Goo { partial void Bar() { Console.Write(\"hello\"); } }", async w =>
         {
             var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null);
 
@@ -600,12 +535,10 @@ public class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPartialProperties(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "partial class Goo { partial int Prop { get; set; } } partial class Goo { partial int Prop { get => 1; set { } } }", async w =>
+    public Task FindPartialProperties(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "partial class Goo { partial int Prop { get; set; } } partial class Goo { partial int Prop { get => 1; set { } } }", async w =>
         {
             var expecteditem1 = new NavigateToItem("Prop", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null);
 
@@ -613,12 +546,42 @@ public class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPartialMethodDefinitionOnly(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindPartialEvents(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, """
+        partial class C
+        {
+            partial event System.Action E;
+            partial event System.Action E { add { } remove { } }
+        }
+        """, async w =>
+        {
+            var expecteditem1 = new NavigateToItem("E", NavigateToItemKind.Event, "csharp", null, null, s_emptyExactPatternMatch, null);
+            var items = await _aggregator.GetItemsAsync("E");
+
+            VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task FindPartialConstructors(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, """
+        partial class C
+        {
+            public partial C();
+            public partial C() { }
+        }
+        """, async w =>
+        {
+            var expecteditem1 = new NavigateToItem("C", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null);
+            var items = (await _aggregator.GetItemsAsync("C")).Where(t => t.Kind == NavigateToItemKind.Method);
+
+            VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task FindPartialMethodDefinitionOnly(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             partial class Goo
             {
@@ -629,12 +592,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_1_2, "Goo", "test1.cs", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindPartialMethodImplementationOnly(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindPartialMethodImplementationOnly(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             partial class Goo
             {
@@ -647,13 +608,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_1_2, "Goo", "test1.cs", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindOverriddenMembers(TestHost testHost, Composition composition)
-    {
-        var program = "class Goo { public virtual string Name { get; set; } } class DogBed : Goo { public override string Name { get { return base.Name; } set {} } }";
-        await TestAsync(testHost, composition, program, async w =>
+    public Task FindOverriddenMembers(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class Goo { public virtual string Name { get; set; } } class DogBed : Goo { public override string Name { get { return base.Name; } set {} } }", async w =>
         {
             var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null);
 
@@ -675,12 +633,10 @@ public class NavigateToTests : AbstractNavigateToTests
             Assert.Equal("Name", itemDisplay.Name);
             Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"), itemDisplay.AdditionalInformation);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindInterface(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindInterface(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             public interface IGoo
             {
@@ -690,12 +646,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("IG")).Single();
                 VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", PatternMatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindTopLevelLocalFunction(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindTopLevelLocalFunction(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             void Goo()
             {
@@ -705,12 +659,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single();
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindTopLevelLocalFunction_WithParameters(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindTopLevelLocalFunction_WithParameters(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             void Goo(int i)
             {
@@ -720,12 +672,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single();
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindTopLevelLocalFunction_WithTypeArgumentsAndParameters(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindTopLevelLocalFunction_WithTypeArgumentsAndParameters(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             void Goo<T>(int i)
             {
@@ -735,12 +685,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single();
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>(int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindNestedLocalFunctionTopLevelStatements(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindNestedLocalFunctionTopLevelStatements(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             void Goo()
             {
@@ -753,12 +701,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindLocalFunctionInMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindLocalFunctionInMethod(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class C
             {
@@ -777,12 +723,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single();
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindNestedLocalFunctionInMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindNestedLocalFunctionInMethod(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class C
             {
@@ -801,12 +745,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindDelegateInNamespace(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindDelegateInNamespace(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             namespace Goo
             {
@@ -817,12 +759,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("DoStuff")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", PatternMatchKind.Exact, NavigateToItemKind.Delegate, Glyph.DelegateInternal);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindLambdaExpression(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindLambdaExpression(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             using System;
 
@@ -835,12 +775,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("sqr")).Single();
                 VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindArray(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindArray(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -851,12 +789,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("itemArray")).Single();
                 VerifyNavigateToResultItem(item, "itemArray", "[|itemArray|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindClassAndMethodWithSameName(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindClassAndMethodWithSameName(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -875,12 +811,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 new("Goo", NavigateToItemKind.Class, "csharp", "Goo", null, s_emptyExactPatternMatch, null),
                 new("Goo", NavigateToItemKind.Method, "csharp", "Goo", null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindMethodNestedInGenericTypes(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindMethodNestedInGenericTypes(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class A<T>
             {
@@ -899,12 +833,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("M")).Single();
                 VerifyNavigateToResultItem(item, "M", "[|M|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "A<T>.B.C<U>", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task OrderingOfConstructorsAndTypes(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task OrderingOfConstructorsAndTypes(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class C1
             {
@@ -934,12 +866,10 @@ public class NavigateToTests : AbstractNavigateToTests
                     new("C2", NavigateToItemKind.Method, "csharp", "C2", null, s_emptyPrefixPatternMatch, null), // this is the static ctor
                     new("C2", NavigateToItemKind.Method, "csharp", "C2", null, s_emptyPrefixPatternMatch, null)], items);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task NavigateToMethodWithNullableParameter(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task NavigateToMethodWithNullableParameter(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class C
             {
@@ -952,13 +882,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("M")).Single();
                 VerifyNavigateToResultItem(item, "M", "[|M|](object?)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task StartStopSanity(TestHost testHost, Composition composition)
-    {
-        // Verify that multiple calls to start/stop and dispose don't blow up
-        await TestAsync(
+    public Task StartStopSanity(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             public class Goo
             {
@@ -976,12 +903,10 @@ public class NavigateToTests : AbstractNavigateToTests
                 // Dispose the provider
                 _provider.Dispose();
             });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DescriptionItems(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, """
+    public Task DescriptionItems(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, """
             public
             class
             Goo
@@ -993,23 +918,20 @@ public class NavigateToTests : AbstractNavigateToTests
 
             var descriptionItems = itemDisplay.DescriptionItems;
 
-            void assertDescription(string label, string value)
+            void assertDescription(string label, string? value)
             {
                 var descriptionItem = descriptionItems.Single(i => i.Category.Single().Text == label);
                 Assert.Equal(value, descriptionItem.Details.Single().Text);
             }
 
-            assertDescription("File:", w.Documents.Single().Name);
+            assertDescription("File:", w.Documents.Single().FilePath);
             assertDescription("Line:", "3"); // one based line number
             assertDescription("Project:", "Test");
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest1(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest1(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
@@ -1019,13 +941,10 @@ public class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem2, expecteditem3], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest2(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest2(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseExactPatternMatch, null);
@@ -1034,13 +953,10 @@ public class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem2], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest3(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest3(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch, null);
@@ -1049,35 +965,26 @@ public class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem2], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest4(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest4(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var items = await _aggregator.GetItemsAsync("WKG");
             Assert.Empty(items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest5(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest5(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var item = (await _aggregator.GetItemsAsync("G_K_W")).Single();
             VerifyNavigateToResultItem(item, "get_key_word", "[|g|]et[|_k|]ey[|_w|]ord", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Field, Glyph.FieldPrivate);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest6(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest6(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var items = await _aggregator.GetItemsAsync("get word");
 
@@ -1087,24 +994,18 @@ public class NavigateToTests : AbstractNavigateToTests
                 new("get_key_word", NavigateToItemKind.Field, "csharp", null, null,s_emptySubstringPatternMatch, null),
                 new("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch_NotCaseSensitive, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest7(TestHost testHost, Composition composition)
-    {
-        var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task TermSplittingTest7(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var items = await _aggregator.GetItemsAsync("GTW");
             Assert.Empty(items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestIndexer1(TestHost testHost, Composition composition)
-    {
-        var source =
-            """
+    public Task TestIndexer1(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, """
             class C
             {
                 public int this[int y] { get { } }
@@ -1118,106 +1019,81 @@ public class NavigateToTests : AbstractNavigateToTests
                     var b = q[4];
                 }
             }
-            """;
-        await TestAsync(testHost, composition, source, async w =>
+            """, async w =>
         {
             var items = await _aggregator.GetItemsAsync("this");
 
             VerifyNavigateToResultItems([new("this", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern1(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern1(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("B.Q");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern2(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern2(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("C.Q");
 
             VerifyNavigateToResultItems([], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern3(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern3(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("B.B.Q");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern4(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern4(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("Baz.Quux");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern5(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern5(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("G.B.B.Quux");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern6(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern6(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("F.F.B.B.Quux");
 
             VerifyNavigateToResultItems([], items);
         });
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/Roslyn/issues/7855")]
-    public async Task DottedPattern7(TestHost testHost, Composition composition)
-    {
-        var source = "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPattern7(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("Baz.Q");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46267")]
     [CombinatorialData]
-    public async Task DottedPatternMatchKind(TestHost testHost, Composition composition)
-    {
-        var source = "namespace System { class Console { void Write(string s) { } void WriteLine(string s) { } } }";
-        await TestAsync(testHost, composition, source, async w =>
+    public Task DottedPatternMatchKind(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace System { class Console { void Write(string s) { } void WriteLine(string s) { } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("Console.Write");
 
@@ -1225,7 +1101,6 @@ public class NavigateToTests : AbstractNavigateToTests
                 new("Write", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
                 new("WriteLine", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/8009")]
@@ -1270,9 +1145,8 @@ public class NavigateToTests : AbstractNavigateToTests
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/11474")]
     [CombinatorialData]
-    public async Task FindFuzzy1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindFuzzy1(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class C
             {
@@ -1285,13 +1159,11 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("ToEror")).Single();
                 VerifyNavigateToResultItem(item, "ToError", "ToError()", PatternMatchKind.Fuzzy, NavigateToItemKind.Method, Glyph.MethodPublic);
             });
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18843")]
     [CombinatorialData]
-    public async Task Test__arglist(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task Test__arglist(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class C
             {
@@ -1304,7 +1176,6 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("ToError")).Single();
                 VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
             });
-    }
 
     [Fact]
     public async Task DoNotIncludeTrivialPartialContainer()
@@ -1577,9 +1448,8 @@ public class NavigateToTests : AbstractNavigateToTests
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/59231")]
-    public async Task FindMethodWithTuple(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindMethodWithTuple(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             class Goo
             {
@@ -1594,13 +1464,11 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Method")).Single();
                 VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/57873")]
-    public async Task FindRecordMember1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindRecordMember1(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             record Goo(int Member)
             {
@@ -1610,13 +1478,11 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
                 VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
             });
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/57873")]
-    public async Task FindRecordMember2(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindRecordMember2(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             record Goo(int Member)
             {
@@ -1627,13 +1493,11 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
                 VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
             });
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/57873")]
-    public async Task FindRecordMember3(TestHost testHost, Composition composition)
-    {
-        await TestAsync(
+    public Task FindRecordMember3(TestHost testHost, Composition composition)
+        => TestAsync(
             testHost, composition, """
             record Goo(int Member)
             {
@@ -1644,7 +1508,6 @@ public class NavigateToTests : AbstractNavigateToTests
                 var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Field);
                 VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
             });
-    }
 
     private static bool IsFromFile(NavigateToItem item, string fileName)
     {
@@ -1652,9 +1515,8 @@ public class NavigateToTests : AbstractNavigateToTests
     }
 
     [Theory, CombinatorialData]
-    public async Task NavigateToPrioritizeResultInCurrentDocument1(TestHost testHost)
-    {
-        await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
+    public Task NavigateToPrioritizeResultInCurrentDocument1(TestHost testHost)
+        => TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document FilePath="File1.cs">
@@ -1691,12 +1553,10 @@ public class NavigateToTests : AbstractNavigateToTests
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task NavigateToPrioritizeResultInCurrentDocument2(TestHost testHost)
-    {
-        await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
+    public Task NavigateToPrioritizeResultInCurrentDocument2(TestHost testHost)
+        => TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document FilePath="File1.cs" Folders="A\B\C">
@@ -1733,12 +1593,10 @@ public class NavigateToTests : AbstractNavigateToTests
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task NavigateToPrioritizeResultInCurrentDocument3(TestHost testHost)
-    {
-        await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
+    public Task NavigateToPrioritizeResultInCurrentDocument3(TestHost testHost)
+        => TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document FilePath="File1.cs" Folders="A\B\C\D">
@@ -1775,12 +1633,10 @@ public class NavigateToTests : AbstractNavigateToTests
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task NavigateToPrioritizeResultInCurrentDocument4(TestHost testHost)
-    {
-        await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
+    public Task NavigateToPrioritizeResultInCurrentDocument4(TestHost testHost)
+        => TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document FilePath="File1.cs" Folders="A\B\C">
@@ -1817,12 +1673,10 @@ public class NavigateToTests : AbstractNavigateToTests
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task NavigateToPrioritizeResultInCurrentDocument5(TestHost testHost)
-    {
-        await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
+    public Task NavigateToPrioritizeResultInCurrentDocument5(TestHost testHost)
+        => TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document FilePath="File1.cs" Folders="A\B\C\D1">
@@ -1858,6 +1712,84 @@ public class NavigateToTests : AbstractNavigateToTests
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0003") && IsFromFile(i, "File2.cs"));
+        });
+
+    [Theory, CombinatorialData]
+    public async Task FindModernExtensionMethod1(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class Class
+            {
+                extension(string s)
+                {
+                    public void Goo()
+                    {
+                    }
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindModernExtensionMethod2(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class Class
+            {
+                extension(string s)
+                {
+                    public static void Goo()
+                    {
+                    }
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindModernExtensionProperty(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class Class
+            {
+                extension(string s)
+                {
+                    public int Goo => 0;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
         });
     }
 }

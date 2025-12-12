@@ -66,7 +66,7 @@ $"Class C
     Private Function M2() As Integer
         Return 0
     End Function
-End Class", options:=PreferDiscard)
+End Class", New TestParameters(options:=PreferDiscard))
         End Function
 
         <Fact>
@@ -89,7 +89,7 @@ $"Class C
     Private Function M2() As Integer
         Return 0
     End Function
-End Class", options:=PreferUnusedLocal)
+End Class", New TestParameters(options:=PreferUnusedLocal))
         End Function
 
         <Fact>

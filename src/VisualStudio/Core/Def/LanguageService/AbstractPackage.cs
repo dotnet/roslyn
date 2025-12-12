@@ -4,11 +4,10 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
-using Task = System.Threading.Tasks.Task;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -25,27 +24,60 @@ internal abstract class AbstractPackage : AsyncPackage
         }
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    /// This method is called upon package creation and is the mechanism by which roslyn packages calculate and
+    /// process all package initialization work. Do not override this sealed method, instead override RegisterOnAfterPackageLoadedAsyncWork
+    /// to indicate the work your package needs upon initialization.
+    /// Not sealed as TypeScriptPackage has IVT and derives from this class and implements this method.
+    protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        => RegisterAndProcessTasksAsync(RegisterInitializeAsyncWork, cancellationToken);
+
+    /// This method is called after package load and is the mechanism by which roslyn packages calculate and
+    /// process all post load package work. Do not override this sealed method, instead override RegisterOnAfterPackageLoadedAsyncWork
+    /// to indicate the work your package needs after load.
+    protected sealed override Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+        => RegisterAndProcessTasksAsync(RegisterOnAfterPackageLoadedAsyncWork, cancellationToken);
+
+    private Task RegisterAndProcessTasksAsync(Action<PackageLoadTasks> registerTasks, CancellationToken cancellationToken)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        var packageTasks = new PackageLoadTasks(JoinableTaskFactory);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        // Request all initially known work, classified into whether it should be processed on the main or
+        // background thread. These lists can be modified by the work itself to add more work for subsequent processing.
+        // Requesting this information is useful as it lets us batch up work on these threads, significantly
+        // reducing thread switches during package load.
+        registerTasks(packageTasks);
 
-        _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
-        Assumes.Present(_componentModel_doNotAccessDirectly);
+        return packageTasks.ProcessTasksAsync(cancellationToken);
     }
 
-    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    protected virtual void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+        // We register this task so our ComponentModel property is available during other parts of package initialization and OnAfterPackageLoaded work. The
+        // expectation at this point is no work scheduled to the UI thread needs the ComponentModel, so we only schedule it for the background thread.
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
 
-        // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
-        var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-        if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
+        async Task EnsureComponentModelAsync(PackageLoadTasks packageInitializationTasks, CancellationToken token)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            UIContext.FromUIContextGuid(new Guid(SemanticSearchFeatureFlag.UIContextId)).IsActive = true;
+            _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
+            Assumes.Present(_componentModel_doNotAccessDirectly);
         }
+    }
+
+    protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
+    {
+    }
+
+    /// <summary>
+    /// Registers an editor factory. This is the same as <see cref="Microsoft.VisualStudio.Shell.Package.RegisterEditorFactory(IVsEditorFactory)"/> except it fetches the service async.
+    /// </summary>
+    protected async Task RegisterEditorFactoryAsync(IVsEditorFactory editorFactory, CancellationToken cancellationToken)
+    {
+        // Call with ConfigureAwait(true): if we're off the UI thread we will stay that way, but a synchronous load of our package should continue to use the UI thread
+        // since the UI thread is otherwise blocked waiting for us. This method is called under JTF rules so that's fine.
+        var registerEditors = await GetServiceAsync<SVsRegisterEditors, IVsRegisterEditors>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
+        Assumes.Present(registerEditors);
+
+        ErrorHandler.ThrowOnFailure(registerEditors.RegisterEditor(editorFactory.GetType().GUID, editorFactory, out _));
     }
 
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)

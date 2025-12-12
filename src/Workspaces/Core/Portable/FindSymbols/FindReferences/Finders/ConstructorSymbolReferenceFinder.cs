@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -23,6 +24,25 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
 
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
+
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+    {
+        if (symbol.MethodKind is MethodKind.Constructor)
+            return new(GetOtherPartsOfPartial(symbol));
+
+        return new([]);
+    }
+
+    private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
+    {
+        if (symbol.PartialDefinitionPart != null)
+            return [symbol.PartialDefinitionPart];
+
+        if (symbol.PartialImplementationPart != null)
+            return [symbol.PartialImplementationPart];
+
+        return [];
+    }
 
     protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
     {

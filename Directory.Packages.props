@@ -3,5 +3,5 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-  <Import Project="eng\Directory.Packages.props" />
+  <Import Project="eng\Packages.props" />
 </Project>

@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition;
+
+internal interface IFSharpFindDefinitionService
 {
-    internal interface IFSharpFindDefinitionService
-    {
-        /// <summary>
-        /// Finds the definitions for the symbol at the specific position in the document.
-        /// </summary>
-        Task<ImmutableArray<FSharpNavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Finds the definitions for the symbol at the specific position in the document.
+    /// </summary>
+    Task<ImmutableArray<FSharpNavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
 }

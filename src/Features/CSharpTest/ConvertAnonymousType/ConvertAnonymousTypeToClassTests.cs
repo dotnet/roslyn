@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
-public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
@@ -23,9 +23,8 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
         => new CSharpConvertAnonymousTypeToClassCodeRefactoringProvider();
 
     [Fact]
-    public async Task ConvertSingleAnonymousType()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousType()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -33,8 +32,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -69,14 +67,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task ConvertSingleAnonymousType_FileScopedNamespace()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousType_FileScopedNamespace()
+        => TestInRegularAndScriptAsync("""
             namespace N;
 
             class Test
@@ -86,8 +81,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             namespace N;
 
             class Test
@@ -124,14 +118,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task ConvertSingleAnonymousType_CSharp9()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousType_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -139,8 +130,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -151,14 +141,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
 
             internal record NewRecord(int A, int B);
 
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
-    public async Task ConvertSingleAnonymousType_Explicit()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousType_Explicit()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -166,8 +153,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -202,14 +188,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: CSharp8);
-    }
+            """, new(parseOptions: CSharp8));
 
     [Fact]
-    public async Task OnEmptyAnonymousType()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnEmptyAnonymousType()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -243,13 +226,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return 0;
                 }
             }
-            """, parseOptions: CSharp8);
-    }
+            """, new(parseOptions: CSharp8));
 
     [Fact]
-    public async Task OnEmptyAnonymousType_CSharp9()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnEmptyAnonymousType_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -270,12 +251,10 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
             internal record NewRecord();
 
             """);
-    }
 
     [Fact]
-    public async Task OnSingleFieldAnonymousType()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnSingleFieldAnonymousType()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -313,13 +292,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return -862436692 + A.GetHashCode();
                 }
             }
-            """, parseOptions: CSharp8);
-    }
+            """, new(parseOptions: CSharp8));
 
     [Fact]
-    public async Task OnSingleFieldAnonymousType_CSharp9()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnSingleFieldAnonymousType_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -340,12 +317,10 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
             internal record NewRecord(int A);
 
             """);
-    }
 
     [Fact]
-    public async Task ConvertSingleAnonymousTypeWithInferredName()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousTypeWithInferredName()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -353,8 +328,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -389,14 +363,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task ConvertSingleAnonymousTypeWithInferredName_CSharp9()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousTypeWithInferredName_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -404,8 +375,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -416,14 +386,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
 
             internal record NewRecord(int A, int B);
 
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
-    public async Task ConvertMultipleInstancesInSameMethod()
-    {
-        var text = """
+    public Task ConvertMultipleInstancesInSameMethod()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -432,8 +399,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -469,14 +435,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task ConvertMultipleInstancesInSameMethod_CSharp9()
-    {
-        var text = """
+    public Task ConvertMultipleInstancesInSameMethod_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -485,8 +448,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -498,14 +460,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
 
             internal record NewRecord(int A, int B);
 
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
-    public async Task ConvertMultipleInstancesAcrossMethods()
-    {
-        var text = """
+    public Task ConvertMultipleInstancesAcrossMethods()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -520,8 +479,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -563,14 +521,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task OnlyConvertMatchingTypesInSameMethod()
-    {
-        var text = """
+    public Task OnlyConvertMatchingTypesInSameMethod()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -581,8 +536,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t4 = new { b = 5, a = 6 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -620,14 +574,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestFixAllMatchesInSingleMethod()
-    {
-        var text = """
+    public Task TestFixAllMatchesInSingleMethod()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -638,8 +589,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t4 = new { b = 5, a = 6 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -677,14 +627,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestFixNotAcrossMethods()
-    {
-        var text = """
+    public Task TestFixNotAcrossMethods()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -699,8 +646,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -742,14 +688,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestTrivia()
-    {
-        var text = """
+    public Task TestTrivia()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -757,8 +700,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = /*1*/ [||]new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -793,14 +735,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        var text = """
+    public Task TestTrivia2()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -809,8 +748,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t2 = /*1*/ new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -846,14 +784,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task NotIfReferencesAnonymousTypeInternally()
-    {
-        var text = """
+    public Task NotIfReferencesAnonymousTypeInternally()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -861,15 +796,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b = new { c = 1, d = 2 } };
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(text);
-    }
+            """);
 
     [Fact]
-    public async Task ConvertMultipleNestedInstancesInSameMethod()
-    {
-        var text = """
+    public Task ConvertMultipleNestedInstancesInSameMethod()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -877,8 +808,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, b = (object)new { a = 1, b = default(object) } };
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System.Collections.Generic;
 
             class Test
@@ -915,14 +845,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task RenameAnnotationOnStartingPoint()
-    {
-        var text = """
+    public Task RenameAnnotationOnStartingPoint()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -931,8 +858,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t2 = [||]new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -968,14 +894,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task UpdateReferences()
-    {
-        var text = """
+    public Task UpdateReferences()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -984,8 +907,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     Console.WriteLine(t1.a + t1?.b);
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1021,14 +943,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task CapturedTypeParameters()
-    {
-        var text = """
+    public Task CapturedTypeParameters()
+        => TestInRegularAndScriptAsync("""
             class Test<X> where X : struct
             {
                 void Method<Y>(List<X> x, Y[] y) where Y : class, new()
@@ -1036,8 +955,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = x, b = y };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test<X> where X : struct
             {
                 void Method<Y>(List<X> x, Y[] y) where Y : class, new()
@@ -1074,14 +992,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task CapturedTypeParameters_CSharp9()
-    {
-        var text = """
+    public Task CapturedTypeParameters_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test<X> where X : struct
             {
                 void Method<Y>(List<X> x, Y[] y) where Y : class, new()
@@ -1089,8 +1004,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = x, b = y };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test<X> where X : struct
             {
                 void Method<Y>(List<X> x, Y[] y) where Y : class, new()
@@ -1103,14 +1017,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                 where X : struct
                 where Y : class, new();
 
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
-    public async Task NewTypeNameCollision()
-    {
-        var text = """
+    public Task NewTypeNameCollision()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1122,8 +1033,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
             class NewClass
             {
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1162,14 +1072,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestDuplicatedName()
-    {
-        var text = """
+    public Task TestDuplicatedName()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1177,8 +1084,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, a = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1213,14 +1119,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestDuplicatedName_CSharp9()
-    {
-        var text = """
+    public Task TestDuplicatedName_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1228,8 +1131,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [||]new { a = 1, a = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1240,14 +1142,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
 
             internal record NewRecord(int A, int Item);
 
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo()));
 
     [Fact]
-    public async Task TestNewSelection()
-    {
-        var text = """
+    public Task TestNewSelection()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1255,8 +1154,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [|new|] { a = 1, b = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1291,14 +1189,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestInLambda1()
-    {
-        var text = """
+    public Task TestInLambda1()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Test
@@ -1312,8 +1207,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -1354,14 +1248,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestInLambda2()
-    {
-        var text = """
+    public Task TestInLambda2()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Test
@@ -1375,8 +1266,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -1417,14 +1307,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestInLocalFunction1()
-    {
-        var text = """
+    public Task TestInLocalFunction1()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Test
@@ -1438,8 +1325,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -1480,14 +1366,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact]
-    public async Task TestInLocalFunction2()
-    {
-        var text = """
+    public Task TestInLocalFunction2()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Test
@@ -1501,8 +1384,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -1543,14 +1425,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task ConvertSingleAnonymousTypeSelection1()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousTypeSelection1()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1558,8 +1437,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [|new { a = 1, b = 2 }|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1594,14 +1472,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task ConvertSingleAnonymousTypeSelection2()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousTypeSelection2()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1609,8 +1484,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     [|var t1 = new { a = 1, b = 2 };|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1645,14 +1519,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task ConvertSingleAnonymousTypeSelection3()
-    {
-        var text = """
+    public Task ConvertSingleAnonymousTypeSelection3()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1660,8 +1531,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     var t1 = [|new { a = 1, b = 2 };|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1696,14 +1566,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45747")]
-    public async Task ConvertOmittingTrailingComma()
-    {
-        var text = """
+    public Task ConvertOmittingTrailingComma()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1715,8 +1582,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1754,14 +1620,11 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45747")]
-    public async Task ConvertOmittingTrailingCommaButPreservingTrivia()
-    {
-        var text = """
+    public Task ConvertOmittingTrailingCommaButPreservingTrivia()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -1775,8 +1638,7 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -1816,7 +1678,5 @@ public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoE
                     return hashCode;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
-    }
+            """, new(options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8));
 }

@@ -4,12 +4,12 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             if ((object)method == null)
             {
-                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.GetFirstLocation());
                 return;
             }
 

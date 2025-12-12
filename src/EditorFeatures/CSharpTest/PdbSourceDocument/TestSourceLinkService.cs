@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PdbSourceDocument;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-internal class TestSourceLinkService : ISourceLinkService
+internal sealed class TestSourceLinkService : ISourceLinkService
 {
     private readonly string? _pdbFilePath;
     private readonly string? _sourceFilePath;

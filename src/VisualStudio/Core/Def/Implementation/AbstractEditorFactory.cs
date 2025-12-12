@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -25,21 +24,17 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.WinForms.Interfaces;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 /// <summary>
 /// The base class of both the Roslyn editor factories.
 /// </summary>
-internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
+internal abstract class AbstractEditorFactory(IComponentModel componentModel) : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
 {
-    private readonly IComponentModel _componentModel;
+    private readonly IComponentModel _componentModel = componentModel;
     private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
     private bool _encoding;
-
-    protected AbstractEditorFactory(IComponentModel componentModel)
-        => _componentModel = componentModel;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }
@@ -317,6 +312,14 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
             // We have to discover .editorconfig files ourselves to ensure that code style rules are followed.
             // Normally the project system would tell us about these.
             projectToAddTo = AddEditorConfigFiles(projectToAddTo, Path.GetDirectoryName(filePath));
+
+            // Because we're adding the initial project to the solution, we need to ensure that this solution snapshot
+            // has the right fallback analyzer options.  This normally happens in Workspace.SetCurrentSolutionAsync as
+            // it mutates.  But that may never have happened so far (especially if the user has just opened VS and is
+            // making a fresh solution/project), so we have to simulate that manually here.  This ensures we pick up the
+            // right host/vs options which is needed in order to run the code cleanup pass below.
+            solution = projectToAddTo.Solution.WithFallbackAnalyzerOptionValuesFromHost(oldSolution: solution);
+            projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
         }
 
         // We need to ensure that decisions made during new document formatting are based on the right language

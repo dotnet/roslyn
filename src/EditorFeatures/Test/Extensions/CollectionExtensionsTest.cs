@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class CollectionExtensionsTest
+public sealed class CollectionExtensionsTest
 {
     [Fact]
     public void PushReverse1()

@@ -43,6 +43,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertToRecord = nameof(ConvertToRecord);
     public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
     public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+    public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
     public const string DeclareAsNullable = nameof(DeclareAsNullable);
@@ -107,8 +108,10 @@ internal static class PredefinedCodeFixProviderNames
     public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
     public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
     public const string RemoveUnnecessaryNullableDirective = nameof(RemoveUnnecessaryNullableDirective);
+    public const string RemoveUnnecessaryNullableWarningSuppressions = nameof(RemoveUnnecessaryNullableWarningSuppressions);
     public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
     public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
+    public const string RemoveUnnecessaryUnsafeModifier = nameof(RemoveUnnecessaryUnsafeModifier);
     public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
     public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
     public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
@@ -121,6 +124,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string SimplifyLinqTypeCheckAndCast = nameof(SimplifyLinqTypeCheckAndCast);
     public const string SimplifyNames = nameof(SimplifyNames);
     public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
+    public const string SimplifyPropertyAccessor = nameof(SimplifyPropertyAccessor);
     public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
     public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
     public const string SpellCheck = nameof(SpellCheck);

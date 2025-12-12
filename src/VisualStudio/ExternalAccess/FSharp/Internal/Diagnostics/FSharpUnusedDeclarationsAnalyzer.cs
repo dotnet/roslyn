@@ -9,72 +9,60 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
+
+[Shared]
+[ExportLanguageService(typeof(FSharpUnusedDeclarationsDiagnosticAnalyzerService), LanguageNames.FSharp)]
+internal class FSharpUnusedDeclarationsDiagnosticAnalyzerService : ILanguageService
 {
-    [Shared]
-    [ExportLanguageService(typeof(FSharpUnusedDeclarationsDiagnosticAnalyzerService), LanguageNames.FSharp)]
-    internal class FSharpUnusedDeclarationsDiagnosticAnalyzerService : ILanguageService
+    private readonly IFSharpUnusedDeclarationsDiagnosticAnalyzer _analyzer;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpUnusedDeclarationsDiagnosticAnalyzerService(IFSharpUnusedDeclarationsDiagnosticAnalyzer analyzer)
     {
-        private readonly IFSharpUnusedDeclarationsDiagnosticAnalyzer _analyzer;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpUnusedDeclarationsDiagnosticAnalyzerService(IFSharpUnusedDeclarationsDiagnosticAnalyzer analyzer)
-        {
-            _analyzer = analyzer;
-        }
-
-        public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken)
-        {
-            return _analyzer.AnalyzeSemanticsAsync(descriptor, document, cancellationToken);
-        }
+        _analyzer = analyzer;
     }
 
-    [DiagnosticAnalyzer(LanguageNames.FSharp)]
-    internal class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
+    public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken)
     {
-        private const string DescriptorId = IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
+        return _analyzer.AnalyzeSemanticsAsync(descriptor, document, cancellationToken);
+    }
+}
 
-        private readonly DiagnosticDescriptor _descriptor =
-            new DiagnosticDescriptor(
-                    DescriptorId,
-                    ExternalAccessFSharpResources.TheValueIsUnused,
-                    ExternalAccessFSharpResources.TheValueIsUnused,
-                    DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
+[DiagnosticAnalyzer(LanguageNames.FSharp)]
+internal class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
+{
+    private const string DescriptorId = IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
+    private readonly DiagnosticDescriptor _descriptor =
+        new(
+                DescriptorId,
+                ExternalAccessFSharpResources.TheValueIsUnused,
+                ExternalAccessFSharpResources.TheValueIsUnused,
+                DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
 
-        public bool IsHighPriority => false;
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
-        public override int Priority => 80; // Default = 50
+    public bool IsHighPriority => false;
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var analyzer = document.Project.Services.GetService<FSharpUnusedDeclarationsDiagnosticAnalyzerService>();
-            if (analyzer == null)
-            {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-            }
+    public override int Priority => 80; // Default = 50
 
-            return analyzer.AnalyzeSemanticsAsync(_descriptor, document, cancellationToken);
-        }
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        var analyzer = textDocument.Project.Services.GetService<FSharpUnusedDeclarationsDiagnosticAnalyzerService>();
+        return analyzer is null || textDocument is not Document document
+            ? []
+            : await analyzer.AnalyzeSemanticsAsync(_descriptor, document, cancellationToken).ConfigureAwait(false);
+    }
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+    public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+    {
+        return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

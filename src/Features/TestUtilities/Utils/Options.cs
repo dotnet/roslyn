@@ -6,11 +6,10 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests;
+
+internal static class Options
 {
-    internal static class Options
-    {
-        internal static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script);
-        internal static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular);
-    }
+    internal static readonly CSharpParseOptions Script = new(kind: SourceCodeKind.Script);
+    internal static readonly CSharpParseOptions Regular = new(kind: SourceCodeKind.Regular);
 }

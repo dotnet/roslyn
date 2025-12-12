@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
@@ -83,7 +81,6 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
     /// <param name="document">The document to generate source into</param>
     /// <param name="symbolCompilation">The <see cref="Compilation"/> in which symbol is resolved.</param>
     /// <param name="symbol">The symbol to generate source for</param>
-    /// <param name="cancellationToken">To cancel document operations</param>
     /// <returns>The updated document</returns>
     protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 

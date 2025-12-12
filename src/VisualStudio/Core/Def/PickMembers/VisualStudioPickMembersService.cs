@@ -5,16 +5,16 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
 
 [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared]
-internal class VisualStudioPickMembersService : IPickMembersService
+internal sealed class VisualStudioPickMembersService : IPickMembersService
 {
     private readonly IGlyphService _glyphService;
 
@@ -38,7 +38,7 @@ internal class VisualStudioPickMembersService : IPickMembersService
         if (result == true)
         {
             return new PickMembersResult(
-                [.. viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol)],
+                viewModel.MemberContainers.SelectAsArray(c => c.IsChecked, c => c.Symbol),
                 options,
                 viewModel.SelectedAll);
         }

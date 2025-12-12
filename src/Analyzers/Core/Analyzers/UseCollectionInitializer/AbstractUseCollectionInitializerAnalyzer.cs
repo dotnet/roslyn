@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -47,12 +48,27 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
+<<<<<<< HEAD
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
+=======
+    protected bool _analyzeForCollectionExpression;
+
+    protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
+>>>>>>> upstream/features/collection-expression-arguments
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches, ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        out bool mayChangeSemantics,
+        CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
+
+    protected override void Clear()
+    {
+        base.Clear();
+        _analyzeForCollectionExpression = false;
+    }
 
     public AnalysisResult Analyze(
         SemanticModel semanticModel,
@@ -61,12 +77,17 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         bool analyzeForCollectionExpression,
         CancellationToken cancellationToken)
     {
-        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
-        if (state is null)
+        _analyzeForCollectionExpression = analyzeForCollectionExpression;
+        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+
+        // If we didn't find something we're assigned to, then we normally can't continue.  However, we always support
+        // converting a `new List<int>()` collection over to a collection expression.  We just won't analyze later
+        // statements.  
+        if (state.ValuePattern == default && !analyzeForCollectionExpression)
             return default;
 
-        this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression);
-        var (preMatches, postMatches) = this.AnalyzeWorker(cancellationToken);
+        this.Initialize(state, objectCreationExpression);
+        var (preMatches, postMatches, mayChangeSemantics) = this.AnalyzeWorker(cancellationToken);
 
         // If analysis failed entirely, immediately bail out.
         if (preMatches.IsDefault || postMatches.IsDefault)
@@ -81,17 +102,22 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         // other words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
         // noise.  So convert empty results to an invalid result here.
         if (analyzeForCollectionExpression)
-            return new(preMatches, postMatches);
+            return new(preMatches, postMatches, mayChangeSemantics);
 
         // Downgrade an empty result to a failure for the normal collection-initializer case.
-        return postMatches.IsEmpty ? default : new(preMatches, postMatches);
+        return postMatches.IsEmpty ? default : new(preMatches, postMatches, mayChangeSemantics);
     }
 
     protected sealed override bool TryAddMatches(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
         ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+<<<<<<< HEAD
+=======
+        out bool mayChangeSemantics,
+>>>>>>> upstream/features/collection-expression-arguments
         CancellationToken cancellationToken)
     {
+        mayChangeSemantics = false;
         var seenInvocation = false;
         var seenIndexAssignment = false;
 
@@ -134,7 +160,10 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         }
 
         if (_analyzeForCollectionExpression)
-            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(preMatches, postMatches, cancellationToken);
+        {
+            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+                preMatches, postMatches, out mayChangeSemantics, cancellationToken);
+        }
 
         return true;
     }
@@ -192,16 +221,20 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         if (this.HasExistingInvalidInitializerForCollection())
             return false;
 
+        return GetAddMethods(cancellationToken).Any();
+    }
+
+    protected ImmutableArray<IMethodSymbol> GetAddMethods(CancellationToken cancellationToken)
+    {
         var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
         if (type == null)
-            return false;
+            return [];
 
         var addMethods = this.SemanticModel.LookupSymbols(
             _objectCreationExpression.SpanStart,
             container: type,
             name: WellKnownMemberNames.CollectionInitializerAddMethodName,
             includeReducedExtensionMethods: true);
-
-        return addMethods.Any(static m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+        return addMethods.SelectAsArray(s => s is IMethodSymbol { Parameters: [_, ..] }, s => (IMethodSymbol)s);
     }
 }

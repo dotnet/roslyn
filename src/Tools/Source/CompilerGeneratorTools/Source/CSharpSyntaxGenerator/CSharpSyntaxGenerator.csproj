@@ -14,6 +14,9 @@
   <ItemGroup>
     <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <!-- Pin SCI and SRM to 8.0, since this generator is built & consumed in our pipeline so it has to work with stock compiler in msbuild (currently shipped with 8.0) -->
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="8.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" VersionOverride="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <!-- If we're building the command line tool, we have to include some dependencies used for grammar generation -->

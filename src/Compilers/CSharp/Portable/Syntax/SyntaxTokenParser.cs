@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <para />
 /// This type is not thread safe.
 /// </remarks>
-[Experimental(RoslynExperiments.SyntaxTokenParser, UrlFormat = RoslynExperiments.SyntaxTokenParser_Url)]
 public sealed class SyntaxTokenParser : IDisposable
 {
     private InternalSyntax.Lexer _lexer;

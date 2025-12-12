@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis
     {
         public static class Keywords
         {
-            public const EventKeywords Performance = (EventKeywords)1;
-            public const EventKeywords Correctness = (EventKeywords)2;
+            public const EventKeywords Performance = (EventKeywords)0b001;
+            public const EventKeywords Correctness = (EventKeywords)0b010;
+            public const EventKeywords AnalyzerLoading = (EventKeywords)0b100;
         }
 
         public static class Tasks
@@ -100,14 +101,89 @@ namespace Microsoft.CodeAnalysis
         [Event(8, Message = "Server compilation {0} completed", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.Compilation)]
         internal void StopServerCompilation(string name) => WriteEvent(8, name);
 
-        [Event(9, Message = "ALC for directory '{0}' created", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.AnalyzerAssemblyLoader)]
-        internal void CreateAssemblyLoadContext(string directory) => WriteEvent(9, directory);
+        [Event(9, Message = "ALC for directory '{0}' created", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void CreateAssemblyLoadContext(string directory, string? alc) => WriteEvent(9, directory, alc);
 
-        [Event(10, Message = "ALC for directory '{0}' disposed", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
-        internal void DisposeAssemblyLoadContext(string directory) => WriteEvent(10, directory);
+        [Event(10, Message = "ALC for directory '{0}' disposed", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void DisposeAssemblyLoadContext(string directory, string? alc) => WriteEvent(10, directory, alc);
 
-        [Event(11, Message = "ALC for directory '{0}' disposal failed with exception '{1}'", Keywords = Keywords.Performance, Level = EventLevel.Error, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
-        internal void DisposeAssemblyLoadContextException(string directory, string errorMessage) => WriteEvent(11, directory, errorMessage);
+        [Event(11, Message = "ALC for directory '{0}' disposal failed with exception '{1}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Error, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void DisposeAssemblyLoadContextException(string directory, string errorMessage, string? alc) => WriteEvent(11, directory, errorMessage, alc);
+
+        [Event(12, Message = "CreateNonLockingLoader", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void CreateNonLockingLoader(string directory) => WriteEvent(12, directory);
+
+        [Event(13, Message = "Request add Analyzer reference '{0}' to project '{1}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal void AnalyzerReferenceRequestAddToProject(string path, string projectName) => WriteEvent(13, path, projectName);
+
+        [Event(14, Message = "Analyzer reference '{0}' was added to project '{1}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal void AnalyzerReferenceAddedToProject(string path, string projectName) => WriteEvent(14, path, projectName);
+
+        [Event(15, Message = "Request remove Analyzer reference '{0}' from project '{1}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal void AnalyzerReferenceRequestRemoveFromProject(string path, string projectName) => WriteEvent(15, path, projectName);
+
+        [Event(16, Message = "Analyzer reference '{0}' was removed from project '{1}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal void AnalyzerReferenceRemovedFromProject(string path, string projectName) => WriteEvent(16, path, projectName);
+
+        [Event(17, Message = "Analyzer reference was redirected by '{0}' from '{1}' to '{2}' for project '{3}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal unsafe void AnanlyzerReferenceRedirected(string redirectorType, string originalPath, string newPath, string project)
+        {
+            if (IsEnabled())
+            {
+                fixed (char* redirectorTypeBytes = redirectorType)
+                fixed (char* originalPathBytes = originalPath)
+                fixed (char* newPathBytes = newPath)
+                fixed (char* projectBytes = project)
+                {
+                    Span<EventData> data =
+                    [
+                        GetEventDataForString(redirectorType, redirectorTypeBytes),
+                        GetEventDataForString(originalPath, originalPathBytes),
+                        GetEventDataForString(newPath, newPathBytes),
+                        GetEventDataForString(project, projectBytes),
+                    ];
+
+                    fixed (EventData* dataPtr = data)
+                    {
+                        WriteEventCore(eventId: 17, data.Length, dataPtr);
+                    }
+                }
+            }
+        }
+
+        [Event(18, Message = "ALC for directory '{0}': Assembly '{1}' was resolved by '{2}' ", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal unsafe void ResolvedAssembly(string directory, string assemblyName, string resolver, string filePath, string alc)
+        {
+            if (IsEnabled())
+            {
+                fixed (char* directoryBytes = directory)
+                fixed (char* assemblyNameBytes = assemblyName)
+                fixed (char* resolverBytes = resolver)
+                fixed (char* filePathBytes = filePath)
+                fixed (char* alcBytes = alc)
+                {
+                    Span<EventData> data =
+                    [
+                        GetEventDataForString(directory, directoryBytes),
+                        GetEventDataForString(assemblyName, assemblyNameBytes),
+                        GetEventDataForString(resolver, resolverBytes),
+                        GetEventDataForString(filePath, filePathBytes),
+                        GetEventDataForString(alc, alcBytes),
+                    ];
+
+                    fixed (EventData* dataPtr = data)
+                    {
+                        WriteEventCore(eventId: 18, data.Length, dataPtr);
+                    }
+                }
+            }
+        }
+
+        [Event(19, Message = "ALC for directory '{0}': Failed to resolve assembly '{1}' ", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
+        internal unsafe void ResolveAssemblyFailed(string directory, string assemblyName) => WriteEvent(19, directory, assemblyName);
+
+        [Event(20, Message = "Project '{0}' created with file path '{1}'", Level = EventLevel.Informational)]
+        internal void ProjectCreated(string projectSystemName, string? filePath) => WriteEvent(20, projectSystemName, filePath ?? string.Empty);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {

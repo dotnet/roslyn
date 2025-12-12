@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -51,19 +52,45 @@ internal static partial class ISolutionExtensions
         if (documentId is null)
             throw new ArgumentNullException(nameof(documentId));
 
-#if !CODE_STYLE
-        // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
-        // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
-        // or whether it hasn't been correctly updated to handle source generated files.
+#if WORKSPACE
         if (documentId.IsSourceGenerated)
+        {
+            // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
+            // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
+            // or whether it hasn't been correctly updated to handle source generated files.
             throw new ArgumentException($"{nameof(GetRequiredDocument)} was given a source-generated DocumentId, but it will never return a source generated document. The caller needs to be calling some other method.");
+        }
 #endif
 
         return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
     }
 
-#if !CODE_STYLE
-    public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+#if WORKSPACE
+    /// <summary>
+    /// Returns the <see cref="SourceGeneratedDocument"/> for the given <see cref="DocumentId"/> if it exists and has been generated.
+    /// </summary>
+    /// <remarks>
+    /// This method is intended to be called on generated document that are "frozen", and hence there is a 100% guarantee that their content
+    /// is available. If the document is not generated, or if it is not frozen, there is an inherent race condition that could cause this method
+    /// to throw an exception at essentially random times.
+    /// </remarks>
+    public static SourceGeneratedDocument GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(this Solution solution, DocumentId documentId)
+    {
+        if (documentId is null)
+            throw new ArgumentNullException(nameof(documentId));
+
+        var project = solution.GetRequiredProject(documentId.ProjectId);
+        var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+        if (sourceGeneratedDocument == null)
+            throw CreateDocumentNotFoundException();
+
+        return sourceGeneratedDocument;
+    }
+
+    public static ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken)
+        => GetRequiredDocumentAsync(solution, documentId, includeSourceGenerated: false, cancellationToken);
+
+    public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated, CancellationToken cancellationToken)
         => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 
     public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
@@ -77,12 +104,23 @@ internal static partial class ISolutionExtensions
         => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException();
 
     public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
-        => solution.GetTextDocument(documentId) ?? throw CreateDocumentNotFoundException();
+    {
+        var document = solution.GetTextDocument(documentId);
+        if (document != null)
+            return document;
+
+#if WORKSPACE
+        if (documentId.IsSourceGenerated)
+            throw new InvalidOperationException($"Use {nameof(GetRequiredTextDocumentAsync)} to get the {nameof(TextDocument)} for a `.{nameof(DocumentId.IsSourceGenerated)}=true` {nameof(DocumentId)}");
+#endif
+
+        throw CreateDocumentNotFoundException();
+    }
 
     private static Exception CreateDocumentNotFoundException()
         => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, IEnumerable<ProjectId> projectIds)
     {
         // If the solution is already in automatic mode, then SG documents are already always up to date.
@@ -105,4 +143,38 @@ internal static partial class ISolutionExtensions
             new SourceGeneratorExecutionVersionMap(projectIdToSourceGenerationVersion.ToImmutable()));
     }
 #endif
+
+    public static TextDocument? GetTextDocumentForLocation(this Solution solution, Location location)
+    {
+        switch (location.Kind)
+        {
+            case LocationKind.SourceFile:
+                return solution.GetDocument(location.SourceTree);
+            case LocationKind.ExternalFile:
+                var documentId = solution.GetDocumentIdsWithFilePath(location.GetLineSpan().Path).FirstOrDefault();
+                return solution.GetTextDocument(documentId);
+            default:
+                return null;
+        }
+    }
+
+    public static TLanguageService? GetLanguageService<TLanguageService>(this Solution? solution, string languageName) where TLanguageService : ILanguageService
+        => solution is null ? default : solution.GetExtendedLanguageServices(languageName).GetService<TLanguageService>();
+
+    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Solution solution, string languageName) where TLanguageService : ILanguageService
+        => solution.GetExtendedLanguageServices(languageName).GetRequiredService<TLanguageService>();
+
+#pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
+
+    /// <summary>
+    /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
+    /// </summary>
+    public static HostLanguageServices GetExtendedLanguageServices(this Solution solution, string languageName)
+#if !WORKSPACE
+        => solution.Workspace.Services.GetExtendedLanguageServices(languageName);
+#else
+        => solution.Services.GetExtendedLanguageServices(languageName);
+#endif
+
+#pragma warning restore RS0030 // Do not used banned APIs
 }

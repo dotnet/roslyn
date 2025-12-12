@@ -578,9 +578,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
                     method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
                 End If
-                Return New Conversion(KeyValuePairUtil.Create(conversionKind, method))
+                Return New Conversion(KeyValuePair.Create(conversionKind, method))
             ElseIf expression.Kind = BoundKind.TryCast OrElse expression.Kind = BoundKind.DirectCast Then
-                Return New Conversion(KeyValuePairUtil.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
+                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
             End If
             Return New Conversion(Conversions.Identity)
         End Function

@@ -3,15 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports System.Threading.Tasks
-Imports System.Threading
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SymbolMatcherTests
@@ -356,9 +355,9 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                peAssemblySymbol0)
+                peAssemblySymbol0,
+                synthesizedTypes0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)
@@ -427,9 +426,9 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                peAssemblySymbol0)
+                peAssemblySymbol0,
+                synthesizedTypes0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)
@@ -504,9 +503,9 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                peAssemblySymbol0)
+                peAssemblySymbol0,
+                synthesizedTypes0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)

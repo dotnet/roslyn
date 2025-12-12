@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,7 +36,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
         : base(fixAllProvider, document, project, codeFixProvider, scope, codeActionEquivalenceKey)
     {
         // We need the trigger diagnostic span for span based fix all scopes, i.e. FixAllScope.ContainingMember and FixAllScope.ContainingType
-        Debug.Assert(diagnosticSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
+        Debug.Assert(diagnosticSpan.HasValue || scope is not (FixAllScope.ContainingMember or FixAllScope.ContainingType));
 
         DiagnosticSpan = diagnosticSpan;
         DiagnosticIds = [.. diagnosticIds];

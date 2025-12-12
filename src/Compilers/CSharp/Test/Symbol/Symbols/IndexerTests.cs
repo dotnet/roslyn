@@ -10,7 +10,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +21,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -2966,6 +2967,57 @@ class C
                 // (8,27): error CS1736: Default parameter value for 'a' must be a compile-time constant
                 //     public A(int x, A a = new A()[1]) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new A()[1]").WithArguments("a").WithLocation(8, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43145")]
+        public void CompilerShouldNotCrashOnSyntaxErrorInIndexerDeclaration()
+        {
+            var source =
+                """
+                struct S
+                {
+                    public bool This[int t] { get { return false; } }
+                }
+                """;
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.GetDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (3,17): warning CS0649: Field 'S.This' is never assigned to, and will always have its default value false
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "This").WithArguments("S.This", "false").WithLocation(3, 17),
+                // (3,21): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[int t]").WithLocation(3, 21),
+                // (3,22): error CS1525: Invalid expression term 'int'
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(3, 22),
+                // (3,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "int").WithLocation(3, 22),
+                // (3,26): error CS1003: Syntax error, ',' expected
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(",").WithLocation(3, 26),
+                // (3,26): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "t").WithLocation(3, 26),
+                // (3,29): error CS1003: Syntax error, ',' expected
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 29),
+                // (3,31): error CS1002: ; expected
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "get").WithLocation(3, 31),
+                // (3,35): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 35),
+                // (3,35): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 35),
+                // (3,53): error CS1022: Type or namespace definition, or end-of-file expected
+                //     public bool This[int t] { get { return false; } }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 53),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
         }
     }
 }

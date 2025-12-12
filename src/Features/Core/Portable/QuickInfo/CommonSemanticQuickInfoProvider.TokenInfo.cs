@@ -8,9 +8,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal abstract partial class CommonSemanticQuickInfoProvider
 {
-    public readonly struct TokenInformation(ImmutableArray<ISymbol> symbols, bool showAwaitReturn = false, NullableFlowState nullableFlowState = NullableFlowState.None)
+    public readonly struct TokenInformation(
+        ImmutableArray<ISymbol> symbols,
+        bool showAwaitReturn = false,
+        string? nullabilityInfo = null)
     {
-        public readonly ImmutableArray<ISymbol> Symbols = symbols;
+        public ImmutableArray<ISymbol> Symbols => symbols.NullToEmpty();
 
         /// <summary>
         /// True if this quick info came from hovering over an 'await' keyword, which we show the return
@@ -19,8 +22,8 @@ internal abstract partial class CommonSemanticQuickInfoProvider
         public readonly bool ShowAwaitReturn = showAwaitReturn;
 
         /// <summary>
-        /// The nullable flow state to show in Quick Info; will be <see cref="NullableFlowState.None"/> to show nothing.
+        /// The nullability info to show in Quick Info; will have <see cref="NullableFlowState.None"/> to show nothing.
         /// </summary>
-        public readonly NullableFlowState NullableFlowState = nullableFlowState;
+        public readonly string? NullabilityInfo = nullabilityInfo;
     }
 }

@@ -30,7 +30,7 @@ using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class SolutionExplorerInProcess
+internal sealed partial class SolutionExplorerInProcess
 {
     public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
     {
@@ -197,18 +197,18 @@ internal partial class SolutionExplorerInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var project = await GetProjectAsync(projectName, cancellationToken);
-        var references = ((VSProject)project.Object).References.Cast<Reference>()
-            .Where(x => x.SourceProject == null)
-            .Select(x => (x.Name, x.Version, x.PublicKeyToken)).ToImmutableArray();
+        var references = ((VSProject)project.Object).References.Cast<Reference>().SelectAsArray(
+            predicate: x => x.SourceProject == null,
+            selector: x => (x.Name, x.Version, x.PublicKeyToken));
         return references;
     }
 
-    public async Task<string[]> GetProjectReferencesAsync(string projectName, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<string>> GetProjectReferencesAsync(string projectName, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var project = await GetProjectAsync(projectName, cancellationToken);
-        var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
+        var references = ((VSProject)project.Object).References.Cast<Reference>().SelectAsArray(x => x.SourceProject != null, x => x.Name);
         return references;
     }
 
@@ -406,15 +406,11 @@ internal partial class SolutionExplorerInProcess
         ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
     }
 
-    public async Task CloseDesignerFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
-    {
-        await CloseFileAsync(projectName, relativeFilePath, VSConstants.LOGVIEWID.Designer_guid, saveFile, cancellationToken);
-    }
+    public Task CloseDesignerFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
+        => CloseFileAsync(projectName, relativeFilePath, VSConstants.LOGVIEWID.Designer_guid, saveFile, cancellationToken);
 
-    public async Task CloseCodeFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
-    {
-        await CloseFileAsync(projectName, relativeFilePath, VSConstants.LOGVIEWID.Code_guid, saveFile, cancellationToken);
-    }
+    public Task CloseCodeFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
+        => CloseFileAsync(projectName, relativeFilePath, VSConstants.LOGVIEWID.Code_guid, saveFile, cancellationToken);
 
     private async Task CloseFileAsync(string projectName, string relativeFilePath, Guid logicalView, bool saveFile, CancellationToken cancellationToken)
     {

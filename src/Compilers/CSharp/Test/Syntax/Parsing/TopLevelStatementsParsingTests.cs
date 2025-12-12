@@ -3561,11 +3561,10 @@ partial ext X
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
 
             N(SyntaxKind.CompilationUnit);
             {

@@ -9,25 +9,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+
+[DiagnosticAnalyzer(NoCompilationConstants.LanguageName)]
+internal sealed class NoCompilationDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(NoCompilationConstants.LanguageName)]
-    internal class NoCompilationDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+    public static readonly DiagnosticDescriptor Descriptor = new(
+        "NC0000", "No Compilation Syntax Error", "No Compilation Syntax Error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+    public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-            "NC0000", "No Compilation Syntax Error", "No Compilation Syntax Error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray.Create(
-                Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default))));
-        }
+        return Task.FromResult(ImmutableArray.Create(
+            Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default))));
     }
 }

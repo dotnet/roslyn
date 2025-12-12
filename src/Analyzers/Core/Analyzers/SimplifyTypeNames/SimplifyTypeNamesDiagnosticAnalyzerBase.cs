@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// #define LOG
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -17,11 +15,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if LOG
-using System.IO;
-using System.Text.RegularExpressions;
-#endif
-
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames;
 
 internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions>
@@ -29,29 +22,23 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
     where TLanguageKindEnum : struct
     where TSimplifierOptions : SimplifierOptions
 {
-#if LOG
-    private static string _logFile = @"c:\temp\simplifytypenames.txt";
-    private static object _logGate = new object();
-    private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
-#endif
-
     private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzersResources.Name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
     private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
     private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
-                                                                EnforceOnBuildValues.SimplifyNames,
-                                                                hasAnyCodeStyleOption: false,
-                                                                s_localizableTitleSimplifyNames,
-                                                                s_localizableMessage,
-                                                                isUnnecessary: true);
+        EnforceOnBuildValues.SimplifyNames,
+        hasAnyCodeStyleOption: false,
+        s_localizableTitleSimplifyNames,
+        s_localizableMessage,
+        isUnnecessary: true);
 
     private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Member_Access), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
     private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                                                                EnforceOnBuildValues.SimplifyMemberAccess,
-                                                                hasAnyCodeStyleOption: false,
-                                                                s_localizableTitleSimplifyMemberAccess,
-                                                                s_localizableMessage,
-                                                                isUnnecessary: true);
+        EnforceOnBuildValues.SimplifyMemberAccess,
+        hasAnyCodeStyleOption: false,
+        s_localizableTitleSimplifyMemberAccess,
+        s_localizableMessage,
+        isUnnecessary: true);
 
     private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = CreateDescriptorWithId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
         EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
@@ -70,8 +57,7 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
                     CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                     CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
                 ])
-            ],
-            fadingOption: null)
+            ])
     {
     }
 

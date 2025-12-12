@@ -30,43 +30,73 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 internal sealed class CodeRefactoringService(
     [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers) : ICodeRefactoringService
 {
-    private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>>(
-            () =>
-                ImmutableDictionary.CreateRange(
-                    DistributeLanguages(providers)
-                        .GroupBy(lz => lz.Metadata.Language)
-                        .Select(grp => KeyValuePairUtil.Create(
-                            grp.Key,
-                            new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => [.. ExtensionOrderer.Order(grp).Select(lz => lz.Value)])))));
+    private readonly Lazy<ImmutableDictionary<ProviderKey, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageDocumentToProvidersMap =
+        new(() =>
+            ImmutableDictionary.CreateRange(
+                DistributeLanguagesAndDocuments(providers)
+                    .GroupBy(lz => new ProviderKey(lz.Metadata.Language, lz.Metadata.DocumentKind, lz.Metadata.DocumentExtension))
+                    .Select(grp => KeyValuePair.Create(grp.Key,
+                        new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => [.. ExtensionOrderer.Order(grp).Select(lz => lz.Value)])))));
+
     private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
 
     private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
 
-    private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
+    private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageDocumentMetadata>> DistributeLanguagesAndDocuments(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
     {
         foreach (var provider in providers)
         {
             foreach (var language in provider.Metadata.Languages)
             {
-                var orderable = new OrderableLanguageMetadata(
-                    provider.Metadata.Name, language, provider.Metadata.AfterTyped, provider.Metadata.BeforeTyped);
-                yield return new Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>(() => provider.Value, orderable);
+                foreach (var documentKind in provider.Metadata.DocumentKinds)
+                {
+                    // Document kinds come from ExportCodeRefactoringProviderAttribute which throws
+                    // if values do not match enum TextDocumentKind. Here we'll throw too.
+                    var kind = (TextDocumentKind)Enum.Parse(typeof(TextDocumentKind), documentKind, ignoreCase: true);
+                    var documentExtensions = provider.Metadata.DocumentExtensions.Where(e => !string.IsNullOrEmpty(e));
+                    if (!documentExtensions.Any())
+                    {
+                        // Metadata without file extension applies to all files.
+                        documentExtensions = [""];
+                    }
+
+                    foreach (var documentExtension in documentExtensions)
+                    {
+                        var orderable = new OrderableLanguageDocumentMetadata(
+                            provider.Metadata.Name ?? "", language, kind, documentExtension, provider.Metadata.AfterTyped, provider.Metadata.BeforeTyped);
+                        yield return new Lazy<CodeRefactoringProvider, OrderableLanguageDocumentMetadata>(() => provider.Value, orderable);
+                    }
+                }
             }
         }
     }
 
-    private ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageToProvidersMap
-        => _lazyLanguageToProvidersMap.Value;
+    private ImmutableDictionary<ProviderKey, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageDocumentToProvidersMap
+        => _lazyLanguageDocumentToProvidersMap.Value;
 
     private ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata> RefactoringToMetadataMap
         => _lazyRefactoringToMetadataMap.Value;
 
-    private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(TextDocument document)
+    internal ConcatImmutableArray<CodeRefactoringProvider> GetProviders(TextDocument document)
     {
         var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
-        if (LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
+
+        // Include providers which apply to all extensions
+        var key = new ProviderKey(document.Project.Language, document.Kind, "");
+        if (LanguageDocumentToProvidersMap.TryGetValue(key, out var lazyProviders))
         {
-            allRefactorings = ProjectCodeRefactoringProvider.FilterExtensions(document, lazyProviders.Value, GetExtensionInfo);
+            allRefactorings = lazyProviders.Value;
+        }
+
+        // Get providers for specific combination of language, doc kind and extension,
+        // e.g. (C#, AdditionalDocument, .xaml)
+        if (FileNameUtilities.GetExtension(document.FilePath) is string documentExtension && documentExtension.Length > 0)
+        {
+            key = new ProviderKey(document.Project.Language, document.Kind, documentExtension);
+            if (LanguageDocumentToProvidersMap.TryGetValue(key, out lazyProviders))
+            {
+                allRefactorings = allRefactorings.Concat(lazyProviders.Value);
+            }
         }
 
         return allRefactorings.ConcatFast(GetProjectRefactorings(document));
@@ -133,7 +163,7 @@ internal sealed class CodeRefactoringService(
             {
                 // Try to consume from the results that produceItems is sending us.  The moment we get a single result,
                 // we know we're done and we have at least one refactoring.
-                await foreach (var unused in items)
+                await foreach (var unused in items.ConfigureAwait(false))
                 {
                     // Cancel all the other items that are still running (or are asked to run in the future).
                     args.linkedTokenSource.Cancel();
@@ -158,7 +188,7 @@ internal sealed class CodeRefactoringService(
         {
             using var _ = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
 
-            var orderedProviders = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority).ToImmutableArray();
+            var orderedProviders = GetProviders(document).WhereAsArray(p => priority == null || p.RequestPriority == priority);
 
             var pairs = await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
                 source: orderedProviders,
@@ -175,11 +205,12 @@ internal sealed class CodeRefactoringService(
 
                     var providerName = provider.GetType().Name;
 
-                    var logMessage = KeyValueLogMessage.Create(m =>
+                    var logMessage = KeyValueLogMessage.Create(static (m, args) =>
                     {
+                        var (providerName, document) = args;
                         m[TelemetryLogging.KeyName] = providerName;
                         m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
-                    });
+                    }, (providerName, document));
 
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
@@ -268,6 +299,26 @@ internal sealed class CodeRefactoringService(
 
             extensions = default;
             return false;
+        }
+    }
+
+    private record struct ProviderKey(string Language, TextDocumentKind DocumentKind, string DocumentExtension) : IEquatable<ProviderKey>
+    {
+        public bool Equals(ProviderKey other)
+        {
+            // We create keys from two sources:
+            //   * MEF's ExportCodeRefactoringProviderAttribute when building the map for available providers.
+            //   * TextDocument when looking up the map for available providers.
+            // Text documents can point to files with different extensions, e.g. MyPage.xaml and MyControl.XAML.
+            // Thus we need case insensitive comparison for DocumentExtension.
+            return Language == other.Language &&
+                   DocumentKind == other.DocumentKind &&
+                   StringComparer.OrdinalIgnoreCase.Equals(DocumentExtension, other.DocumentExtension);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Language, DocumentKind, StringComparer.OrdinalIgnoreCase.GetHashCode(DocumentExtension)).GetHashCode();
         }
     }
 }

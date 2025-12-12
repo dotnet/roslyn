@@ -10,8 +10,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices.ComTypes;
 using DSR::Microsoft.DiaSymReader;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Xunit;
 
 namespace Roslyn.Test.Utilities

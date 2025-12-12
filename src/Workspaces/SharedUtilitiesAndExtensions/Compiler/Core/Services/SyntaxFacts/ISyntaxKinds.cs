@@ -56,6 +56,7 @@ internal interface ISyntaxKinds
     int? GlobalStatement { get; }
     int IfKeyword { get; }
     int NewKeyword { get; }
+    int PartialKeyword { get; }
     int TrueKeyword { get; }
     int UsingKeyword { get; }
 
@@ -95,8 +96,9 @@ internal interface ISyntaxKinds
 
     #endregion
 
-    #region xml tokens
+    #region xml nodes and tokens
 
+    int XmlCrefAttribute { get; }
     int XmlTextLiteralToken { get; }
 
     #endregion
@@ -160,11 +162,13 @@ internal interface ISyntaxKinds
     int ReferenceNotEqualsExpression { get; }
     int SimpleAssignmentExpression { get; }
     int SimpleMemberAccessExpression { get; }
+    int? SizeOfExpression { get; }
     int? SuppressNullableWarningExpression { get; }
     int TernaryConditionalExpression { get; }
     int ThisExpression { get; }
     int? ThrowExpression { get; }
     int TupleExpression { get; }
+    int TypeOfExpression { get; }
 
     #endregion
 
@@ -230,6 +234,7 @@ internal interface ISyntaxKinds
 
     #region other
 
+    int? ExpressionElement { get; }
     int? ImplicitElementAccess { get; }
     int Interpolation { get; }
     int InterpolatedStringText { get; }

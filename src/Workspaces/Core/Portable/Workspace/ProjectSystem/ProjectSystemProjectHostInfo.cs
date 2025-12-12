@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
-internal record ProjectSystemHostInfo(
+internal sealed record ProjectSystemHostInfo(
     ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> DynamicFileInfoProviders,
-    IHostDiagnosticAnalyzerProvider HostDiagnosticAnalyzerProvider,
     ImmutableArray<IAnalyzerAssemblyRedirector> AnalyzerAssemblyRedirectors);

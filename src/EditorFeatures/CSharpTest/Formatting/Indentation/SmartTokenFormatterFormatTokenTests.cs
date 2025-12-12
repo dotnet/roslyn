@@ -15,445 +15,393 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 
 [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
+public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
 {
     public SmartTokenFormatterFormatTokenTests(ITestOutputHelper output) : base(output)
     {
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
-    public async Task EmptyFile1()
-    {
-        var code = @"{";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task EmptyFile1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            @"{",
             indentationLine: 0,
             expectedSpace: 0);
-    }
 
     [Fact]
-    public async Task EmptyFile2()
-    {
-        var code = @"}";
-
-        await ExpectException_SmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task EmptyFile2()
+        => ExpectException_SmartTokenFormatterCloseBraceAsync(
+            @"}",
             indentationLine: 0);
-    }
 
     [Fact]
-    public async Task Namespace1()
-    {
-        var code = @"namespace NS
-{";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Namespace1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+            """,
             indentationLine: 1,
             expectedSpace: 0);
-    }
 
     [Fact]
-    public async Task Namespace2()
-    {
-        var code = @"namespace NS
-}";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Namespace2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            }
+            """,
             indentationLine: 1,
             expectedSpace: 0);
-    }
 
     [Fact]
-    public async Task Namespace3()
-    {
-        var code = @"namespace NS
-{
-    }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Namespace3()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                }
+            """,
             indentationLine: 2,
             expectedSpace: 0);
-    }
 
     [Fact]
-    public async Task Class1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Class1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+            """,
             indentationLine: 3,
             expectedSpace: 4);
-    }
 
     [Fact]
-    public async Task Class2()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Class2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                }
+            """,
             indentationLine: 3,
             expectedSpace: 4);
-    }
 
     [Fact]
-    public async Task Class3()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Class3()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    }
+            """,
             indentationLine: 4,
             expectedSpace: 4);
-    }
 
     [Fact]
-    public async Task Method1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Method1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    {
+            """,
             indentationLine: 5,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Method2()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Method2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    }
+            """,
             indentationLine: 5,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Method3()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Method3()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    {
+                        }
+            """,
             indentationLine: 6,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Property1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        int Goo
-            {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Property1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    int Goo
+                        {
+            """,
             indentationLine: 5,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Property2()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        int Goo
-        {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Property2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    int Goo
+                    {
+                        }
+            """,
             indentationLine: 6,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Event1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        event EventHandler Goo
-            {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Event1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    event EventHandler Goo
+                        {
+            """,
             indentationLine: 5,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Event2()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        event EventHandler Goo
-        {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Event2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    event EventHandler Goo
+                    {
+                        }
+            """,
             indentationLine: 6,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Indexer1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        int this[int index]
-            {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Indexer1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    int this[int index]
+                        {
+            """,
             indentationLine: 5,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Indexer2()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        int this[int index]
-        {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Indexer2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    int this[int index]
+                    {
+                        }
+            """,
             indentationLine: 6,
             expectedSpace: 8);
-    }
 
     [Fact]
-    public async Task Block1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-        {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    public Task Block1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    {
+                    {
+            """,
             indentationLine: 6,
             expectedSpace: 12);
-    }
 
     [Fact]
-    public async Task Block2()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        }
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    public Task Block2()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    }
+                    }
+            """,
             indentationLine: 6,
             expectedSpace: 0);
-    }
 
     [Fact]
-    public async Task Block3()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
+    public Task Block3()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
             {
-                }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
-            indentationLine: 7,
-            expectedSpace: 12);
-    }
-
-    [Fact]
-    public async Task Block4()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
+                class Class
                 {
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+                    void Method(int i)
+                    {
+                        {
+                            }
+            """,
             indentationLine: 7,
             expectedSpace: 12);
-    }
 
     [Fact]
-    public async Task ArrayInitializer1()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-            var a = new []          {
-        }";
+    public Task Block4()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    {
+                            {
+                    }
+            """,
+            indentationLine: 7,
+            expectedSpace: 12);
 
-        var expected = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-            var a = new [] {
-        }";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            expected,
-            code,
+    [Fact]
+    public Task ArrayInitializer1()
+        => AssertSmartTokenFormatterOpenBraceAsync(
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    {
+                        var a = new [] {
+                    }
+            """,
+            """
+            namespace NS
+            {
+                class Class
+                {
+                    void Method(int i)
+                    {
+                        var a = new []          {
+                    }
+            """,
             indentationLine: 6);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
-    public async Task ArrayInitializer3()
-    {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-            int[,] arr =
+    public Task ArrayInitializer3()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            namespace NS
             {
-                {1,1}, {2,2}
-}
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+                class Class
+                {
+                    void Method(int i)
+                    {
+                        int[,] arr =
+                        {
+                            {1,1}, {2,2}
+            }
+                    }
+            """,
             indentationLine: 9,
             expectedSpace: 12);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
-    public async Task EnterWithTrailingWhitespace()
-    {
-        var code = @"class Class
-{
-    void Method(int i)
-    {
-        var a = new {
- };
-";
+    public Task EnterWithTrailingWhitespace()
+        => AssertSmartTokenFormatterCloseBraceAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    var a = new {
+             };
 
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            """,
             indentationLine: 5,
             expectedSpace: 8);
-    }
 
     [Fact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
-    public async Task OpenBraceWithBaseIndentation()
-    {
-        var markup = @"
-class C
-{
-    void M()
-    {
-[|#line ""Default.aspx"", 273
-        if (true)
-$${
-        }
-#line default
-#line hidden|]
-    }
-}";
-        await AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(markup, baseIndentation: 7, expectedIndentation: 11);
-    }
+    public Task OpenBraceWithBaseIndentation()
+        => AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync("""
+
+            class C
+            {
+                void M()
+                {
+            [|#line "Default.aspx", 273
+                    if (true)
+            $${
+                    }
+            #line default
+            #line hidden|]
+                }
+            }
+            """, baseIndentation: 7, expectedIndentation: 11);
 
     [Fact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
-    public async Task CloseBraceWithBaseIndentation()
-    {
-        var markup = @"
-class C
-{
-    void M()
-    {
-[|#line ""Default.aspx"", 273
-        if (true)
-        {
-$$}
-#line default
-#line hidden|]
-    }
-}";
-        await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup, baseIndentation: 7, expectedIndentation: 11);
-    }
+    public Task CloseBraceWithBaseIndentation()
+        => AssertSmartTokenFormatterCloseBraceWithBaseIndentation("""
+
+            class C
+            {
+                void M()
+                {
+            [|#line "Default.aspx", 273
+                    if (true)
+                    {
+            $$}
+            #line default
+            #line hidden|]
+                }
+            }
+            """, baseIndentation: 7, expectedIndentation: 11);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
     public async Task TestPreprocessor()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        #
-    }
-}";
+        var code = """
+
+            class C
+            {
+                void M()
+                {
+                    #
+                }
+            }
+            """;
 
         var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine: 5, ch: '#', useTabs: false);
         Assert.Equal(0, actualIndentation);
@@ -465,14 +413,16 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
     public async Task TestRegion()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-#region
-    }
-}";
+        var code = """
+
+            class C
+            {
+                void M()
+                {
+            #region
+                }
+            }
+            """;
 
         var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine: 5, ch: 'n', useTabs: false);
         Assert.Equal(8, actualIndentation);
@@ -484,15 +434,17 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
     public async Task TestEndRegion()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        #region
-#endregion
-    }
-}";
+        var code = """
+
+            class C
+            {
+                void M()
+                {
+                    #region
+            #endregion
+                }
+            }
+            """;
 
         var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine: 5, ch: 'n', useTabs: false);
         Assert.Equal(8, actualIndentation);
@@ -504,19 +456,21 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
     public async Task TestSelect()
     {
-        var code = @"
-using System;
-using System.Linq;
+        var code = """
 
-class Program
-{
-    static IEnumerable<int> Goo()
-    {
-        return from a in new[] { 1, 2, 3 }
-                    select
-    }
-}
-";
+            using System;
+            using System.Linq;
+
+            class Program
+            {
+                static IEnumerable<int> Goo()
+                {
+                    return from a in new[] { 1, 2, 3 }
+                                select
+                }
+            }
+
+            """;
 
         var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine: 9, ch: 't', useTabs: false);
         Assert.Equal(15, actualIndentation);
@@ -528,19 +482,21 @@ class Program
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
     public async Task TestWhere()
     {
-        var code = @"
-using System;
-using System.Linq;
+        var code = """
 
-class Program
-{
-    static IEnumerable<int> Goo()
-    {
-        return from a in new[] { 1, 2, 3 }
-                    where
-    }
-}
-";
+            using System;
+            using System.Linq;
+
+            class Program
+            {
+                static IEnumerable<int> Goo()
+                {
+                    return from a in new[] { 1, 2, 3 }
+                                where
+                }
+            }
+
+            """;
 
         var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine: 9, ch: 'e', useTabs: false);
         Assert.Equal(15, actualIndentation);

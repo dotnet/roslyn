@@ -21,6 +21,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
 
     public ITemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
+        stream.Position = 0;
         var newStream = new MemoryStream();
         stream.CopyTo(newStream);
         return new StreamStorage(newStream);

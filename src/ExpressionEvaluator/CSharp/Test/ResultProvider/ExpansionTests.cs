@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;

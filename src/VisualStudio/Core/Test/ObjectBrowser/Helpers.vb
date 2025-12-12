@@ -6,7 +6,6 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser

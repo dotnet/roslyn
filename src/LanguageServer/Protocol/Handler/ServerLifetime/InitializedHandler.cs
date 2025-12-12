@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [Method(Methods.InitializedName)]
-internal class InitializedHandler : ILspServiceNotificationHandler<InitializedParams>
+internal sealed class InitializedHandler : ILspServiceNotificationHandler<InitializedParams>
 {
     public InitializedHandler()
     {

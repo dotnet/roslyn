@@ -47,6 +47,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
@@ -56,7 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="BasicVSResources.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <EmbeddedResource Update="VSPackage.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic" >
+    <EmbeddedResource Update="VSPackage.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

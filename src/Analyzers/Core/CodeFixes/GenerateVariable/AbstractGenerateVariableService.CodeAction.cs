@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,12 +12,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
@@ -74,7 +66,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: _state.DetermineMaximalAccessibility(),
-                    modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
+                    modifiers: DeclarationModifiers.None.WithIsStatic(_state.IsStatic).WithIsUnsafe(generateUnsafe),
                     type: _state.TypeMemberType,
                     refKind: _refKind,
                     explicitInterfaceImplementations: default,
@@ -93,8 +85,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                     attributes: default,
                     accessibility: DetermineMinimalAccessibility(_state),
                     modifiers: _isConstant
-                        ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
-                        : new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
+                        ? DeclarationModifiers.None.WithIsConst(true).WithIsUnsafe(generateUnsafe)
+                        : DeclarationModifiers.None.WithIsStatic(_state.IsStatic).WithIsReadOnly(_isReadonly).WithIsUnsafe(generateUnsafe),
                     type: _state.TypeMemberType,
                     name: _state.IdentifierToken.ValueText);
 
@@ -113,10 +105,14 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         private ImmutableArray<SyntaxNode> GenerateStatements()
         {
-            var syntaxFactory = _semanticDocument.Project.Solution.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+            var syntaxFactory = _semanticDocument.Project.Solution.Services
+                .GetLanguageServices(_state.TypeToGenerateIn.Language)
+                .GetRequiredService<SyntaxGenerator>();
 
             var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
                 syntaxFactory, _semanticDocument, "System.NotImplementedException");
+            if (throwStatement is null)
+                return default;
 
             return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                 ? [throwStatement]
@@ -132,7 +128,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             // Otherwise, figure out what accessibility modifier to use and optionally mark
             // it as static.
-            var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
             {
                 return Accessibility.Public;

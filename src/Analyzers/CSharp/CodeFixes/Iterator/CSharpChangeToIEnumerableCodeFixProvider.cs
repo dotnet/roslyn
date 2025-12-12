@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 
@@ -29,6 +28,8 @@ internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractItera
     /// CS1624: The body of 'x' cannot be an iterator block because 'y' is not an iterator interface type
     /// </summary>
     private const string CS1624 = nameof(CS1624);
+
+    public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS1624];
 
@@ -84,14 +85,12 @@ internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractItera
             newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newOperator));
         }
 
-        var oldAccessor = node.Parent?.Parent as PropertyDeclarationSyntax;
-        if (oldAccessor != null)
+        if (node.Parent?.Parent is PropertyDeclarationSyntax oldAccessor)
         {
             newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType)));
         }
 
-        var oldIndexer = node.Parent?.Parent as IndexerDeclarationSyntax;
-        if (oldIndexer != null)
+        if (node.Parent?.Parent is IndexerDeclarationSyntax oldIndexer)
         {
             newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldIndexer, oldIndexer.WithType(newReturnType)));
         }

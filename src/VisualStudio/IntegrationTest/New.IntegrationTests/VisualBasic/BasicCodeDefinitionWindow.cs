@@ -33,11 +33,13 @@ public class BasicCodeDefinitionWindow : AbstractEditorTest
         // our regular file.
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-Public Class Test
-    Dim field As $$Integer
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Public Class Test
+                Dim field As $$Integer
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         // If we are enabling decompilation, we'll get C# code since we don't support decompiling into VB
         if (enableDecompilation)

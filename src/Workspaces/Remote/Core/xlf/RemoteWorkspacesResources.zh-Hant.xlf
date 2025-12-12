@@ -27,6 +27,16 @@
         <target state="translated">將元組轉換為結構重構</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="new">Copilot change analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="new">Copilot proposal adjuster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">相依類型尋找工具</target>
@@ -57,9 +67,14 @@
         <target state="translated">封裝欄位重構</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">擴充方法匯入完成</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="new">Extension member import completion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="new">Extension message handler</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -80,6 +95,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">繼承邊界</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

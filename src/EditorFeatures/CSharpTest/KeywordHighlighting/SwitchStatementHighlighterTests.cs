@@ -14,15 +14,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(SwitchStatementHighlighter);
 
     [Fact]
-    public async Task TestExample1_OnSwitchKeyword()
-    {
-        await TestAsync(
+    public Task TestExample1_OnSwitchKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -43,12 +42,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_OnCaseKeyword()
-    {
-        await TestAsync(
+    public Task TestExample1_OnCaseKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -69,12 +66,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_AfterCaseColon()
-    {
-        await TestAsync(
+    public Task TestExample1_AfterCaseColon()
+        => TestAsync(
             """
             class C
             {
@@ -95,12 +90,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_NotOnCaseValue()
-    {
-        await TestAsync(
+    public Task TestExample1_NotOnCaseValue()
+        => TestAsync(
             """
             class C
             {
@@ -121,12 +114,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_OnBreakStatement()
-    {
-        await TestAsync(
+    public Task TestExample1_OnBreakStatement()
+        => TestAsync(
             """
             class C
             {
@@ -147,12 +138,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_OnDefaultLabel()
-    {
-        await TestAsync(
+    public Task TestExample1_OnDefaultLabel()
+        => TestAsync(
             """
             class C
             {
@@ -173,12 +162,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_OnGotoCaseKeywords()
-    {
-        await TestAsync(
+    public Task TestExample2_OnGotoCaseKeywords()
+        => TestAsync(
             """
             class C
             {
@@ -199,12 +186,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_AfterGotoCaseSemicolon()
-    {
-        await TestAsync(
+    public Task TestExample2_AfterGotoCaseSemicolon()
+        => TestAsync(
             """
             class C
             {
@@ -225,12 +210,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_NotOnGotoCaseValue()
-    {
-        await TestAsync(
+    public Task TestExample2_NotOnGotoCaseValue()
+        => TestAsync(
             """
             class C
             {
@@ -251,12 +234,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_OnGotoDefaultStatement()
-    {
-        await TestAsync(
+    public Task TestExample2_OnGotoDefaultStatement()
+        => TestAsync(
             """
             class C
             {
@@ -277,12 +258,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_OnSwitchKeyword()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_OnSwitchKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -321,12 +300,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_OnCaseKeyword()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_OnCaseKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -365,12 +342,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_NotBeforeCaseValue()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_NotBeforeCaseValue()
+        => TestAsync(
             """
             class C
             {
@@ -409,12 +384,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_AfterCaseColon()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_AfterCaseColon()
+        => TestAsync(
             """
             class C
             {
@@ -453,12 +426,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_OnBreakStatement()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_OnBreakStatement()
+        => TestAsync(
             """
             class C
             {
@@ -497,12 +468,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Bug3483()
-    {
-        await TestAsync(
+    public Task Bug3483()
+        => TestAsync(
             """
             class C
             {
@@ -516,12 +485,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithUnrelatedGotoStatement_OnGotoCaseGotoKeyword()
-    {
-        await TestAsync(
+    public Task TestWithUnrelatedGotoStatement_OnGotoCaseGotoKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -543,12 +510,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithUnrelatedGotoStatement_OnGotoDefaultGotoKeyword()
-    {
-        await TestAsync(
+    public Task TestWithUnrelatedGotoStatement_OnGotoDefaultGotoKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -570,12 +535,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithUnrelatedGotoStatement_NotOnGotoLabelGotoKeyword()
-    {
-        await TestAsync(
+    public Task TestWithUnrelatedGotoStatement_NotOnGotoLabelGotoKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -597,12 +560,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithNestedStatements_OnSwitchKeyword()
-    {
-        await TestAsync(
+    public Task TestWithNestedStatements_OnSwitchKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -629,12 +590,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithNestedStatements_OnBreakKeyword()
-    {
-        await TestAsync(
+    public Task TestWithNestedStatements_OnBreakKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -661,12 +620,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithGotoCaseAndBreakInsideLoop_OnSwitchKeyword()
-    {
-        await TestAsync(
+    public Task TestWithGotoCaseAndBreakInsideLoop_OnSwitchKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -691,12 +648,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithGotoCaseAndBreakInsideLoop_OnGotoCaseGotoKeyword()
-    {
-        await TestAsync(
+    public Task TestWithGotoCaseAndBreakInsideLoop_OnGotoCaseGotoKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -721,12 +676,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25039")]
-    public async Task TestWithGotoCaseAndBreakInsideLoop_NotOnLoopBreakKeyword()
-    {
-        await TestAsync(
+    public Task TestWithGotoCaseAndBreakInsideLoop_NotOnLoopBreakKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -751,12 +704,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithWhenClauseAndPattern_OnSwitchKeyword()
-    {
-        await TestAsync(
+    public Task TestWithWhenClauseAndPattern_OnSwitchKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -772,12 +723,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithWhenClauseAndPattern_NotOnWhenKeyword()
-    {
-        await TestAsync(
+    public Task TestWithWhenClauseAndPattern_NotOnWhenKeyword()
+        => TestAsync(
             """
             class C
             {
@@ -793,12 +742,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithWhenClauseAndPattern_AfterWhenCaseColon()
-    {
-        await TestAsync(
+    public Task TestWithWhenClauseAndPattern_AfterWhenCaseColon()
+        => TestAsync(
             """
             class C
             {
@@ -814,12 +761,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithWhenClauseAndPattern_AfterPatternCaseColon()
-    {
-        await TestAsync(
+    public Task TestWithWhenClauseAndPattern_AfterPatternCaseColon()
+        => TestAsync(
             """
             class C
             {
@@ -835,12 +780,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithWhenClauseAndPattern_NotOnWhenValue()
-    {
-        await TestAsync(
+    public Task TestWithWhenClauseAndPattern_NotOnWhenValue()
+        => TestAsync(
             """
             class C
             {
@@ -856,12 +799,10 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithWhenClauseAndPattern_NotOnPattern()
-    {
-        await TestAsync(
+    public Task TestWithWhenClauseAndPattern_NotOnPattern()
+        => TestAsync(
             """
             class C
             {
@@ -877,5 +818,4 @@ public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterT
                 }
             }
             """);
-    }
 }

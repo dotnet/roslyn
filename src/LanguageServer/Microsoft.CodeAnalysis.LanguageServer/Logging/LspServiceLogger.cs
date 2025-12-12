@@ -19,9 +19,14 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
         _hostLogger = hostLogger;
     }
 
-    public override void LogDebug(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
+    public override IDisposable? CreateContext(string context) => _hostLogger.BeginScope(new LspLoggingScope(context, null));
 
-    public override void LogEndContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][End]{message}", @params);
+    public override IDisposable? CreateLanguageContext(string? language)
+        => language is null
+            ? null
+            : _hostLogger.BeginScope(new LspLoggingScope(null, language));
+
+    public override void LogDebug(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
 
     public override void LogError(string message, params object[] @params) => _hostLogger.LogError(message, @params);
 
@@ -30,9 +35,7 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
     /// <summary>
     /// TODO - Switch this to call LogInformation once appropriate callers have been changed to LogDebug.
     /// </summary>
-    public override void LogInformation(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
-
-    public override void LogStartContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][Start]{message}", @params);
+    public override void LogInformation(string message, params object[] @params) => _hostLogger.LogInformation(message, @params);
 
     public override void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);
 }

@@ -5,12 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -46,6 +41,12 @@ internal abstract class CodeGenerationTypeSymbol(
     public bool IsTupleType => false;
 
     public bool IsNativeIntegerType => false;
+
+#if !ROSLYN_4_12_OR_LOWER
+    bool ITypeSymbol.IsExtension => false;
+
+    IParameterSymbol ITypeSymbol.ExtensionParameter => null;
+#endif
 
     public static ImmutableArray<ITypeSymbol> TupleElementTypes => default;
 

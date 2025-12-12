@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 [ExportLanguageServiceFactory(typeof(ISyntaxTriviaService), LanguageNames.CSharp), Shared]
-internal class CSharpSyntaxTriviaServiceFactory : ILanguageServiceFactory
+internal sealed class CSharpSyntaxTriviaServiceFactory : ILanguageServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
