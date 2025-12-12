@@ -164,7 +164,9 @@ internal partial class CSharpTypeInferenceService
                 InitializerExpressionSyntax initializerExpression => InferTypeInInitializerExpression(initializerExpression, expression),
                 IsPatternExpressionSyntax isPatternExpression => InferTypeInIsPatternExpression(isPatternExpression, node),
                 LockStatementSyntax lockStatement => InferTypeInLockStatement(lockStatement),
+#if false
                 KeyValuePairElementSyntax keyValuePairElement => InferTypeInKeyValuePairElement(keyValuePairElement, expression),
+#endif
                 MemberAccessExpressionSyntax memberAccessExpression => InferTypeInMemberAccessExpression(memberAccessExpression, expression),
                 NameColonSyntax nameColon => InferTypeInNameColon(nameColon),
                 NameEqualsSyntax nameEquals => InferTypeInNameEquals(nameEquals),
@@ -1264,6 +1266,7 @@ internal partial class CSharpTypeInferenceService
             return [];
         }
 
+#if false
         private IEnumerable<TypeInferenceInfo> InferTypeInKeyValuePairElement(
             KeyValuePairElementSyntax keyValuePairElement, ExpressionSyntax expression)
         {
@@ -1303,6 +1306,7 @@ internal partial class CSharpTypeInferenceService
                 return [];
             }
         }
+#endif
 
         private IEnumerable<TypeInferenceInfo> InferTypeInExpressionStatement(SyntaxToken? previousToken = null)
         {
