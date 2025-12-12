@@ -596,7 +596,9 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-        SourceText text, InitializerExpressionSyntax initializer, bool wasOnSingleLine)
+        // Enable when dictionary-expressions come online.
+        // SourceText text,
+        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
         var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);

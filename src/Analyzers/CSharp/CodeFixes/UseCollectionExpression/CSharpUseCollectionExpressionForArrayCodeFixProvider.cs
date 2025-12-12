@@ -56,7 +56,6 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayCodeFixProvid
             editor.ReplaceNode(
                 initializer,
                 ConvertInitializerToCollectionExpression(
-                    text,
                     initializer,
                     IsOnSingleLine(text, initializer)));
         }
