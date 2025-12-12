@@ -276,11 +276,20 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             var compilation = this.SemanticModel.Compilation;
 
             var ienumerableOfTType = compilation.IEnumerableOfTType();
-            if (!Equals(firstParameter.Type.OriginalDefinition, ienumerableOfTType) &&
-                !firstParameter.Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
-            {
+            var implementedInterface = firstParameter.Type
+                .GetAllInterfacesIncludingThis()
+                .FirstOrDefault(i => Equals(i.OriginalDefinition, ienumerableOfTType));
+
+            var elementType = implementedInterface?.GetTypeArguments().SingleOrDefault();
+            if (elementType is null)
                 return false;
-            }
+
+            // Ok, the constructor takes some `IEnumerable<X>` type.  If it also has an `Add(X)` method, then we
+            // can take those constructor arguments and pass them along to the final collection by spreading them.
+            // If not, then we can't convert this to a collection expression.
+            var addMethods = this.GetAddMethods(cancellationToken);
+            if (!addMethods.Any(m => m.Parameters is [{ Type: var parameterType }] && Equals(parameterType, elementType)))
+                return false;
 
             // Looks like something passed to the constructor call that we could potentially spread instead. e.g. `new
             // HashSet(someList)` can become `[.. someList]`.  However, check for certain cases we know where this is
