@@ -3453,11 +3453,9 @@ public static partial class SyntaxFactory
         return (WithElementSyntax)Syntax.InternalSyntax.SyntaxFactory.WithElement((Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
     }
 
-#pragma warning disable RS0027
     /// <summary>Creates a new WithElementSyntax instance.</summary>
     public static WithElementSyntax WithElement(ArgumentListSyntax? argumentList = default)
         => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
-#pragma warning restore RS0027
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)
