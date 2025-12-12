@@ -350,7 +350,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected override System.Reflection.TypeAttributes GetAttributeFlagsImpl()
         {
-            return this.Type.Attributes;
+            System.Reflection.TypeAttributes result = 0;
+            if (this.Type.IsClass)
+            {
+                result |= System.Reflection.TypeAttributes.Class;
+            }
+            if (this.Type.IsInterface)
+            {
+                result |= System.Reflection.TypeAttributes.Interface;
+            }
+            if (this.Type.IsAbstract)
+            {
+                result |= System.Reflection.TypeAttributes.Abstract;
+            }
+            if (this.Type.IsSealed)
+            {
+                result |= System.Reflection.TypeAttributes.Sealed;
+            }
+            return result;
         }
 
         protected override bool IsValueTypeImpl()

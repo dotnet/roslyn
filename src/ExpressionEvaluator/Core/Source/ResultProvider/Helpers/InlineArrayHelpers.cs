@@ -2,37 +2,43 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using BindingFlags = Microsoft.VisualStudio.Debugger.Metadata.BindingFlags;
+using CustomAttributeData = Microsoft.VisualStudio.Debugger.Metadata.CustomAttributeData;
 using FieldInfo = Microsoft.VisualStudio.Debugger.Metadata.FieldInfo;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
 internal static class InlineArrayHelpers
 {
     private const string InlineArrayAttributeName = "System.Runtime.CompilerServices.InlineArrayAttribute";
-    private const string FixedBufferAttributeName = "System.Runtime.CompilerServices.FixedBufferAttribute";
+    private const string CompilerGeneratedAttributeName = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
+    private const string UnsafeValueTypeAttributeName = "System.Runtime.CompilerServices.UnsafeValueTypeAttribute";
 
-    public static bool TryGetInlineArrayInfo(Type type, out int arrayLength, [NotNullWhen(true)] out Type? elementType)
+    public static bool TryGetInlineArrayInfo(Type t, out int arrayLength, [NotNullWhen(true)] out Type? tElementType)
     {
         arrayLength = -1;
-        elementType = null;
+        tElementType = null;
 
-        if (!type.IsValueType)
+        if (!t.IsValueType)
         {
             return false;
         }
 
-        foreach (var attribute in type.GetCustomAttributesData())
+        IList<CustomAttributeData> customAttributes = t.GetCustomAttributesData();
+        foreach (var attribute in customAttributes)
         {
             if (InlineArrayAttributeName.Equals(attribute.Constructor?.DeclaringType?.FullName))
             {
                 var ctorParams = attribute.Constructor.GetParameters();
-                if (ctorParams is [{ ParameterType: Type ctorParam1Type }] && ctorParam1Type.IsInt32() &&
-                    attribute.ConstructorArguments is [{ Value: int ctorLengthArg }])
+                if (ctorParams.Length == 1 && ctorParams[0].ParameterType.IsInt32() &&
+                    attribute.ConstructorArguments.Count == 1 && attribute.ConstructorArguments[0].Value is int length)
                 {
-                    arrayLength = ctorLengthArg;
+                    arrayLength = length;
                 }
             }
         }
@@ -43,10 +49,10 @@ internal static class InlineArrayHelpers
             return false;
         }
 
-        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        FieldInfo[] fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         if (fields.Length == 1)
         {
-            elementType = fields[0].FieldType;
+            tElementType = fields[0].FieldType;
         }
         else
         {
@@ -64,7 +70,6 @@ internal static class InlineArrayHelpers
 
         // Fixed buffer types are compiler-generated and are nested within the struct that contains the fixed buffer field.
         // They are structurally identical to [InlineArray] structs in that they have 1 field defined in metadata which is repeated `arrayLength` times.
-        // The main difference is that the attribute is applied to the generated field and not the type itself, so we have to look a little harder to find it.
         // 
         // Example:
         // internal unsafe struct Buffer
@@ -88,45 +93,86 @@ internal static class InlineArrayHelpers
         //     public <fixedBuffer>e__FixedBuffer fixedBuffer;
         // }
 
-        // Filter out shapes we know can't be fixed buffer types
-        if (!type.IsValueType || !type.IsLayoutSequential || type.IsGenericType)
+        if (!type.IsValueType || GetStructLayoutAttribute(type) is not { Value: LayoutKind.Sequential, Size: int explicitStructSize })
         {
             return false;
         }
 
-        if (!type.IsNested || type.DeclaringType is not Type enclosingType)
+        if (!type.Name.EndsWith(">e__FixedBuffer"))
         {
             return false;
         }
 
-        FieldInfo[] fields = enclosingType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-        foreach (FieldInfo field in fields)
+        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        if (fields.Length != 1)
         {
-            // Match the field whose type is the fixed buffer type and is decorated with [FixedBuffer(Type, int)]
-            if (field.FieldType.Equals(type))
+            return false;
+        }
+
+        bool isCompilerGenerated = false;
+        bool isUnsafeValueType = false;
+        foreach (var attribute in type.GetCustomAttributesData())
+        {
+            switch (attribute.Constructor.DeclaringType?.FullName)
             {
-                foreach (var attribute in field.GetCustomAttributesData())
-                {
-                    if (FixedBufferAttributeName.Equals(attribute.Constructor?.DeclaringType?.FullName))
-                    {
-                        var ctorParams = attribute.Constructor.GetParameters();
-                        if (ctorParams is [{ ParameterType: Type ctorParam1Type }, { ParameterType: Type ctorParam2Type }] &&
-                            ctorParam1Type.IsSystemType() && ctorParam2Type.IsInt32() &&
-                            attribute.ConstructorArguments is [{ Value: Type ctorElementTypeArg }, { Value: int ctorLengthArg }])
-                        {
-                            elementType = ctorElementTypeArg;
-                            arrayLength = ctorLengthArg;
-                        }
-
-                        break;
-                    }
-                }
-
-                // There should only be one field matching this type if it is indeed a fixed buffer - in any case, don't bother checking more fields
-                break;
+                case CompilerGeneratedAttributeName:
+                    isCompilerGenerated = true;
+                    break;
+                case UnsafeValueTypeAttributeName:
+                    isUnsafeValueType = true;
+                    break;
+                default:
+                    break;
             }
         }
 
+        if (!isCompilerGenerated || !isUnsafeValueType)
+        {
+            return false;
+        }
+
+        int elementSize = Type.GetTypeCode(fields[0].FieldType) switch
+        {
+            TypeCode.Boolean => sizeof(bool),
+            TypeCode.Byte => sizeof(byte),
+            TypeCode.SByte => sizeof(sbyte),
+            TypeCode.UInt16 => sizeof(ushort),
+            TypeCode.Int16 => sizeof(short),
+            TypeCode.Char => sizeof(char),
+            TypeCode.UInt32 => sizeof(uint),
+            TypeCode.Int32 => sizeof(int),
+            TypeCode.UInt64 => sizeof(ulong),
+            TypeCode.Int64 => sizeof(long),
+            TypeCode.Single => sizeof(float),
+            TypeCode.Double => sizeof(double),
+            _ => -1,
+        };
+
+        if (elementSize <= 0 || explicitStructSize % elementSize != 0)
+        {
+            return false;
+        }
+
+        elementType = fields[0].FieldType;
+        arrayLength = explicitStructSize / elementSize;
+
         return arrayLength > 0 && elementType is not null;
+    }
+
+    // LMR Type defaults to throwing on access to StructLayoutAttribute and is not virtual.
+    // This hack is a necessity to be able to test the use of StructLayoutAttribute with mocks derived from LMR Type.
+    // n.b. [StructLayout] does not appear as an attribute in metadata; it is burned into the class layout.
+    private static StructLayoutAttribute? GetStructLayoutAttribute(Type type)
+    {
+#if NETSTANDARD 
+        // Retail, cannot see mock TypeImpl
+        return type.StructLayoutAttribute;
+#else
+        return type switch
+        {
+            TypeImpl mockType => mockType.Type.StructLayoutAttribute,
+            _ => type.StructLayoutAttribute
+        };
+#endif
     }
 }

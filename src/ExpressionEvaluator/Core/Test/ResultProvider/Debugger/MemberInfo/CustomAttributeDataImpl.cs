@@ -41,22 +41,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static CustomAttributeTypedArgument MakeTypedArgument(System.Reflection.CustomAttributeTypedArgument a)
         {
             var argumentType = (TypeImpl)a.ArgumentType;
-            if (argumentType.IsArray)
-            {
-                var reflectionValue = (ReadOnlyCollection<System.Reflection.CustomAttributeTypedArgument>)a.Value;
-                var lmrValue = new ReadOnlyCollection<CustomAttributeTypedArgument>(reflectionValue.Select(MakeTypedArgument).ToList());
-
-                return new CustomAttributeTypedArgument(argumentType, lmrValue);
-            }
-            else if (argumentType.IsSystemType())
-            {
-                // LMR converts all Type attribute values to LMR type values - this mock should too
-                return new CustomAttributeTypedArgument(argumentType, new TypeImpl((System.Type)a.Value));
-            }
-            else
+            if (!argumentType.IsArray)
             {
                 return new CustomAttributeTypedArgument(argumentType, a.Value);
             }
+
+            var reflectionValue = (ReadOnlyCollection<System.Reflection.CustomAttributeTypedArgument>)a.Value;
+            var lmrValue = new ReadOnlyCollection<CustomAttributeTypedArgument>(reflectionValue.Select(MakeTypedArgument).ToList());
+            return new CustomAttributeTypedArgument(argumentType, lmrValue);
         }
     }
 }

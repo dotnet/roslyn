@@ -379,14 +379,14 @@ using System.Runtime.InteropServices;
 public unsafe struct Enclosing
 {
     [CompilerGenerated]
+    [UnsafeValueType]
     [StructLayout(LayoutKind.Sequential, Size = 256)]
-    public struct AlmostFixedBuffer
+    public struct e__FixedBuffer
     {
         public byte FixedElementField;
     }
-    
-    // Missing the generated [FixedBuffer(Type, int)] attribute
-    public AlmostFixedBuffer Buffer;
+
+    public e__FixedBuffer Buffer;
 }";
 
             var assembly = GetUnsafeAssembly(source);
