@@ -5154,16 +5154,16 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,31): error CS9347: Static members cannot refer to extension parameter 'o'. Use an instance member instead.
+            // (5,31): error CS9347: Static members cannot access the value of extension parameter 'o'.
             //         static object M1() => o;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("o").WithLocation(5, 31),
-            // (6,37): error CS9347: Static members cannot refer to extension parameter 'o'. Use an instance member instead.
+            // (6,37): error CS9347: Static members cannot access the value of extension parameter 'o'.
             //         static object M2() { return o; }
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("o").WithLocation(6, 37),
-            // (7,29): error CS9347: Static members cannot refer to extension parameter 'o'. Use an instance member instead.
+            // (7,29): error CS9347: Static members cannot access the value of extension parameter 'o'.
             //         static object P1 => o;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("o").WithLocation(7, 29),
-            // (8,41): error CS9347: Static members cannot refer to extension parameter 'o'. Use an instance member instead.
+            // (8,41): error CS9347: Static members cannot access the value of extension parameter 'o'.
             //         static object P2 { get { return o; } }
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("o").WithLocation(8, 41)
             );
@@ -5187,7 +5187,7 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,28): error CS9347: Static members cannot refer to extension parameter 'p'. Use an instance member instead.
+            // (6,28): error CS9347: Static members cannot access the value of extension parameter 'p'.
             //         static int M1() => p;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("p").WithLocation(6, 28),
             // (9,25): error CS9293: Cannot use extension parameter 'int p' in this context.
@@ -30877,10 +30877,10 @@ static class Extensions
             // (27,13): error CS9282: This member is not allowed in an extension block
             //         int this[int y]
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(27, 13),
-            // (42,23): error CS9347: Static members cannot refer to extension parameter 'M1'. Use an instance member instead.
+            // (42,23): error CS9347: Static members cannot access the value of extension parameter 'M1'.
             //             short x = M1;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "M1").WithArguments("M1").WithLocation(42, 23),
-            // (53,17): error CS9347: Static members cannot refer to extension parameter 'P1'. Use an instance member instead.
+            // (53,17): error CS9347: Static members cannot access the value of extension parameter 'P1'.
             //                 P1 = "val";
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "P1").WithArguments("P1").WithLocation(53, 17),
             // (67,13): error CS9282: This member is not allowed in an extension block
@@ -31344,7 +31344,7 @@ public static class E
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (9,39): error CS9347: Static members cannot refer to extension parameter 'ts'. Use an instance member instead.
+            // (9,39): error CS9347: Static members cannot access the value of extension parameter 'ts'.
             //         public static bool M2(T t) => ts.Contains(t); // Error: Cannot refer to `ts` from static context
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "ts").WithArguments("ts").WithLocation(9, 39),
             // (10,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
@@ -31498,10 +31498,10 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (5,32): error CS9347: Static members cannot refer to extension parameter 'p'. Use an instance member instead.
+            // (5,32): error CS9347: Static members cannot access the value of extension parameter 'p'.
             //         static int P1 { get => p; }
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("p").WithLocation(5, 32),
-            // (8,20): error CS9347: Static members cannot refer to extension parameter 'p'. Use an instance member instead.
+            // (8,20): error CS9347: Static members cannot access the value of extension parameter 'p'.
             //             return p;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("p").WithLocation(8, 20)
             );
@@ -31534,10 +31534,10 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (9,32): error CS9347: Static members cannot refer to extension parameter 'p'. Use an instance member instead.
+            // (9,32): error CS9347: Static members cannot access the value of extension parameter 'p'.
             //                 int local() => p;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("p").WithLocation(9, 32),
-            // (15,28): error CS9347: Static members cannot refer to extension parameter 'p'. Use an instance member instead.
+            // (15,28): error CS9347: Static members cannot access the value of extension parameter 'p'.
             //             int local() => p;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "p").WithArguments("p").WithLocation(15, 28)
             );
@@ -39985,7 +39985,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9347: Static members cannot refer to extension parameter 'o'. Use an instance member instead.
+            // (7,13): error CS9347: Static members cannot access the value of extension parameter 'o'.
             //             o.M2();
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "o").WithArguments("o").WithLocation(7, 13));
     }

@@ -2082,19 +2082,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
-                        else if (parameter.IsExtensionParameter() && !IsInsideNameof)
+                        else if (parameter.IsExtensionParameter() &&
+                                (InParameterDefaultValue || InAttributeArgument ||
+                                 this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                 (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
+                                !IsInsideNameof)
                         {
-                            var member = this.ContainingMember();
-                            var isInSameExtension = (object)member.ContainingSymbol == parameter.ContainingSymbol;
-                            var isStaticMember = member is { Kind: not SymbolKind.NamedType, IsStatic: true };
-                            var isInstanceMember = member is { Kind: not SymbolKind.NamedType, IsStatic: false };
-
-                            if (isStaticMember && isInSameExtension && !InParameterDefaultValue && !InAttributeArgument)
+                            // Give a better error for the simple case of using an extension parameter in a static member, while avoiding any of the other cases where it is always illegal
+                            if (this.ContainingMember().IsStatic && !InParameterDefaultValue && !InAttributeArgument && (object)this.ContainingMember().ContainingSymbol == parameter.ContainingSymbol)
                             {
+                                // Static members cannot access the value of extension parameter '{0}'.
                                 Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter.Name);
                             }
-                            else if (InParameterDefaultValue || InAttributeArgument || !isInstanceMember || !isInSameExtension)
+                            else
                             {
+                                // Cannot use extension parameter '{0}' in this context.
                                 Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
                             }
                         }

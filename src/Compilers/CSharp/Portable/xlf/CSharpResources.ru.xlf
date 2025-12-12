@@ -878,8 +878,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterInStaticContext">
-        <source>Static members cannot refer to extension parameter '{0}'. Use an instance member instead.</source>
-        <target state="new">Static members cannot refer to extension parameter '{0}'. Use an instance member instead.</target>
+        <source>Static members cannot access the value of extension parameter '{0}'.</source>
+        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
