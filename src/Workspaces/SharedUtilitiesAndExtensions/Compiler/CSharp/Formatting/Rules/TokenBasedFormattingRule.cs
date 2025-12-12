@@ -452,7 +452,9 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                 SyntaxKind.CasePatternSwitchLabel or
                 SyntaxKind.DefaultSwitchLabel or
                 SyntaxKind.ExpressionColon or
+#if false
                 SyntaxKind.KeyValuePairElement or
+#endif
                 SyntaxKind.LabeledStatement or
                 SyntaxKind.NameColon or
                 SyntaxKind.SwitchExpressionArm))
