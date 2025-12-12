@@ -197,11 +197,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequenceSourceText.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalysisContextExtensions.cs" />
-<<<<<<< HEAD
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CollectionExpressionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
-=======
->>>>>>> upstream/features/collection-expression-arguments
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions_Shared.cs" />

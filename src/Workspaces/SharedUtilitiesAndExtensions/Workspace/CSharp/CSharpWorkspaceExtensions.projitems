@@ -63,12 +63,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UsingDirectiveSyntaxExtensions.cs" />
-<<<<<<< HEAD
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WithElementSyntaxExtensions.cs" />
-=======
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TypingFormattingRule.cs" />
->>>>>>> upstream/features/collection-expression-arguments
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.Indenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpAddImportsService.cs" />
