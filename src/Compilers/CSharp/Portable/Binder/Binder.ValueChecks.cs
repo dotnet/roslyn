@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1246,11 +1247,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadSKknown, expr.Syntax, ((BoundNamespaceExpression)expr).NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize(), MessageID.IDS_SK_VARIABLE.Localize());
                     return false;
                 case BoundKind.TypeExpression:
-                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    // Don't report ERR_BadSKunknown if we're in a (T)-X pattern, as we'll report
+                    // ERR_PossibleBadNegCast instead which is more specific and helpful.
+                    // Note: This check must be kept in sync with BindSimpleBinaryOperator where ERR_PossibleBadNegCast is reported.
+                    if (!IsInPossibleBadNegCastContext(expr.Syntax))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    }
                     return false;
                 default:
                     return true;
             }
+        }
+
+        private static bool IsInPossibleBadNegCastContext(SyntaxNode syntax)
+        {
+            // Check if the syntax is a type name inside (T)-X pattern:
+            // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
+            // Additionally, the parenthesized expression should not itself be parenthesized (i.e., we want (T)-X, not ((T))-X)
+            return syntax.Parent is ParenthesizedExpressionSyntax parenthesized &&
+                !parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) &&
+                IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesized);
+        }
+
+        /// <summary>
+        /// Checks if a parenthesized expression is the left operand of a subtraction (the <c>(T)</c> part of <c>(T)-X</c>).
+        /// This method is shared between CheckNotNamespaceOrType and BindSimpleBinaryOperator to ensure they
+        /// check for the same pattern consistently.
+        /// </summary>
+        private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(ParenthesizedExpressionSyntax parenthesized)
+        {
+            return parenthesized.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
+                   binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
@@ -4557,9 +4585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
-                            _localScopeDepth :
-                            SafeContext.CallingMethod;
+                        return GetCollectionExpressionSafeContext((BoundCollectionExpression)conversion.Operand);
                     }
 
                     if (conversion.Conversion.IsInlineArray)
@@ -4731,43 +4757,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private bool HasLocalScope(BoundCollectionExpression expr)
+        private SafeContext GetCollectionExpressionSafeContext(BoundCollectionExpression expr)
         {
-            // A non-empty collection expression with span type may be stored
-            // on the stack. In those cases the expression may have local scope.
+            // Don't need to consider safety context if it's not a ref-like type.
+            if (expr.Type?.IsRefLikeType != true)
+                return SafeContext.CallingMethod;
 
-            if (expr.Type?.IsRefLikeType != true || expr.Elements.Length == 0)
-            {
-                return false;
-            }
+            // An empty collection expression (so no elements or `with(...)` arguments ) does not need to be stored on
+            // the stack, as it has no way to capture anything local that could leak out.  So it is safe to return to
+            // the caller.
+            if (!expr.HasWithElement && expr.Elements.IsEmpty)
+                return SafeContext.CallingMethod;
 
+            // Otherwise, we need to do deeper analysis to decide if this collection expression can escape, or if it has
+            // to stay local.
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
-
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType.Type is { });
-                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
+
+                    // An empty ReadOnlySpan can always be returned outwards.  Similarly if this is a span we're going
+                    // to create out of a readonly-data segment of the program.
+                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
+                        ? SafeContext.CallingMethod
+                        : _localScopeDepth;
+
                 case CollectionExpressionTypeKind.Span:
-                    return true;
+                    Debug.Assert(elementType.Type is { });
+                    return _localScopeDepth;
+
                 case CollectionExpressionTypeKind.CollectionBuilder:
-                    // For a ref struct type with a builder method, the scope of the collection
-                    // expression is the scope of an invocation of the builder method with the
-                    // collection expression as the span argument. That is, `R r = [x, y, z];`
-                    // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    Debug.Assert(expr.CollectionCreation is not null);
+
+                    // For a ref struct type with a builder method, the scope of the collection expression is the scope
+                    // of an invocation of the builder method with the collection expression as the span argument. That
+                    // is, `R r = [x, y, z];` is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
                     //
                     // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
                     // element, and the place-holder representing the elements.
+                    return GetValEscape(expr.CollectionCreation);
 
-                    // PROTOTYPE: We probably need to update CheckValEscape/CheckRefEscape and GetValEscape/GetRefEscape to account for collection creation portion too.
-                    // For instance, I'd expect CheckValEscape to run CheckInvocationEscape on the call in CollectionCreation.
-
-                    Debug.Assert(expr.CollectionCreation is { });
-                    var context = GetValEscape(expr.CollectionCreation);
-                    return !context.IsReturnable;
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    // Error cases. Restrict the collection to local scope.
-                    return true;
+                    // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
+                    // be doing here is examining the arguments passed to the collection constructor (from the
+                    // `with(...)` element), intersected well as any arguments passed to `Add` methods to determine the
+                    // final safety context.  However, the latter is highly challenging as we do not know that
+                    // information until the lowering phase.  We'll need to pull out that logic to do things properly
+                    // here.
+                    //
+                    // Tracked with: https://github.com/dotnet/roslyn/issues/81520
+                    return _localScopeDepth;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
@@ -5282,7 +5323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !_localScopeDepth.IsConvertibleTo(escapeTo))
+                        var safeContext = GetCollectionExpressionSafeContext((BoundCollectionExpression)conversion.Operand);
+                        if (!safeContext.IsConvertibleTo(escapeTo))
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
                             return false;

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,7 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-#if DEBUG
             var collectionCreation = this.CollectionCreation;
             while (collectionCreation is BoundConversion conversion)
                 collectionCreation = conversion.Operand;
@@ -36,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(this.CollectionBuilderMethod is not null);
                 Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
             }
-#endif
         }
     }
 

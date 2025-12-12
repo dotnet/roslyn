@@ -903,18 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindExpression(current, diagnostics);
 
-            if (node.IsKind(SyntaxKind.SubtractExpression)
-                && current.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (current is ParenthesizedExpressionSyntax parenthesizedExpression
+                && IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesizedExpression))
             {
                 if (result.Kind == BoundKind.TypeExpression
-                    && !((ParenthesizedExpressionSyntax)current).Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                    && !parenthesizedExpression.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)current;
-
                     if (parenthesizedExpression.Expression.IsKind(SyntaxKind.IdentifierName)
                         && ((IdentifierNameSyntax)parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
                     {
@@ -5777,12 +5775,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
-            // If either operand is bad, bail out preventing more cascading errors
+            // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
-                leftOperand = BindToTypeForErrorRecovery(leftOperand);
-                rightOperand = BindToTypeForErrorRecovery(rightOperand);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying

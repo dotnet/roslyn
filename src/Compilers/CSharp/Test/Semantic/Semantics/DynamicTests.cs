@@ -12185,5 +12185,43 @@ static class Test1
                     m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80419")]
+        public void TestOmittedTypeArgsOnDynamicMemberAccess1()
+        {
+            var code = """
+                public class C
+                {
+                    private static dynamic DynamicMethod(dynamic input)
+                    {
+                        return input.Something<>;
+                    }
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,22): error CS0307: The property 'Something' cannot be used with type arguments
+                //         return input.Something<>;
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Something<>").WithArguments("Something", "property").WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80419")]
+        public void TestOmittedTypeArgsOnDynamicMemberAccess2()
+        {
+            var code = """
+                public class C
+                {
+                    private static dynamic DynamicMethod(dynamic input)
+                    {
+                        return input.Something<>();
+                    }
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,16): error CS8389: Omitting the type argument is not allowed in the current context
+                //         return input.Something<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "input.Something<>").WithLocation(5, 16));
+        }
     }
 }

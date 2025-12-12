@@ -3956,12 +3956,16 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol? ConstructMethod { get; }
         /// <summary>
         /// Arguments passed to to <see cref="ConstructMethod" />, if present. Arguments are in evaluation order. This can
-        /// be an empty array. Will never be <c>default</c>.  If the arguments successfully bound, these will all be
+        /// be an empty array. Will never be <see langword="default" />.  If the arguments successfully bound, these will all be
         /// <see cref="IArgumentOperation" />; otherwise, they can be any operation.
         /// </summary>
         /// <remarks>
         /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
-        /// Default values are supplied for optional arguments missing in source.
+        /// Default values are supplied for optional arguments missing in source. <para />
+        /// If this is a collection builder method, this will include all arguments to the method,
+        /// except for the final <c>ReadOnlySpan</c> argument that receives the collection elements.
+        /// That final argument will be represented by an <see cref="ICollectionExpressionElementsPlaceholderOperation" />.
+        /// The actual elements passed to the creation method are contained in <see cref="Elements" />.
         /// </remarks>
         ImmutableArray<IOperation> ConstructArguments { get; }
         /// <summary>

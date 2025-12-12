@@ -16395,8 +16395,6 @@ partial class Program
   IL_000f:  ret
 }
 """);
-            // We should extend IOperation conversions to represent IsCollectionExpression
-            // Tracked by https://github.com/dotnet/roslyn/issues/68826
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyCollection<System.Int32> MyCollectionBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>) (Syntax: '[1, 2, 3]')
                   ConstructArguments(1):
@@ -16474,8 +16472,6 @@ partial class Program
   IL_0020:  ret
 }
 """);
-            // We should extend IOperation conversions to represent IsCollectionExpression
-            // Tracked by https://github.com/dotnet/roslyn/issues/68826
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Int32[][]) (Syntax: '[[1], [2]]')
@@ -47513,6 +47509,39 @@ class Program
                 """;
 
             CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81552")]
+        public void VisitedNodes_CollectionExpression()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                Merge([.. D.P]);
+
+                static void Merge(params ReadOnlySpan<C> cs) { }
+
+                [CollectionBuilder(typeof(C), methodName: nameof(Create))]
+                class C : IEnumerable<int>
+                {
+                    public static C Create(ReadOnlySpan<int> span) => new();
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                class D
+                {
+                    public static IEnumerable<int> P => [1];
+                }
+                """;
+
+            CompileAndVerify(CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]), expectedOutput: "").VerifyDiagnostics();
         }
     }
 }
