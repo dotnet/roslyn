@@ -51,14 +51,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     </Document>
                 </Project>
             </Workspace>
-<<<<<<< HEAD
-            """;
-
-        await TestAsync(markup, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
-    }
-=======
             """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
->>>>>>> upstream/features/collection-expression-arguments
 
     [Fact]
     public Task TestInvocationWithoutParametersMethodXmlComments()
