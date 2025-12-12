@@ -72,10 +72,11 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
         bool usePreviousCharAsTrigger = false)
     {
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
+        var options = new MemberDisplayOptions();
+
+        markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
         var workspace = workspaceFixture.Target.GetWorkspace(markupWithPositionAndOptSpan);
-
-        var options = new MemberDisplayOptions();
 
         var code = workspaceFixture.Target.Code;
         var cursorPosition = workspaceFixture.Target.Position;
