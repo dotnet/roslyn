@@ -39,9 +39,9 @@ internal sealed class TestSerializerService(
     private static readonly ImmutableDictionary<string, MetadataReference> s_wellKnownReferences = ImmutableDictionary.Create<string, MetadataReference>()
         .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePair.Create(pair.Value!, pair.Key)));
 
-    private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
+    private static readonly ConcurrentDictionary<string, AnalyzerFileReference> s_cachedAnalyzerFileReferences = new();
 
-    private static ConcurrentDictionary<string, AnalyzerFileReference> s_cachedAnalyzerFileReferences = new();
+    private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
     protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer)
     {
@@ -114,20 +114,13 @@ internal sealed class TestSerializerService(
 
     protected override AnalyzerFileReference GetOrCreateAnalyzerFileReference(string filePath)
     {
-        // Microsoft.CodeAnalysis.CSharp.dll
-
-        if (filePath.EndsWith("Microsoft.CodeAnalysis.CSharp.dll") || filePath.EndsWith("Microsoft.CodeAnalysis.VisualBasic.dll"))
+        if (!s_cachedAnalyzerFileReferences.TryGetValue(filePath, out var analyzerFileReference))
         {
-            if (!s_cachedAnalyzerFileReferences.TryGetValue(filePath, out var analyzerFileReference))
-            {
-                analyzerFileReference = base.GetOrCreateAnalyzerFileReference(filePath);
-                s_cachedAnalyzerFileReferences.TryAdd(filePath, analyzerFileReference);
-            }
-
-            return analyzerFileReference;
+            analyzerFileReference = base.GetOrCreateAnalyzerFileReference(filePath);
+            s_cachedAnalyzerFileReferences.TryAdd(filePath, analyzerFileReference);
         }
 
-        return base.GetOrCreateAnalyzerFileReference(filePath);
+        return analyzerFileReference;
     }
 
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
