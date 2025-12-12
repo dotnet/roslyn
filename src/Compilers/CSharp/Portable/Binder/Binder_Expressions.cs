@@ -2090,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (parameter.IsExtensionParameter() &&
                                 (InParameterDefaultValue || InAttributeArgument ||
-                                 this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                 this.ContainingMember() is { Kind: SymbolKind.NamedType } or { IsStatic: true } || // We are not in an instance member
                                  (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
                                 !IsInsideNameof)
                         {
