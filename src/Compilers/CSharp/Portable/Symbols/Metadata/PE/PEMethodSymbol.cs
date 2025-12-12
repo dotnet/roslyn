@@ -1816,7 +1816,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
-        internal sealed override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
+        internal sealed override bool IsCallerUnsafe
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? IsDeclaredRequiresUnsafe
+                    : this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
+            }
+        }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

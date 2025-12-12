@@ -8194,4 +8194,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</value>
     <comment>'unsafe' is a keyword, should not be localized.</comment>
   </data>
+  <data name="ERR_UnsafeMemberOperationCompat" xml:space="preserve">
+    <value>'{0}' must be used in an unsafe context because it has pointers in its signature</value>
+  </data>
 </root>

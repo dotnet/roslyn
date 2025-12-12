@@ -50,6 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool IsUnsafe { get; }
 
-        internal sealed override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsUnsafe;
+        internal sealed override bool IsCallerUnsafe
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? IsUnsafe
+                    : this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
+            }
+        }
     }
 }

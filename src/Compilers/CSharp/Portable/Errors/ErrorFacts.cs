@@ -651,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeOperation
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
                 or ErrorCode.ERR_UnsafeMemberOperation
+                or ErrorCode.ERR_UnsafeMemberOperationCompat
 
                 or ErrorCode.Unknown
                 or ErrorCode.ERR_NoMetadataFile

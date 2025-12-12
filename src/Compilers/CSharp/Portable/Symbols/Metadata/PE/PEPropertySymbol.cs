@@ -674,7 +674,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
+        internal sealed override bool IsCallerUnsafe
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? IsDeclaredRequiresUnsafe
+                    : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
+            }
+        }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

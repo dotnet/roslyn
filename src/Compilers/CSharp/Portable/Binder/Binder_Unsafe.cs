@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsCallerUnsafe)
             {
                 ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated,
-                    customErrorCode: ErrorCode.ERR_UnsafeMemberOperation,
+                    customErrorCode: symbol.ContainingModule.UseUpdatedMemorySafetyRules
+                        ? ErrorCode.ERR_UnsafeMemberOperation
+                        : ErrorCode.ERR_UnsafeMemberOperationCompat,
                     customArgs: [symbol]);
             }
         }

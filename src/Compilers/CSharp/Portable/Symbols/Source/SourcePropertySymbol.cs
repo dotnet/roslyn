@@ -828,7 +828,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private bool IsDeclaredUnsafe => (_modifiers & DeclarationModifiers.Unsafe) != 0;
 
-        internal override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredUnsafe;
+        internal override bool IsCallerUnsafe
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? IsDeclaredUnsafe
+                    : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
+            }
+        }
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
 
