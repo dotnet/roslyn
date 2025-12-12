@@ -468,17 +468,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Main(args:)
                 }
             }
-<<<<<<< HEAD
-            """;
-        await VerifyProviderCommitAsync(markup, "args:", expected, ':');
-    }
+            """, ':');
 
     [Theory]
     [InlineData("IList<int>")]
     [InlineData("ICollection<int>")]
-    public async Task TestMutableInterfaces(string type)
-    {
-        var markup = $$"""
+    public Task TestMutableInterfaces(string type)
+        => VerifyItemExistsAsync($$"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
                     <Document><![CDATA[
@@ -493,19 +489,15 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
             }]]></Document>
                 </Project>
             </Workspace>
-            """;
-
-        await VerifyItemExistsAsync(markup, "capacity", displayTextSuffix: ":");
-    }
+            """, "capacity", displayTextSuffix: ":");
 
     [Theory]
     [InlineData("IReadOnlyList<int>")]
     [InlineData("IReadOnlyCollection<int>")]
     [InlineData("IEnumerable<int>")]
     [InlineData("IEnumerable")]
-    public async Task TestReadOnlyInterfaces(string type)
-    {
-        var markup = $$"""
+    public Task TestReadOnlyInterfaces(string type)
+        => VerifyItemIsAbsentAsync((string?)$$"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
                     <Document><![CDATA[
@@ -521,10 +513,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
             }]]></Document>
                 </Project>
             </Workspace>
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "capacity", displayTextSuffix: ":");
-    }
+            """, "capacity", displayTextSuffix: ":");
 
     [Fact]
     public async Task TestConstructibleType1()
@@ -628,7 +617,4 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
         await VerifyItemExistsAsync(markup, "capacity", displayTextSuffix: ":");
         await VerifyItemExistsAsync(markup, "extra", displayTextSuffix: ":");
     }
-=======
-            """, ':');
->>>>>>> upstream/features/collection-expression-arguments
 }
