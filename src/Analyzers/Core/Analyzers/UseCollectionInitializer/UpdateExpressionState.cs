@@ -474,11 +474,7 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
-<<<<<<< HEAD
-                return new(foreachStatement, UseSpread: true, useKeyValue);
-=======
-                return new(foreachStatement, UseSpread: true, needsCast);
->>>>>>> upstream/features/collection-expression-arguments
+                return new(foreachStatement, UseSpread: true, UseCast: needsCast, UseKeyValue: useKeyValue);
             }
 
             return null;

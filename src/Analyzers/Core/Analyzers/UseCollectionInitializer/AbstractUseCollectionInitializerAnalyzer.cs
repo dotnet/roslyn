@@ -48,13 +48,10 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-<<<<<<< HEAD
-    protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
-=======
     protected bool _analyzeForCollectionExpression;
 
-    protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
->>>>>>> upstream/features/collection-expression-arguments
+    protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
+
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
@@ -111,10 +108,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     protected sealed override bool TryAddMatches(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
         ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
-<<<<<<< HEAD
-=======
         out bool mayChangeSemantics,
->>>>>>> upstream/features/collection-expression-arguments
         CancellationToken cancellationToken)
     {
         mayChangeSemantics = false;
