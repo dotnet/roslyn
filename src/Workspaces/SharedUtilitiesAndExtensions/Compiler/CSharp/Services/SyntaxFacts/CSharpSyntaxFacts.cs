@@ -81,7 +81,8 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => options.LanguageVersion().IsCSharp14OrAbove();
 
     public bool SupportsKeyValuePairElement(ParseOptions options)
-        => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
+        // TODO: Enable once Dictionary-Expressions go in.
+        => false;
 
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
