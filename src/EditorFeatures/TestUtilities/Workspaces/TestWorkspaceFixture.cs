@@ -120,7 +120,7 @@ public abstract class TestWorkspaceFixture : IDisposable
         // Brushes are DispatcherObjects, they are tied to the thread they are created on. Since we're going
         // to be run on a different thread, clear out their collection.
         var textFormattingRunPropertiesType = typeof(VisualStudio.Text.Formatting.TextFormattingRunProperties);
-        var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var existingPropertiesField = textFormattingRunPropertiesType.GetField("s_existingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
         existingProperties.Clear();
     }
