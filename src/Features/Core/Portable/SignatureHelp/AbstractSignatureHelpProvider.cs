@@ -31,10 +31,6 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     public abstract ImmutableArray<char> TriggerCharacters { get; }
     public abstract ImmutableArray<char> RetriggerCharacters { get; }
 
-    protected AbstractSignatureHelpProvider()
-    {
-    }
-
     protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 
     protected static SignatureHelpItems? CreateSignatureHelpItems(

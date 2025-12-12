@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,11 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class WithElementSignatureHelpProvider() : AbstractCSharpSignatureHelpProvider
 {
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
-
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> TriggerCharacters { get; } = ['(', ','];
+    public override ImmutableArray<char> RetriggerCharacters { get; } = [')'];
 
     private async Task<WithElementSyntax?> TryGetWithElementAsync(
         Document document,
@@ -41,7 +39,7 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<WithElementSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<WithElementSyntax>(token, TriggerCharacters);
 
     private static bool IsArgumentListToken(WithElementSyntax expression, SyntaxToken token)
     {
