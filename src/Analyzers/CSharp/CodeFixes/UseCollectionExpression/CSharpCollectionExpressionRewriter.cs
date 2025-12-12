@@ -478,6 +478,8 @@ internal static class CSharpCollectionExpressionRewriter
 
                 if (match.UseKeyValue)
                 {
+                    // Enable when dictionary-expressions come online.
+#if false
                     if (expressionStatement.Expression is InvocationExpressionSyntax invocation)
                     {
                         var arguments = invocation.ArgumentList.Arguments;
@@ -498,6 +500,9 @@ internal static class CSharpCollectionExpressionRewriter
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
+#else
+                    throw ExceptionUtilities.Unreachable();
+#endif
                 }
                 else
                 {
@@ -805,7 +810,7 @@ internal static class CSharpCollectionExpressionRewriter
 
             bool CheckForMultiLine(ImmutableArray<CollectionMatch<TMatchNode>> matches)
             {
-                foreach (var (node, _, _) in matches)
+                foreach (var (node, _, _, _) in matches)
                 {
                     // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                     // appropriate place to go.

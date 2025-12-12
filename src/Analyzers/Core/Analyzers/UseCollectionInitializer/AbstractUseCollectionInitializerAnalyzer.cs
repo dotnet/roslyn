@@ -199,7 +199,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 
         if (!seenInvocation)
         {
-            if (this.State.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
+            if (this.State.SyntaxFacts.SupportsKeyValuePairElement(statement.SyntaxTree.Options) &&
+                this.State.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
