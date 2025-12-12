@@ -31,19 +31,6 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     protected const string NonBreakingSpaceString = "\x00A0";
 
     protected static string GetMarkup(
-<<<<<<< HEAD
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
-        LanguageVersion languageVersion)
-        => $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
-        <Document FilePath=""Test2.cs"">
-<![CDATA[
-{source}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
-=======
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, LanguageVersion languageVersion)
         => $"""
         <Workspace>
@@ -56,7 +43,6 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
             </Project>
         </Workspace>
         """;
->>>>>>> upstream/features/collection-expression-arguments
 
     protected override EditorTestWorkspace CreateWorkspace([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fileContents)
         => EditorTestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
@@ -65,13 +51,8 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
 
     private protected override Task BaseVerifyWorkerAsync(
-<<<<<<< HEAD
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        int position, string expectedItemOrNull, string expectedDescriptionOrNull,
-=======
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,
->>>>>>> upstream/features/collection-expression-arguments
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
         Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
@@ -86,14 +67,8 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     }
 
     private protected override Task BaseVerifyWorkerAsync(
-<<<<<<< HEAD
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-        SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
-=======
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
             SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
->>>>>>> upstream/features/collection-expression-arguments
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
     {
         return base.VerifyWorkerAsync(
@@ -102,13 +77,8 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     }
 
     private protected override async Task VerifyWorkerAsync(
-<<<<<<< HEAD
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        int position, string expectedItemOrNull, string expectedDescriptionOrNull,
-=======
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,
->>>>>>> upstream/features/collection-expression-arguments
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         bool checkForAbsence, Glyph? glyph, int? matchPriority,
         bool? hasSuggestionItem, string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
@@ -133,12 +103,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull[..1];
 
     private async Task VerifyInFrontOfCommentAsync(
-<<<<<<< HEAD
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
-=======
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
->>>>>>> upstream/features/collection-expression-arguments
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -156,14 +121,8 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
             options, skipSpeculation: skipSpeculation);
     }
 
-<<<<<<< HEAD
-    private async Task VerifyInFrontOfCommentAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
-=======
     private Task VerifyInFrontOfCommentAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
->>>>>>> upstream/features/collection-expression-arguments
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -175,14 +134,8 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
 
-<<<<<<< HEAD
-    private protected async Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
-=======
     private protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
->>>>>>> upstream/features/collection-expression-arguments
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -222,12 +175,7 @@ text;
 
     protected async Task VerifySendEnterThroughToEnterAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
-<<<<<<< HEAD
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string textTypedSoFar,
-        EnterKeyRule sendThroughEnterOption, bool expected)
-=======
         string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
->>>>>>> upstream/features/collection-expression-arguments
     {
         using var workspace = CreateWorkspace(initialMarkup);
         var hostDocument = workspace.DocumentWithCursor;
