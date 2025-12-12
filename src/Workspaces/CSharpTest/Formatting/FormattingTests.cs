@@ -12689,4 +12689,64 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact]
+    public Task FormatWithElement1()
+        => AssertFormatAsync(
+            expected: """
+                var v = [with()];
+                """,
+            code: """
+                var v = [ with ( ) ];
+                """);
+
+    [Fact]
+    public Task FormatWithElement2()
+        => AssertFormatAsync(
+            expected: """
+                var v = [with(1, 2)];
+                """,
+            code: """
+                var v = [ with ( 1 , 2 ) ];
+                """);
+
+    [Fact]
+    public Task FormatWithElement3()
+        => AssertFormatAsync(
+            expected: """
+                var v = [with(1, 2), 3];
+                """,
+            code: """
+                var v = [ with ( 1 , 2 ) , 3];
+                """);
+
+    [Fact]
+    public Task FormatKeyValuePair1()
+        => AssertFormatAsync(
+            expected: """
+                var v = [k: v];
+                """,
+            code: """
+                var v = [ k :  v ];
+                """);
+
+    [Fact]
+    public Task FormatKeyValuePair2()
+        => AssertFormatAsync(
+            expected: """
+                var v = [k: v, k: v];
+                """,
+            code: """
+                var v = [ k :  v , k :  v ];
+                """);
+
+    [Fact]
+    public Task FormatKeyValuePair3()
+        => AssertFormatAsync(
+            expected: """
+                var v = [null: 1 + 1, (x.y): from x in y select z];
+                """,
+            code: """
+                var v = [ null :  1  +  1 , ( x . y ) :  from   x    in   y    select  z ];
+                """);
 }
