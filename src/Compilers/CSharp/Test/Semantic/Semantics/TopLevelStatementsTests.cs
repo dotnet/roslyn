@@ -9962,51 +9962,17 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestFieldInTopLevelStatement()
+        public void TestFieldInCompilationUnit()
         {
             var source = """
-using System;
+                private int f;
+                """;
 
-Console.WriteLine();
-
-private int f;
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (5,13): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (1,13): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // private int f;
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(5, 13)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestFieldInFileScopedNamespace()
-        {
-            var source = """
-namespace N;
-
-Console.WriteLine();
-
-private int f;
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (3,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 9),
-                // (3,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 19),
-                // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,13): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // private int f;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(5, 13)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(1, 13)
                 );
         }
 
@@ -10014,89 +9980,31 @@ class C { }
         public void TestFieldInNamespace()
         {
             var source = """
-private int f;
-class C { }
-""";
+                namespace N;
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (1,13): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // private int f;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(1, 13)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestFieldInTopLevelStatementAfterClassDefinition()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-class C { }
-private int f;
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,13): warning CS0169: The field 'C.f' is never used
-                // private int f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(6, 13),
-                // (6,15): error CS1513: } expected
-                // private int f;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestPropertyInTopLevelStatement()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-int P { get; set; }
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // int P { get; set; }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "P").WithLocation(5, 5)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestPropertyInFileScopedNamespace()
-        {
-            var source = """
-namespace N;
-
-Console.WriteLine();
-
-int P { get; set; }
-class C { }
-""";
+                private int f;
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 9),
-                // (3,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 19),
-                // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,13): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // private int f;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(3, 13)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestPropertyInCompilationUnit()
+        {
+            var source = """
+                int P { get; set; }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // int P { get; set; }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "P").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "P").WithLocation(1, 5)
                 );
         }
 
@@ -10104,88 +10012,33 @@ class C { }
         public void TestPropertyInNamespace()
         {
             var source = """
-int P { get; set; }
-class C { }
-""";
+                namespace N;
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // int P { get; set; }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "P").WithLocation(1, 5)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestPropertyInTopLevelStatementAfterClassDefinition()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-class C { }
-int P { get; set; }
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,20): error CS1513: } expected
-                // int P { get; set; }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 20)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestEventFieldInTopLevelStatement()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-event Action E;
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // event Action E;
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(5, 14)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestEventFieldInFileScopedNamespace()
-        {
-            var source = """
-using System;
-
-namespace N;
-
-Console.WriteLine();
-
-event Action E;
-class C { }
-""";
+                int P { get; set; }
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(5, 9),
-                // (5,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 19),
-                // (5,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(5, 20),
-                // (7,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // int P { get; set; }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "P").WithLocation(3, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestEventFieldInCompilationUnit()
+        {
+            var source = """
+                using System;
+
+                event Action E;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // event Action E;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(3, 14)
                 );
         }
 
@@ -10193,93 +10046,35 @@ class C { }
         public void TestEventFieldInNamespace()
         {
             var source = """
-using System;
+                using System;
 
-event Action E;
-class C { }
-""";
+                namespace N;
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (3,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // event Action E;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(3, 14)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestEventFieldInTopLevelStatementAfterClassDefinition()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-class C { }
-event Action E;
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,14): warning CS0067: The event 'C.E' is never used
-                // event Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(6, 14),
-                // (6,16): error CS1513: } expected
-                // event Action E;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 16)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestEventDeclarationInTopLevelStatement()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-event Action E { add { } remove { } }
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(5, 14)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestEventDeclarationInFileScopedNamespace()
-        {
-            var source = """
-using System;
-
-namespace N;
-
-Console.WriteLine();
-
-event Action E { add { } remove { } }
-class C { }
-""";
+                event Action E;
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(5, 9),
-                // (5,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 19),
-                // (5,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(5, 20),
-                // (7,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (5,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // event Action E;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(5, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestEventDeclarationInCompilationUnit()
+        {
+            var source = """
+                using System;
+
+                event Action E { add { } remove { } }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(3, 14)
                 );
         }
 
@@ -10287,88 +10082,33 @@ class C { }
         public void TestEventDeclarationInNamespace()
         {
             var source = """
-using System;
+                using System;
 
-event Action E { add { } remove { } }
-class C { }
-""";
+                namespace N;
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (3,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(3, 14)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestEventDeclarationInTopLevelStatementAfterClassDefinition()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-class C { }
-event Action E { add { } remove { } }
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,38): error CS1513: } expected
-                // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 38)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestIndexerInTopLevelStatement()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-int this[int x] => 0;
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // int this[int x] => 0;
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "this").WithLocation(5, 5)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestIndexerInFileScopedNamespace()
-        {
-            var source = """
-namespace N;
-
-Console.WriteLine();
-
-int this[int x] => 0;
-class C { }
-""";
+                event Action E { add { } remove { } }
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 9),
-                // (3,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 19),
-                // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (5,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // event Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(5, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestIndexerInCompilationUnit()
+        {
+            var source = """
+                int this[int x] => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // int this[int x] => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "this").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "this").WithLocation(1, 5)
                 );
         }
 
@@ -10376,108 +10116,31 @@ class C { }
         public void TestIndexerInNamespace()
         {
             var source = """
-int this[int x] => 0;
-class C { }
-""";
+                namespace N;
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // int this[int x] => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "this").WithLocation(1, 5)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestIndexerInTopLevelStatementAfterClassDefinition()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-class C { }
-int this[int x] => 0;
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,22): error CS1513: } expected
-                // int this[int x] => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 22)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestConversionOperatorInTopLevelStatement()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-public static implicit operator int(int d) => 0;
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,24): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(5, 24),
-                // (5,33): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 33)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestConversionOperatorInFileScopedNamespace()
-        {
-            var source = """
-namespace N;
-
-Console.WriteLine();
-
-public static implicit operator int(int d) => 0;
-class C { }
-""";
+                int this[int x] => 0;
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 9),
-                // (3,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 19),
-                // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,24): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(5, 24),
-                // (5,33): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 33)
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // int this[int x] => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "this").WithLocation(3, 5)
                 );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestConversionOperatorInNamespace()
+        public void TestConversionOperatorInCompilationUnit()
         {
             var source = """
-public static implicit operator int(int d) => 0;
-class C { }
-""";
+                public static implicit operator int(int d) => 0;
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,24): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,24): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(1, 24),
                 // (1,33): error CS0556: User-defined conversion must convert to or from the enclosing type
                 // public static implicit operator int(int d) => 0;
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(1, 33)
@@ -10485,98 +10148,34 @@ class C { }
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestConversionOperatorInTopLevelStatementAfterClassDefinition()
+        public void TestConversionOperatorInNamespace()
         {
             var source = """
-using System;
+                namespace N;
 
-Console.WriteLine();
-
-class C { }
-public static implicit operator int(int d) => 0;
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,33): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(6, 33),
-                // (6,49): error CS1513: } expected
-                // public static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 49)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestOperatorInTopLevelStatement()
-        {
-            var source = """
-using System;
-
-Console.WriteLine();
-
-public static int operator +(int operand1, int operand2) => 0;
-class C { }
-""";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (5,19): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(5, 19),
-                // (5,28): error CS0563: One of the parameters of a binary operator must be the containing type
-                // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 28)
-                );
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestOperatorInFileScopedNamespace()
-        {
-            var source = """
-namespace N;
-
-Console.WriteLine();
-
-public static int operator +(int operand1, int operand2) => 0;
-class C { }
-""";
+                public static implicit operator int(int d) => 0;
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 9),
-                // (3,19): error CS8124: Tuple must contain at least two elements.
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 19),
-                // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(5, 19),
-                // (5,28): error CS0563: One of the parameters of a binary operator must be the containing type
-                // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 28)
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // int this[int x] => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "this").WithLocation(3, 5)
                 );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestOperatorInNamespace()
+        public void TestOperatorInCompilationUnit()
         {
             var source = """
-public static int operator +(int operand1, int operand2) => 0;
-class C { }
-""";
+                public static int operator +(int operand1, int operand2) => 0;
+                """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,19): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
                 // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(1, 19),
                 // (1,28): error CS0563: One of the parameters of a binary operator must be the containing type
                 // public static int operator +(int operand1, int operand2) => 0;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(1, 28)
@@ -10584,27 +10183,22 @@ class C { }
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
-        public void TestOperatorInTopLevelStatementAfterClassDefinition()
+        public void TestOperatorInFileScopedNamespace()
         {
             var source = """
-using System;
+                namespace N;
 
-Console.WriteLine();
+                public static int operator +(int operand1, int operand2) => 0;
+                """;
 
-class C { }
-public static int operator +(int operand1, int operand2) => 0;
-""";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,11): error CS1519: Invalid token '}' in a member declaration
-                // class C { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,28): error CS0563: One of the parameters of a binary operator must be the containing type
+                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(6, 28),
-                // (6,63): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(3, 19),
+                // (3,28): error CS0563: One of the parameters of a binary operator must be the containing type
                 // public static int operator +(int operand1, int operand2) => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 63)
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(3, 28)
                 );
         }
     }

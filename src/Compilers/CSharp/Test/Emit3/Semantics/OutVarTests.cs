@@ -31245,33 +31245,15 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
+                int[] exclude = new int[] { (int)ErrorCode.ERR_CompilationUnitUnexpected };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                    // (3,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action b = H.TakeOutParam(1, out int x1);
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(3, 21),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action d = H.TakeOutParam(2, out int x2);
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "d").WithLocation(7, 21),
-                    // (9,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action f = H.TakeOutParam(3, out int x3);
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(9, 21),
-                    // (12,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action h = H.Dummy(H.TakeOutParam(41, out int x4),
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "h").WithLocation(12, 21),
                     // (13,52): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                         H.TakeOutParam(42, out int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
-                    // (15,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action x5 = 
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "x5").WithLocation(15, 21),
-                    // (18,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action i = H.TakeOutParam(5, out int x6),
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "i").WithLocation(18, 21),
                     // (21,6): warning CS8321: The local function 'Test' is declared but never used
                     // void Test()
                     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test").WithArguments("Test").WithLocation(21, 6),
@@ -31436,33 +31418,15 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
+                int[] exclude = new int[] { (int)ErrorCode.ERR_CompilationUnitUnexpected };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                    // (3,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action b = H.TakeOutParam(1, out var x1);
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(3, 21),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action d = H.TakeOutParam(2, out var x2);
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "d").WithLocation(7, 21),
-                    // (9,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action f = H.TakeOutParam(3, out var x3);
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(9, 21),
-                    // (12,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action h = H.Dummy(H.TakeOutParam(41, out var x4),
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "h").WithLocation(12, 21),
                     // (13,52): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                         H.TakeOutParam(42, out var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
-                    // (15,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action x5 = 
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "x5").WithLocation(15, 21),
-                    // (18,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
-                    // event System.Action i = H.TakeOutParam(5, out var x6),
-                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "i").WithLocation(18, 21),
                     // (21,6): warning CS8321: The local function 'Test' is declared but never used
                     // void Test()
                     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test").WithArguments("Test").WithLocation(21, 6),
@@ -32074,15 +32038,15 @@ class H
                     // (3,18): error CS1642: Fixed size buffer fields may only be members of structs
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_FixedNotInStruct, "b").WithLocation(3, 18),
+                    // (3,20): error CS0133: The expression being assigned to '<invalid-global-code>.b' must be constant
+                    // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, "H.TakeOutParam(1, out var x1)").WithArguments("<invalid-global-code>.b").WithLocation(3, 20),
                     // (3,12): error CS1642: Fixed size buffer fields may only be members of structs
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_FixedNotInStruct, "a").WithLocation(3, 12),
                     // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[2]").WithLocation(3, 12),
-                    // (3,20): error CS0133: The expression being assigned to '<invalid-global-code>.b' must be constant
-                    // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, "H.TakeOutParam(1, out var x1)").WithArguments("<invalid-global-code>.b").WithLocation(3, 20),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
