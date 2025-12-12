@@ -567,6 +567,11 @@
         <target state="translated">Koleksiyon başlatıcısı, '{0}' koleksiyonunun sonsuz sayıda örneklem zinciriyle sonuçlanır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">'{1}' tür parametresinde 'unmanaged' kısıtlaması olduğundan '{1}', '{0}' için kısıtlama olarak kullanılamaz</target>
@@ -1025,11 +1030,6 @@
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
         <target state="translated">'{0}' arabirimi tür bağımsız değişkeni olarak kullanılamaz. '{1}' statik üyesinin arabirimde en belirgin uygulaması yok.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GlobalNamespaceUnexpected">
-        <source>The global namespace cannot directly contain members such as fields or properties</source>
-        <target state="new">The global namespace cannot directly contain members such as fields or properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">

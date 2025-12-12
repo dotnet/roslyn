@@ -567,6 +567,11 @@
         <target state="translated">集合初始值设定项会生成集合 ‘{0}’ 的无限实例化链。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">类型参数“{1}”具有 "unmanaged" 约束，因此“{1}”不能用作“{0}”的约束</target>
@@ -1025,11 +1030,6 @@
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
         <target state="translated">接口 "{0}" 不能用作类型参数。静态成员 "{1}" 在接口中没有最具体的实现。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GlobalNamespaceUnexpected">
-        <source>The global namespace cannot directly contain members such as fields or properties</source>
-        <target state="new">The global namespace cannot directly contain members such as fields or properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">

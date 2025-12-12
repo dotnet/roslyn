@@ -567,6 +567,11 @@
         <target state="translated">Inicjator kolekcji powoduje utworzenie nieskończonego łańcucha wystąpień kolekcji „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>
@@ -1025,11 +1030,6 @@
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
         <target state="translated">Interfejs „{0}” nie może być używany jako argument typu. Składowa statyczna „{1}” nie ma najbardziej specyficznej implementacji w interfejsie.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GlobalNamespaceUnexpected">
-        <source>The global namespace cannot directly contain members such as fields or properties</source>
-        <target state="new">The global namespace cannot directly contain members such as fields or properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
