@@ -41,6 +41,8 @@ internal sealed class TestSerializerService(
 
     private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
+    private static ConcurrentDictionary<string, AnalyzerFileReference> s_cachedAnalyzerFileReferences = new();
+
     protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer)
     {
         var wellKnownReferenceName = s_wellKnownReferenceNames.GetValueOrDefault(reference, null);
@@ -108,6 +110,24 @@ internal sealed class TestSerializerService(
         {
             return base.ReadAnalyzerReferenceFrom(reader);
         }
+    }
+
+    protected override AnalyzerFileReference GetOrCreateAnalyzerFileReference(string filePath)
+    {
+        // Microsoft.CodeAnalysis.CSharp.dll
+
+        if (filePath.EndsWith("Microsoft.CodeAnalysis.CSharp.dll") || filePath.EndsWith("Microsoft.CodeAnalysis.VisualBasic.dll"))
+        {
+            if (!s_cachedAnalyzerFileReferences.TryGetValue(filePath, out var analyzerFileReference))
+            {
+                analyzerFileReference = base.GetOrCreateAnalyzerFileReference(filePath);
+                s_cachedAnalyzerFileReferences.TryAdd(filePath, analyzerFileReference);
+            }
+
+            return analyzerFileReference;
+        }
+
+        return base.GetOrCreateAnalyzerFileReference(filePath);
     }
 
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
