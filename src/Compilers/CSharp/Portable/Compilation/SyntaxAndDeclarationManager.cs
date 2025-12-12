@@ -510,10 +510,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             removeSet.Free();
 
-            // Get a new DeclarationTableBuilder for any subsequent additions.
-            var declTable = declTableBuilder.ToDeclarationTableAndFree();
-            declTableBuilder = declTable.ToBuilder();
-
             var oldOrdinal = ordinalMap[oldTree];
             ImmutableArray<SyntaxTree> newTrees;
             if (loadDirectivesHaveChanged)

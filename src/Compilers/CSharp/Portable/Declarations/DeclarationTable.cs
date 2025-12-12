@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cache = cache ?? new Cache(this);
         }
 
+        public Builder ToBuilder()
+        {
+            return Builder.GetInstance(this);
+        }
+
         // The merged-tree-reuse story goes like this. We have a "forest" of old declarations, and
         // possibly a lone tree of new declarations. We construct a merged declaration by merging
         // together everything in the forest. This we can re-use from edit to edit, provided that

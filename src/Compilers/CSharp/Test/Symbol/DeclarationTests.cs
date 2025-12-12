@@ -319,6 +319,53 @@ namespace NA
         }
 
         [Fact]
+        public void TestTypeNames_MultipleAddAndRemoveOperationsBeforeBuilding()
+        {
+            var text1 = @"
+namespace NA.NB
+{
+  partial class A<T>
+  { 
+    partial class B
+    {
+      int F;
+    }
+  }
+}
+";
+            var text2 = @"
+namespace NA
+{
+  namespace NB
+  {
+    partial class C<T>
+    { 
+      partial class D
+      {
+        void G() {};
+      }
+    }
+  }
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
+            Assert.NotNull(tree1);
+            Assert.NotNull(tree2);
+            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
+            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
+
+            var table = DeclarationTable.Empty;
+            var builder = table.ToBuilder();
+            builder.AddRootDeclaration(decl1);
+            builder.AddRootDeclaration(decl2);
+            builder.RemoveRootDeclaration(decl1);
+            builder.RemoveRootDeclaration(decl2);
+            table = builder.ToDeclarationTableAndFree();
+            Assert.True(table.TypeNames.IsEmpty());
+        }
+
+        [Fact]
         public void Bug2038()
         {
             string code = @"
