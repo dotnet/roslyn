@@ -123,6 +123,11 @@ internal sealed class TestSerializerService(
         return analyzerFileReference;
     }
 
+    public static void ClearCachedTestReferences()
+    {
+        s_cachedAnalyzerFileReferences.Clear();
+    }
+
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
     [Export(typeof(Factory))]
     [method: ImportingConstructor]
