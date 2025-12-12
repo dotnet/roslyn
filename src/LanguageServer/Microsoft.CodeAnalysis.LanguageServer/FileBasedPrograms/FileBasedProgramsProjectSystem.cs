@@ -74,7 +74,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
-    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument textDocument, CancellationToken cancellationToken)
     {
         // There are a few cases here:
         //   1.  The document is a primordial document (either not loaded yet or doesn't support design time build) - it will be in the misc files workspace.
@@ -82,17 +82,36 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         //   3.  The document is loaded as a file based program - then it will be in the main workspace where the project path matches the source file path.
 
         // NB: The FileBasedProgramsProjectSystem uses the document file path (the on-disk path) as the projectPath in 'IsProjectLoadedAsync'.
-        var isLoadedAsFileBasedProgram = document.FilePath is { } filePath && await IsProjectLoadedAsync(filePath, cancellationToken);
+        var isLoadedAsFileBasedProgram = textDocument.FilePath is { } filePath && await IsProjectLoadedAsync(filePath, cancellationToken);
 
         // If this document has a file-based program syntactic marker, but we aren't loading it in a file-based programs project,
         // we need the caller to remove and re-add this document, so that it gets put in a file-based programs project instead.
         // See the check in 'LspWorkspaceManager.GetLspDocumentInfoAsync', which removes a document based on 'IsMiscellaneousFilesDocumentAsync' result,
         // then calls 'GetLspDocumentInfoAsync' again for the same request.
-        if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await document.GetTextAsync(cancellationToken)))
+        if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await textDocument.GetTextAsync(cancellationToken)))
             return false;
 
-        if (document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
+        if (textDocument.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
+        {
+            // Do a check to determine if the misc project needs to be re-created with a new HasAllInformation flag value.
+            if (!isLoadedAsFileBasedProgram
+                && await _canonicalMiscFilesLoader.IsCanonicalProjectLoadedAsync(cancellationToken)
+                && textDocument is Document document
+                && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
+            {
+                var newHasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(GlobalOptionService, syntaxTree, cancellationToken);
+                if (newHasAllInformation != document.Project.State.HasAllInformation)
+                {
+                    // TODO: replace this method and the call site in LspWorkspaceManager,
+                    // with a mechanism for "updating workspace state if needed" based on changes to a document.
+                    // Perhaps this could be based on actually listening for changes to particular documents, rather than whenever an LSP request related to a document comes in.
+                    // We should be able to do more incremental updates in more cases, rather than needing to throw things away and start over.
+                    return false;
+                }
+            }
+
             return true;
+        }
 
         if (isLoadedAsFileBasedProgram)
             return true;
@@ -208,7 +227,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return ValueTask.CompletedTask;
     }
 
-    protected override async ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,

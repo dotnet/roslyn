@@ -23,7 +23,6 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
     : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
         EnforceOnBuildValues.RemoveUnnecessaryNullableDirective,
         option: null,
-        fadingOption: null,
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {

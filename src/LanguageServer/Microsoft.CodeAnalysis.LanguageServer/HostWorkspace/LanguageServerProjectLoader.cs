@@ -221,7 +221,7 @@ internal abstract class LanguageServerProjectLoader
     /// Called when transitioning from a primordial project to loaded targets.
     /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
     /// </summary>
-    protected abstract ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,
@@ -332,7 +332,7 @@ internal abstract class LanguageServerProjectLoader
                 if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
                 {
                     // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoadedAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
+                    await TransitionPrimordialProjectToLoaded_NoLockAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.

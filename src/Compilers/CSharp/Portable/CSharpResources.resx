@@ -1802,6 +1802,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</value>
   </data>
+  <data name="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime" xml:space="preserve">
+    <value>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</value>
+  </data>
   <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot emit update; {0} '{1}' is missing.</value>
   </data>
@@ -6426,6 +6429,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
     <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>
+  <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
+    <value>A variable designator must come after a property pattern.</value>
+  </data>
   <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
     <value>Relational patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -6572,6 +6578,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList" xml:space="preserve">
     <value>Cannot pass arguments to the base type without a parameter list on the type declaration.</value>
+  </data>
+  <data name="ERR_EqualityOperatorInPatternNotSupported" xml:space="preserve">
+    <value>The '==' operator is not supported in a pattern.</value>
+  </data>
+  <data name="ERR_InequalityOperatorInPatternNotSupported" xml:space="preserve">
+    <value>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
     <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>
