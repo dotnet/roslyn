@@ -7,11 +7,8 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-<<<<<<< HEAD
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-=======
 using Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
->>>>>>> upstream/features/collection-expression-arguments
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
