@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -27,9 +28,53 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     {
         // If it's a delegate method, then cascade to the type as well.  These guys are
         // practically equivalent for users.
-        return symbol.ContainingType.TypeKind == TypeKind.Delegate
-            ? new(ImmutableArray.Create<ISymbol>(symbol.ContainingType))
-            : new(GetOtherPartsOfPartial(symbol));
+        if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
+            return new([symbol.ContainingType]);
+
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
+        result.AddRange(GetOtherPartsOfPartial(symbol));
+        CascadeToExtensionImplementation(symbol, result);
+        CascadeFromExtensionImplementation(symbol, result);
+
+        return new(result.ToImmutableAndClear());
+    }
+
+    private static void CascadeToExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)
+    {
+        // If the given symbol is an extension member, cascade to its implementation method
+        if (symbol.AssociatedExtensionImplementation is { } associatedExtensionImplementation)
+            result.Add(associatedExtensionImplementation);
+    }
+
+    private static void CascadeFromExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)
+    {
+        // If the given symbol is an implementation method of an extension member, cascade to the extension member itself
+        var containingType = symbol.ContainingType;
+        if (containingType is null || !containingType.MightContainExtensionMethods || !symbol.IsStatic)
+            return;
+
+        var implementationDefinition = symbol.OriginalDefinition;
+        foreach (var nestedType in containingType.GetTypeMembers())
+        {
+            if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
+                continue;
+
+            foreach (var member in nestedType.GetMembers())
+            {
+                if (member is IMethodSymbol method)
+                {
+                    var associated = method.AssociatedExtensionImplementation;
+                    if (associated is null)
+                        continue;
+
+                    if (!object.ReferenceEquals(associated.OriginalDefinition, implementationDefinition))
+                        continue;
+
+                    result.Add(method);
+                }
+            }
+        }
     }
 
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)

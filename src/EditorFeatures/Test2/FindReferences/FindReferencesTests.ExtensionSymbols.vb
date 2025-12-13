@@ -155,5 +155,214 @@ public static class MyExtension
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        Public Async Function FindReferences_ExtensionBlockMethod(kind As TestKind, host As TestHost) As Task
+            ' Find references identifies both kinds of calls sites to an extension method:
+            ' 1) extension invocation `42.M()`
+            ' 2) static implementation method invocation `E.M(42)`
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        42.[|M|]();
+        E.[|M|](43);
+    }
+}
+
+public static class E
+{
+    extension(int i)
+    {
+        public void {|Definition:$$M|}() { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        Public Async Function FindReferences_ExtensionBlockMethod_Generic(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        42.[|M|]("");
+        E.[|M|](43, "");
+    }
+}
+
+public static class E
+{
+    extension&lt;T>(T t)
+    {
+        public void {|Definition:$$M|}&lt;U>(U u) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty(kind As TestKind, host As TestHost) As Task
+            ' Find references identifies both kinds of usages of an extension property:
+            ' 1) extension access of different kinds (member access like `42.P`, property pattern, object initializer)
+            ' 2) static implementation method invocation `E.get_P(42)`/`E.set_P(42, value)`
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c.[|P|];
+        c.[|P|] = 1;
+
+        E.[|get_P|](c);
+        E.[|set_P|](c, 1);
+
+        _ = c is { [|P|]: 1 };
+        _ = new C() { [|P|] = 1 };
+    }
+}
+
+public static class E
+{
+    extension(C c)
+    {
+        public int {|Definition:$$P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_Generic(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c.[|P|];
+        c.[|P|] = 1;
+
+        E.[|get_P|](c);
+        E.[|set_P|](c, 1);
+
+        _ = c is { [|P|]: 1 };
+        _ = new C() { [|P|] = 1 };
+    }
+}
+
+public static class E
+{
+    extension&lt;T>(T t)
+    {
+        public int {|Definition:$$P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_FromAccess(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c.[|$$P|];
+        c.[|P|] = 1;
+
+        E.[|get_P|](c);
+        E.[|set_P|](c, 1);
+
+        _ = c is { [|P|]: 1 };
+        _ = new C() { [|P|] = 1 };
+    }
+}
+
+public static class E
+{
+    extension(C c)
+    {
+        public int {|Definition:P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_FromImplementationMethodInvocation(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c.[|P|];
+        c.[|P|] = 1;
+
+        E.[|$$get_P|](c);
+        E.[|set_P|](c, 1);
+
+        _ = c is { [|P|]: 1 };
+        _ = new C() { [|P|] = 1 };
+    }
+}
+
+public static class E
+{
+    extension(C c)
+    {
+        public int {|Definition:P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
     End Class
 End Namespace
