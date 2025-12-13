@@ -482,8 +482,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ConstructedSyntaxTrivia_NoLocationAndDiagnostics()
         {
             var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
-            Assert.Equivalent(Location.None, trivia.GetLocation());
+            Assert.Equal(Location.None, trivia.GetLocation());
             trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithoutDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("// Comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("/* Unclosed multiline comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify(
+                Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
         }
 
         [Fact]
