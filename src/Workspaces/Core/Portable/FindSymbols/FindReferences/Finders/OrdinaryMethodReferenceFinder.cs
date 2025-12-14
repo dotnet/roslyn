@@ -53,7 +53,6 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
         // Tracked by https://github.com/dotnet/roslyn/issues/81686
 
-        var implementationDefinition = symbol.OriginalDefinition;
         foreach (var nestedType in containingType.GetTypeMembers())
         {
             if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
@@ -67,7 +66,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
                     if (associated is null)
                         continue;
 
-                    if (!object.ReferenceEquals(associated.OriginalDefinition, implementationDefinition))
+                    if (!Equals(associated, symbol))
                         continue;
 
                     result.Add(method);

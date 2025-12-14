@@ -30,16 +30,10 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         if (!options.AssociatePropertyReferencesWithSpecificAccessor && symbol.AssociatedSymbol != null)
             result.Add(symbol.AssociatedSymbol);
 
-        CascadeToExtensionImplementation(symbol, result);
+        // If the given symbol is an extension accessor, cascade to its implementation method
+        result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
 
         return new(result.ToImmutableAndClear());
-    }
-
-    private static void CascadeToExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)
-    {
-        // If the given symbol is an extension accessor, cascade to its implementation method
-        if (symbol.AssociatedExtensionImplementation is { } associatedExtensionImplementation)
-            result.Add(associatedExtensionImplementation);
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(

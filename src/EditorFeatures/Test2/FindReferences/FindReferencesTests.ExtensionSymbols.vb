@@ -217,6 +217,35 @@ public static class E
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        Public Async Function FindReferences_ExtensionBlockMethod_Static(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        int.[|M|]();
+        E.[|M|]();
+    }
+}
+
+public static class E
+{
+    extension(int)
+    {
+        public static void {|Definition:$$M|}() { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
         <WpfTheory, CombinatorialData>
         Public Async Function FindReferences_ExtensionBlockProperty(kind As TestKind, host As TestHost) As Task
@@ -356,6 +385,38 @@ public static class E
     extension(C c)
     {
         public int {|Definition:P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_Static(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        _ = C.[|P|];
+        C.[|P|] = 1;
+
+        E.[|get_P|]();
+        E.[|set_P|](1);
+    }
+}
+
+public static class E
+{
+    extension(C c)
+    {
+        public static int {|Definition:$$P|} { {|Definition:get|} => i; {|Definition:set|} { } }
     }
 }
         </Document>
