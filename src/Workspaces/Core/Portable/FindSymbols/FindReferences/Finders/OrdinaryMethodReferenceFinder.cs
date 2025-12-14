@@ -34,17 +34,13 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
         result.AddRange(GetOtherPartsOfPartial(symbol));
-        CascadeToExtensionImplementation(symbol, result);
+
+        // If the given symbol is an extension member, cascade to its implementation method
+        result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
+
         CascadeFromExtensionImplementation(symbol, result);
 
         return new(result.ToImmutableAndClear());
-    }
-
-    private static void CascadeToExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)
-    {
-        // If the given symbol is an extension member, cascade to its implementation method
-        if (symbol.AssociatedExtensionImplementation is { } associatedExtensionImplementation)
-            result.Add(associatedExtensionImplementation);
     }
 
     private static void CascadeFromExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)
@@ -53,6 +49,9 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         var containingType = symbol.ContainingType;
         if (containingType is null || !containingType.MightContainExtensionMethods || !symbol.IsStatic)
             return;
+
+        // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
+        // Tracked by https://github.com/dotnet/roslyn/issues/81686
 
         var implementationDefinition = symbol.OriginalDefinition;
         foreach (var nestedType in containingType.GetTypeMembers())
