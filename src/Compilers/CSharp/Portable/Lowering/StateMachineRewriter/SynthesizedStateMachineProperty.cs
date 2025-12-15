@@ -155,6 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
+        internal sealed override bool IsCallerUnsafe => false;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }

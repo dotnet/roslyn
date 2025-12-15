@@ -468,6 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
+        internal override bool IsCallerUnsafe => false;
+
         internal ResultProperties ResultProperties
         {
             get { return _lazyResultProperties; }

@@ -546,6 +546,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.MemorySafetyRulesAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureRequiresUnsafeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresUnsafeAttribute, diagnostics, location, modifyCompilation);
+        }
+
         internal void EnsureParamCollectionAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: modifyCompilation);
@@ -665,6 +670,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor);
+
+                case EmbeddableAttributes.RequiresUnsafeAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor);
 
                 case EmbeddableAttributes.RequiresLocationAttribute:
                     return CheckIfAttributeShouldBeEmbedded(

@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
+        internal override bool IsCallerUnsafe => throw ExceptionUtilities.Unreachable();
+
         #endregion Not used by PropertySignatureComparer
     }
 }

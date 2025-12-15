@@ -21,15 +21,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
+        private void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNode node)
+        {
+            if (symbol.IsCallerUnsafe)
+            {
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated,
+                    customErrorCode: ErrorCode.ERR_UnsafeMemberOperation,
+                    customArgs: [symbol]);
+            }
+        }
+
         /// <param name="disallowedUnder">
         /// Memory safety rules which the current location is disallowed under.
         /// PROTOTYPE: Consider removing the default parameter value.
         /// </param>
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol? sizeOfTypeOpt = null, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy, ErrorCode? customErrorCode = null)
+        internal bool ReportUnsafeIfNotAllowed(
+            SyntaxNode node,
+            BindingDiagnosticBag diagnostics,
+            TypeSymbol? sizeOfTypeOpt = null,
+            MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy,
+            ErrorCode? customErrorCode = null,
+            object[]? customArgs = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object?)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt, disallowedUnder, customErrorCode);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt, disallowedUnder, customErrorCode, customArgs);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -39,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?)"/>
+        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?, object[])"/>
         internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null, disallowedUnder);
@@ -52,7 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(TypeSymbol? sizeOfTypeOpt, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy, ErrorCode? customErrorCode = null)
+        private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(
+            TypeSymbol? sizeOfTypeOpt,
+            MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy,
+            ErrorCode? customErrorCode = null,
+            object[]? customArgs = null)
         {
             Debug.Assert(sizeOfTypeOpt is null || disallowedUnder is MemorySafetyRules.Legacy);
 
@@ -64,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (disallowedUnder is MemorySafetyRules.Legacy)
                 {
-                    Debug.Assert(customErrorCode is null);
+                    Debug.Assert(customErrorCode is null && customArgs is null);
 
-                    if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
+                    if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                     {
                         return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
                     }
@@ -79,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
 
-                if (this.Compilation.Options.UseUpdatedMemorySafetyRules)
+                if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                 {
                     return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation)
-                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation);
+                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
                 }
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.

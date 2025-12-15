@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,6 +16,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Unsafe)]
 public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
+    /// <param name="expectedUnsafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
+    /// <param name="expectedSafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
+    private void CompileAndVerify(
+        string lib,
+        string caller,
+        object[] expectedUnsafeSymbols,
+        object[] expectedSafeSymbols,
+        params DiagnosticDescription[] expectedDiagnostics)
+    {
+        CreateCompilation([lib, caller],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        var libUpdated = CompileAndVerify(lib,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: module =>
+            {
+                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
+                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: true, isSynthesized: true, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
+            })
+            .VerifyDiagnostics()
+            .GetImageReference();
+
+        CreateCompilation(caller, [libUpdated],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        var libLegacy = CreateCompilation(lib,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        CreateCompilation(caller, [libLegacy],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    private static Func<ModuleSymbol, Symbol> ExtensionMember(string containerName, string memberName)
+    {
+        return module => module.GlobalNamespace
+            .GetMember<NamedTypeSymbol>(containerName)
+            .GetMembers("")
+            .Cast<NamedTypeSymbol>()
+            .SelectMany(block => block.GetMembers(memberName))
+            .SingleOrDefault()
+            ?? throw new InvalidOperationException($"Cannot find '{containerName}.{memberName}'.");
+    }
+
     private static void VerifyMemorySafetyRulesAttribute(
         ModuleSymbol module,
         bool includesAttributeDefinition,
@@ -78,6 +127,78 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
+    /// <remarks>
+    /// <paramref name="expectedUnsafeSymbols"/> (and <paramref name="expectedSafeSymbols"/>) should be symbol names (<see cref="string"/>)
+    /// or symbol getters (<c><![CDATA[Func<ModuleSymbol, Symbol>]]></c>) of symbols that are expected to be unsafe (or safe, respectively).
+    /// </remarks>
+    private static void VerifyRequiresUnsafeAttribute(
+        ModuleSymbol module,
+        bool includesAttributeDefinition,
+        ReadOnlySpan<object> expectedUnsafeSymbols,
+        ReadOnlySpan<object> expectedSafeSymbols,
+        bool? isSynthesized = null)
+    {
+        const string Name = "RequiresUnsafeAttribute";
+        const string FullName = $"System.Runtime.CompilerServices.{Name}";
+        var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
+
+        if (includesAttributeDefinition)
+        {
+            Assert.NotNull(type);
+
+            Assert.NotNull(isSynthesized);
+            Assert.Equal(isSynthesized.Value ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
+
+            if (isSynthesized.Value)
+            {
+                var attributeAttributes = type.GetAttributes()
+                    .Select(a => a.AttributeClass.ToTestDisplayString())
+                    .OrderBy(StringComparer.Ordinal);
+                Assert.Equal(
+                    [
+                        "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                    ],
+                    attributeAttributes);
+            }
+        }
+        else
+        {
+            Assert.Null(type);
+            Assert.Null(isSynthesized);
+        }
+
+        var seenSymbols = new HashSet<Symbol>();
+
+        foreach (var symbol in expectedUnsafeSymbols)
+        {
+            verifySymbol(symbol, shouldBeUnsafe: true);
+        }
+
+        foreach (var symbol in expectedSafeSymbols)
+        {
+            verifySymbol(symbol, shouldBeUnsafe: false);
+        }
+
+        void verifySymbol(object symbolGetter, bool shouldBeUnsafe)
+        {
+            var symbol = symbolGetter switch
+            {
+                string symbolName => module.GlobalNamespace.GetMember(symbolName),
+                Func<ModuleSymbol, Symbol> func => func(module),
+                _ => throw ExceptionUtilities.UnexpectedValue(symbolGetter),
+            };
+            Assert.False(symbol is null, $"Cannot find symbol '{symbolGetter}'");
+
+            var attribute = symbol.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
+            Assert.True(attribute is null, $"Attribute should not be exposed by '{symbol.ToTestDisplayString()}'");
+
+            Assert.True(shouldBeUnsafe == symbol.IsCallerUnsafe, $"Expected '{symbol.ToTestDisplayString()}' to be unsafe");
+
+            Assert.True(seenSymbols.Add(symbol), $"Symbol '{symbol.ToTestDisplayString()}' specified multiple times.");
+        }
+    }
+
     [Fact]
     public void RulesAttribute_Synthesized()
     {
@@ -96,6 +217,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .GetImageReference();
 
         CompileAndVerify("", [ref1],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            .VerifyDiagnostics();
+
+        var source2 = """
+            class B;
+            """;
+
+        CompileAndVerify(source2, [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
             symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
             .VerifyDiagnostics();
@@ -159,7 +289,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var sourceA = """
             public class A { }
             """;
-        var comp = CreateCompilation(sourceA, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesA));
+        var comp = CreateCompilation(sourceA,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesA))
+            .VerifyDiagnostics();
         var refA = AsReference(comp, useCompilationReference);
         Assert.Equal(updatedRulesA, comp.SourceModule.UseUpdatedMemorySafetyRules);
         CompileAndVerify(comp,
@@ -172,7 +304,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
         comp = CreateCompilation(sourceB, [refA], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesB));
         Assert.Equal(updatedRulesB, comp.SourceModule.UseUpdatedMemorySafetyRules);
-        CompileAndVerify(comp, symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: updatedRulesB, includesAttributeUse: updatedRulesB, isSynthesized: updatedRulesB ? true : null));
+        CompileAndVerify(comp,
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: updatedRulesB, includesAttributeUse: updatedRulesB, isSynthesized: updatedRulesB ? true : null))
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -186,7 +320,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public static int GetAttributeValue(Type type)
                 {
                     var module = type.Assembly.Modules.Single();
-                    var attribute = module.GetCustomAttributes(false).Single(a => a.GetType().Name == "MemorySafetyRulesAttribute");
+                    var attribute = module.GetCustomAttributes(inherit: false).Single(a => a.GetType().Name == "MemorySafetyRulesAttribute");
                     var prop = attribute.GetType().GetProperty("Version");
                     return (int)prop.GetValue(attribute);
                 }
@@ -335,6 +469,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [InlineData(int.MaxValue)]
     public void RulesAttribute_FromMetadata_Version(int version, bool correctVersion = false)
     {
+        // [module: MemorySafetyRules({version})]
+        // public class A { public static void M() => throw null; }
         var sourceA = $$"""
             .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
             .assembly '<<GeneratedFileName>>' { }
@@ -343,7 +479,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
             {
                 .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
-                .field public int32 Version
             }
             .class public A
             {
@@ -383,6 +518,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [InlineData(0, 2, false)]
     public void RulesAttribute_FromMetadata_Version_Multiple(int version1, int version2, bool correctVersion)
     {
+        // [module: MemorySafetyRules({version1})]
+        // [module: MemorySafetyRules({version2})]
+        // public class A { public static void M() => throw null; }
         var sourceA = $$"""
             .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
             .assembly '<<GeneratedFileName>>' { }
@@ -392,7 +530,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
             {
                 .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
-                .field public int32 Version
             }
             .class public A
             {
@@ -434,6 +571,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void RulesAttribute_FromMetadata_UnrecognizedConstructor_NoArguments()
     {
         // [module: MemorySafetyRules()]
+        // public class A { public static void M() => throw null; }
         var sourceA = """
             .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
             .assembly '<<GeneratedFileName>>' { }
@@ -473,6 +611,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void RulesAttribute_FromMetadata_UnrecognizedConstructor_StringArgument()
     {
         // [module: MemorySafetyRules("2")]
+        // public class A { public static void M() => throw null; }
         var sourceA = """
             .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
             .assembly '<<GeneratedFileName>>' { }
@@ -2316,5 +2455,946 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (3,26): error CS9501: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
             //     System.Span<int> a = stackalloc int[5];
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
+    }
+
+    // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
+    // PROTOTYPE: Should some synthesized members be unsafe (like state machine methods that are declared unsafe)?
+    [Theory, CombinatorialData]
+    public void Member_Method_Invocation(
+        bool apiUpdatedRules,
+        bool apiUnsafe,
+        [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion callerLangVersion,
+        bool callerAllowUnsafe,
+        bool callerUpdatedRules,
+        bool callerUnsafeBlock,
+        bool? compilationReference)
+    {
+        var api = $$"""
+            public class C
+            {
+                public {{(apiUnsafe ? "unsafe" : "")}} void M() => System.Console.Write(111);
+            }
+            """;
+
+        var caller = $"""
+            var c = new C();
+            {(callerUnsafeBlock ? "unsafe { c.M(); }" : "c.M();")}
+            """;
+
+        var expectedOutput = "111";
+
+        CSharpCompilation comp;
+        List<DiagnosticDescription> expectedDiagnostics = [];
+
+        if (compilationReference is { } useCompilationReference)
+        {
+            var apiCompilation = CreateCompilation(api,
+                options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(apiUpdatedRules))
+                .VerifyDiagnostics();
+            var apiReference = AsReference(apiCompilation, useCompilationReference);
+            comp = CreateCompilation(caller, [apiReference],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(callerLangVersion),
+                options: TestOptions.ReleaseExe.WithAllowUnsafe(callerAllowUnsafe).WithUpdatedMemorySafetyRules(callerUpdatedRules));
+        }
+        else
+        {
+            if (apiUpdatedRules != callerUpdatedRules)
+            {
+                return;
+            }
+
+            comp = CreateCompilation([api, caller],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(callerLangVersion),
+                options: TestOptions.ReleaseExe.WithAllowUnsafe(callerAllowUnsafe).WithUpdatedMemorySafetyRules(callerUpdatedRules));
+
+            if (!callerAllowUnsafe && apiUnsafe)
+            {
+                expectedDiagnostics.Add(
+                    // (3,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                    //     public unsafe void M() => System.Console.Write(111);
+                    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(3, 24));
+            }
+        }
+
+        if (!callerAllowUnsafe && callerUnsafeBlock)
+        {
+            expectedDiagnostics.Add(
+                // (2,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe { c.M(); }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 1));
+        }
+
+        if (apiUnsafe && apiUpdatedRules && callerUpdatedRules && !callerUnsafeBlock)
+        {
+            if (callerLangVersion >= LanguageVersionFacts.CSharpNext)
+            {
+                expectedDiagnostics.Add(
+                    // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+                    // c.M();
+                    Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M()").WithArguments("C.M()").WithLocation(2, 1));
+            }
+            else
+            {
+                expectedDiagnostics.Add(
+                    // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // c.M();
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "c.M()").WithArguments("updated memory safety rules").WithLocation(2, 1));
+            }
+        }
+
+        comp.VerifyDiagnostics([.. expectedDiagnostics]);
+
+        if (!comp.GetDiagnostics().HasAnyErrors())
+        {
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Member_Method_OverloadResolution()
+    {
+        var source = """
+            C.M(1);
+            C.M("s");
+            _ = nameof(C.M);
+
+            class C
+            {
+                public static void M(int x) { }
+                public static unsafe void M(string s) { }
+            }
+            """;
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,1): error CS9502: 'C.M(string)' must be used in an unsafe context because it is marked as 'unsafe'
+            // C.M("s");
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, @"C.M(""s"")").WithArguments("C.M(string)").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Member_Method_SafeBoundary()
+    {
+        CompileAndVerify(
+            lib: """
+                public class C
+                {
+                    public void M1() { unsafe { M2(); } }
+                    public unsafe void M2() { }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.M1();
+                c.M2();
+                """,
+            expectedUnsafeSymbols: ["C.M2"],
+            expectedSafeSymbols: ["C.M1"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.M2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2()").WithArguments("C.M2()").WithLocation(3, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Method_NameOf()
+    {
+        CompileAndVerify(
+            lib: """
+                public class C
+                {
+                    public static unsafe void M() { }
+                }
+                """,
+            caller: """
+                _ = nameof(C.M);
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics: []);
+    }
+
+    [Fact]
+    public void Member_Method_Extension()
+    {
+        CompileAndVerify(
+            lib: """
+                public static class E
+                {
+                    public static unsafe void M1(this int x) { }
+
+                    extension(int x)
+                    {
+                        public unsafe void M2() { }
+                    }
+                }
+                """,
+            caller: """
+                123.M1();
+                123.M2();
+                """,
+            expectedUnsafeSymbols: ["E.M1", "E.M2", ExtensionMember("E", "M2")],
+            expectedSafeSymbols: [],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'E.M1(int)' must be used in an unsafe context because it is marked as 'unsafe'
+                // 123.M1();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "123.M1()").WithArguments("E.M1(int)").WithLocation(1, 1),
+                // (2,1): error CS9502: 'E.extension(int).M2()' must be used in an unsafe context because it is marked as 'unsafe'
+                // 123.M2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "123.M2()").WithArguments("E.extension(int).M2()").WithLocation(2, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Method_InUnsafeClass()
+    {
+        // PROTOTYPE: unsafe modifier on a class should result in a warning
+        CompileAndVerify(
+            lib: """
+                using System.Collections.Generic;
+                public unsafe class C
+                {
+                    public void M1() { }
+                    public IEnumerable<int> M2()
+                    {
+                        yield return 1;
+                    }
+                    public unsafe void M3() { }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.M1();
+                c.M2();
+                c.M3();
+                """,
+            expectedUnsafeSymbols: ["C.M3"],
+            expectedSafeSymbols: ["C.M1", "C.M2"],
+            expectedDiagnostics:
+            [
+                // (4,1): error CS9502: 'C.M3()' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.M3();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M3()").WithArguments("C.M3()").WithLocation(4, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Method_ConvertToFunctionPointer()
+    {
+        CompileAndVerify(
+            lib: """
+                public static class C
+                {
+                    public static unsafe void M() { }
+                }
+                """,
+            caller: """
+                delegate*<void> p1 = &C.M;
+                unsafe { delegate*<void> p2 = &C.M; }
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics: []);
+    }
+
+    // PROTOTYPE: Test also lambdas and delegates.
+    [Fact]
+    public void Member_LocalFunction()
+    {
+        var source = """
+            M1();
+            M2();
+            static unsafe void M1() { }
+            static void M2() { }
+            """;
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS9502: 'M1()' must be used in an unsafe context because it is marked as 'unsafe'
+            // M1();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
+    }
+
+    // PROTOTYPE: Test unsafe on individual get/set/init accessors.
+    [Fact]
+    public void Member_Property()
+    {
+        CompileAndVerify(
+            lib: """
+                public class C
+                {
+                    public int P1 { get; set; }
+                    public unsafe int P2 { get; set; }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.P1 = c.P1 + 123;
+                c.P2 = c.P2 + 123;
+                """,
+            expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
+            expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P2 = c.P2 + 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
+                // (3,8): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P2 = c.P2 + 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 8),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Property_Extension()
+    {
+        CompileAndVerify(
+            lib: """
+                public static class E
+                {
+                    extension(int x)
+                    {
+                        public int P1 { get => x; set { } }
+                        public unsafe int P2 { get => x; set { } }
+                    }
+                }
+                """,
+            caller: """
+                var x = 111;
+                x.P1 = x.P1 + 222;
+                x.P2 = x.P2 + 333;
+                """,
+            expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
+            expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // x.P2 = x.P2 + 333;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 1),
+                // (3,8): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // x.P2 = x.P2 + 333;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 8),
+            ]);
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_Synthesized()
+    {
+        var source = """
+            class C
+            {
+                unsafe void M1() { }
+                void M2() { }
+            }
+            """;
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M1", "C.M2"]))
+            .VerifyDiagnostics();
+
+        var ref1 = CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: ["C.M1"],
+                expectedSafeSymbols: ["C", "C.M2"]))
+            .VerifyDiagnostics()
+            .GetImageReference();
+
+        CompileAndVerify("", [ref1],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: []))
+            .VerifyDiagnostics();
+
+        var source2 = """
+            class B
+            {
+                void M3() { }
+                unsafe void M4() { }
+            }
+            """;
+
+        CompileAndVerify(source2, [ref1],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: ["B.M4"],
+                expectedSafeSymbols: ["B", "B.M3"]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M1", "C.M2"]))
+            .VerifyDiagnostics();
+
+        CreateCompilation([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe void M1() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M1").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(3, 17));
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_NotSynthesized()
+    {
+        var source = """
+            public class C
+            {
+                public void M() { }
+            }
+            """;
+
+        CompileAndVerify(source,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules(),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_LocalFunction()
+    {
+        var source = """
+            #pragma warning disable CS8321 // Local function is declared but never used
+            class C
+            {
+                void M()
+                {
+                    unsafe void M1() { }
+                    void M2() { }
+                }
+            }
+            """;
+
+        var m1 = "C.<M>g__M1|0_0";
+        var m2 = "C.<M>g__M2|0_1";
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [m1, m2]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: [m1],
+                expectedSafeSymbols: [m2]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [m1, m2]))
+            .VerifyDiagnostics();
+
+        CreateCompilation([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (6,21): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //         unsafe void M1() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M1").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(6, 21));
+    }
+
+    /// <summary>
+    /// Lambdas cannot be marked <see langword="unsafe"/>. If that changes, we should synthesize the attribute similarly to <see cref="RequiresUnsafeAttribute_LocalFunction"/>.
+    /// </summary>
+    [Fact]
+    public void RequiresUnsafeAttribute_Lambda()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    var lam1 = unsafe () => { };
+                    var lam2 = () => { };
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,20): error CS1525: Invalid expression term 'unsafe'
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(5, 20),
+            // (5,20): error CS1002: ; expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(5, 20),
+            // (5,20): error CS0106: The modifier 'unsafe' is not valid for this item
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "unsafe").WithArguments("unsafe").WithLocation(5, 20),
+            // (5,28): error CS8124: Tuple must contain at least two elements.
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 28),
+            // (5,30): error CS1001: Identifier expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 30),
+            // (5,30): error CS1003: Syntax error, ',' expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 30),
+            // (5,33): error CS1002: ; expected
+            //         var lam1 = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 33));
+
+        source = """
+            class C
+            {
+                void M()
+                {
+                    var lam = () => { };
+                }
+            }
+            """;
+
+        var lam = "C.<>c.<M>b__0_0";
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [lam]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [lam]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [lam]))
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_Reflection()
+    {
+        var sourceA = """
+            using System;
+            using System.Linq;
+            using System.Reflection;
+            public class A
+            {
+                public unsafe void M1() { }
+                public void M2() { }
+                public static void RequiresUnsafe(MethodInfo method)
+                {
+                    var count = method.GetCustomAttributes(inherit: false).Count(a => a.GetType().Name == "RequiresUnsafeAttribute");
+                    Console.Write(count);
+                }
+            }
+            """;
+        var refA = CreateCompilation(sourceA,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var sourceB = """
+            class B : A
+            {
+                public unsafe void M3() { }
+                public void M4() { }
+                static void Main()
+                {
+                    RequiresUnsafe(typeof(A).GetMethod("M1"));
+                    RequiresUnsafe(typeof(A).GetMethod("M2"));
+                    RequiresUnsafe(typeof(B).GetMethod("M3"));
+                    RequiresUnsafe(typeof(B).GetMethod("M4"));
+                }
+            }
+            """;
+        CompileAndVerify(sourceB, [refA],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "1010")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_FromSource()
+    {
+        var source = """
+            public class C
+            {
+                public unsafe void M() { }
+            }
+            """;
+
+        CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
+            options: TestOptions.UnsafeReleaseDll,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M"]))
+            .VerifyDiagnostics();
+
+        CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void RequiresUnsafeAttribute_FromMetadata(bool useCompilationReference)
+    {
+        var comp = CreateCompilation(RequiresUnsafeAttributeDefinition);
+        CompileAndVerify(comp,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: [AttributeDescription.RequiresUnsafeAttribute.FullName]))
+            .VerifyDiagnostics();
+        var ref1 = AsReference(comp, useCompilationReference);
+
+        var source = """
+            public class C
+            {
+                public unsafe void M() { }
+            }
+            """;
+
+        CompileAndVerify(source, [ref1],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void RequiresUnsafeAttribute_FromMetadata_Multiple(bool useCompilationReference)
+    {
+        var comp1 = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
+        var ref1 = AsReference(comp1, useCompilationReference);
+
+        var comp2 = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
+        var ref2 = AsReference(comp2, useCompilationReference);
+
+        var source = """
+            public class C
+            {
+                public unsafe void M() { }
+            }
+            """;
+
+        // Ambiguous attribute definitions from references => synthesize our own.
+        CompileAndVerify(source, [ref1, ref2],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
+            .VerifyDiagnostics();
+
+        // Also defined in source.
+        CompileAndVerify([source, RequiresUnsafeAttributeDefinition], [ref1, ref2],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: true,
+                isSynthesized: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]))
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void RequiresUnsafeAttribute_FromMetadata_Multiple_AndCorLib(bool useCompilationReference)
+    {
+        var corlibSource = """
+            namespace System
+            {
+                public class Object;
+                public class ValueType;
+                public class Attribute;
+                public struct Void;
+                public struct Int32;
+                public struct Boolean;
+                public class AttributeUsageAttribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets t) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public class Enum;
+                public enum AttributeTargets;
+            }
+            """;
+
+        var corlib = CreateEmptyCompilation([corlibSource, RequiresUnsafeAttributeDefinition]).VerifyDiagnostics();
+        var corlibRef = AsReference(corlib, useCompilationReference);
+
+        var comp1 = CreateEmptyCompilation(RequiresUnsafeAttributeDefinition, [corlibRef]).VerifyDiagnostics();
+        var ref1 = AsReference(comp1, useCompilationReference);
+
+        var comp2 = CreateEmptyCompilation(RequiresUnsafeAttributeDefinition, [corlibRef]).VerifyDiagnostics();
+        var ref2 = AsReference(comp2, useCompilationReference);
+
+        var source = """
+            public class C
+            {
+                public unsafe void M() { }
+            }
+            """;
+
+        // Using the attribute from corlib even if there are ambiguous definitions in other references.
+        var verifier = CompileAndVerify(CreateEmptyCompilation(source, [ref1, ref2, corlibRef],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]));
+
+        verifier.Diagnostics.WhereAsArray(d => d.Code != (int)ErrorCode.WRN_NoRuntimeMetadataVersion).Verify();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        Assert.Same(comp.Assembly.CorLibrary, comp.GetReferencedAssemblySymbol(corlibRef));
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_FromMetadata_UnrecognizedConstructor()
+    {
+        // [module: MemorySafetyRules(2)]
+        // public class A
+        // {
+        //     [RequiresUnsafe(1), RequiresUnsafe(0)]
+        //     public static void M() => throw null;
+        // }
+        var sourceA = $$"""
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion}}) }
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+            }
+            .class private System.Runtime.CompilerServices.RequiresUnsafeAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+            }
+            .class public A
+            {
+                .method public static void M()
+                {
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor(int32) = { int32(1) }
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor(int32) = { int32(0) }
+                    ldnull throw
+                }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
+        Assert.False(a.GlobalNamespace.GetMember("A.M").IsCallerUnsafe);
+
+        var sourceB = """
+            A.M();
+            """;
+        CreateCompilation(sourceB, [refA],
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_FromMetadata_UnrecognizedAndRecognizedConstructor()
+    {
+        // [module: MemorySafetyRules(2)]
+        // public class A
+        // {
+        //     [RequiresUnsafe(1), RequiresUnsafe()]
+        //     public static void M() => throw null;
+        // }
+        var sourceA = $$"""
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion}}) }
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+            }
+            .class private System.Runtime.CompilerServices.RequiresUnsafeAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+            }
+            .class public A
+            {
+                .method public static void M()
+                {
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor(int32) = { int32(1) }
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor()
+                    ldnull throw
+                }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
+        Assert.True(a.GlobalNamespace.GetMember("A.M").IsCallerUnsafe);
+
+        var sourceB = """
+            A.M();
+            """;
+        CreateCompilation(sourceB, [refA],
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            // A.M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A.M()").WithArguments("A.M()").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void RequiresUnsafeAttribute_FromMetadata_AppliedMultipleTimes()
+    {
+        // [module: MemorySafetyRules(2)]
+        // public class A
+        // {
+        //     [RequiresUnsafe, RequiresUnsafe]
+        //     public static void M() => throw null;
+        // }
+        var sourceA = $$"""
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion}}) }
+            .class private System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+            }
+            .class private System.Runtime.CompilerServices.RequiresUnsafeAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+            }
+            .class public A
+            {
+                .method public static void M()
+                {
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor()
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor()
+                    ldnull throw
+                }
+            }
+            """;
+        var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+        var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
+        Assert.True(a.GlobalNamespace.GetMember("A.M").IsCallerUnsafe);
+
+        var sourceB = """
+            A.M();
+            """;
+        CreateCompilation(sourceB, [refA],
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            // A.M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A.M()").WithArguments("A.M()").WithLocation(1, 1));
+    }
+
+    [Theory, CombinatorialData]
+    public void RequiresUnsafeAttribute_ReferencedInSource(
+        bool updatedRules,
+        bool useCompilationReference)
+    {
+        var comp = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
+        var ref1 = AsReference(comp, useCompilationReference);
+
+        // PROTOTYPE: Test other member kinds too (audit all callers of Symbol.ReportExplicitUseOfReservedAttributes).
+        var source = """
+            using System.Runtime.CompilerServices;
+            [RequiresUnsafeAttribute] class C
+            {
+                [RequiresUnsafeAttribute] void M() { }
+                [RequiresUnsafeAttribute] int P { get; set; }
+            }
+            """;
+
+        comp = CreateCompilation(source, [ref1], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        comp.VerifyDiagnostics(
+            // (4,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     [RequiresUnsafeAttribute] void M() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 6),
+            // (5,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     [RequiresUnsafeAttribute] int P { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(5, 6));
     }
 }

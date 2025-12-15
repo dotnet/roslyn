@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
+        internal override bool IsCallerUnsafe => false;
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
         public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

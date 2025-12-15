@@ -1043,6 +1043,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            if (IsCallerUnsafe)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
@@ -1421,6 +1426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
+            if (IsCallerUnsafe)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute(this));
+            }
+
             if (IsRequired)
             {
                 AddSynthesizedAttribute(
@@ -1564,6 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.DynamicAttribute
                 | ReservedAttributes.IsReadOnlyAttribute
                 | ReservedAttributes.RequiresLocationAttribute
+                | ReservedAttributes.RequiresUnsafeAttribute
                 | ReservedAttributes.IsUnmanagedAttribute
                 | ReservedAttributes.IsByRefLikeAttribute
                 | ReservedAttributes.TupleElementNamesAttribute

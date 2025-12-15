@@ -601,6 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
+        internal sealed override bool IsCallerUnsafe => throw ExceptionUtilities.Unreachable();
+
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)

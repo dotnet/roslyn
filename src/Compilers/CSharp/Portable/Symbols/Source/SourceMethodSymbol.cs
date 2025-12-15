@@ -115,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(target));
             }
 
+            if (target.IsCallerUnsafe)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute(target));
+            }
+
             var compilation = target.DeclaringCompilation;
 
             if (compilation.ShouldEmitNullableAttributes(target) &&

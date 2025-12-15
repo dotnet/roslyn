@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // This type is used to compact many different bits of information efficiently.
         private struct PackedFlags
         {
-            // We currently pack everything into a 32-bit int with the following layout:
+            // We currently pack everything into a 64-bit long with the following layout:
             //
-            // |y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |..............................|b'|a'|z|y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -77,39 +77,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // x = IsUnscopedRef. 1 bit.
             // y = IsUnscopedRefPopulated. 1 bit.
             // z = OverloadResolutionPriorityPopulated. 1 bit.
-            // 1 bits remain for future purposes.
+            // a' = RequiresUnsafe. 1 bit.
+            // b' = RequiresUnsafePopulated. 1 bit.
+            // 30 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
-            private const int MethodKindMask = 0x1F;
+            private const long MethodKindMask = 0x1F;
 
-            private const int MethodKindIsPopulatedBit = 0x1 << 5;
-            private const int IsExtensionMethodBit = 0x1 << 6;
-            private const int IsExtensionMethodIsPopulatedBit = 0x1 << 7;
-            private const int IsExplicitFinalizerOverrideBit = 0x1 << 8;
-            private const int IsExplicitClassOverrideBit = 0x1 << 9;
-            private const int IsExplicitOverrideIsPopulatedBit = 0x1 << 10;
-            private const int IsObsoleteAttributePopulatedBit = 0x1 << 11;
-            private const int IsCustomAttributesPopulatedBit = 0x1 << 12;
-            private const int IsUseSiteDiagnosticPopulatedBit = 0x1 << 13;
-            private const int IsConditionalPopulatedBit = 0x1 << 14;
-            private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 15;
-            private const int IsReadOnlyBit = 0x1 << 16;
-            private const int IsReadOnlyPopulatedBit = 0x1 << 17;
+            private const long B = 1;
+            private const long MethodKindIsPopulatedBit = B << 5;
+            private const long IsExtensionMethodBit = B << 6;
+            private const long IsExtensionMethodIsPopulatedBit = B << 7;
+            private const long IsExplicitFinalizerOverrideBit = B << 8;
+            private const long IsExplicitClassOverrideBit = B << 9;
+            private const long IsExplicitOverrideIsPopulatedBit = B << 10;
+            private const long IsObsoleteAttributePopulatedBit = B << 11;
+            private const long IsCustomAttributesPopulatedBit = B << 12;
+            private const long IsUseSiteDiagnosticPopulatedBit = B << 13;
+            private const long IsConditionalPopulatedBit = B << 14;
+            private const long IsOverriddenOrHiddenMembersPopulatedBit = B << 15;
+            private const long IsReadOnlyBit = B << 16;
+            private const long IsReadOnlyPopulatedBit = B << 17;
             private const int NullableContextOffset = 18;
-            private const int NullableContextMask = 0x7;
-            private const int DoesNotReturnBit = 0x1 << 21;
-            private const int IsDoesNotReturnPopulatedBit = 0x1 << 22;
-            private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
-            private const int IsInitOnlyBit = 0x1 << 24;
-            private const int IsInitOnlyPopulatedBit = 0x1 << 25;
-            private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
-            private const int HasSetsRequiredMembersBit = 0x1 << 27;
-            private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
-            private const int IsUnscopedRefBit = 0x1 << 29;
-            private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
-            private const int OverloadResolutionPriorityPopulatedBit = 0x1 << 31;
+            private const long NullableContextMask = 0x7;
+            private const long DoesNotReturnBit = B << 21;
+            private const long IsDoesNotReturnPopulatedBit = B << 22;
+            private const long IsMemberNotNullPopulatedBit = B << 23;
+            private const long IsInitOnlyBit = B << 24;
+            private const long IsInitOnlyPopulatedBit = B << 25;
+            private const long IsUnmanagedCallersOnlyAttributePopulatedBit = B << 26;
+            private const long HasSetsRequiredMembersBit = B << 27;
+            private const long HasSetsRequiredMembersPopulatedBit = B << 28;
+            private const long IsUnscopedRefBit = B << 29;
+            private const long IsUnscopedRefPopulatedBit = B << 30;
+            private const long OverloadResolutionPriorityPopulatedBit = B << 31;
+            private const long RequiresUnsafeBit = B << 32;
+            private const long RequiresUnsafePopulatedBit = B << 33;
 
-            private int _bits;
+            private long _bits;
 
             public MethodKind MethodKind
             {
@@ -120,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 set
                 {
-                    Debug.Assert((int)value == ((int)value & MethodKindMask));
-                    _bits = (_bits & ~(MethodKindMask << MethodKindOffset)) | (((int)value & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
+                    Debug.Assert((long)value == ((long)value & MethodKindMask));
+                    _bits = (_bits & ~(MethodKindMask << MethodKindOffset)) | (((long)value & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
                 }
             }
 
@@ -149,46 +154,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
             public bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(ref _bits) & OverloadResolutionPriorityPopulatedBit) != 0;
+            public bool RequiresUnsafe => (Volatile.Read(ref _bits) & RequiresUnsafeBit) != 0;
+            public bool RequiresUnsafePopulated => (Volatile.Read(ref _bits) & RequiresUnsafePopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
             {
                 // Verify masks are sufficient for values.
-                Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
-                Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextKind>(NullableContextMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>((int)MethodKindMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextKind>((int)NullableContextMask));
             }
 #endif
 
-            private static bool BitsAreUnsetOrSame(int bits, int mask)
+            private static bool BitsAreUnsetOrSame(long bits, long mask)
             {
                 return (bits & mask) == 0 || (bits & mask) == mask;
             }
 
             public void InitializeIsExtensionMethod(bool isExtensionMethod)
             {
-                int bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
+                long bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
             public void InitializeIsReadOnly(bool isReadOnly)
             {
-                int bitsToSet = (isReadOnly ? IsReadOnlyBit : 0) | IsReadOnlyPopulatedBit;
+                long bitsToSet = (isReadOnly ? IsReadOnlyBit : 0) | IsReadOnlyPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
             public void InitializeMethodKind(MethodKind methodKind)
             {
-                Debug.Assert((int)methodKind == ((int)methodKind & MethodKindMask));
-                int bitsToSet = (((int)methodKind & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
+                Debug.Assert((long)methodKind == ((long)methodKind & MethodKindMask));
+                long bitsToSet = (((long)methodKind & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
             public void InitializeIsExplicitOverride(bool isExplicitFinalizerOverride, bool isExplicitClassOverride)
             {
-                int bitsToSet =
+                long bitsToSet =
                     (isExplicitFinalizerOverride ? IsExplicitFinalizerOverrideBit : 0) |
                     (isExplicitClassOverride ? IsExplicitClassOverrideBit : 0) |
                     IsExplicitOverrideIsPopulatedBit;
@@ -228,12 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool SetNullableContext(byte? value)
             {
-                return ThreadSafeFlagOperations.Set(ref _bits, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+                return ThreadSafeFlagOperations.Set(ref _bits, (((long)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
             }
 
             public bool InitializeDoesNotReturn(bool value)
             {
-                int bitsToSet = IsDoesNotReturnPopulatedBit;
+                long bitsToSet = IsDoesNotReturnPopulatedBit;
                 if (value) bitsToSet |= DoesNotReturnBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
@@ -246,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public void InitializeIsInitOnly(bool isInitOnly)
             {
-                int bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
+                long bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -258,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool InitializeSetsRequiredMembersBit(bool value)
             {
-                int bitsToSet = HasSetsRequiredMembersPopulatedBit;
+                long bitsToSet = HasSetsRequiredMembersPopulatedBit;
                 if (value) bitsToSet |= HasSetsRequiredMembersBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
@@ -266,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool InitializeIsUnscopedRef(bool value)
             {
-                int bitsToSet = IsUnscopedRefPopulatedBit;
+                long bitsToSet = IsUnscopedRefPopulatedBit;
                 if (value) bitsToSet |= IsUnscopedRefBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
@@ -275,6 +282,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void SetIsOverloadResolutionPriorityPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, OverloadResolutionPriorityPopulatedBit);
+            }
+
+            public bool InitializeRequiresUnsafe(bool value)
+            {
+                long bitsToSet = RequiresUnsafePopulatedBit;
+                if (value) bitsToSet |= RequiresUnsafeBit;
+
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
         }
 
@@ -1013,6 +1028,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      ? _packedFlags.IsReadOnly
                      : IsValidReadOnlyTarget;
 
+                bool requiresUnsafeAlreadySet = _packedFlags.RequiresUnsafePopulated;
+                bool checkForRequiresUnsafe = !requiresUnsafeAlreadySet || _packedFlags.RequiresUnsafe;
+
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
@@ -1020,7 +1038,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember)
+                bool requiresUnsafe = false;
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember || checkForRequiresUnsafe)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
                         filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
@@ -1033,11 +1052,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
                         filterOut5: AttributeDescription.ExtensionMarkerAttribute,
-                        filteredOutAttribute6: out _,
-                        filterOut6: default);
+                        filteredOutAttribute6: out CustomAttributeHandle requiresUnsafeAttribute,
+                        filterOut6: AttributeDescription.RequiresUnsafeAttribute);
 
                     isExtensionMethod = !extensionAttribute.IsNil;
                     isReadOnly = !isReadOnlyAttribute.IsNil;
+                    requiresUnsafe = !requiresUnsafeAttribute.IsNil;
                 }
                 else
                 {
@@ -1053,6 +1073,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!isReadOnlyAlreadySet)
                 {
                     _packedFlags.InitializeIsReadOnly(isReadOnly);
+                }
+
+                if (!requiresUnsafeAlreadySet)
+                {
+                    _packedFlags.InitializeRequiresUnsafe(requiresUnsafe);
                 }
 
                 // Store the result in uncommon fields only if it's not empty.
@@ -1456,6 +1481,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private bool IsDeclaredRequiresUnsafe
+        {
+            get
+            {
+                if (!_packedFlags.RequiresUnsafePopulated)
+                {
+                    bool requiresUnsafe = _containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    _packedFlags.InitializeRequiresUnsafe(requiresUnsafe);
+                }
+
+                return _packedFlags.RequiresUnsafe;
+            }
+        }
+
         internal override bool IsInitOnly
         {
             get
@@ -1776,6 +1815,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

@@ -650,6 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: move new error codes down
                 or ErrorCode.ERR_UnsafeOperation
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
+                or ErrorCode.ERR_UnsafeMemberOperation
 
                 or ErrorCode.Unknown
                 or ErrorCode.ERR_NoMetadataFile

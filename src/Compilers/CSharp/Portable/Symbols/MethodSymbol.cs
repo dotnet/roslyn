@@ -600,6 +600,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool UseUpdatedEscapeRules { get; }
 
+        internal abstract override bool IsCallerUnsafe { get; }
+
         /// <summary>
         /// Some method kinds do not participate in overriding/hiding (e.g. constructors).
         /// </summary>

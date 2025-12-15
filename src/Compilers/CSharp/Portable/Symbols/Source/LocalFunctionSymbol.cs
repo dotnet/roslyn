@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
+            if (IsCallerUnsafe) compilation.EnsureRequiresUnsafeAttributeExists(addTo, GetFirstLocation(), modifyCompilation: false);
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
@@ -391,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal override bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 
