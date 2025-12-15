@@ -116,10 +116,18 @@ internal static class InlineArrayHelpers
             switch (attribute.Constructor.DeclaringType?.FullName)
             {
                 case CompilerGeneratedAttributeName:
-                    isCompilerGenerated = true;
+                    if (attribute.Constructor.GetParameters().Length == 0)
+                    {
+                        isCompilerGenerated = true;
+                    }
+
                     break;
                 case UnsafeValueTypeAttributeName:
-                    isUnsafeValueType = true;
+                    if (attribute.Constructor.GetParameters().Length == 0)
+                    {
+                        isUnsafeValueType = true;
+                    }
+
                     break;
                 default:
                     break;
