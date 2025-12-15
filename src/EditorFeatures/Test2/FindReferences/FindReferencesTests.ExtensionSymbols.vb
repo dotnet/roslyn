@@ -425,5 +425,92 @@ public static class E
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        Public Async Function FindReferences_ExtensionBlockOperator_FromExtensionUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    static void Test(C c1, C c2)
+    {
+        _ = c1 $$[|+|] c2;
+        E.[|op_Addition|](c1, c2);
+    }
+}
+
+public static class E
+{
+    extension(C)
+    {
+        public static C operator {|Definition:+|}(C c1, C c2) => throw null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        Public Async Function FindReferences_ExtensionBlockOperator_FromDisambiguationUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    static void Test(C c1, C c2)
+    {
+        _ = c1 [|+|] c2;
+        E.[|$$op_Addition|](c1, c2);
+    }
+}
+
+public static class E
+{
+    extension(C)
+    {
+        public static C operator {|Definition:+|}(C c1, C c2) => throw null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        Public Async Function FindReferences_ExtensionBlockOperator_FromDefinition(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    static void Test(C c1, C c2)
+    {
+        _ = c1 [|+|] c2;
+        E.[|op_Addition|](c1, c2);
+    }
+}
+
+public static class E
+{
+    extension(C)
+    {
+        public static C operator $${|Definition:+|}(C c1, C c2) => throw null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
     End Class
 End Namespace

@@ -76,4 +76,19 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
     {
         return syntaxFacts.TryGetPredefinedOperator(token, out var actualOperator) && actualOperator == op;
     }
+
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        IMethodSymbol symbol,
+        Solution solution,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        if (symbol.AssociatedExtensionImplementation is { } associatedExtensionMethod)
+        {
+            // If given an extension operator `E.extension(...).operator+`, we cascade to the its implementation method `E.op_Addition(...)`
+            return new([associatedExtensionMethod]);
+        }
+
+        return new([]);
+    }
 }
