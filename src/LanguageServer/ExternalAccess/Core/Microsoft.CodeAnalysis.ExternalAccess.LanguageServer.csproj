@@ -19,8 +19,21 @@
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.LanguageServer" Key="$(CopilotKey)" />
+
+    <!--
+      ⚠ ONLY XAML ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.DesignTools.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="DesignTools.Tests.Component.CodeAnalysis" Key="$(VisualStudioKey)" />
   </ItemGroup>
   
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" PrivateAssets="all" />
   </ItemGroup>
