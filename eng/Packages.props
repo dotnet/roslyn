@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <!--
-    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
+    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net10.0.
     When tareting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
@@ -260,7 +260,7 @@
     <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="2.0.0-beta1.25425.3" />
-    <PackageVersion Include="Microsoft.ILVerification" Version="9.0.7" />
+    <PackageVersion Include="Microsoft.ILVerification" Version="10.0.0" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
@@ -268,7 +268,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="System.Management" Version="7.0.0" />
-    <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
+    <PackageVersion Include="System.Drawing.Common" Version="10.0.0" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
     <PackageVersion Include="System.CodeDom" Version="8.0.0" />

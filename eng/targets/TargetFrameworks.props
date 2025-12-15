@@ -12,7 +12,7 @@
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
-    <NetRoslyn>net9.0</NetRoslyn>
+    <NetRoslyn>net10.0</NetRoslyn>
     <NetRoslynAll>net8.0;net9.0;net10.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
     <NetVSCode>net10.0</NetVSCode>

@@ -15,32 +15,32 @@ This file should be imported by eng/Versions.props
     <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <SystemCommandLinePackageVersion>3.0.0-alpha.1.25570.101</SystemCommandLinePackageVersion>
     <!-- dotnet/runtime dependencies -->
-    <MicrosoftBclAsyncInterfacesPackageVersion>9.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
-    <MicrosoftExtensionsConfigurationPackageVersion>9.0.0</MicrosoftExtensionsConfigurationPackageVersion>
-    <MicrosoftExtensionsDependencyInjectionPackageVersion>9.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
+    <MicrosoftBclAsyncInterfacesPackageVersion>10.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
+    <MicrosoftExtensionsConfigurationPackageVersion>10.0.0</MicrosoftExtensionsConfigurationPackageVersion>
+    <MicrosoftExtensionsDependencyInjectionPackageVersion>10.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
     <MicrosoftExtensionsFileSystemGlobbingPackageVersion>8.0.0</MicrosoftExtensionsFileSystemGlobbingPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>9.0.0</MicrosoftExtensionsLoggingPackageVersion>
-    <MicrosoftExtensionsLoggingAbstractionsPackageVersion>9.0.0</MicrosoftExtensionsLoggingAbstractionsPackageVersion>
-    <MicrosoftExtensionsLoggingConsolePackageVersion>9.0.0</MicrosoftExtensionsLoggingConsolePackageVersion>
-    <MicrosoftExtensionsOptionsPackageVersion>9.0.0</MicrosoftExtensionsOptionsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>10.0.0</MicrosoftExtensionsLoggingPackageVersion>
+    <MicrosoftExtensionsLoggingAbstractionsPackageVersion>10.0.0</MicrosoftExtensionsLoggingAbstractionsPackageVersion>
+    <MicrosoftExtensionsLoggingConsolePackageVersion>10.0.0</MicrosoftExtensionsLoggingConsolePackageVersion>
+    <MicrosoftExtensionsOptionsPackageVersion>10.0.0</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>8.0.0</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
-    <MicrosoftExtensionsPrimitivesPackageVersion>9.0.0</MicrosoftExtensionsPrimitivesPackageVersion>
-    <SystemCollectionsImmutablePackageVersion>9.0.0</SystemCollectionsImmutablePackageVersion>
-    <SystemComponentModelCompositionPackageVersion>9.0.0</SystemComponentModelCompositionPackageVersion>
-    <SystemCompositionPackageVersion>9.0.0</SystemCompositionPackageVersion>
-    <SystemConfigurationConfigurationManagerPackageVersion>9.0.0</SystemConfigurationConfigurationManagerPackageVersion>
-    <SystemDiagnosticsDiagnosticSourcePackageVersion>9.0.0</SystemDiagnosticsDiagnosticSourcePackageVersion>
-    <SystemDiagnosticsEventLogPackageVersion>9.0.0</SystemDiagnosticsEventLogPackageVersion>
-    <SystemIOHashingPackageVersion>9.0.0</SystemIOHashingPackageVersion>
-    <SystemIOPipelinesPackageVersion>9.0.0</SystemIOPipelinesPackageVersion>
-    <SystemReflectionMetadataPackageVersion>9.0.0</SystemReflectionMetadataPackageVersion>
-    <SystemResourcesExtensionsPackageVersion>9.0.0</SystemResourcesExtensionsPackageVersion>
-    <SystemSecurityCryptographyProtectedDataPackageVersion>9.0.0</SystemSecurityCryptographyProtectedDataPackageVersion>
-    <SystemSecurityPermissionsPackageVersion>9.0.0</SystemSecurityPermissionsPackageVersion>
-    <SystemTextEncodingsWebPackageVersion>9.0.0</SystemTextEncodingsWebPackageVersion>
-    <SystemTextJsonPackageVersion>9.0.0</SystemTextJsonPackageVersion>
-    <SystemThreadingTasksDataflowPackageVersion>9.0.0</SystemThreadingTasksDataflowPackageVersion>
-    <SystemWindowsExtensionsPackageVersion>9.0.0</SystemWindowsExtensionsPackageVersion>
+    <MicrosoftExtensionsPrimitivesPackageVersion>10.0.0</MicrosoftExtensionsPrimitivesPackageVersion>
+    <SystemCollectionsImmutablePackageVersion>10.0.0</SystemCollectionsImmutablePackageVersion>
+    <SystemComponentModelCompositionPackageVersion>10.0.0</SystemComponentModelCompositionPackageVersion>
+    <SystemCompositionPackageVersion>10.0.0</SystemCompositionPackageVersion>
+    <SystemConfigurationConfigurationManagerPackageVersion>10.0.0</SystemConfigurationConfigurationManagerPackageVersion>
+    <SystemDiagnosticsDiagnosticSourcePackageVersion>10.0.0</SystemDiagnosticsDiagnosticSourcePackageVersion>
+    <SystemDiagnosticsEventLogPackageVersion>10.0.0</SystemDiagnosticsEventLogPackageVersion>
+    <SystemIOHashingPackageVersion>10.0.0</SystemIOHashingPackageVersion>
+    <SystemIOPipelinesPackageVersion>10.0.0</SystemIOPipelinesPackageVersion>
+    <SystemReflectionMetadataPackageVersion>10.0.0</SystemReflectionMetadataPackageVersion>
+    <SystemResourcesExtensionsPackageVersion>10.0.0</SystemResourcesExtensionsPackageVersion>
+    <SystemSecurityCryptographyProtectedDataPackageVersion>10.0.0</SystemSecurityCryptographyProtectedDataPackageVersion>
+    <SystemSecurityPermissionsPackageVersion>10.0.0</SystemSecurityPermissionsPackageVersion>
+    <SystemTextEncodingsWebPackageVersion>10.0.0</SystemTextEncodingsWebPackageVersion>
+    <SystemTextJsonPackageVersion>10.0.0</SystemTextJsonPackageVersion>
+    <SystemThreadingTasksDataflowPackageVersion>10.0.0</SystemThreadingTasksDataflowPackageVersion>
+    <SystemWindowsExtensionsPackageVersion>10.0.0</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet/arcade dependencies -->
     <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25612.6</MicrosoftDotNetArcadeSdkPackageVersion>
     <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25612.6</MicrosoftDotNetHelixSdkPackageVersion>
