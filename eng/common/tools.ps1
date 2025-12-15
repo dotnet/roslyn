@@ -391,7 +391,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
 
   # Locate Visual Studio installation or download x-copy msbuild.
   $vsInfo = LocateVisualStudio $vsRequirements
-  if ($vsInfo -ne $null) {
+  if ($vsInfo -ne $null -and $env:ForceUseXCopyMSBuild -eq $null) {
     $vsInstallDir = $vsInfo.installationPath
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
