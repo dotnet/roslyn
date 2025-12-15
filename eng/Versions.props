@@ -36,7 +36,7 @@
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.10.161</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.10.31320.204</MicrosoftVisualStudioShellPackagesVersion>
-    <MicrosoftBuildPackagesVersion>16.5.0</MicrosoftBuildPackagesVersion>
+    <MicrosoftBuildPackagesVersion>16.11.6</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
          but not higher than our minimum dogfoodable Visual Studio version, or else
