@@ -26,7 +26,7 @@ jobs:
     # Note that when helix is enabled, the agent running this job is essentially
     # a thin client that kicks off a helix job and waits for it to complete.
     # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-22.04
   timeoutInMinutes: 40
   steps:
     - checkout: none

@@ -33,7 +33,7 @@ steps:
       PackageName: ${{ parameters.packageName }}
       BuildDropPath: ${{ parameters.buildDropPath }}
       PackageVersion: ${{ parameters.packageVersion }}
-      ManifestDirPath: ${{ parameters.manifestDirPath }}
+      ManifestDirPath: ${{ parameters.manifestDirPath }}/$(ARTIFACT_NAME)
 
 - task: 1ES.PublishPipelineArtifact@1
   displayName: Publish SBOM manifest
