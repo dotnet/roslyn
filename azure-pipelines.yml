@@ -109,7 +109,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    vmImageName: 'ubuntu-20.04'
+    vmImageName: 'ubuntu-22.04'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -118,7 +118,7 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr --helixQueueName Ubuntu.2004.amd64.Open
+    testArguments: --testCoreClr --helixQueueName Ubuntu.2204.amd64.Open
 
 - template: eng/pipelines/test-unix-job-single-machine.yml
   parameters:
@@ -128,7 +128,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'Build.Ubuntu.2004.amd64.Open'
+    queueName: 'Build.Ubuntu.2204.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -192,7 +192,7 @@ jobs:
 - job: Correctness_SourceBuild
   pool:
    name: NetCore-Svc-Public
-   demands: ImageOverride -equals Build.Ubuntu.2004.amd64.Open
+   demands: ImageOverride -equals Build.Ubuntu.2204.amd64.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-unix-task.yml
