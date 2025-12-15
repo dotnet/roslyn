@@ -112,15 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             }
             "
 
-        Private Shared ReadOnly s_extendedLayoutAttributeMinimalCoreLibrary As MetadataReference = CSharp.CSharpCompilation.Create("System.Private.CoreLib",
-            New List(Of SyntaxTree) From {
-                CSharp.CSharpSyntaxTree.ParseText(
-                    ExtendedLayoutMinimalCoreLibrary,
-                    New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
-            },
-            options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            ).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
-
         <Fact>
         Public Sub Pack()
             Dim source =
@@ -981,6 +972,13 @@ End Structure
 ]]></file></compilation>, hasInstanceFields:=True)
         End Sub
 
+        Private Function CreateExtendedLayoutCoreLibReference() As MetadataReference
+            Return CreateCSharpCompilation(
+                ExtendedLayoutMinimalCoreLibrary,
+                referencedAssemblies:=Array.Empty(Of MetadataReference)()
+            ).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
+        End Function
+
         <Fact>
         Public Sub ExtendedLayoutAttribute_ImpliesExtendedLayout()
             Dim source = <compilation><file><![CDATA[
@@ -994,9 +992,7 @@ End Structure
 
             CompileAndVerify(CreateEmptyCompilation(
                 source,
-                New List(Of MetadataReference) From {
-                s_extendedLayoutAttributeMinimalCoreLibrary
-                }),
+                {CreateExtendedLayoutCoreLibReference()}),
                 verify:=Verification.Skipped,
                 symbolValidator:=
                 Sub(moduleSymbol)
@@ -1018,9 +1014,7 @@ End Structure
 
             CompileAndVerify(
                 source,
-                allReferences:=New List(Of MetadataReference) From {
-                    s_extendedLayoutAttributeMinimalCoreLibrary
-                },
+                allReferences:={CreateExtendedLayoutCoreLibReference()},
                 emitOptions:=New CodeAnalysis.Emit.EmitOptions(debugInformationFormat:=CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion:="v4.0.3100.0"),
                 verify:=Verification.Skipped,
                 symbolValidator:=
@@ -1036,21 +1030,19 @@ Imports System.Runtime.InteropServices
                              
 <StructLayout(DirectCast(1, LayoutKind))>
 Structure C
-Dim f As Integer
+    Dim f As Integer
 End Structure
                                 
 <StructLayout(DirectCast(1, LayoutKind))>
 <ExtendedLayout(ExtendedLayoutKind.CStruct)>
 Structure D
-Dim f As Integer
+    Dim f As Integer
 End Structure
 ]]></file></compilation>
 
             CreateEmptyCompilation(
                 source,
-                New List(Of MetadataReference) From {
-                    s_extendedLayoutAttributeMinimalCoreLibrary
-                }).AssertTheseDiagnostics(<![CDATA[
+                {CreateExtendedLayoutCoreLibReference()}).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(DirectCast(1, LayoutKind))>
               ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1068,7 +1060,7 @@ Imports System.Runtime.InteropServices
 <StructLayout(LayoutKind.Sequential)>
 <ExtendedLayout(ExtendedLayoutKind.CStruct)>
 Structure C
-Dim f As Integer
+    Dim f As Integer
 End Structure
                                 
 <StructLayout(LayoutKind.Explicit)>
@@ -1084,8 +1076,7 @@ End Structure
 
             CreateEmptyCompilation(
                 source,
-                New List(Of MetadataReference) From {
-                s_extendedLayoutAttributeMinimalCoreLibrary}
+                {CreateExtendedLayoutCoreLibReference()}
             ).AssertTheseDiagnostics(<![CDATA[
 BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
 Structure C
@@ -1121,7 +1112,7 @@ End Namespace
                              
 <ExtendedLayout(ExtendedLayoutKind.CStruct)>
 Structure C
-Dim f As Integer
+    Dim f As Integer
 End Structure
 
 ]]></file></compilation>

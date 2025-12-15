@@ -1567,12 +1567,7 @@ public class Derived : Base, I2
             }
             """;
 
-            var minimalCoreLibReference = CSharpCompilation.Create(
-                "System.Private.CoreLib",
-                [
-                    CSharpSyntaxTree.ParseText(coreLibSource, new CSharpParseOptions(LanguageVersion.Preview))
-                ],
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).ToMetadataReference();
+            var minimalCoreLibReference = CreateEmptyCompilation(coreLibSource).ToMetadataReference();
 
             var sourcePIA =
 @"using System.Runtime.InteropServices;

@@ -126,14 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             """;
 
-        private static readonly MetadataReference ExtendedLayoutAttributeMinimalCoreLibrary = CSharpCompilation.Create("System.Private.CoreLib",
-            syntaxTrees:
-            [
-                CSharpSyntaxTree.ParseText(
-                    ExtendedLayoutMinimalCoreLibrary,
-                    options: new CSharpParseOptions(LanguageVersion.Preview))
-            ],
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).ToMetadataReference();
+        private static readonly MetadataReference s_extendedLayoutAttributeMinimalCoreLibrary =
+            CreateEmptyCompilation(ExtendedLayoutMinimalCoreLibrary).ToMetadataReference();
 
         [Fact]
         public void Pack()
@@ -852,10 +846,19 @@ partial struct C
                 }
                 """;
 
-            var comp = CreateEmptyCompilation(
-                source,
-                references: [ExtendedLayoutAttributeMinimalCoreLibrary]);
-            comp.VerifyDiagnostics();
+            CompileAndVerify(
+                CreateEmptyCompilation(
+                    source,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.30319"),
+                symbolValidator: module =>
+                {
+                    var type = module.GlobalNamespace.GetTypeMember("StructWithExtendedLayout");
+                    var expectedLayout = new TypeLayout(LayoutKind.Extended, 0, 0);
+                    Assert.Equal(expectedLayout, type.Layout);
+                },
+                verify: Verification.Skipped)
+            .VerifyDiagnostics();
         }
 
         [Fact]
@@ -873,7 +876,7 @@ partial struct C
 
             CompileAndVerify(CreateEmptyCompilation(
                 source,
-                references: [ExtendedLayoutAttributeMinimalCoreLibrary]),
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
                 emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.30319"),
                 symbolValidator: module =>
                 {
@@ -950,7 +953,7 @@ partial struct C
             CompileAndVerify(
                 CreateEmptyCompilation(
                     source,
-                    references: [ExtendedLayoutAttributeMinimalCoreLibrary]),
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
                 emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.30319"),
                 symbolValidator: module =>
                 {
@@ -992,7 +995,7 @@ partial struct C
 
             CreateEmptyCompilation(
                 source,
-                references: [ExtendedLayoutAttributeMinimalCoreLibrary])
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
             .VerifyDiagnostics(
                 // (6,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [FieldOffset(4)]
@@ -1034,7 +1037,7 @@ partial struct C
 
             CreateEmptyCompilation(
                 source,
-                references: [ExtendedLayoutAttributeMinimalCoreLibrary])
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
             .VerifyDiagnostics(
                 // (5,8): error CS9347: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
                 // struct C
@@ -1067,7 +1070,7 @@ partial struct C
 
             CreateEmptyCompilation(
                 source,
-                references: [ExtendedLayoutAttributeMinimalCoreLibrary])
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
             .VerifyDiagnostics(
                 // (6,8): error CS9168: Inline array struct must have sequential or auto layout.
                 // struct Buffer
@@ -1095,7 +1098,7 @@ partial struct C
 
             CreateEmptyCompilation(
                 source,
-                references: [ExtendedLayoutAttributeMinimalCoreLibrary])
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
             .VerifyDiagnostics(
                 // (3,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
                 // [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
@@ -1121,7 +1124,7 @@ partial struct C
             CompileAndVerify(
                 CreateEmptyCompilation(
                     source,
-                    references: [ExtendedLayoutAttributeMinimalCoreLibrary]),
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
                 emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.3100.0"),
                 symbolValidator: module =>
                 {
@@ -1146,7 +1149,7 @@ partial struct C
             CompileAndVerify(
                 CreateEmptyCompilation(
                     source,
-                    references: [ExtendedLayoutAttributeMinimalCoreLibrary]),
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
                 emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.3100.0"),
                 validator: (assembly) =>
                 {
