@@ -881,7 +881,7 @@ namespace Microsoft.Cci
 
             if (genPar.AllowsRefLikeType)
             {
-                result |= GenericParameterAttributes.AllowByRefLike;
+                result |= MetadataHelpers.GenericParameterAttributesAllowByRefLike;
             }
 
             if (genPar.MustHaveDefaultConstructor)

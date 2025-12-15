@@ -30,13 +30,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal const int UserStringHeapCapacity = 0xfffffe;
 
-        extension(System.Reflection.GenericParameterAttributes)
-        {
-            // https://github.com/dotnet/roslyn/issues/73548:
-            // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
-            // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
-            public static System.Reflection.GenericParameterAttributes AllowByRefLike => (System.Reflection.GenericParameterAttributes)0x0020;
-        }
+        // https://github.com/dotnet/roslyn/issues/73548:
+        // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
+        // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
+        public const System.Reflection.GenericParameterAttributes GenericParameterAttributesAllowByRefLike = (System.Reflection.GenericParameterAttributes)0x0020;
 
         extension(System.Reflection.TypeAttributes)
         {

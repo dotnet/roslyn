@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
-                Return (_flags And MetadataHelpers.get_AllowByRefLike()) <> 0
+                Return (_flags And MetadataHelpers.GenericParameterAttributesAllowByRefLike) <> 0
             End Get
         End Property
 

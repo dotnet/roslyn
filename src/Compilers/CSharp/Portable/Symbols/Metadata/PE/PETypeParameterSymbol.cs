@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_flags & GenericParameterAttributes.AllowByRefLike) != 0;
+                return (_flags & MetadataHelpers.GenericParameterAttributesAllowByRefLike) != 0;
             }
         }
 
