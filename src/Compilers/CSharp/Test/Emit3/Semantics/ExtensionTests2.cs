@@ -7160,7 +7160,7 @@ static class E
             Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(10, 28));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710"]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
     public void Cref_68()
     {
         var src = """
