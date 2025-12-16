@@ -9,9 +9,10 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTests.Razor
 {
     public class RazorPredefinedProviderNameTests
     {
