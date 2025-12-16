@@ -228,6 +228,9 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
     public virtual TResult? VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
+    public virtual TResult? VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
     public virtual TResult? VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
@@ -975,6 +978,9 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
     public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
+    public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
     public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
@@ -1721,6 +1727,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitSpreadElement(SpreadElementSyntax node)
         => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+    public override SyntaxNode? VisitKeyValuePairElement(KeyValuePairElementSyntax node)
+        => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
     public override SyntaxNode? VisitWithElement(WithElementSyntax node)
         => node.Update(VisitToken(node.WithKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
@@ -3444,6 +3453,19 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new SpreadElementSyntax instance.</summary>
     public static SpreadElementSyntax SpreadElement(ExpressionSyntax expression)
         => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), expression);
+
+    /// <summary>Creates a new KeyValuePairElementSyntax instance.</summary>
+    public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+    {
+        if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
+        if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
+        return (KeyValuePairElementSyntax)Syntax.InternalSyntax.SyntaxFactory.KeyValuePairElement((Syntax.InternalSyntax.ExpressionSyntax)keyExpression.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)valueExpression.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new KeyValuePairElementSyntax instance.</summary>
+    public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, ExpressionSyntax valueExpression)
+        => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
     /// <summary>Creates a new WithElementSyntax instance.</summary>
     public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)

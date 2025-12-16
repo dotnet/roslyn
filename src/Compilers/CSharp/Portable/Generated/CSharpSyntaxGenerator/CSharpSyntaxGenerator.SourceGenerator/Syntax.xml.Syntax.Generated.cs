@@ -4276,6 +4276,64 @@ public sealed partial class SpreadElementSyntax : CollectionElementSyntax
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>
 /// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.KeyValuePairElement"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
+{
+    private ExpressionSyntax? keyExpression;
+    private ExpressionSyntax? valueExpression;
+
+    internal KeyValuePairElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public ExpressionSyntax KeyExpression => GetRedAtZero(ref this.keyExpression)!;
+
+    public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.KeyValuePairElementSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+
+    public ExpressionSyntax ValueExpression => GetRed(ref this.valueExpression, 2)!;
+
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref this.keyExpression)!,
+            2 => GetRed(ref this.valueExpression, 2)!,
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this.keyExpression,
+            2 => this.valueExpression,
+            _ => null,
+        };
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitKeyValuePairElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitKeyValuePairElement(this);
+
+    public KeyValuePairElementSyntax Update(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+    {
+        if (keyExpression != this.KeyExpression || colonToken != this.ColonToken || valueExpression != this.ValueExpression)
+        {
+            var newNode = SyntaxFactory.KeyValuePairElement(keyExpression, colonToken, valueExpression);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public KeyValuePairElementSyntax WithKeyExpression(ExpressionSyntax keyExpression) => Update(keyExpression, this.ColonToken, this.ValueExpression);
+    public KeyValuePairElementSyntax WithColonToken(SyntaxToken colonToken) => Update(this.KeyExpression, colonToken, this.ValueExpression);
+    public KeyValuePairElementSyntax WithValueExpression(ExpressionSyntax valueExpression) => Update(this.KeyExpression, this.ColonToken, valueExpression);
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
 /// <item><description><see cref="SyntaxKind.WithElement"/></description></item>
 /// </list>
 /// </remarks>

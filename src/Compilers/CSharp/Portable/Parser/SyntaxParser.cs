@@ -533,7 +533,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return CreateMissingToken(kind, this.CurrentToken.Kind);
         }
 
-        // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
+        /// <summary>
+        /// Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind, adding an
+        /// error to the replacement token.
+        /// </summary>
         protected SyntaxToken EatTokenAsKind(SyntaxKind expected)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(expected));

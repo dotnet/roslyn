@@ -13135,7 +13135,15 @@ done:
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
             }
 
-            return _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
+            // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
+            var expression = !this.IsPossibleExpression() && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.IdentifierName(this.EatTokenAsKind(SyntaxKind.IdentifierToken))
+                : this.ParseExpressionCore();
+
+            var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
+            return colonToken != null
+                ? _syntaxFactory.KeyValuePairElement(expression, colonToken, this.ParseExpressionCore())
+                : _syntaxFactory.ExpressionElement(expression);
         }
 
         private bool IsAnonymousType()

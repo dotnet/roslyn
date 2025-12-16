@@ -934,5 +934,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IgnoredDirectiveTrivia = 9080,
 
         WithElement = 9081,
+        KeyValuePairElement = 9082,
     }
 }

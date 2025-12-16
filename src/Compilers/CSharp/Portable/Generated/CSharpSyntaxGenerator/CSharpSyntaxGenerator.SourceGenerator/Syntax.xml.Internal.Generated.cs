@@ -6682,6 +6682,91 @@ internal sealed partial class SpreadElementSyntax : CollectionElementSyntax
         => new SpreadElementSyntax(this.Kind, this.operatorToken, this.expression, GetDiagnostics(), annotations);
 }
 
+internal sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
+{
+    internal readonly ExpressionSyntax keyExpression;
+    internal readonly SyntaxToken colonToken;
+    internal readonly ExpressionSyntax valueExpression;
+
+    internal KeyValuePairElementSyntax(SyntaxKind kind, ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(keyExpression);
+        this.keyExpression = keyExpression;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        this.AdjustFlagsAndWidth(valueExpression);
+        this.valueExpression = valueExpression;
+    }
+
+    internal KeyValuePairElementSyntax(SyntaxKind kind, ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(keyExpression);
+        this.keyExpression = keyExpression;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        this.AdjustFlagsAndWidth(valueExpression);
+        this.valueExpression = valueExpression;
+    }
+
+    internal KeyValuePairElementSyntax(SyntaxKind kind, ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+      : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(keyExpression);
+        this.keyExpression = keyExpression;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        this.AdjustFlagsAndWidth(valueExpression);
+        this.valueExpression = valueExpression;
+    }
+
+    public ExpressionSyntax KeyExpression => this.keyExpression;
+    public SyntaxToken ColonToken => this.colonToken;
+    public ExpressionSyntax ValueExpression => this.valueExpression;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.keyExpression,
+            1 => this.colonToken,
+            2 => this.valueExpression,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.KeyValuePairElementSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitKeyValuePairElement(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitKeyValuePairElement(this);
+
+    public KeyValuePairElementSyntax Update(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+    {
+        if (keyExpression != this.KeyExpression || colonToken != this.ColonToken || valueExpression != this.ValueExpression)
+        {
+            var newNode = SyntaxFactory.KeyValuePairElement(keyExpression, colonToken, valueExpression);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new KeyValuePairElementSyntax(this.Kind, this.keyExpression, this.colonToken, this.valueExpression, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new KeyValuePairElementSyntax(this.Kind, this.keyExpression, this.colonToken, this.valueExpression, GetDiagnostics(), annotations);
+}
+
 internal sealed partial class WithElementSyntax : CollectionElementSyntax
 {
     internal readonly SyntaxToken withKeyword;
@@ -27091,6 +27176,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
@@ -27343,6 +27429,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
     public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
     public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
@@ -27736,6 +27823,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitSpreadElement(SpreadElementSyntax node)
         => node.Update((SyntaxToken)Visit(node.OperatorToken), (ExpressionSyntax)Visit(node.Expression));
+
+    public override CSharpSyntaxNode VisitKeyValuePairElement(KeyValuePairElementSyntax node)
+        => node.Update((ExpressionSyntax)Visit(node.KeyExpression), (SyntaxToken)Visit(node.ColonToken), (ExpressionSyntax)Visit(node.ValueExpression));
 
     public override CSharpSyntaxNode VisitWithElement(WithElementSyntax node)
         => node.Update((SyntaxToken)Visit(node.WithKeyword), (ArgumentListSyntax)Visit(node.ArgumentList));
@@ -29871,6 +29961,28 @@ internal partial class ContextAwareSyntax
         if (cached != null) return (SpreadElementSyntax)cached;
 
         var result = new SpreadElementSyntax(SyntaxKind.SpreadElement, operatorToken, expression, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+    {
+#if DEBUG
+        if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
+        if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+        if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.KeyValuePairElement, keyExpression, colonToken, valueExpression, this.context, out hash);
+        if (cached != null) return (KeyValuePairElementSyntax)cached;
+
+        var result = new KeyValuePairElementSyntax(SyntaxKind.KeyValuePairElement, keyExpression, colonToken, valueExpression, this.context);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -35259,6 +35371,28 @@ internal static partial class SyntaxFactory
         if (cached != null) return (SpreadElementSyntax)cached;
 
         var result = new SpreadElementSyntax(SyntaxKind.SpreadElement, operatorToken, expression);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+    {
+#if DEBUG
+        if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
+        if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+        if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.KeyValuePairElement, keyExpression, colonToken, valueExpression, out hash);
+        if (cached != null) return (KeyValuePairElementSyntax)cached;
+
+        var result = new KeyValuePairElementSyntax(SyntaxKind.KeyValuePairElement, keyExpression, colonToken, valueExpression);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
