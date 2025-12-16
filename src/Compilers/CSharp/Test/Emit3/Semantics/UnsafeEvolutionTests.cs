@@ -2507,6 +2507,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
+            parseOptions: TestOptions.RegularPreview,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
             symbolValidator: m =>
             {
