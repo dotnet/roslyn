@@ -2445,7 +2445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EqualityOperatorInPatternNotSupported = 9344,
         ERR_InequalityOperatorInPatternNotSupported = 9345,
         ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
-        ERR_CompilationUnitUnexpected = 9347,
+        ERR_ExtensionParameterInStaticContext = 9347,
+        ERR_CompilationUnitUnexpected = 9348,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
