@@ -86,8 +86,8 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor.Features</Name>
+    <ProjectReference Include="..\..\LanguageServer\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
