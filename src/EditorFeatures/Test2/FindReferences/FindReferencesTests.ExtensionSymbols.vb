@@ -359,6 +359,94 @@ public static class E
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
         <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_FromAccess_MultiFile(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        E.[|get_P|](c);
+    }
+}
+        </Document>
+        <Document>
+class C2
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c.[|$$P|];
+    }
+}
+        </Document>
+        <Document>
+class C3
+{
+    void Test()
+    {
+        var c = new C();
+        c.[|P|] = 1;
+    }
+}
+        </Document>
+        <Document>
+class C4
+{
+    void Test()
+    {
+        var c = new C();
+        E.[|get_P|](c);
+    }
+}
+        </Document>
+        <Document>
+class C5
+{
+    void Test()
+    {
+        var c = new C();
+        E.[|set_P|](c, 1);
+    }
+}
+        </Document>
+        <Document>
+class C6
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c is { [|P|]: 1 };
+    }
+}
+        </Document>
+        <Document>
+class C7
+{
+    void Test()
+    {
+        _ = new C() { [|P|] = 1 };
+    }
+}
+        </Document>
+        <Document>
+public static class E
+{
+    extension(C c)
+    {
+        public int {|Definition:P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
         Public Async Function FindReferences_ExtensionBlockProperty_FromImplementationMethodInvocation(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -380,6 +468,94 @@ class C
     }
 }
 
+public static class E
+{
+    extension(C c)
+    {
+        public int {|Definition:P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_FromImplementationMethodInvocation_MultiFile(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void Test()
+    {
+        E.[|$$get_P|](c);
+    }
+}
+        </Document>
+        <Document>
+class C2
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c.[|P|];
+    }
+}
+        </Document>
+        <Document>
+class C3
+{
+    void Test()
+    {
+        var c = new C();
+        c.[|P|] = 1;
+    }
+}
+        </Document>
+        <Document>
+class C4
+{
+    void Test()
+    {
+        var c = new C();
+        E.[|get_P|](c);
+    }
+}
+        </Document>
+        <Document>
+class C5
+{
+    void Test()
+    {
+        var c = new C();
+        E.[|set_P|](c, 1);
+    }
+}
+        </Document>
+        <Document>
+class C6
+{
+    void Test()
+    {
+        var c = new C();
+        _ = c is { [|P|]: 1 };
+    }
+}
+        </Document>
+        <Document>
+class C7
+{
+    void Test()
+    {
+        _ = new C() { [|P|] = 1 };
+    }
+}
+        </Document>
+        <Document>
 public static class E
 {
     extension(C c)
