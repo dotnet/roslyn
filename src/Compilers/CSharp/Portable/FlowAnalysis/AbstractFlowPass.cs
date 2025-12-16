@@ -961,7 +961,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VariableAccess: null,
                     IsUnionMatching: false,
                 } rewritten &&
-                (possibleUnionValueSymbol is null || (Binder.HasIUnionValueSignature((PropertySymbol)possibleUnionValueSymbol) && possibleUnionValueSymbol.ContainingType.IsWellKnownTypeIUnion())))
+                (possibleUnionValueSymbol is null ||
+                 (possibleUnionValueSymbol.ContainingType.IsWellKnownTypeIUnion() && Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(inputType) == (object)possibleUnionValueSymbol)))
             {
                 Debug.Assert(!inputType.IsNullableType());
                 Debug.Assert(!negated);

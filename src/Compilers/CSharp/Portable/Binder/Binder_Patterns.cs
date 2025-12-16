@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol? valueProperty = null;
             foreach (var m in iUnion.GetMembers(WellKnownMemberNames.ValuePropertyName))
             {
-                if (m is PropertySymbol prop && HasIUnionValueSignature(prop))
+                if (m is PropertySymbol prop && hasIUnionValueSignature(prop))
                 {
                     valueProperty = prop;
                     break;
@@ -59,22 +59,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return valueProperty;
+
+            static bool hasIUnionValueSignature(PropertySymbol property)
+            {
+                // PROTOTYPE: Cover individual conditions with tests
+                return property is
+                {
+                    IsStatic: false,
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsAbstract: true,
+                    GetMethod: not null,
+                    SetMethod: null,
+                    RefKind: RefKind.None,
+                    ParameterCount: 0,
+                    TypeWithAnnotations: { Type.SpecialType: SpecialType.System_Object, CustomModifiers: [] }
+                };
+            }
         }
 
-        public static bool HasIUnionValueSignature(PropertySymbol property)
+        internal static PropertySymbol? GetUnionTypeValuePropertyNoUseSiteDiagnostics(NamedTypeSymbol inputUnionType)
         {
-            // PROTOTYPE: Cover individual conditions with tests
-            return property is
-            {
-                IsStatic: false,
-                DeclaredAccessibility: Accessibility.Public,
-                IsAbstract: true,
-                GetMethod: not null,
-                SetMethod: null,
-                RefKind: RefKind.None,
-                ParameterCount: 0,
-                TypeWithAnnotations: { Type.SpecialType: SpecialType.System_Object, CustomModifiers: [] }
-            };
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return GetUnionTypeValueProperty(inputUnionType, ref useSiteInfo);
         }
 
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)

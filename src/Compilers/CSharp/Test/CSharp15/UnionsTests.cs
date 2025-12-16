@@ -6957,5 +6957,1724 @@ class Program
                 //         return M2(x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.S(in int)", "x").WithLocation(5, 19));
         }
+
+        [Fact]
+        public void NullableAnalysis_01_State_From_Default()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = default;
+        _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test3()
+    {
+#line 300
+        S2 s = default;
+        _ = s switch { int => 1, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 15)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_02_State_From_Default()
+        {
+            var src = @"
+#nullable enable
+
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1? s = null;
+        _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test3()
+    {
+#line 300
+        S2? s = null;
+        _ = s switch { int => 1, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 15),
+                // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_03_State_From_Default([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+#line 200
+        _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test4(S2 s)
+    {
+#line 400
+        _ = s switch { int => 1, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (200,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_04_State_From_Default_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+class Program
+{
+    static void Test2(S1 s)
+    {
+#line 200
+        _ = s switch { int => 1, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+
+            // PROTOTYPE: Confirm that post-condition attributes aren't respected for the purpose of default nullability of a Union instance.
+            //            We respect them for constructor invocations and conversions  
+            comp.VerifyDiagnostics(
+                // (200,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_05_State_From_Constructor([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1(1);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1("""");
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        var s = new S1(x);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        var s = new S1(x);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        var s = new S1(x);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 15),
+                // (501,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_06_State_From_Constructor_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1(1);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1("""");
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        var s = new S1(x);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        var s = new S1(x);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        var s = new S1(x);
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_07_State_From_Conversion([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = 1;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        S1 s = """";
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        S1 s = x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        S1 s = x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        S1 s = x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 15),
+                // (501,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_08_State_From_Conversion_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = 1;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        S1 s = """";
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        S1 s = x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        S1 s = x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        S1 s = x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_09_State_From_Conversion_TupleLiteral([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        (S1, int) s = (1, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        (S1, int) s = ("""", 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        (S1, int) s = (x, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        (S1, int) s = (x, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        (S1, int) s = (x, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 21),
+                // (501,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_10_State_From_Conversion_TupleLiteral_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        (S1, int) s = (1, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        (S1, int) s = ("""", 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        (S1, int) s = (x, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        (S1, int) s = (x, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        (S1, int) s = (x, 1);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_11_State_From_Conversion_TupleValue([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1((int, int) x)
+    {
+#line 100
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2((string, int) x)
+    {
+#line 200
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3((string?, int) x)
+    {
+#line 300
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4((bool, int) x)
+    {
+#line 400
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5((bool?, int) x)
+    {
+#line 500
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 21),
+                // (501,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_12_State_From_Conversion_TupleValue_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1((int, int) x)
+    {
+#line 100
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2((string, int) x)
+    {
+#line 200
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3((string?, int) x)
+    {
+#line 300
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.Item1.ToString();
+    } 
+
+    static void Test4((bool, int) x)
+    {
+#line 400
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5((bool?, int) x)
+    {
+#line 500
+        (S1, int) s = x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.Item1.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_13_State_From_Conversion_Cast([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = (S1)1;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        S1 s = (S1)"""";
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        S1 s = (S1)x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        S1 s = (S1)x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        S1 s = (S1)x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 15),
+                // (501,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_14_State_From_Conversion_Cast_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = (S1)1;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        S1 s = (S1)"""";
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        S1 s = (S1)x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        S1 s = (S1)x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        S1 s = (S1)x;
+        _ = s switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_15_State_From_Conversion_Cast_TupleLiteral([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        (S1, int) s = ((S1, int))(1, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        (S1, int) s = ((S1, int))("""", 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        (S1, int) s = ((S1, int))(x, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        (S1, int) s = ((S1, int))(x, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        (S1, int) s = ((S1, int))(x, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 21),
+                // (501,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_16_State_From_Conversion_Cast_TupleLiteral_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        (S1, int) s = ((S1, int))(1, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2()
+    {
+#line 200
+        (S1, int) s = ((S1, int))("""", 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3(string? x)
+    {
+#line 300
+        (S1, int) s = ((S1, int))(x, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4(bool x)
+    {
+#line 400
+        (S1, int) s = ((S1, int))(x, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5(bool? x)
+    {
+#line 500
+        (S1, int) s = ((S1, int))(x, 1.0);
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_17_State_From_Conversion_Cast_TupleValue([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1((int, long) x)
+    {
+#line 100
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2((string, long) x)
+    {
+#line 200
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3((string?, long) x)
+    {
+#line 300
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test4((bool, long) x)
+    {
+#line 400
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5((bool?, long) x)
+    {
+#line 500
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 21),
+                // (501,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(501, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_18_State_From_Conversion_Cast_TupleValue_PostCondition([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1((int, long) x)
+    {
+#line 100
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test2((string, long) x)
+    {
+#line 200
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test3((string?, long) x)
+    {
+#line 300
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.Item1.ToString();
+    } 
+
+    static void Test4((bool, long) x)
+    {
+#line 400
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+    } 
+
+    static void Test5((bool?, long) x)
+    {
+#line 500
+        (S1, int) s = ((S1, int))x;
+        _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.Item1.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_19_State_From_Null_Test()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is null)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is null)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_20_State_From_Null_Test_Class()
+        {
+            var src1 = @"
+#nullable enable
+
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is null)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is null)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp1 = CreateCompilation([src1, IUnionSource]);
+
+            // PROTOTYPE: The fact that exhausiveness warning are reported for all branches might look surprising,
+            //            but it matches the behavior for scenario when property pattern is used explicitly. See below.
+            //            Is this expected, a bug or do we need special rules for Unions here?
+            comp1.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
+                // (400,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
+                );
+
+            var src2 = @"
+#nullable enable
+
+class S1
+{
+    public object? Value => throw null!;
+}
+
+class S2
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        _ = s.Value;
+        if (s is  { Value: null })
+        {
+#line 1000
+            _ = s switch { { Value: {} } => 1 };
+        }
+        else
+        {
+#line 2000
+            _ = s switch { { Value: {} } => 1 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        _ = s.Value;
+        if (s is { Value: null })
+        {
+#line 3000
+            _ = s switch { { Value: {} } => 1 };
+        }
+        else
+        {
+#line 4000
+            _ = s switch { { Value: {} } => 1 };
+        }
+    } 
+}
+";
+            var comp2 = CreateCompilation(src2);
+
+            comp2.VerifyDiagnostics(
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
+                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19),
+                // (3000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(3000, 19),
+                // (4000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(4000, 19)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_21_State_From_NotNull_Test([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is not null)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is not null)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (400,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_22_State_From_Type_Test([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is int)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is int)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_23_State_From_NotType_Test()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is not int)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is not int)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_24_State_From_NotType_Test_Class()
+        {
+            var src = @"
+#nullable enable
+
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is not int)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is not int)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            // PROTOTYPE: This is another case of behavior consistent with explicit property patterns. See below
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19)
+                );
+
+            var src2 = @"
+#nullable enable
+
+class S1
+{
+    public object? Value => throw null!;
+}
+class Program
+{
+    static void Test2(S1 s)
+    {
+        _ = s.Value;
+        if (s is  { Value: not int })
+        {
+#line 1000
+            _ = s switch { { Value: {} } => 1 };
+        }
+        else
+        {
+#line 2000
+            _ = s switch { { Value: {} } => 1 };
+        }
+    } 
+}
+";
+            var comp2 = CreateCompilation(src2);
+
+            comp2.VerifyDiagnostics(
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
+                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_25_State_From_Value_Test([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is 1)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is 1)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_26_State_From_NotValue_Test()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is not 1)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is not 1)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_27_State_From_NotValue_Test_Class()
+        {
+            var src = @"
+#nullable enable
+
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s is not 1)
+        {
+#line 100
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S2 s)
+    {
+        if (s is not 1)
+        {
+#line 300
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            // PROTOTYPE: This is another case of behavior consistent with explicit property patterns. See below
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19)
+                );
+
+            var src2 = @"
+#nullable enable
+
+class S1
+{
+    public object? Value => throw null!;
+}
+class Program
+{
+    static void Test2(S1 s)
+    {
+        _ = s.Value;
+        if (s is  { Value: not 1 })
+        {
+#line 1000
+            _ = s switch { { Value: {} } => 1 };
+        }
+        else
+        {
+#line 2000
+            _ = s switch { { Value: {} } => 1 };
+        }
+    } 
+}
+";
+            var comp2 = CreateCompilation(src2);
+
+            comp2.VerifyDiagnostics(
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
+                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { { Value: {} } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                );
+        }
     }
 }
