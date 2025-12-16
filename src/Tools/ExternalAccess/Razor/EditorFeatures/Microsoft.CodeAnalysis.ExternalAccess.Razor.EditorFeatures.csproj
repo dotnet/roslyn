@@ -38,16 +38,16 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\..\LanguageServer\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
-    <ProjectReference Include="..\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>

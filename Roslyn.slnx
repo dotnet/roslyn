@@ -271,6 +271,8 @@
     <Project Path="src/LanguageServer/ExternalAccess/CompilerDeveloperSDK/Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Copilot/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Razor/Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Test/Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/VisualDiagnostics/Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Xaml/Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
   </Folder>
@@ -323,10 +325,8 @@
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
     <Project Path="src/Tools/ExternalAccess/Razor/EditorFeatures/Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
-    <Project Path="src/Tools/ExternalAccess/Razor/Features/Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompiler/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompilerTest/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj" />
-    <Project Path="src/Tools/ExternalAccess/RazorTest/Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tools/SemanticSearch/">
     <Project Path="src/Tools/SemanticSearch/BuildTask/SemanticSearch.BuildTask.csproj" />

@@ -3,14 +3,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.UnitTests</RootNamespace>
     <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
   </PropertyGroup>
+
 	<ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" Condition="'$(TargetFramework)' == 'net472'" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
 	</ItemGroup>
 
   <ItemGroup>
