@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -131,30 +132,47 @@ internal partial class RenameFlyout : InlineRenameAdornment
 
     private void PositionAdornment()
     {
-        var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
-        var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
-        var charBounds = line.GetCharacterBounds(span.Start);
+        try
+        {
+            // Get the current text snapshot and validate the tracking span is still valid.
+            // In scenarios with multiple document groups, the text buffer can be replaced
+            // and the tracking span becomes invalid, causing exceptions when trying to map
+            // the span to the new snapshot.
+            var currentSnapshot = _textView.TextSnapshot;
+            var span = _viewModel.InitialTrackingSpan.GetSpan(currentSnapshot);
 
-        var height = DesiredSize.Height;
-        var width = DesiredSize.Width;
+            var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
+            var charBounds = line.GetCharacterBounds(span.Start);
 
-        var desiredTop = charBounds.TextBottom + 5;
-        var desiredLeft = charBounds.Left;
+            var height = DesiredSize.Height;
+            var width = DesiredSize.Width;
 
-        var top = (desiredTop + height) > _textView.ViewportBottom
-            ? _textView.ViewportBottom - height
-            : desiredTop;
+            var desiredTop = charBounds.TextBottom + 5;
+            var desiredLeft = charBounds.Left;
 
-        var left = (desiredLeft + width) > _textView.ViewportRight
-            ? _textView.ViewportRight - width
-            : desiredLeft;
+            var top = (desiredTop + height) > _textView.ViewportBottom
+                ? _textView.ViewportBottom - height
+                : desiredTop;
 
-        MaxWidth = _textView.ViewportRight;
-        MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
+            var left = (desiredLeft + width) > _textView.ViewportRight
+                ? _textView.ViewportRight - width
+                : desiredLeft;
 
-        // Top can be negative if the viewport is scrolled up, but not left
-        Canvas.SetTop(this, top);
-        Canvas.SetLeft(this, Math.Max(0, left));
+            MaxWidth = _textView.ViewportRight;
+            MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
+
+            // Top can be negative if the viewport is scrolled up, but not left
+            Canvas.SetTop(this, top);
+            Canvas.SetLeft(this, Math.Max(0, left));
+        }
+        catch (Exception ex)
+        {
+            // The tracking span may no longer be valid for the current text snapshot.
+            // This can happen when working with multiple document groups where the
+            // text buffer has been replaced. Dismiss the rename flyout gracefully.
+            FatalError.ReportAndCatch(ex);
+            _viewModel.Cancel();
+        }
     }
 
     public override void Dispose()
