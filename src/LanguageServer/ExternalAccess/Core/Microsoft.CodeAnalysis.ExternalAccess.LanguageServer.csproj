@@ -44,6 +44,10 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" />
 
+    <!-- ⚠ Only designTools assemblies should be added here ⚠ -->
+    <InternalsVisibleTo Include="DesignTools.Tests.Component.CodeAnalysisDiagnostics" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics" Key="$(VisualStudioKey)" />
+
     <!--
       ⚠ ONLY XAML ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
