@@ -71,7 +71,7 @@ internal static class InlineArrayHelpers
         // Fixed buffer types are compiler-generated and are nested within the struct that contains the fixed buffer field.
         // They are structurally identical to [InlineArray] structs in that they have 1 field defined in metadata which is repeated `arrayLength` times.
         // 
-        // Example:
+        // Example: 
         // internal unsafe struct Buffer
         // {
         //     public fixed char fixedBuffer[128];
