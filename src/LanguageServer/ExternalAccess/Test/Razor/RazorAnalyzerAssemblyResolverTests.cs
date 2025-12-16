@@ -19,8 +19,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTests.Razor;
 
 public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 {
