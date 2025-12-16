@@ -27,8 +27,8 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
 
         // If we've been asked to search for specific accessors, then do not cascade.
         // We don't want to produce results for the associated property.
-        if (!options.AssociatePropertyReferencesWithSpecificAccessor && symbol.AssociatedSymbol != null)
-            result.Add(symbol.AssociatedSymbol);
+        if (!options.AssociatePropertyReferencesWithSpecificAccessor)
+            result.AddIfNotNull(symbol.AssociatedSymbol);
 
         // If the given symbol is an extension accessor, cascade to its implementation method
         result.AddIfNotNull(symbol.AssociatedExtensionImplementation);

@@ -83,12 +83,9 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        if (symbol.AssociatedExtensionImplementation is { } associatedExtensionMethod)
-        {
-            // If given an extension operator `E.extension(...).operator+`, we cascade to the its implementation method `E.op_Addition(...)`
-            return new([associatedExtensionMethod]);
-        }
-
-        return new([]);
+        // If given an extension operator `E.extension(...).operator+`, we cascade to the its implementation method `E.op_Addition(...)`
+        return symbol.AssociatedExtensionImplementation is { } associatedExtensionMethod
+            ? new([associatedExtensionMethod])
+            : new([]);
     }
 }
