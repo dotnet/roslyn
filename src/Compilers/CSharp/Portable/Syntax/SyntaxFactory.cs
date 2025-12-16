@@ -2169,6 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerMemberCref:
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
+                case SyntaxKind.ExtensionMemberCref:
                 case SyntaxKind.ArrayType:
                 case SyntaxKind.NullableType:
                     // Adjustment may be required.
@@ -2225,8 +2226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((NameMemberCrefSyntax)parent).Name == node)
                     {
                         CSharpSyntaxNode? grandparent = parent.Parent;
-                        return grandparent != null && grandparent.Kind() == SyntaxKind.QualifiedCref
-                            ? grandparent
+                        return grandparent != null && grandparent is CrefSyntax
+                            ? GetStandaloneNode(grandparent)
                             : parent;
                     }
 

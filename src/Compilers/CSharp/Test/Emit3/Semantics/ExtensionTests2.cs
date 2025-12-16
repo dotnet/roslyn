@@ -7160,6 +7160,31 @@ static class E
             Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(10, 28));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710"]
+    public void Cref_68()
+    {
+        var src = """
+/// <see cref="E.extension(int).M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Equal("M", m.ToString());
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
+    }
+
     [Fact]
     public void PropertyAccess_Set_01()
     {
