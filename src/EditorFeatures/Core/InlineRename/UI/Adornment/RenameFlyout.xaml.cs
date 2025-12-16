@@ -134,13 +134,7 @@ internal partial class RenameFlyout : InlineRenameAdornment
     {
         try
         {
-            // Get the current text snapshot and validate the tracking span is still valid.
-            // In scenarios with multiple document groups, the text buffer can be replaced
-            // and the tracking span becomes invalid, causing exceptions when trying to map
-            // the span to the new snapshot.
-            var currentSnapshot = _textView.TextSnapshot;
-            var span = _viewModel.InitialTrackingSpan.GetSpan(currentSnapshot);
-
+            var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
             var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
             var charBounds = line.GetCharacterBounds(span.Start);
 
@@ -165,12 +159,8 @@ internal partial class RenameFlyout : InlineRenameAdornment
             Canvas.SetTop(this, top);
             Canvas.SetLeft(this, Math.Max(0, left));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
-            // The tracking span may no longer be valid for the current text snapshot.
-            // This can happen when working with multiple document groups where the
-            // text buffer has been replaced. Dismiss the rename flyout gracefully.
-            FatalError.ReportAndCatch(ex);
             _viewModel.Cancel();
         }
     }
