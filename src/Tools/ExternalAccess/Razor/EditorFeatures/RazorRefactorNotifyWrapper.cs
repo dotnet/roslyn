@@ -20,19 +20,13 @@ internal sealed class RazorRefactorNotifyWrapper(
 
     public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
     {
-        // If we return false, we block the rename operation. We don't want to do that :)
-        if (_implementation is null)
-            return true;
-
-        return _implementation.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure);
+        // Return true if there is no implementation so rename isn't blocked
+        return _implementation?.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure) ?? true;
     }
 
     public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
     {
-        // If we return false, we block the rename operation. We don't want to do that :)
-        if (_implementation is null)
-            return true;
-
-        return _implementation.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure);
+        // Return true if there is no implementation so rename isn't blocked
+        return _implementation?.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure) ?? true;
     }
 }
