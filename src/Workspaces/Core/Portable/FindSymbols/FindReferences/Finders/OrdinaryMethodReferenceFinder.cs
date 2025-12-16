@@ -47,7 +47,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     {
         // If the given symbol is an implementation method of an extension member, cascade to the extension member itself
         var containingType = symbol.ContainingType;
-        if (containingType is null || !containingType.MightContainExtensionMethods || !symbol.IsStatic)
+        if (containingType is null || !containingType.MightContainExtensionMethods || !symbol.IsStatic || !symbol.IsImplicitlyDeclared)
             return;
 
         // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
@@ -70,6 +70,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
                         continue;
 
                     result.Add(method);
+                    return;
                 }
             }
         }
