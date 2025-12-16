@@ -2742,7 +2742,7 @@ public sealed class ConvertIfToSwitchTests
             """,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81052")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81714")]
     public Task TestPatternWithWhenClause()
         => new VerifyCS.Test
         {
@@ -2793,5 +2793,16 @@ public sealed class ConvertIfToSwitchTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81714")]
+    public Task TestNullableBool()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                [||]if ((bool?)null == false) { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
         }.RunAsync();
 }
