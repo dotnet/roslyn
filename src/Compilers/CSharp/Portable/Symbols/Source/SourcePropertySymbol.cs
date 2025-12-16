@@ -828,13 +828,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private bool IsDeclaredUnsafe => (_modifiers & DeclarationModifiers.Unsafe) != 0;
 
-        internal override bool IsCallerUnsafe
+        internal override CallerUnsafeMode CallerUnsafeMode
         {
             get
             {
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? IsDeclaredUnsafe
-                    : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    return IsDeclaredUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
+                }
+
+                return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
             }
         }
 

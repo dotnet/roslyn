@@ -674,13 +674,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override bool IsCallerUnsafe
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
         {
             get
             {
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? IsDeclaredRequiresUnsafe
-                    : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    return IsDeclaredRequiresUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
+                }
+
+                return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
             }
         }
 

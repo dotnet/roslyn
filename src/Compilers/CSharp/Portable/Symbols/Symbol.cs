@@ -620,12 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE: add a public API for this
-        /// <summary>
-        /// <see langword="true"/> if this is a member that was compiled under updated memory safety rules
-        /// (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>) and marked as <see langword="unsafe"/>,
-        /// or a member that was compiled under the legacy memory safety rules and contains pointers in its signature.
-        /// </summary>
-        internal virtual bool IsCallerUnsafe => false; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
+        internal virtual CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
@@ -1855,5 +1850,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _lazyISymbol;
             }
         }
+    }
+
+    /// <summary>
+    /// Member safety under updated memory safety rules (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>).
+    /// </summary>
+    internal enum CallerUnsafeMode
+    {
+        /// <summary>
+        /// The member is not considered unsafe under the updated memory safety rules.
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// The member is implicitly considered unsafe because it contains pointers in its signature.
+        /// This member should not have the <see cref="AttributeDescription.RequiresUnsafeAttribute"/> emitted.
+        /// </summary>
+        Implicit,
+
+        /// <summary>
+        /// The member is explicitly marked as <see langword="unsafe"/> under the updated memory safety rules.
+        /// This member should have the <see cref="AttributeDescription.RequiresUnsafeAttribute"/> emitted.
+        /// </summary>
+        Explicit,
     }
 }

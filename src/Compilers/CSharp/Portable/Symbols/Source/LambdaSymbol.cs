@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        internal override bool IsCallerUnsafe => false;
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes() => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 

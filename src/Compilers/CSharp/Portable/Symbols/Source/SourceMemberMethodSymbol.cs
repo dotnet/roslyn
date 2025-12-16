@@ -982,7 +982,7 @@ done:
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
-            if (IsCallerUnsafe)
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, _location, modifyCompilation: true);
             }

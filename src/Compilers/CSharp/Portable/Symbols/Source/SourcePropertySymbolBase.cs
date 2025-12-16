@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            if (IsCallerUnsafe)
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (IsCallerUnsafe)
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute(this));
             }
