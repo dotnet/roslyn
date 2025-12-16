@@ -246,6 +246,27 @@ public static class E
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81710")>
+        Public Async Function FindReferences_ExtensionBlockMethod_Cref(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+/// &lt;see cref="E.extension(int).[|M|]()"/>
+public static class E
+{
+    extension(int i)
+    {
+        public void {|Definition:$$M|}() { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem("https://github.com/dotnet/roslyn/issues/81507")>
         <WpfTheory, CombinatorialData>
         Public Async Function FindReferences_ExtensionBlockProperty(kind As TestKind, host As TestHost) As Task
@@ -432,11 +453,38 @@ class C7
 }
         </Document>
         <Document>
+/// &lt;see cref="E.extension(C).[|P|]"/>
+class C8
+{
+}
+        </Document>
+        <Document>
 public static class E
 {
     extension(C c)
     {
         public int {|Definition:P|} { {|Definition:get|} => i; {|Definition:set|} { } }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81710")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockProperty_FromAccess_Cref(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+/// &lt;see cref="E.extension(int).[|P|]"/>
+public static class E
+{
+    extension(int i)
+    {
+        public int {|Definition:$$P|} { get => i; set { } }
     }
 }
         </Document>
@@ -680,6 +728,26 @@ public static class E
     extension(C)
     {
         public static C operator $${|Definition:+|}(C c1, C c2) => throw null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function FindReferences_ExtensionBlockMethod_GenericCref(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+/// &lt;see cref="E.extension{$${|Definition:U|}}([|U|]).M([|U|])"/>
+public static class E
+{
+    extension&lt;T>(T t1)
+    {
+        public void M(T t2) { }
     }
 }
         </Document>
