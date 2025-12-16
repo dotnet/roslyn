@@ -138,6 +138,7 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
     public HotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
         : this(services.SolutionServices, () => ValueTask.FromResult(AddImplicitDotNetCapabilities(capabilities)))
     {
+        AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis = true;
     }
 
     private DebuggingSessionId GetDebuggingSession()
