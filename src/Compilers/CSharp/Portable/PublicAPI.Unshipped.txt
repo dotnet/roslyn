@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.DisposeAwaitableInfo.get -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.MoveNextAwaitableInfo.get -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.KeyValuePairElement = 9082 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithElement = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax! awaitUsingDeclaration) -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.UsingStatementSyntax! awaitUsingStatement) -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo

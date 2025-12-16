@@ -1839,6 +1839,14 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
+  <Node Name="KeyValuePairElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="KeyValuePairElement"/>
+    <Field Name="KeyExpression" Type="ExpressionSyntax" />
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="ValueExpression" Type="ExpressionSyntax" />
+  </Node>
   <Node Name="WithElementSyntax" Base="CollectionElementSyntax">
     <Kind Name="WithElement"/>
     <Field Name="WithKeyword" Type="SyntaxToken">
