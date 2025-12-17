@@ -68,6 +68,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.LiveShare.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.ExternalAccess.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.dll" />
   </Assets>
   <Prerequisites>

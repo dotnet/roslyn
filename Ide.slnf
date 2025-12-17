@@ -205,6 +205,7 @@
       "src\\VisualStudio\\Core\\Test\\Microsoft.VisualStudio.LanguageServices.UnitTests.vbproj",
       "src\\VisualStudio\\DevKit\\Impl\\Microsoft.VisualStudio.LanguageServices.DevKit.csproj",
       "src\\VisualStudio\\ExternalAccess\\Apex\\Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj",
+      "src\\VisualStudio\\ExternalAccess\\Core\\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj",
       "src\\VisualStudio\\ExternalAccess\\Copilot\\Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj",
       "src\\VisualStudio\\ExternalAccess\\EditorConfigGenerator\\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj",
       "src\\VisualStudio\\ExternalAccess\\FSharpTest\\Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.csproj",
