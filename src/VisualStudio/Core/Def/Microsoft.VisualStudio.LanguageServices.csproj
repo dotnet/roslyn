@@ -86,7 +86,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
