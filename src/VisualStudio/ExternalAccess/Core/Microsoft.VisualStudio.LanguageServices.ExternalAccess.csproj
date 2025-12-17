@@ -25,6 +25,11 @@
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
+
+    <!--
+      ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
   </ItemGroup>
 
   <ItemGroup>
