@@ -26,34 +26,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSimpleDeclarations()
         {
-            var text1 = @"
-namespace NA.NB
-{
-  partial class C<T>
-  { 
-    partial class D
-    {
-      int F;
-    }
-  }
-  class C { }
-}
-";
-            var text2 = @"
-namespace NA
-{
-  namespace NB
-  {
-    partial class C<T>
-    { 
-      partial class D
-      {
-        void G() {};
-      }
-    }
-  }
-}
-";
+            var text1 = """
+                namespace NA.NB
+                {
+                  partial class C<T>
+                  { 
+                    partial class D
+                    {
+                      int F;
+                    }
+                  }
+                  class C { }
+                }
+                """;
+            var text2 = """
+                namespace NA
+                {
+                  namespace NB
+                  {
+                    partial class C<T>
+                    { 
+                      partial class D
+                      {
+                        void G() {};
+                      }
+                    }
+                  }
+                }
+                """;
             var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
@@ -200,33 +200,33 @@ namespace NA
         [Fact]
         public void TestTypeNames()
         {
-            var text1 = @"
-namespace NA.NB
-{
-  partial class A<T>
-  { 
-    partial class B
-    {
-      int F;
-    }
-  }
-}
-";
-            var text2 = @"
-namespace NA
-{
-  namespace NB
-  {
-    partial class C<T>
-    { 
-      partial class D
-      {
-        void G() {};
-      }
-    }
-  }
-}
-";
+            var text1 = """
+                namespace NA.NB
+                {
+                  partial class A<T>
+                  { 
+                    partial class B
+                    {
+                      int F;
+                    }
+                  }
+                }
+                """;
+            var text2 = """
+                namespace NA
+                {
+                  namespace NB
+                  {
+                    partial class C<T>
+                    { 
+                      partial class D
+                      {
+                        void G() {};
+                      }
+                    }
+                  }
+                }
+                """;
             var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
@@ -270,33 +270,33 @@ namespace NA
         [Fact]
         public void TestTypeNames_MultipleOperationsPerBuilder()
         {
-            var text1 = @"
-namespace NA.NB
-{
-  partial class A<T>
-  { 
-    partial class B
-    {
-      int F;
-    }
-  }
-}
-";
-            var text2 = @"
-namespace NA
-{
-  namespace NB
-  {
-    partial class C<T>
-    { 
-      partial class D
-      {
-        void G() {};
-      }
-    }
-  }
-}
-";
+            var text1 = """
+                namespace NA.NB
+                {
+                  partial class A<T>
+                  { 
+                    partial class B
+                    {
+                      int F;
+                    }
+                  }
+                }
+                """;
+            var text2 = """
+                namespace NA
+                {
+                  namespace NB
+                  {
+                    partial class C<T>
+                    { 
+                      partial class D
+                      {
+                        void G() {};
+                      }
+                    }
+                  }
+                }
+                """;
             var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
@@ -321,33 +321,33 @@ namespace NA
         [Fact]
         public void TestTypeNames_MultipleAddAndRemoveOperationsBeforeBuilding()
         {
-            var text1 = @"
-namespace NA.NB
-{
-  partial class A<T>
-  { 
-    partial class B
-    {
-      int F;
-    }
-  }
-}
-";
-            var text2 = @"
-namespace NA
-{
-  namespace NB
-  {
-    partial class C<T>
-    { 
-      partial class D
-      {
-        void G() {};
-      }
-    }
-  }
-}
-";
+            var text1 = """
+                namespace NA.NB
+                {
+                  partial class A<T>
+                  { 
+                    partial class B
+                    {
+                      int F;
+                    }
+                  }
+                }
+                """;
+            var text2 = """
+                namespace NA
+                {
+                  namespace NB
+                  {
+                    partial class C<T>
+                    { 
+                      partial class D
+                      {
+                        void G() {};
+                      }
+                    }
+                  }
+                }
+                """;
             var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
