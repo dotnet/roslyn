@@ -3607,4 +3607,485 @@ public sealed class RemoveUnusedMembersTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80645")]
+    public async Task PrivateExtensionBlockMethod_01()
+    {
+        // method used as extension
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    42.M();
+                }
+
+                extension(int i)
+                {
+                    private void M() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_02()
+    {
+        // method unused
+        var code = """
+            public static class C
+            {
+                extension(int i)
+                {
+                    private void [|M|]() { }
+                }
+            }
+            """;
+
+        var fixedCode = """
+            public static class C
+            {
+                extension(int i)
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = fixedCode,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_03()
+    {
+        // method used via disambiguation syntax
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    C.M(42);
+                }
+
+                extension(int i)
+                {
+                    private void M() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_04()
+    {
+        // method used in doc comment
+        var code = """
+            /// <see cref="E.extension(int).M()"/>
+            static class E
+            {
+                extension(int i)
+                {
+                    private static void {|IDE0052:M|}() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_05()
+    {
+        // implementation method used in doc comment, static
+        var code = """
+            /// <see cref="E.M()"/>
+            static class E
+            {
+                extension(int)
+                {
+                    private static void {|IDE0052:M|}() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_06()
+    {
+        // implementation method used in doc comment, instance
+        var code = """
+            /// <see cref="E.M(int)"/>
+            static class E
+            {
+                extension(int i)
+                {
+                    private void {|IDE0052:M|}() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_07()
+    {
+        // implementation method used in nameof
+        var code = """
+            static class E
+            {
+                public static void Test()
+                {
+                    _ = nameof(E.M);
+                }
+
+                extension(int i)
+                {
+                    private void M() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_08()
+    {
+        // implementation method used in DebuggerDisplay attribute
+        var code = """
+            [System.Diagnostics.DebuggerDisplayAttribute("{E.M(42)}")]
+            static class E
+            {
+                extension(int i)
+                {
+                    private void M() { }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_09()
+    {
+        // method used in deconstruction
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    var (j, k) = 42;
+                }
+
+                extension(int i)
+                {
+                    private void Deconstruct(out int j, out int k) => throw null;
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockMethod_10()
+    {
+        // GetEnumerator method used in foreach
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    foreach (var item in 42)
+                    {
+                    }
+                }
+
+                extension(int i)
+                {
+                    private System.Collections.IEnumerator GetEnumerator() => throw null;
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_01()
+    {
+        // property used as extension
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    _ = 42.Property;
+                }
+
+                extension(int i)
+                {
+                    private int Property => 0;
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_02()
+    {
+        // property unused
+        var code = """
+            public static class C
+            {
+                extension(int i)
+                {
+                    private int [|Property|] => 0;
+                }
+            }
+            """;
+
+        var fixedCode = """
+            public static class C
+            {
+                extension(int i)
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = fixedCode,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_03()
+    {
+        // setter of private property unused
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    _ = 42.Property;
+                }
+
+                extension(int i)
+                {
+                    private int Property
+                    {
+                        get => 0;
+                        set { }
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_04()
+    {
+        // private setter unused
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    _ = 42.Property;
+                }
+
+                extension(int i)
+                {
+                    public int Property
+                    {
+                        get => 0;
+                        private set { }
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_05()
+    {
+        // property used via disambiguation syntax
+        var code = """
+            public static class C
+            {
+                public static void Test()
+                {
+                    C.get_Property(42);
+                }
+
+                extension(int i)
+                {
+                    private int Property
+                    {
+                        get => 0;
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_06()
+    {
+        // property used in doc comment
+        var code = """
+            /// <see cref="E.extension(int).Property"/>
+            public static class E
+            {
+                extension(int i)
+                {
+                    private int {|IDE0052:Property|} => 0;
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_07()
+    {
+        // getter implementation method used in doc comment
+        var code = """
+            /// <see cref="E.get_Property(int)"/>
+            public static class E
+            {
+                extension(int i)
+                {
+                    private int {|IDE0052:Property|} => 0;
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PrivateExtensionBlockProperty_08()
+    {
+        // helper method used in DebuggerDisplay attribute
+        var code = """
+            static class E
+            {
+                extension(int i)
+                {
+                    [System.Diagnostics.DebuggerDisplayAttribute("{M2()}")]
+                    public int Property => 0;
+                }
+
+                private static string M2() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
 }
