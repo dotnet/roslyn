@@ -16,6 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
+
     <!--
       ⚠ ONLY APEX ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
@@ -30,10 +32,34 @@
       ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
+
+    <!--
+      ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="VisualFSharp.UnitTests" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="FSharp.Editor.Tests" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="FSharp.Editor.IntegrationTests" Key="$(FSharpKey)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="FSharp\ExternalAccessFSharpResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FSharp\ExternalAccessFSharpResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="FSharp\ExternalAccessFSharpResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FSharp\ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
