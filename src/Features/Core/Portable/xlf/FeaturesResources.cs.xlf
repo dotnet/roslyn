@@ -887,7 +887,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Generate_Equals">
         <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
+        <target state="translated">Generovat Equals(...)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">

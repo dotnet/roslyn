@@ -887,7 +887,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Generate_Equals">
         <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
+        <target state="translated">Equals(...) oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">

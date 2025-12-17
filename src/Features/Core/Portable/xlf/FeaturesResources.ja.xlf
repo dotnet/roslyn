@@ -887,7 +887,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_Equals">
         <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
+        <target state="translated">Equals(...) を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
