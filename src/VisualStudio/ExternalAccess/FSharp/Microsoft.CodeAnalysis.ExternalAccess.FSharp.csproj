@@ -24,11 +24,15 @@
     <InternalsVisibleTo Include="VisualFSharp.UnitTests" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.Editor.Tests" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.Editor.IntegrationTests" Key="$(FSharpKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Core\FSharp\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Remove="..\Core\FSharp\ExternalAccessFSharpResources.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
