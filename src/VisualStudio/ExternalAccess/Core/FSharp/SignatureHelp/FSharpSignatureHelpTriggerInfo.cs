@@ -4,7 +4,13 @@
 
 #nullable disable
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+#endif
 
 internal readonly struct FSharpSignatureHelpTriggerInfo
 {

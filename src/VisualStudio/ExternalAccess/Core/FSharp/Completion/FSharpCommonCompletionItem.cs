@@ -6,9 +6,18 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Internal;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Completion;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+#endif
 
 internal static class FSharpCommonCompletionItem
 {

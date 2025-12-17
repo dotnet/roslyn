@@ -7,11 +7,19 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.GoToDefinition;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Navigation;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
+#endif
 
 [ExportLanguageService(typeof(INavigableItemsService), LanguageNames.FSharp), Shared]
 [method: ImportingConstructor]

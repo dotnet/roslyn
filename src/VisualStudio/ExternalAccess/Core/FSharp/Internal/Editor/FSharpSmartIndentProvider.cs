@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
@@ -19,7 +18,16 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+#endif
 
 [Export(typeof(ISmartIndentProvider))]
 [ContentType(ContentTypeNames.FSharpContentType)]

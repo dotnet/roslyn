@@ -9,7 +9,13 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Navigation;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+#endif
 
 internal interface IFSharpDocumentNavigationService : IWorkspaceService
 {

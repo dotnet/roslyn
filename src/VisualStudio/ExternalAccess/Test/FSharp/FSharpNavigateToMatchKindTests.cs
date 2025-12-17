@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.NavigateTo;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Xunit;
 

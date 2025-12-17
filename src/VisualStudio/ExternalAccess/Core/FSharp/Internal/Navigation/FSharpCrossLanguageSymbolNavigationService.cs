@@ -6,11 +6,19 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Navigation;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Navigation;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
+#endif
 
 /// <summary>
 /// Internal F# implementation of the <see cref="ICrossLanguageSymbolNavigationService"/>.  Will defer to the EA

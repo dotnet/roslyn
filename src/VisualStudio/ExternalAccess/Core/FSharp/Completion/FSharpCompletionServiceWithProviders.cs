@@ -5,7 +5,13 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+#endif
 
 internal abstract class FSharpCompletionServiceWithProviders : CompletionService
 {

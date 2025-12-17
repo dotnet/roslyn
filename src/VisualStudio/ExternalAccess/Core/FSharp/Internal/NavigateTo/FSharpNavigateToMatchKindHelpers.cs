@@ -4,10 +4,18 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.NavigateTo;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.NavigateTo;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
+#endif
 
 internal static class FSharpNavigateToMatchKindHelpers
 {

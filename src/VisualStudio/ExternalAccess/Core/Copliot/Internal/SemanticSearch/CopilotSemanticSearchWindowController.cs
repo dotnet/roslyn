@@ -6,11 +6,18 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
 
+#if Unified_ExternalAccess
+using Microsoft.VisualStudio.ExternalAccess.Copilot.SemanticSearch;
+
+namespace Microsoft.VisualStudio.ExternalAccess.Copilot.Internal.SemanticSearch;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
+#endif
 
 [Export(typeof(ICopilotSemanticSearchWindowController)), Shared]
 [method: ImportingConstructor]

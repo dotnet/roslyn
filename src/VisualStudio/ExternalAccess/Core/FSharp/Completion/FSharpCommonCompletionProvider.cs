@@ -5,9 +5,16 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Completion;
+
+#if Unified_ExternalAccess
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Completion;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Completion;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+#endif
 
 internal static class FSharpCommonCompletionProvider
 {

@@ -12,15 +12,24 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Navigation;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]

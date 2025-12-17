@@ -7,10 +7,18 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Completion;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Completion;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion;
+#endif
 
 internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionProvider
 {

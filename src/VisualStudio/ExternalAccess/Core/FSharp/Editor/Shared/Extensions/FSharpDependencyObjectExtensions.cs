@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Formatting;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.Shared.Extensions;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Extensions;
+#endif
 
 internal static class FSharpDependencyObjectExtensions
 {

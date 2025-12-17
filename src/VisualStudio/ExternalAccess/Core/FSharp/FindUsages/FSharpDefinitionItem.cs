@@ -8,7 +8,14 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FindUsages;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.FindUsages;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
+#endif
 
 internal class FSharpDefinitionItem
 {

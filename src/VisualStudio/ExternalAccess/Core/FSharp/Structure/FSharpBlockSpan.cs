@@ -6,7 +6,11 @@
 
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Structure;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
+#endif
 
 internal readonly struct FSharpBlockSpan
 {

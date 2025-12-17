@@ -5,7 +5,12 @@
 #nullable disable
 
 using System.Collections.Immutable;
+
+#if Unified_ExternalAccess
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Internal;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
+#endif
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 

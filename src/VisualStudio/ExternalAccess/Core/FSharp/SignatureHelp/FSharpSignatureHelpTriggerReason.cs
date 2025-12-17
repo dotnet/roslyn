@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+#endif
 
 internal enum FSharpSignatureHelpTriggerReason
 {

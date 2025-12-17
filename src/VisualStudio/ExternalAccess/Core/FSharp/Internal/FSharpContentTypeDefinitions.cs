@@ -5,11 +5,18 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
+#if Unified_ExternalAccess
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
+#endif
 
 internal static class FSharpContentTypeDefinitions
 {

@@ -6,7 +6,13 @@
 
 using System.Collections.Generic;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Diagnostics;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
+#endif
 
 internal interface IFSharpDiagnosticAnalyzerService
 {

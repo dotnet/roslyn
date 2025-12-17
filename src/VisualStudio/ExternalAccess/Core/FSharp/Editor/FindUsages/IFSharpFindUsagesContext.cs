@@ -6,9 +6,16 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+
+#if Unified_ExternalAccess
+using Microsoft.VisualStudio.ExternalAccess.FSharp.FindUsages;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.FindUsages;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
+#endif
 
 internal interface IFSharpFindUsagesContext
 {

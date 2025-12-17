@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+
+internal abstract class RazorRemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
 {
-    internal abstract class RazorRemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
-    {
-        private readonly RemoteServiceCallbackDispatcher _dispatcher = new();
+    private readonly RemoteServiceCallbackDispatcher _dispatcher = new();
 
-        public object GetCallback(RazorRemoteServiceCallbackIdWrapper callbackId)
-            => _dispatcher.GetCallback(callbackId.UnderlyingObject);
+    public object GetCallback(RazorRemoteServiceCallbackIdWrapper callbackId)
+        => _dispatcher.GetCallback(callbackId.UnderlyingObject);
 
-        RemoteServiceCallbackDispatcher.Handle IRemoteServiceCallbackDispatcher.CreateHandle(object? instance)
-            => _dispatcher.CreateHandle(instance);
-    }
+    RemoteServiceCallbackDispatcher.Handle IRemoteServiceCallbackDispatcher.CreateHandle(object? instance)
+        => _dispatcher.CreateHandle(instance);
 }

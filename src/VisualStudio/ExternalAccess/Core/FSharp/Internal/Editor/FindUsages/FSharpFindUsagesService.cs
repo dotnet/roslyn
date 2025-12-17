@@ -7,11 +7,19 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.FindUsages;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp)]

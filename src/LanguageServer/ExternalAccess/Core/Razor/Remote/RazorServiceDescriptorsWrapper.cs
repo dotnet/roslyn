@@ -13,44 +13,43 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+
+internal readonly struct RazorServiceDescriptorsWrapper
 {
-    internal readonly struct RazorServiceDescriptorsWrapper
+    internal readonly ServiceDescriptors UnderlyingObject;
+
+    /// <summary>
+    /// Creates a service descriptor set for services using MessagePack serialization.
+    /// </summary>
+    public RazorServiceDescriptorsWrapper(
+        string componentName,
+        Func<string, string> featureDisplayNameProvider,
+        ImmutableArray<IMessagePackFormatter> additionalFormatters,
+        ImmutableArray<IFormatterResolver> additionalResolvers,
+        IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
+        => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
+
+    /// <summary>
+    /// Creates a service descriptor set for services using System.Text.Json serialization.
+    /// </summary>
+    public RazorServiceDescriptorsWrapper(
+        string componentName,
+        Func<string, string> featureDisplayNameProvider,
+        ImmutableArray<JsonConverter> jsonConverters,
+        IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
+        => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
+
+    /// <summary>
+    /// To be called from a service factory in OOP.
+    /// </summary>
+    public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
+        => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
+
+    public static ImmutableArray<JsonConverter> GetLspConverters()
     {
-        internal readonly ServiceDescriptors UnderlyingObject;
-
-        /// <summary>
-        /// Creates a service descriptor set for services using MessagePack serialization.
-        /// </summary>
-        public RazorServiceDescriptorsWrapper(
-            string componentName,
-            Func<string, string> featureDisplayNameProvider,
-            ImmutableArray<IMessagePackFormatter> additionalFormatters,
-            ImmutableArray<IFormatterResolver> additionalResolvers,
-            IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
-            => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
-
-        /// <summary>
-        /// Creates a service descriptor set for services using System.Text.Json serialization.
-        /// </summary>
-        public RazorServiceDescriptorsWrapper(
-            string componentName,
-            Func<string, string> featureDisplayNameProvider,
-            ImmutableArray<JsonConverter> jsonConverters,
-            IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
-            => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
-
-        /// <summary>
-        /// To be called from a service factory in OOP.
-        /// </summary>
-        public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
-            => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
-
-        public static ImmutableArray<JsonConverter> GetLspConverters()
-        {
-            var options = new JsonSerializerOptions();
-            ProtocolConversions.AddLspSerializerOptions(options);
-            return options.Converters.ToImmutableArray();
-        }
+        var options = new JsonSerializerOptions();
+        ProtocolConversions.AddLspSerializerOptions(options);
+        return options.Converters.ToImmutableArray();
     }
 }

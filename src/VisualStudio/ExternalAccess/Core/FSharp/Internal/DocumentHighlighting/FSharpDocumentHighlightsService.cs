@@ -10,10 +10,18 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.DocumentHighlighting;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.DocumentHighlighting;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighlighting;
+#endif
 
 internal static class FSharpHighlightSpanKindHelpers
 {

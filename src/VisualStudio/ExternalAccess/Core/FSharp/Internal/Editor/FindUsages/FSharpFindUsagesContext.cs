@@ -4,11 +4,18 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+#if Unified_ExternalAccess
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.FindUsages;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#endif
 
 internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
 {

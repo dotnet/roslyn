@@ -6,7 +6,13 @@
 
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.FindUsages;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
+#endif
 
 internal interface IFSharpFindUsagesService
 {

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
@@ -16,7 +15,16 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.FSharp)]

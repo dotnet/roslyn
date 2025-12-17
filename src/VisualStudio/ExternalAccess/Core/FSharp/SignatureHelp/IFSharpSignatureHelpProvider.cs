@@ -8,7 +8,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+#endif
 
 [Obsolete("Use Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.AbstractFSharpSignatureHelpProvider instead.")]
 internal interface IFSharpSignatureHelpProvider

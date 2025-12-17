@@ -7,9 +7,17 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Navigation;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal interface IFSharpGoToDefinitionService
 {

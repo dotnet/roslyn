@@ -7,11 +7,19 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Utilities;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+#endif
 
 [ExportContentTypeLanguageService(FSharpContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
 internal class FSharpContentTypeLanguageService : IContentTypeLanguageService

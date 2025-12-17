@@ -8,11 +8,19 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.SignatureHelp;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
+#endif
 
 [Shared]
 [ExportSignatureHelpProvider(nameof(FSharpSignatureHelpProvider), LanguageNames.FSharp)]

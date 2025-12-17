@@ -7,9 +7,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal abstract class FSharpInlineRenameReplacementInfo : IInlineRenameReplacementInfo
 {

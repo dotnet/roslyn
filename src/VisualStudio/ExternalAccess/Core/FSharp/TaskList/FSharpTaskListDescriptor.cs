@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.TaskList;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.TaskList;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+#endif
 
 internal readonly struct FSharpTaskListDescriptor
 {
