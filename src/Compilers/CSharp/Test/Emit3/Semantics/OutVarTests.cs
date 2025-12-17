@@ -30712,25 +30712,25 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (3,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool b { get; } = H.TakeOutParam(1, out int x1);
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (7,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool d { get; } = H.TakeOutParam(2, out int x2);
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (9,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool f { get; } = H.TakeOutParam(3, out int x3);
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (12,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool h { get; } = H.Dummy(H.TakeOutParam(41, out int x4),
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "h").WithLocation(12, 6),
                     // (13,54): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           H.TakeOutParam(42, out int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                    // (15,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (15,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool x5 { get; } = 
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
@@ -30883,25 +30883,25 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (3,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool b { get; } = H.TakeOutParam(1, out var x1);
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (7,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool d { get; } = H.TakeOutParam(2, out var x2);
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (9,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool f { get; } = H.TakeOutParam(3, out var x3);
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (12,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool h { get; } = H.Dummy(H.TakeOutParam(41, out var x4),
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "h").WithLocation(12, 6),
                     // (13,54): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           H.TakeOutParam(42, out var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                    // (15,6): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                    // (15,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool x5 { get; } = 
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
@@ -32032,7 +32032,7 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,12): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                    // (3,12): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "a").WithLocation(3, 12),
                     // (3,18): error CS1642: Fixed size buffer fields may only be members of structs

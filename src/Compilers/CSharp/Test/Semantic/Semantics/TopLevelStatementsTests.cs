@@ -737,7 +737,7 @@ System.Console.WriteLine(g);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,12): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (2,12): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new string a = "Hi!";
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "a").WithLocation(2, 12),
                 // (2,12): warning CS0109: The member '<invalid-global-code>.a' does not hide an accessible member. The new keyword is not required.
@@ -746,7 +746,7 @@ System.Console.WriteLine(g);
                 // (3,26): error CS0103: The name 'a' does not exist in the current context
                 // System.Console.WriteLine(a);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(3, 26),
-                // (4,15): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (4,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // public string b = "Hi!";
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(4, 15),
                 // (5,26): error CS0103: The name 'b' does not exist in the current context
@@ -2609,7 +2609,7 @@ new void M()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,10): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (5,10): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new void M()
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
@@ -2640,7 +2640,7 @@ class C1
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,9): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (5,9): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new int F = C1.GetInt(out var Test);
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "F").WithLocation(5, 9),
                 // (5,9): warning CS0109: The member '<invalid-global-code>.F' does not hide an accessible member. The new keyword is not required.
@@ -2665,7 +2665,7 @@ new void M()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,10): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (5,10): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new void M()
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
@@ -4399,7 +4399,7 @@ localI();
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,10): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (2,10): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new void localA() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localA").WithLocation(2, 10),
                 // (2,10): warning CS0109: The member '<invalid-global-code>.localA()' does not hide an accessible member. The new keyword is not required.
@@ -4411,7 +4411,7 @@ localI();
                 // (4,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void localB() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(4, 1),
-                // (6,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (6,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // virtual void localC() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localC").WithLocation(6, 14),
                 // (6,14): error CS0621: '<invalid-global-code>.localC()': virtual or abstract members cannot be private
@@ -4420,7 +4420,7 @@ localI();
                 // (7,1): error CS0103: The name 'localC' does not exist in the current context
                 // localC();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localC").WithArguments("localC").WithLocation(7, 1),
-                // (8,13): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (8,13): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // sealed void localD() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localD").WithLocation(8, 13),
                 // (8,13): error CS0238: '<invalid-global-code>.localD()' cannot be sealed because it is not an override
@@ -4429,7 +4429,7 @@ localI();
                 // (9,1): error CS0103: The name 'localD' does not exist in the current context
                 // localD();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localD").WithArguments("localD").WithLocation(9, 1),
-                // (10,15): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (10,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // override void localE() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localE").WithLocation(10, 15),
                 // (10,15): error CS0621: '<invalid-global-code>.localE()': virtual or abstract members cannot be private
@@ -4441,7 +4441,7 @@ localI();
                 // (11,1): error CS0103: The name 'localE' does not exist in the current context
                 // localE();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localE").WithArguments("localE").WithLocation(11, 1),
-                // (12,15): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (12,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // abstract void localF() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localF").WithLocation(12, 15),
                 // (12,15): error CS0500: '<invalid-global-code>.localF()' cannot declare a body because it is marked abstract
@@ -4453,7 +4453,7 @@ localI();
                 // (13,1): error CS0103: The name 'localF' does not exist in the current context
                 // localF();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localF").WithArguments("localF").WithLocation(13, 1),
-                // (14,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (14,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localG").WithLocation(14, 14),
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
@@ -4816,7 +4816,7 @@ int local => 1;
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (4,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // int local => 1;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 5)
                 );
@@ -4837,7 +4837,7 @@ int local { get => 1; }
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (4,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // int local { get => 1; }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 5)
                 );
@@ -4858,7 +4858,7 @@ int local { get { return 1; } }
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (4,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // int local { get { return 1; } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 5)
                 );
@@ -4879,7 +4879,7 @@ event System.Action local;
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local += null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (4,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // event System.Action local;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 21)
                 );
@@ -4904,7 +4904,7 @@ event System.Action local
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local -= null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,21): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties 
+                // (4,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // event System.Action local
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 21)
                 );
@@ -9970,7 +9970,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,13): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (1,13): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // private int f;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(1, 13)
                 );
@@ -10002,7 +10002,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (1,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // int P { get; set; }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "P").WithLocation(1, 5)
                 );
@@ -10036,7 +10036,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (3,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (3,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // event Action E;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(3, 14)
                 );
@@ -10072,7 +10072,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (3,14): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (3,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // event Action E { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(3, 14)
                 );
@@ -10106,7 +10106,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,5): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (1,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // int this[int x] => 0;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "this").WithLocation(1, 5)
                 );
@@ -10138,7 +10138,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,24): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (1,24): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // public static implicit operator int(int d) => 0;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(1, 24),
                 // (1,33): error CS0556: User-defined conversion must convert to or from the enclosing type
@@ -10176,7 +10176,7 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,19): error CS9347: A compilation unit cannot directly contain members such as fields, methods or properties
+                // (1,19): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // public static int operator +(int operand1, int operand2) => 0;
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(1, 19),
                 // (1,28): error CS0563: One of the parameters of a binary operator must be the containing type
