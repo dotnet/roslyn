@@ -2503,6 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter
                 or ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter
                 or ErrorCode.ERR_InvalidExtensionParameterReference
+                or ErrorCode.ERR_ExtensionParameterInStaticContext
                 or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
                 or ErrorCode.ERR_UnderspecifiedExtension
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess

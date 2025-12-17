@@ -2358,7 +2358,7 @@ class C
             })();
     }
 }";
-            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12.WithFeature(Feature.RunNullableAnalysis, "never"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -2432,8 +2432,8 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(39, 23)
             };
 
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular13.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular13.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

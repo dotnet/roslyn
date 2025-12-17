@@ -3679,6 +3679,7 @@ End Module
 
             ' Legacy feature flag
             Using dir As New DisposableDirectory(Temp)
+                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism)
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
             End Using
@@ -7746,8 +7747,8 @@ End Class
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.ParseOptions.Features.Count)
-            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
-            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
+            Assert.True(args.ParseOptions.HasFeature("Test"))
+            Assert.True(args.ParseOptions.HasFeature("Experiment"))
 
             args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()

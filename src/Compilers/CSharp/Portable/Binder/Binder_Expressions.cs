@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if a reference to "this" is available.</returns>
         internal bool HasThis(bool isExplicit, out bool inStaticContext)
         {
+            if (!isExplicit && IsInsideNameof && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureInstanceMemberInNameof))
+            {
+                inStaticContext = false;
+                return true;
+            }
+
             var memberOpt = this.ContainingMemberOrLambda?.ContainingNonLambdaMember();
             if (memberOpt?.IsStatic == true)
             {
@@ -2088,7 +2094,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
                                 !IsInsideNameof)
                         {
-                            Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
+                            // Give a better error for the simple case of using an extension parameter in a static member, while avoiding any of the other cases where it is always illegal
+                            if (this.ContainingMember().IsStatic && !InParameterDefaultValue && !InAttributeArgument && (object)this.ContainingMember().ContainingSymbol == parameter.ContainingSymbol)
+                            {
+                                // Static members cannot access the value of extension parameter '{0}'.
+                                Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter.Name);
+                            }
+                            else
+                            {
+                                // Cannot use extension parameter '{0}' in this context.
+                                Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
+                            }
                         }
                         else
                         {

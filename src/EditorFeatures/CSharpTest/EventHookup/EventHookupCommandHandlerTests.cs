@@ -40,6 +40,26 @@ public sealed class EventHookupCommandHandlerTests
         testState.AssertShowing("C_MyEvent");
     }
 
+    [WpfFact]
+    public async Task Handler_DismissSuggestionService()
+    {
+        var markup = """
+            class C
+            {
+                event System.Action MyEvent;
+                void M()
+                {
+                    MyEvent +$$
+                }
+            }
+            """;
+        using var testState = EventHookupTestState.CreateTestState(markup);
+        testState.SendTypeChar('=');
+        await testState.WaitForAsynchronousOperationsAsync();
+        testState.AssertShowing("C_MyEvent");
+        testState.AssertSuggestionServiceWasDismissed();
+    }
+
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20999")]
     public async Task HandlerName_EventInThisClass_CamelCaseRule()
     {

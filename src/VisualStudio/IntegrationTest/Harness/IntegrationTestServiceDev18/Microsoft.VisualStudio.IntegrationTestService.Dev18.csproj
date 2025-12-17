@@ -1,0 +1,76 @@
+﻿<Project>
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Description>Integration test service extension for Visual Studio 18</Description>
+    <RootNamespace>Microsoft.VisualStudio.IntegrationTestService</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.IntegrationTestService</AssemblyName>
+    <!-- Using specifc version of vssdk build tools. -->
+    <NoWarn>$(NoWarn);NETSDK1023</NoWarn>
+    <!-- Localization is not needed for this test helper vsix - it is never presented to the user -->
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <UseCodebase>true</UseCodebase>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
+
+    <!--
+      This extension is deployed on-demand by the integration test harness.
+    -->
+    <DeployExtension>False</DeployExtension>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{78d5a8b5-1634-434b-802d-e3e4a46b1aa6}"
+                               Name="IntegrationTestServicePackage"
+                               Class="Microsoft.VisualStudio.IntegrationTestService.IntegrationTestServicePackage"
+                               AllowsBackgroundLoad="true"/>
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Runtime.Remoting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.SDK" PrivateAssets="all" />
+    <!--
+      A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
+      Override the reference to a secure version, but exclude it from the build and packaging.
+    -->
+    <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(RepoRoot)\License.txt" IncludeInVSIX="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
+      <SubType>Designer</SubType>
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="IntegrationTestServicePackage.resx" MergeWithCTO="true" ManifestResourceName="VSPackage" Generator="" />
+  </ItemGroup>
+
+  <Import Project="..\IntegrationTestServiceShared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+</Project>

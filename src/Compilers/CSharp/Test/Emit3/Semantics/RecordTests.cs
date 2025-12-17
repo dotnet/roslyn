@@ -30560,7 +30560,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -30584,7 +30584,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
