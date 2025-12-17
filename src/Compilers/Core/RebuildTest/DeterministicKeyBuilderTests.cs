@@ -258,6 +258,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return builder.ToStringAndFree();
         }
 
+        protected static string GetChecksum(byte[] sourceLinkBytes)
+        {
+            using var hashAlgorithm = CryptographicHashProvider.TryGetAlgorithm(SourceHashAlgorithms.Default);
+            var hash = hashAlgorithm!.ComputeHash(sourceLinkBytes);
+            return DeterministicKeyBuilder.EncodeByteArrayValue(hash);
+        }
+
         protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, TParseOptions? parseOptions = null);
 
         protected abstract TCompilation CreateCompilation(

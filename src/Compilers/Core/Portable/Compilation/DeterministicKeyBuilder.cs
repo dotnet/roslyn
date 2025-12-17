@@ -222,9 +222,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (resource.IsEmbedded)
                 {
-                    using var stream = resource.DataProvider();
-                    var sourceText = SourceText.From(stream, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default);
-                    WriteSourceText(writer, sourceText);
+                    using Stream stream = resource.DataProvider();
+                    WriteStream(writer, stream);
                 }
                 else
                 {
@@ -319,6 +318,22 @@ namespace Microsoft.CodeAnalysis
             WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum().AsSpan());
             writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
             writer.Write("encodingName", sourceText.Encoding?.EncodingName);
+            writer.WriteObjectEnd();
+        }
+
+        private static void WriteStream(JsonWriter writer, Stream? stream)
+        {
+            if (stream is null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            writer.WriteObjectStart();
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
+            var checksum = SourceText.CalculateChecksum(stream, checksumAlgorithm);
+            WriteByteArrayValue(writer, "checksum", checksum.AsSpan());
+            writer.Write("checksumAlgorithm", checksumAlgorithm);
             writer.WriteObjectEnd();
         }
 
@@ -459,7 +474,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
             writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
             writer.WriteKey("sourceLink");
-            writeSourceLink(writer, sourceLinkStream);
+            WriteStream(writer, sourceLinkStream);
             writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
@@ -469,15 +484,6 @@ namespace Microsoft.CodeAnalysis
                 writer.Write("major", version.Major);
                 writer.Write("minor", version.Minor);
                 writer.WriteObjectEnd();
-            }
-
-            static void writeSourceLink(JsonWriter writer, Stream? sourceLinkStream)
-            {
-                SourceText? sourceText = sourceLinkStream is not null
-                    ? SourceText.From(sourceLinkStream, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default)
-                    : null;
-
-                WriteSourceText(writer, sourceText);
             }
         }
 

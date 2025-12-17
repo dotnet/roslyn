@@ -599,17 +599,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }
 }
 """;
-            var sourceLinkText = SourceText.From(sourceLinkContent, encoding: null, SourceHashAlgorithms.Default);
-            var sourceLinkChecksum = GetChecksum(sourceLinkText);
+            var sourceLinkBytes = Encoding.UTF8.GetBytes(sourceLinkContent);
+            string sourceLinkChecksum = GetChecksum(sourceLinkBytes);
 
-            using var sourceLinkStream = new System.IO.MemoryStream(Encoding.UTF8.GetBytes(sourceLinkContent));
+            using var sourceLinkStream = new System.IO.MemoryStream(sourceLinkBytes);
             var key = compilation.GetDeterministicKey(emitOptions: EmitOptions, sourceLinkStream: sourceLinkStream, options: DeterministicKeyOptions.IgnoreToolVersions);
 
             var expected = $$"""
 "sourceLink": {
   "checksum": "{{sourceLinkChecksum}}",
-  "checksumAlgorithm": "Sha256",
-  "encodingName": "Unicode (UTF-8)"
+  "checksumAlgorithm": "Sha256"
 }
 """;
             AssertJsonSection(expected, key, "emitOptions.sourceLink");
@@ -626,21 +625,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             // Embedded public resource
             var embeddedPublicBytes = Encoding.UTF8.GetBytes("Embedded public resource");
-            string embeddedPublicChecksum;
-            using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
-            {
-                var hash = hashAlgorithm.ComputeHash(embeddedPublicBytes);
-                embeddedPublicChecksum = DeterministicKeyBuilder.EncodeByteArrayValue(hash);
-            }
+            string embeddedPublicChecksum = GetChecksum(embeddedPublicBytes);
 
             // Embedded non-public resource
             var embeddedPrivateBytes = Encoding.UTF8.GetBytes("Embedded private resource");
-            string embeddedPrivateChecksum;
-            using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
-            {
-                var hash = hashAlgorithm.ComputeHash(embeddedPrivateBytes);
-                embeddedPrivateChecksum = DeterministicKeyBuilder.EncodeByteArrayValue(hash);
-            }
+            string embeddedPrivateChecksum = GetChecksum(embeddedPrivateBytes);
 
             var resources = ImmutableArray.Create(
                 new ResourceDescription(
@@ -668,8 +657,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "isPublic": true,
     "content": {
       "checksum": "{{embeddedPublicChecksum}}",
-      "checksumAlgorithm": "Sha256",
-      "encodingName": "Unicode (UTF-8)"
+      "checksumAlgorithm": "Sha256"
     }
   },
   {
@@ -678,8 +666,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "isPublic": false,
     "content": {
       "checksum": "{{embeddedPrivateChecksum}}",
-      "checksumAlgorithm": "Sha256",
-      "encodingName": "Unicode (UTF-8)"
+      "checksumAlgorithm": "Sha256"
     }
   },
   {
