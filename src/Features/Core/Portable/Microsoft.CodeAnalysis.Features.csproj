@@ -101,6 +101,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
