@@ -21,13 +21,10 @@ internal sealed partial class ProjectState
     public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
         => LazyChecksums.GetValueAsync(cancellationToken);
 
-    public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+    public async ValueTask<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
-        return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
-            static (projectStateChecksums, _) => projectStateChecksums.Checksum,
-            LazyChecksums,
-            cancellationToken).AsTask();
+        var checksums = await this.LazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return checksums.Checksum;
     }
 
     public Checksum GetParseOptionsChecksum()
