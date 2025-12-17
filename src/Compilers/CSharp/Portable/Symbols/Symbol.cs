@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -619,7 +618,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        // PROTOTYPE: add a public API for this
+        // PROTOTYPE: add a public API for this (probably just expose a bool)
+        /// <summary>
+        /// Whether this member is considered unsafe under the updated memory safety rules.
+        /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
+        /// </summary>
         internal virtual CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
 
         /// <summary>
@@ -1850,28 +1853,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _lazyISymbol;
             }
         }
-    }
-
-    /// <summary>
-    /// Member safety under updated memory safety rules (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>).
-    /// </summary>
-    internal enum CallerUnsafeMode
-    {
-        /// <summary>
-        /// The member is not considered unsafe under the updated memory safety rules.
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// The member is implicitly considered unsafe because it contains pointers in its signature.
-        /// This member should not have the <see cref="AttributeDescription.RequiresUnsafeAttribute"/> emitted.
-        /// </summary>
-        Implicit,
-
-        /// <summary>
-        /// The member is explicitly marked as <see langword="unsafe"/> under the updated memory safety rules.
-        /// This member should have the <see cref="AttributeDescription.RequiresUnsafeAttribute"/> emitted.
-        /// </summary>
-        Explicit,
     }
 }

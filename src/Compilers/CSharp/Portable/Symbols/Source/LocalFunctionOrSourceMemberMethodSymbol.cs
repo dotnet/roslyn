@@ -43,25 +43,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsIterator => _lazyIteratorElementType is object;
-
-        /// <summary>
-        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
-        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
-        /// </summary>
-        internal abstract bool IsUnsafe { get; }
-
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
-        {
-            get
-            {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return IsUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
-                }
-
-                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
-            }
-        }
     }
 }

@@ -25,34 +25,57 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         string caller,
         object[] expectedUnsafeSymbols,
         object[] expectedSafeSymbols,
-        params DiagnosticDescription[] expectedDiagnostics)
+        DiagnosticDescription[] expectedDiagnostics,
+        ReadOnlySpan<string> additionalSources = default,
+        Verification verify = default)
     {
-        CreateCompilation([lib, caller],
+        CreateCompilation([lib, caller, .. additionalSources],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
 
-        var libUpdated = CompileAndVerify(lib,
+        var libUpdated = CompileAndVerify([lib, .. additionalSources],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: module =>
-            {
-                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
-                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: true, isSynthesized: true, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
-            })
-            .VerifyDiagnostics()
-            .GetImageReference();
+            verify: verify,
+            symbolValidator: symbolValidator)
+            .VerifyDiagnostics();
 
-        CreateCompilation(caller, [libUpdated],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(expectedDiagnostics);
+        var libUpdatedRefs = new MetadataReference[] { libUpdated.GetImageReference(), libUpdated.Compilation.ToMetadataReference() };
 
-        var libLegacy = CreateCompilation(lib,
+        foreach (var libUpdatedRef in libUpdatedRefs)
+        {
+            CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(expectedDiagnostics);
+
+            var libAssemblySymbol = CreateCompilation("", [libUpdatedRef],
+                options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics()
+                .GetReferencedAssemblySymbol(libUpdatedRef);
+            symbolValidator(libAssemblySymbol.Modules.Single());
+        }
+
+        var libLegacy = CreateCompilation([lib, .. additionalSources],
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics()
             .EmitToImageReference();
 
-        CreateCompilation(caller, [libLegacy],
+        CreateCompilation([caller, .. additionalSources], [libLegacy],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            if (module is SourceModuleSymbol)
+            {
+                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
+                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: false, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
+            }
+            else
+            {
+                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
+                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: true, isSynthesized: true, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
+            }
+        }
     }
 
     private static Func<ModuleSymbol, Symbol> ExtensionMember(string containerName, string memberName)
@@ -205,7 +228,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             else
             {
-                Assert.IsType<SourceModuleSymbol>(symbol.ContainingModule);
+                Assert.True(symbol.ContainingModule is SourceModuleSymbol or null);
             }
 
             var expectedUnsafeMode = !shouldBeUnsafe
@@ -1803,6 +1826,56 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_Function_Call_UsingAlias()
+    {
+        var source = """
+            using X = delegate*<string>;
+            X x = null;
+            string s = x();
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // using X = delegate*<string>;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 11),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // X x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(2, 1),
+            // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string s = x();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x()").WithLocation(3, 12));
+
+        var expectedDiagnostics = new[]
+        {
+            // (3,12): error CS9500: This operation may only be used in an unsafe context
+            // string s = x();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "x()").WithLocation(3, 12),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using X = delegate*<string>;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 11),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // X x = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (3,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // string s = x();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x()").WithArguments("updated memory safety rules").WithLocation(3, 12));
+    }
+
+    [Fact]
     public void Pointer_AddressOf_SafeContext()
     {
         var source = """
@@ -2412,7 +2485,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void StackAlloc_UnsafeContext()
     {
-        var source = $$"""
+        var source = """
             unsafe { System.Span<int> y = stackalloc int[5]; }
             M();
 
@@ -2800,6 +2873,97 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
+    [Fact]
+    public void Member_Property_Record()
+    {
+        CompileAndVerify(
+            lib: """
+                public record C(int P1, int P2)
+                {
+                    public unsafe int P2 { get; set; } = P2;
+                }
+                """,
+            caller: """
+                var c = new C(1, 2);
+                c.P2 = c.P1 + c.P2;
+                """,
+            additionalSources: [IsExternalInitTypeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
+            expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P2 = c.P1 + c.P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 1),
+                // (2,15): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P2 = c.P1 + c.P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 15),
+            ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_FunctionPointer(bool useCompilationReference)
+    {
+        var lib = CreateCompilation("""
+            public unsafe class C
+            {
+                public delegate*<string> F;
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+        var libRef = AsReference(lib, useCompilationReference);
+
+        var source = """
+            var c = new C();
+            string s = c.F();
+            """;
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,12): error CS9500: This operation may only be used in an unsafe context
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12));
+
+        CompileAndVerify("""
+            var c = new C();
+            unsafe { string s = c.F(); }
+            """,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.F", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
+                expectedAttributeInMetadata: false))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (2,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.F()").WithLocation(2, 12));
+
+        static Symbol getFunctionPointerType(ModuleSymbol module)
+        {
+            return module.GlobalNamespace.GetMember("C.F").GetTypeOrReturnType().Type;
+        }
+
+        static Symbol getFunctionPointerMethod(ModuleSymbol module)
+        {
+            var functionPointerType = (FunctionPointerTypeSymbol)getFunctionPointerType(module);
+            return functionPointerType.Signature;
+        }
+    }
+
     [Theory, CombinatorialData]
     public void CompatMode_Method_ParameterType(
         [CombinatorialValues("int*", "int*[]", "delegate*<void>")] string parameterType,
@@ -3110,7 +3274,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Theory, CombinatorialData]
     public void CompatMode_Property_Extension_ReceiverType(bool useCompilationReference)
     {
-        var lib = CreateCompilation($$"""
+        var lib = CreateCompilation("""
             public unsafe static class E
             {
                 extension(int x)
