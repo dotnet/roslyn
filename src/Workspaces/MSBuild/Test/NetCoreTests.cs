@@ -455,7 +455,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), Reason = "https://github.com/dotnet/roslyn/issues/81589")]
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/81589")]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81589")]

@@ -110,9 +110,14 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
         return result;
 
         ProjectReference MapProjectReference(ProjectReference pr)
+        {
             // Only C# and VB projects are loaded by the MSBuildProjectLoader, so some references might be missing.
             // When a new project is added along with a new project reference the old project id is also null.
-            => new(projectIdMap.TryGetValue(pr.ProjectId, out var oldProjectId) && oldProjectId != null ? oldProjectId : pr.ProjectId, pr.Aliases, pr.EmbedInteropTypes);
+            return new(
+                projectId: projectIdMap.TryGetValue(pr.ProjectId, out var oldProjectId) && oldProjectId != null ? oldProjectId : pr.ProjectId,
+                aliases: pr.Aliases,
+                embedInteropTypes: pr.EmbedInteropTypes);
+        }
 
         ImmutableArray<DocumentInfo> MapDocuments(ProjectId mappedProjectId, IReadOnlyList<DocumentInfo> documents)
             => documents.Select(docInfo =>
@@ -199,7 +204,7 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
                 // File.OpenRead opens the file with FileShare.Read. This may prevent IDEs from saving file
                 // contents to disk
                 SourceText sourceText;
-                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
                     sourceText = SourceText.From(stream, encoding, checksumAlgorithm);
                 }
