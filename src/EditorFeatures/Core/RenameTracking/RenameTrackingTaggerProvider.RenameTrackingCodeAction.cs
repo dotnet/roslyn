@@ -55,15 +55,15 @@ internal sealed partial class RenameTrackingTaggerProvider
         protected sealed override CodeActionPriority ComputePriority()
             => CodeActionPriority.High;
 
-        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // Invoked directly without previewing.
             if (_renameTrackingCommitter == null && !TryInitializeRenameTrackingCommitter())
-                return SpecializedTasks.EmptyImmutableArray<CodeActionOperation>();
+                return [];
 
             var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter, _threadingContext);
-            return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(committerOperation));
+            return [committerOperation];
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
