@@ -44,12 +44,12 @@ internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext>
             supportedPlatforms: supportedPlatformData);
     }
 
-    protected override Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
+    protected override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
         CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
     {
         var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
         if (newExpression == null)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         var typeInferenceService = context.GetRequiredLanguageService<ITypeInferenceService>();
         var type = typeInferenceService.InferType(
@@ -62,20 +62,20 @@ internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext>
             type = arrayType.ElementType;
 
         if (type == null)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         // Unwrap nullable
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             type = type.GetTypeArguments().Single();
 
         if (type.SpecialType == SpecialType.System_Void)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         if (type.ContainsAnonymousType())
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         if (!type.CanBeReferencedByName)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
         // In this case we do want to allow them to preselect certain types in the completion
@@ -85,18 +85,18 @@ internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext>
             if (type.TypeKind is TypeKind.Interface or TypeKind.Pointer or TypeKind.Dynamic ||
                 type.IsAbstract)
             {
-                return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+                return [];
             }
 
             if (type is ITypeParameterSymbol typeParameter && !typeParameter.HasConstructorConstraint)
-                return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+                return [];
         }
 
         if (!type.IsEditorBrowsable(options.MemberDisplayOptions.HideAdvancedMembers, context.SemanticModel.Compilation))
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         // In the case of array creation, we don't offer a preselected/hard-selected item because
         // the user may want an implicitly-typed array creation
-        return Task.FromResult(ImmutableArray.Create(new SymbolAndSelectionInfo(Symbol: type, Preselect: !isArray)));
+        return [new SymbolAndSelectionInfo(Symbol: type, Preselect: !isArray)];
     }
 }
