@@ -64,6 +64,8 @@
     <CoreCompileDependsOn>$(CoreCompileDependsOn);ResolveKeySource</CoreCompileDependsOn> 
 
     <NoWarn Condition="'$(DefineConstants.Contains(`CODE_STYLE`))' == 'false'">$(NoWarn);RS1041;RS1038</NoWarn>
+
+    <DisableMsCoverageReferencedPathMaps>true</DisableMsCoverageReferencedPathMaps>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
