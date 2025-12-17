@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
+            Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
             var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable", "-checksumalgorithm:sha256");
             var sourceFile = compiler.AddSourceFile("test.cs", @"// this is a test file");
             compiler.AddOutputFile("test.dll");

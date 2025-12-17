@@ -13,7 +13,7 @@
   -->
   <PropertyGroup>
     <NetRoslyn>net9.0</NetRoslyn>
-    <NetRoslynAll>net8.0;net9.0</NetRoslynAll>
+    <NetRoslynAll>net8.0;net9.0;net10.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
     <NetVSCode>net10.0</NetVSCode>
     <NetVSShared>net8.0</NetVSShared>

@@ -16,19 +16,14 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
-try
-{
-    Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
-}
-catch (IOException)
-{
-}
+IOUtilities.PerformIO(() => Console.Title = "Microsoft.CodeAnalysis.LanguageServer");
 
 WindowsErrorReporting.SetErrorModeOnWindows();
 

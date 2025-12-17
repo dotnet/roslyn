@@ -14,6 +14,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17521,7 +17522,7 @@ class C
         [Fact]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             var exceptionSource = """
                 namespace System.Runtime.CompilerServices
@@ -21047,7 +21048,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21146,7 +21147,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
