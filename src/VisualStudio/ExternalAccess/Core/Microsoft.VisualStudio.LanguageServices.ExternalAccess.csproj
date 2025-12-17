@@ -3,16 +3,15 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Copilot</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
     <TargetFrameworks>net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot</PackageId>
+    <PackageId>Microsoft.VisualStudio.LanguageServices.ExternalAccess</PackageId>
     <PackageDescription>
-      A supporting package for Copilot features:
-      https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_git/VisualStudio.Conversations
+      A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
   </PropertyGroup>
 
@@ -25,10 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\Copilot\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

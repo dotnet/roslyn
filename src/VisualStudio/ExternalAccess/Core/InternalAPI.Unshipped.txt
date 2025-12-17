@@ -1,0 +1,17 @@
+#nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchPresenterController
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchPresenterController.ExecuteQueryAsync(string! query, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController.UpdateQueryAsync(string! query, bool activateWindow, bool executeQuery, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl.GetTextBox() -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.CommandTarget.get -> Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.Control.get -> System.Windows.Controls.Control!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.Text.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.Text.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.View.get -> Microsoft.VisualStudio.Text.Editor.IWpfTextView!
+Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper
+Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper.IsAvailable.get -> bool
+Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper.ISemanticSearchCopilotUIProviderWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl!>? impl) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.Internal.ISemanticSearchCopilotUIProviderWrapper
