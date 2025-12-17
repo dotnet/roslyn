@@ -7180,9 +7180,67 @@ static class E
         var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+
         var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
         Assert.Equal("M", m.ToString());
         AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_69()
+    {
+        var src = """
+/// <see cref="E.extension(int).Property"/>
+static class E
+{
+    extension(int i)
+    {
+        public int Property => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).Property", descendIntoTrivia: true);
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_70()
+    {
+        var src = """
+namespace N;
+
+/// <see cref="N.E.extension(int).M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var qualifiedCref = GetSyntax<QualifiedCrefSyntax>(tree, "N.E.extension(int).M(string)", descendIntoTrivia: true);
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(qualifiedCref).Symbol.ToDisplayString());
+
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Equal("M", m.ToString());
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
     }
 
     [Fact]

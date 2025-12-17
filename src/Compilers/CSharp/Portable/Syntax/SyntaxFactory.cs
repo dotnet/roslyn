@@ -2241,6 +2241,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
+                case SyntaxKind.ExtensionMemberCref:
+                    if (((ExtensionMemberCrefSyntax)parent).Member == node)
+                    {
+                        return parent;
+                    }
+
+                    break;
+
                 case SyntaxKind.ArrayCreationExpression:
                     if (((ArrayCreationExpressionSyntax)parent).Type == node)
                     {
