@@ -1,4 +1,8 @@
 #nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.Apex.ApexAsynchronousOperationListenerProviderAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Apex.ApexAsynchronousOperationListenerProviderAccessor.ApexAsynchronousOperationListenerProviderAccessor(Microsoft.CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider! implementation, Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace? workspace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Apex.ApexAsynchronousOperationListenerProviderAccessor.WaitAllAsync(string![]? featureNames = null, System.Action? eventProcessingAction = null, System.TimeSpan? timeout = null) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Apex.IApexAsynchronousOperationListenerProviderAccessor
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchPresenterController
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchPresenterController.ExecuteQueryAsync(string! query, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController
@@ -15,3 +19,4 @@ Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper
 Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper.IsAvailable.get -> bool
 Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper.ISemanticSearchCopilotUIProviderWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl!>? impl) -> void
 Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.Internal.ISemanticSearchCopilotUIProviderWrapper
+~Microsoft.CodeAnalysis.ExternalAccess.Apex.IApexAsynchronousOperationListenerProviderAccessor.WaitAllAsync(string[] featureNames = null, System.Action eventProcessingAction = null, System.TimeSpan? timeout = null) -> System.Threading.Tasks.Task
