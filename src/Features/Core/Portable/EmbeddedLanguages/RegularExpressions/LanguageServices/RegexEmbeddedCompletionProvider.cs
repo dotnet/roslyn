@@ -457,14 +457,11 @@ internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLangu
             newPositionString == null ? null : int.Parse(newPositionString));
     }
 
-    public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+    public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
     {
         if (!item.TryGetProperty(DescriptionKey, out var description))
-        {
-            return SpecializedTasks.Null<CompletionDescription>();
-        }
+            return null;
 
-        return Task.FromResult(CompletionDescription.Create(
-            [new TaggedText(TextTags.Text, description)]));
+        return CompletionDescription.Create([new TaggedText(TextTags.Text, description)]);
     }
 }
