@@ -18,7 +18,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.Analyzer;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
+#endif
 
 /// <summary>
 /// Copilot code analysis service that coordinates triggering Copilot code analysis

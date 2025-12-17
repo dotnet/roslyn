@@ -5,7 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
+#endif
 
 internal interface ICopilotSemanticSearchWindowController
 {

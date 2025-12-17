@@ -21,7 +21,13 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.Analyzer.CSharp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
+#endif
 
 [ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService

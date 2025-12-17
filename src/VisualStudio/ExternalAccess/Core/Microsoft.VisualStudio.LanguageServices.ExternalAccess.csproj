@@ -7,6 +7,8 @@
     <TargetFrameworks>net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
 
+    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.VisualStudio.LanguageServices.ExternalAccess</PackageId>

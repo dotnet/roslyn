@@ -6,7 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests;

@@ -6,7 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+#endif
 
 internal interface IFSharpTaskListService
 {

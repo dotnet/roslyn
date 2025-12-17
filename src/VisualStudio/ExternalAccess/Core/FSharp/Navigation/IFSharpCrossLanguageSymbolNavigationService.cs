@@ -6,7 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+#endif
 
 /// <inheritdoc cref="ICrossLanguageSymbolNavigationService"/>
 internal interface IFSharpCrossLanguageSymbolNavigationService

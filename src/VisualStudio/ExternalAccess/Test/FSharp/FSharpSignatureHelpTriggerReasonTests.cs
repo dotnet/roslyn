@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.SignatureHelp;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Xunit;
 

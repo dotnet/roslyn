@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.Formatting;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal readonly struct AutoFormattingOptionsWrapper
 {

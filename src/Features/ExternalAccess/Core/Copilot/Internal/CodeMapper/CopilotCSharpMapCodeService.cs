@@ -13,7 +13,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MapCode;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.CodeMapper;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper;
+#endif
 
 [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
 internal sealed class CSharpMapCodeService : IMapCodeService

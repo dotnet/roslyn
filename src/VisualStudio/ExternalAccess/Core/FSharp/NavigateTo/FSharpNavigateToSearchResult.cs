@@ -4,9 +4,15 @@
 
 #nullable disable
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
+#endif
 
 internal class FSharpNavigateToSearchResult
 {
