@@ -15,6 +15,11 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.Text.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.Text.set -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.View.get -> Microsoft.VisualStudio.Text.Editor.IWpfTextView!
+Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api.IEditorConfigGenerator
+Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api.IEditorConfigGenerator.Generate(string! language) -> string?
+Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.EditorConfigGenerator
+Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.EditorConfigGenerator.EditorConfigGenerator(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions, Microsoft.CodeAnalysis.Options.EditorConfigOptionsEnumerator! enumerator) -> void
+Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.EditorConfigGenerator.Generate(string! language) -> string?
 Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper
 Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper.IsAvailable.get -> bool
 Microsoft.CodeAnalysis.SemanticSearch.ISemanticSearchCopilotUIProviderWrapper.ISemanticSearchCopilotUIProviderWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl!>? impl) -> void
