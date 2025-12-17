@@ -68,6 +68,12 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.AspNetCore</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
