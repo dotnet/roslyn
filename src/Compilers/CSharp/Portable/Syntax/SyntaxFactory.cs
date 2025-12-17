@@ -2244,7 +2244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExtensionMemberCref:
                     if (((ExtensionMemberCrefSyntax)parent).Member == node)
                     {
-                        return parent;
+                        return GetStandaloneNode(parent);
                     }
 
                     break;

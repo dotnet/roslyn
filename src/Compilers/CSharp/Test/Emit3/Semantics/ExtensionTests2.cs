@@ -7243,6 +7243,39 @@ static class E
         AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_71()
+    {
+        var src = """
+/// <see cref="extension(int).M(string)"/>
+extension(int i)
+{
+    public void M(string s) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M(string)' that could not be resolved
+            // /// <see cref="extension(int).M(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M(string)").WithArguments("extension(int).M(string)").WithLocation(1, 16),
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension(int i)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
+            // (4,17): warning CS1591: Missing XML comment for publicly visible type or member 'extension(int).M(string)'
+            //     public void M(string s) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingXMLComment, "M").WithArguments("extension(int).M(string)").WithLocation(4, 17));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        Assert.Null(model.GetSymbolInfo(extensionCref).Symbol);
+        Assert.Null(model.GetSymbolInfo(extensionCref.Member).Symbol);
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Null(model.GetSymbolInfo(m).Symbol);
+    }
+
     [Fact]
     public void PropertyAccess_Set_01()
     {
