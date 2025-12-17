@@ -11,7 +11,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Threading;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Completion;
+#endif
 
 [Export(typeof(ICSharpCopilotContextProviderService)), Shared]
 [method: ImportingConstructor]

@@ -14,7 +14,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.SemanticSearch;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
+#endif
 
 [Export(typeof(ISemanticSearchQueryService)), Shared]
 [method: ImportingConstructor]

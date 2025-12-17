@@ -7,6 +7,8 @@
     <TargetFrameworks>$(NetVSCode);$(NetVS);netstandard2.0</TargetFrameworks>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
+    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
+
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer</PackageId>
     <PackageDescription>

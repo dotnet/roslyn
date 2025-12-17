@@ -5,12 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
-{
-    internal class RazorSemanticTokensAccessor
-    {
-        public static ImmutableArray<string> GetTokenTypes(bool clientSupportsVisualStudioExtensions) => SemanticTokensSchema.GetSchema(clientSupportsVisualStudioExtensions).AllTokenTypes;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-        public static string[] GetTokenModifiers() => SemanticTokensSchema.TokenModifiers;
-    }
+internal class RazorSemanticTokensAccessor
+{
+    public static ImmutableArray<string> GetTokenTypes(bool clientSupportsVisualStudioExtensions) => SemanticTokensSchema.GetSchema(clientSupportsVisualStudioExtensions).AllTokenTypes;
+
+    public static string[] GetTokenModifiers() => SemanticTokensSchema.TokenModifiers;
 }

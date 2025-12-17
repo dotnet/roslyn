@@ -19,12 +19,16 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
+#pragma warning disable RS0030 // Do not use banned APIs
 [Export(typeof(IDescriptionService))]
+#pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class DescriptionService : IDescriptionService
 {
     private readonly IGlobalOptionService _globalOptions;
 
+#pragma warning disable RS0030 // Do not use banned APIs
     [ImportingConstructor]
+#pragma warning restore RS0030 // Do not use banned APIs
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DescriptionService(IGlobalOptionService globalOptions)
     {

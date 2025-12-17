@@ -7,24 +7,23 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
-{
-    [Export(typeof(RazorTestWorkspaceRegistrationService))]
-    [Export(typeof(LspWorkspaceRegistrationService))]
-    [Shared, PartNotDiscoverable]
-    internal sealed class RazorTestWorkspaceRegistrationService : LspWorkspaceRegistrationService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorTestWorkspaceRegistrationService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-        // Method purposely doesn't override the base so any changes to the method
-        // signature in the base class won't automatically break Razor.
-        public new void Register(Workspace workspace)
-        {
-            base.Register(workspace);
-        }
+[Export(typeof(RazorTestWorkspaceRegistrationService))]
+[Export(typeof(LspWorkspaceRegistrationService))]
+[Shared, PartNotDiscoverable]
+internal sealed class RazorTestWorkspaceRegistrationService : LspWorkspaceRegistrationService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RazorTestWorkspaceRegistrationService()
+    {
+    }
+
+    // Method purposely doesn't override the base so any changes to the method
+    // signature in the base class won't automatically break Razor.
+    public new void Register(Workspace workspace)
+    {
+        base.Register(workspace);
     }
 }

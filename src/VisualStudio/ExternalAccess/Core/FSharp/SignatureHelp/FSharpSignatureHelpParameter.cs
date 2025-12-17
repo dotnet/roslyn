@@ -10,7 +10,13 @@ using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+#endif
 
 internal class FSharpSignatureHelpParameter
 {

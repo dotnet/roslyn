@@ -7,7 +7,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Structure;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
+#endif
 
 internal interface IFSharpBlockStructureService
 {
