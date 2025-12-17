@@ -8,7 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal readonly struct FSharpBraceMatchingResult
 {

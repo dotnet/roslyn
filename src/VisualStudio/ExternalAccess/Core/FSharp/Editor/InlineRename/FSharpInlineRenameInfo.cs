@@ -13,7 +13,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal abstract class FSharpInlineRenameInfo : IInlineRenameInfo
 {

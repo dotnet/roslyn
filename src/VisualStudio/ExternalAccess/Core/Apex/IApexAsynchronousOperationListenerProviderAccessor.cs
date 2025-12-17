@@ -7,7 +7,11 @@
 using System;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.Apex;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Apex;
+#endif
 
 internal interface IApexAsynchronousOperationListenerProviderAccessor
 {

@@ -8,7 +8,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#endif
 
 internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
 {

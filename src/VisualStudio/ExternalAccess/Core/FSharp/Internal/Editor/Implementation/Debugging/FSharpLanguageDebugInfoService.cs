@@ -12,7 +12,11 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging;
+#endif
 
 [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.FSharp), Shared]
 [method: ImportingConstructor]

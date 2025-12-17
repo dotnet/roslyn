@@ -7,7 +7,11 @@
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.NavigateTo;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.NavigateTo;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
+#endif
 
 internal static class FSharpNavigateToMatchKindHelpers
 {

@@ -10,7 +10,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Navigation;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
+#endif
 
 /// <summary>
 /// Internal F# implementation of the <see cref="ICrossLanguageSymbolNavigationService"/>.  Will defer to the EA

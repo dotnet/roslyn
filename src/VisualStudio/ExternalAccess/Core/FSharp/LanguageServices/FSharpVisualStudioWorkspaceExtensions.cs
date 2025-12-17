@@ -8,7 +8,11 @@ using System.Linq;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.LanguageServices;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices;
+#endif
 
 internal static class FSharpVisualStudioWorkspaceExtensions
 {

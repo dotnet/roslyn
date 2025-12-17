@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal class FSharpNavigationBarItem
 {

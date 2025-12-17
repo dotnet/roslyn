@@ -4,7 +4,11 @@
 
 #nullable disable
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Classification;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
+#endif
 
 internal static class FSharpClassificationTags
 {

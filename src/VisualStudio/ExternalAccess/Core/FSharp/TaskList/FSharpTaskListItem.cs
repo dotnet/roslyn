@@ -4,6 +4,10 @@
 
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.TaskList;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+#endif
 
 internal readonly record struct FSharpTaskListItem(FSharpTaskListDescriptor TaskDescriptor, string Message, Document Document, TextSpan Span);

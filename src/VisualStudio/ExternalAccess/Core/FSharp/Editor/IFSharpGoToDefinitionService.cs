@@ -9,7 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal interface IFSharpGoToDefinitionService
 {

@@ -12,7 +12,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.SignatureHelp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
+#endif
 
 [Shared]
 [ExportSignatureHelpProvider(nameof(FSharpSignatureHelpProvider), LanguageNames.FSharp)]

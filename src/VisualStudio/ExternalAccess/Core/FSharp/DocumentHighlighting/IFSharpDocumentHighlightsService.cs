@@ -9,7 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.DocumentHighlighting;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting;
+#endif
 
 internal enum FSharpHighlightSpanKind
 {

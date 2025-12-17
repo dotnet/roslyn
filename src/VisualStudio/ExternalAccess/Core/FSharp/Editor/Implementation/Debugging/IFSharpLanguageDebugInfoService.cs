@@ -5,7 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.Implementation.Debugging;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
+#endif
 
 internal interface IFSharpLanguageDebugInfoService
 {

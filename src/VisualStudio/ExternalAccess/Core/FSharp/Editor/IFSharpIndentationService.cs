@@ -8,7 +8,11 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 /// <summary>
 /// An indentation result represents where the indent should be placed.  It conveys this through

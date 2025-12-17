@@ -11,7 +11,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Diagnostics;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
+#endif
 
 [Export(typeof(IFSharpDiagnosticAnalyzerService)), Shared]
 [method: ImportingConstructor]

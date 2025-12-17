@@ -4,7 +4,11 @@
 
 #nullable disable
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.FindUsages;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
+#endif
 
 internal class FSharpSourceReferenceItem
 {

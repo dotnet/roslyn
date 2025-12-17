@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.InlineHints;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints;
+#endif
 
 /// <inheritdoc cref="IInlineHintsService"/>
 internal interface IFSharpInlineHintsService

@@ -13,7 +13,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debuggi
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]

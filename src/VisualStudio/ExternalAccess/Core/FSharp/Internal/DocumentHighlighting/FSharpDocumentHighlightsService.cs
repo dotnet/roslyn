@@ -13,7 +13,11 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.DocumentHighlighting;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighlighting;
+#endif
 
 internal static class FSharpHighlightSpanKindHelpers
 {

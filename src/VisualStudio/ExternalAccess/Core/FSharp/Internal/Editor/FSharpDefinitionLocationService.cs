@@ -11,7 +11,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+#endif
 
 [ExportLanguageService(typeof(IDefinitionLocationService), LanguageNames.FSharp), Shared]
 [method: ImportingConstructor]

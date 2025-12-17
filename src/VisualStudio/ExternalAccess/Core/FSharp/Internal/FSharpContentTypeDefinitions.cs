@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
+#endif
 
 internal static class FSharpContentTypeDefinitions
 {

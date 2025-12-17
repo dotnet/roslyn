@@ -9,7 +9,11 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.CommentSelection;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]

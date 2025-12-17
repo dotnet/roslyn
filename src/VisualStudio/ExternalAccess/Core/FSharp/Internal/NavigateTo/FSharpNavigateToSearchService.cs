@@ -13,7 +13,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Roslyn.Utilities;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.NavigateTo;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.FSharp)]

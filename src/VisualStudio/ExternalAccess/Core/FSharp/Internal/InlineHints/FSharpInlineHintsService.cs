@@ -12,7 +12,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.InlineHints;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints;
+#endif
 
 [ExportLanguageService(typeof(IInlineHintsService), LanguageNames.FSharp), Shared]
 internal class FSharpInlineHintsService : IInlineHintsService

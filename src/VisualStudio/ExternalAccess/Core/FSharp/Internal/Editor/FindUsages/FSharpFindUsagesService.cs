@@ -11,7 +11,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp)]

@@ -16,7 +16,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Classification;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp)]

@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Navigation;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
+#endif
 
 internal class InternalFSharpNavigableItem : INavigableItem
 {

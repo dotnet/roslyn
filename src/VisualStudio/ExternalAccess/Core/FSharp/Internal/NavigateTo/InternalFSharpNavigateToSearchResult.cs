@@ -12,7 +12,11 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.NavigateTo;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
+#endif
 
 internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
 {

@@ -6,7 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
+#endif
 
 internal abstract class AbstractFSharpSignatureHelpProvider
 {

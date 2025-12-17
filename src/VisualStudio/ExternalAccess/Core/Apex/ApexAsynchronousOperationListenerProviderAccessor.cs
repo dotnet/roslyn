@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.Apex;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Apex;
+#endif
 
 [Export(typeof(IApexAsynchronousOperationListenerProviderAccessor))]
 [Shared]

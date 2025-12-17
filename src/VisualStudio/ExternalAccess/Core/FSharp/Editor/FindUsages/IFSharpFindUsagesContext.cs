@@ -8,7 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.FindUsages;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
+#endif
 
 internal interface IFSharpFindUsagesContext
 {

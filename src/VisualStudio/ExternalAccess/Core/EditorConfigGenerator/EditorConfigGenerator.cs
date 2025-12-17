@@ -8,7 +8,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.EditorConfigGenerator;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator;
+#endif
 
 [Export(typeof(IEditorConfigGenerator)), Shared]
 [method: ImportingConstructor]

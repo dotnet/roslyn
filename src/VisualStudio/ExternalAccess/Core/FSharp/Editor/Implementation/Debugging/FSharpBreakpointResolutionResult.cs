@@ -5,7 +5,11 @@
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor.Implementation.Debugging;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
+#endif
 
 // TODO: Should be readonly struct.
 internal sealed class FSharpBreakpointResolutionResult

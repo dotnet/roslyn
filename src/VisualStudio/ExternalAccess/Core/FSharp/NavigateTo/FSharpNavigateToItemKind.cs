@@ -6,7 +6,11 @@
 
 using Microsoft.CodeAnalysis.NavigateTo;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
+#endif
 
 internal static class FSharpNavigateToItemKind
 {

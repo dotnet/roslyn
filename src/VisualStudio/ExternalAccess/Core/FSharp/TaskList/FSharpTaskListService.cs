@@ -10,7 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.TaskList;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.TaskList;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(ITaskListService), LanguageNames.FSharp)]

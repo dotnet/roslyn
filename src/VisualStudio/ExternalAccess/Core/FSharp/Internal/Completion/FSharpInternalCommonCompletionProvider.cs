@@ -10,7 +10,11 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion;
+#endif
 
 internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionProvider
 {

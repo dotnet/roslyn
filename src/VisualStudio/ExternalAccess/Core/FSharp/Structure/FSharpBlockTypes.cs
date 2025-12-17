@@ -6,7 +6,11 @@
 
 using Microsoft.CodeAnalysis.Structure;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Structure;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
+#endif
 
 internal static class FSharpBlockTypes
 {

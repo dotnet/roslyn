@@ -7,6 +7,8 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
 
+    <Define>Unified_ExternalAccess</Define>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</PackageId>

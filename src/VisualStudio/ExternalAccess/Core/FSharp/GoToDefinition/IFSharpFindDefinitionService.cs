@@ -7,7 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.GoToDefinition;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition;
+#endif
 
 internal interface IFSharpFindDefinitionService
 {

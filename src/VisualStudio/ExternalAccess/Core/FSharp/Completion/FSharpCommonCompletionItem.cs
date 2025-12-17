@@ -8,7 +8,11 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+#endif
 
 internal static class FSharpCommonCompletionItem
 {

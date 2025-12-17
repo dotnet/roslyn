@@ -14,7 +14,11 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.VisualStudio.Text.Classification;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio.Text.Classification;
+#endif
 
 [Export(typeof(IClassifierProvider))]
 [ContentType(FSharpContentTypeNames.FSharpSignatureHelpContentType)]

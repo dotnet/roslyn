@@ -10,7 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Classification;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
+#endif
 
 internal interface IFSharpClassificationService
 {

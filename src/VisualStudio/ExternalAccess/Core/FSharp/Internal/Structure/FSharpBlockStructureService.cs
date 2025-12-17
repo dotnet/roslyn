@@ -12,7 +12,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Structure;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Structure;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(BlockStructureService), LanguageNames.FSharp)]

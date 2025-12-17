@@ -6,7 +6,11 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
+#endif
 
 internal class FSharpNavigateToSearchResult
 {

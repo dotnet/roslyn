@@ -9,7 +9,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+#endif
 
 internal abstract class FSharpInlineRenameReplacementInfo : IInlineRenameReplacementInfo
 {

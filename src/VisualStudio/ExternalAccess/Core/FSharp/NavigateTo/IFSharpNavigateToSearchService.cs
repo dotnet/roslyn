@@ -6,7 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
+#endif
 
 internal interface IFSharpNavigateToSearchService
 {
