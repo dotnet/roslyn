@@ -170,6 +170,7 @@
     <Project Path="src/NuGet/Microsoft.CodeAnalysis.EditorFeatures.Package/Microsoft.CodeAnalysis.EditorFeatures.Package.csproj" />
   </Folder>
   <Folder Name="/EditorFeatures/ExternalAccess/">
+    <Project Path="src/EditorFeatures/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj" />
     <Project Path="src/EditorFeatures/ExternalAccess/Debugger/Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" />
   </Folder>
   <Folder Name="/ExpressionEvaluator/" />
