@@ -80,6 +80,7 @@
       "src\\EditorFeatures\\CSharp\\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj",
       "src\\EditorFeatures\\Core\\Microsoft.CodeAnalysis.EditorFeatures.csproj",
       "src\\EditorFeatures\\DiagnosticsTestUtilities\\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj",
+      "src\\EditorFeatures\\ExternalAccess\\Core\\Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj",
       "src\\EditorFeatures\\ExternalAccess\\Debugger\\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj",
       "src\\EditorFeatures\\Test2\\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.vbproj",
       "src\\EditorFeatures\\TestUtilities2\\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2.vbproj",
