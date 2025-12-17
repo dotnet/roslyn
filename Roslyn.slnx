@@ -361,7 +361,7 @@
     <Project Path="src/VisualStudio/ExternalAccess/Copilot/Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/EditorConfigGenerator/Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/FSharp/Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
-    <Project Path="src/VisualStudio/ExternalAccess/FSharpTest/Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.csproj" />
+    <Project Path="src/VisualStudio/ExternalAccess/Test/Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests.csproj" />
   </Folder>
   <Folder Name="/VisualStudio/Insertion/">
     <Project Path="src/Setup/DevDivInsertionFiles/DevDivInsertionFiles.csproj" />

@@ -3,17 +3,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+
 	<ItemGroup Label="Project References">
 	  <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
 	  <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
 	  <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
 	  <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
 	  <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-	  <ProjectReference Include="..\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
+	  <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
 	</ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BasicUndo" />
     <!-- Microsoft.VisualStudio.Platform.VSEditor references Microsoft.VisualStudio.Text.Internal since it's needed at runtime; we want to ensure we are using
