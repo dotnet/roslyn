@@ -93,13 +93,13 @@ public abstract partial class Workspace
 
     #endregion
 
-    protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
+    protected async Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
     {
         if (newSolution == null)
             throw new ArgumentNullException(nameof(newSolution));
 
         if (oldSolution == newSolution)
-            return Task.CompletedTask;
+            return;
 
         if (projectId == null && documentId != null)
             projectId = documentId.ProjectId;
@@ -117,10 +117,8 @@ public abstract partial class Workspace
         if (handlerSet.HasHandlers)
         {
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            return this.ScheduleTask(args, handlerSet);
+            await ScheduleTask(args, handlerSet).ConfigureAwait(false);
         }
-
-        return Task.CompletedTask;
     }
 
     protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
@@ -139,7 +137,7 @@ public abstract partial class Workspace
     protected Task RaiseTextDocumentOpenedEventAsync(TextDocument document)
         => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), WorkspaceEventType.TextDocumentOpened);
 
-    private Task RaiseTextDocumentOpenedOrClosedEventAsync<TDocument, TDocumentEventArgs>(
+    private async Task RaiseTextDocumentOpenedOrClosedEventAsync<TDocument, TDocumentEventArgs>(
         TDocument document,
         TDocumentEventArgs args,
         WorkspaceEventType eventType)
@@ -148,9 +146,7 @@ public abstract partial class Workspace
     {
         var handlerSet = GetEventHandlers(eventType);
         if (handlerSet.HasHandlers && document != null)
-            return this.ScheduleTask(args, handlerSet);
-
-        return Task.CompletedTask;
+            await ScheduleTask(args, handlerSet).ConfigureAwait(false);
     }
 
     protected Task RaiseDocumentClosedEventAsync(Document document)
@@ -163,10 +159,10 @@ public abstract partial class Workspace
     protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         => throw new NotImplementedException();
 
-    protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
+    protected async Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
     {
         if (sourceTextContainer == null || oldActiveContextDocumentId == null || newActiveContextDocumentId == null)
-            return Task.CompletedTask;
+            return;
 
         var handlerSet = GetEventHandlers(WorkspaceEventType.DocumentActiveContextChanged);
         if (handlerSet.HasHandlers)
@@ -175,10 +171,8 @@ public abstract partial class Workspace
             var currentSolution = this.CurrentSolution;
             var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
 
-            return this.ScheduleTask(args, handlerSet);
+            await ScheduleTask(args, handlerSet).ConfigureAwait(false);
         }
-
-        return Task.CompletedTask;
     }
 
     private EventHandlerSet GetEventHandlers(WorkspaceEventType eventType)

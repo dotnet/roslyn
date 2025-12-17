@@ -80,7 +80,7 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
         public void ReportIncomplete() { }
         public void ReportProgress(int current, int maximum) { }
 
-        public Task AddResultsAsync(
+        public async Task AddResultsAsync(
             ImmutableArray<INavigateToSearchResult> results,
             Document? activeDocument,
             CancellationToken cancellationToken)
@@ -92,8 +92,6 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
                 var imageMoniker = result.NavigableItem.Glyph.GetImageMoniker();
                 resultAccumulator(new SolutionExplorerSearchResult(provider, result, name, imageMoniker));
             }
-
-            return Task.CompletedTask;
         }
     }
 

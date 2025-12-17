@@ -21,6 +21,6 @@ public class ExceptionInFixableDiagnosticIds : CodeFixProvider
         }
     }
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-        => Task.FromResult(true);
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        => true;
 }

@@ -73,7 +73,7 @@ public sealed class SpecializedTasksTests
     [Fact]
     public void Transform_ArgumentValidation()
     {
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(new IntermediateType());
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => new IntermediateType();
         Func<IntermediateType, StateType, ResultType> transform = (_, _) => new();
         var arg = new StateType();
         var cancellationToken = new CancellationToken(canceled: false);
@@ -87,7 +87,7 @@ public sealed class SpecializedTasksTests
     [Fact]
     public void Transform_SyncCompletedFunction_CompletedTransform()
     {
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(new IntermediateType());
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => new IntermediateType();
         Func<IntermediateType, StateType, ResultType> transform = (_, _) => new();
         var arg = new StateType();
         var cancellationToken = new CancellationToken(canceled: false);
@@ -106,7 +106,7 @@ public sealed class SpecializedTasksTests
         var executedTransform = false;
 
         var cancellationToken = cts.Token;
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(new IntermediateType());
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => new IntermediateType();
         Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
         {
             executedTransform = true;
@@ -183,7 +183,7 @@ public sealed class SpecializedTasksTests
         var executedTransform = false;
 
         var cancellationToken = cts.Token;
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromCanceled<IntermediateType>(cancellationToken));
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => Task.FromCanceled<IntermediateType>(cancellationToken);
         Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
         {
             executedTransform = true;
@@ -240,7 +240,7 @@ public sealed class SpecializedTasksTests
         var executedTransform = false;
 
         var cancellationToken = new CancellationToken(canceled: false);
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromCanceled<IntermediateType>(unexpectedCts.Token));
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => Task.FromCanceled<IntermediateType>(unexpectedCts.Token);
         Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
         {
             executedTransform = true;
@@ -307,7 +307,7 @@ public sealed class SpecializedTasksTests
         var executedTransform = false;
 
         var cancellationToken = cts.Token;
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromCanceled<IntermediateType>(unexpectedCts.Token));
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => Task.FromCanceled<IntermediateType>(unexpectedCts.Token);
         Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
         {
             executedTransform = true;
@@ -388,7 +388,7 @@ public sealed class SpecializedTasksTests
 
         var fault = ExceptionUtilities.Unreachable();
         var cancellationToken = new CancellationToken(canceled: false);
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromException<IntermediateType>(fault));
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => Task.FromException<IntermediateType>(fault);
         Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
         {
             executedTransform = true;
@@ -468,7 +468,7 @@ public sealed class SpecializedTasksTests
 
         var fault = ExceptionUtilities.Unreachable();
         var cancellationToken = cts.Token;
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromException<IntermediateType>(fault));
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => Task.FromException<IntermediateType>(fault);
         Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
         {
             executedTransform = true;
@@ -521,7 +521,7 @@ public sealed class SpecializedTasksTests
     public void Transform_SyncCompletedFunction_FaultedTransform()
     {
         var fault = ExceptionUtilities.Unreachable();
-        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(new IntermediateType());
+        Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) => new IntermediateType();
         Func<IntermediateType, StateType, ResultType> transform = (_, _) => throw fault;
         var arg = new StateType();
         var cancellationToken = new CancellationToken(canceled: false);

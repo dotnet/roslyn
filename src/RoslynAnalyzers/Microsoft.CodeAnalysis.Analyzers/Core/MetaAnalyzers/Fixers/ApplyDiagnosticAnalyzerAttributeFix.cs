@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             context.RegisterCodeFix(fix, context.Diagnostics);
         }
 
-        private Task<Document> GetFixAsync(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
+        private async Task<Document> GetFixAsync(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
         {
             var languageNamesFullName = typeof(LanguageNames).FullName;
             var arguments = new SyntaxNode[languages.Length];
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var attribute = generator.Attribute(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute, arguments);
             var newClassDecl = generator.AddAttributes(classDecl, attribute);
             var newRoot = root.ReplaceNode(classDecl, newClassDecl);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()

@@ -58,11 +58,11 @@ namespace Roslyn.Diagnostics.Analyzers
         private static bool TryGetDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? declaration)
             => (declaration = node.FirstAncestorOrSelf<TTypeSyntax>()) is not null;
 
-        private static Task<Document> AddSharedAttributeAsync(Document document, SyntaxNode root, SyntaxNode declaration)
+        private static async Task<Document> AddSharedAttributeAsync(Document document, SyntaxNode root, SyntaxNode declaration)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(typeof(SharedAttribute).FullName));
-            return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration)));
+            return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
     }
 }

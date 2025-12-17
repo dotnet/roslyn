@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 internal static partial class TextDocumentExtensions
 {
 #if !WORKSPACE
-    public static ValueTask<SourceText> GetValueTextAsync(this TextDocument document, CancellationToken cancellationToken)
+    public static async ValueTask<SourceText> GetValueTextAsync(this TextDocument document, CancellationToken cancellationToken)
     {
         if (document.TryGetText(out var text))
-            return ValueTask.FromResult(text);
+            return text;
 
-        return new ValueTask<SourceText>(document.GetTextAsync(cancellationToken));
+        return document.GetTextAsync(cancellationToken);
     }
 #endif
 

@@ -21,6 +21,6 @@ internal sealed class DefaultNavigateToLinkService : INavigateToLinkService
     {
     }
 
-    public Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
-        => SpecializedTasks.False;
+    public async Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+        => false;
 }

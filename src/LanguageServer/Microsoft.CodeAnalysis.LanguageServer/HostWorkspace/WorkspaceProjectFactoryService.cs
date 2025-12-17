@@ -65,10 +65,10 @@ internal sealed class WorkspaceProjectFactoryService(
         }
     }
 
-    public Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
+    public async Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
     {
         // TODO: implement
-        return Task.FromResult((IReadOnlyCollection<string>)[]);
+        return (IReadOnlyCollection<string>)[];
     }
 }
 #pragma warning restore RS0030 // Do not used banned APIs

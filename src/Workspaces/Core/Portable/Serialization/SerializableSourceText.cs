@@ -115,18 +115,18 @@ internal sealed class SerializableSourceText
         return text;
     }
 
-    public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
+    public static async ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
         TextDocumentState state, CancellationToken cancellationToken)
     {
         if (state.TextAndVersionSource.TextLoader is SerializableSourceTextLoader serializableLoader)
         {
             // If we're already pointing at a serializable loader, we can just use that directly.
-            return new(serializableLoader.SerializableSourceText);
+            return serializableLoader.SerializableSourceText;
         }
         else if (state.StorageHandle is TemporaryStorageTextHandle storageHandle)
         {
             // Otherwise, if we're pointing at a memory mapped storage location, we can create the source text that directly wraps that.
-            return new(new SerializableSourceText(storageHandle));
+            return new SerializableSourceText(storageHandle);
         }
         else
         {
@@ -134,11 +134,11 @@ internal sealed class SerializableSourceText
             // information on how it got it.  In that case, we create a new text instance to represent the serializable
             // source text out of.
 
-            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+            return await SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
                 static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
                 static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
                 state,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
     }
 

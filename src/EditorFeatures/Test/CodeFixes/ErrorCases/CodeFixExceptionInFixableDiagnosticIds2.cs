@@ -14,6 +14,6 @@ public class ExceptionInFixableDiagnosticIds2 : CodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-        => Task.FromResult(true);
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        => true;
 }

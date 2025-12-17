@@ -32,7 +32,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -72,8 +72,6 @@ namespace Roslyn.Diagnostics.Analyzers
                         equivalenceKey: scenario),
                     diagnostic);
             }
-
-            return Task.CompletedTask;
         }
 
         private static async Task<Document> AddExplicitImportingConstructorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)

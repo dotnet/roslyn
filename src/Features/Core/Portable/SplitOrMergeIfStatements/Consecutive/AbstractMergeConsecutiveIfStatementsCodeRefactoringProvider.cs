@@ -52,7 +52,7 @@ internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvi
         return CodeAction.Create(title, createChangedDocument, title);
     }
 
-    protected sealed override Task<bool> CanBeMergedUpAsync(
+    protected sealed override async Task<bool> CanBeMergedUpAsync(
         Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode firstIfOrElseIf)
     {
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -60,12 +60,12 @@ internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvi
         var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
         if (CanBeMergedWithParent(syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, out firstIfOrElseIf))
-            return SpecializedTasks.True;
+            return true;
 
-        return CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, cancellationToken, out firstIfOrElseIf);
+        return await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, cancellationToken, out firstIfOrElseIf).ConfigureAwait(false);
     }
 
-    protected sealed override Task<bool> CanBeMergedDownAsync(
+    protected sealed override async Task<bool> CanBeMergedDownAsync(
         Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode secondIfOrElseIf)
     {
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -73,9 +73,9 @@ internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvi
         var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
         if (CanBeMergedWithElseIf(syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, out secondIfOrElseIf))
-            return SpecializedTasks.True;
+            return true;
 
-        return CanBeMergedWithNextStatementAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, cancellationToken, out secondIfOrElseIf);
+        return await CanBeMergedWithNextStatementAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, cancellationToken, out secondIfOrElseIf).ConfigureAwait(false);
     }
 
     protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode firstIfOrElseIf, SyntaxNode secondIfOrElseIf)

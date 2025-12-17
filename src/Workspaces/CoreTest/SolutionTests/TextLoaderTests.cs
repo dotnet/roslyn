@@ -19,33 +19,33 @@ public sealed class TextLoaderTests
 
     private class LoaderNoOverride2 : TextLoader
     {
-        public new virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult((TextAndVersion?)null!);
+        public new virtual async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => (TextAndVersion?)null!;
     }
 
     private class LoaderNoOverrideBase : TextLoader
     {
         // newslot
-        public new virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult((TextAndVersion?)null!);
+        public new virtual async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => (TextAndVersion?)null!;
 
         // newslot
-        public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId)
-            => Task.FromResult((TextAndVersion?)null!);
+        public virtual async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId)
+            => (TextAndVersion?)null!;
 
         // newslot
-        public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, ref DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult((TextAndVersion?)null!);
+        public virtual async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, ref DocumentId? documentId, CancellationToken cancellationToken)
+            => (TextAndVersion?)null!;
 
         // newslot
-        public virtual Task<TextAndVersion> LoadTextAndVersionAsync<T>(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult((TextAndVersion?)null!);
+        public virtual async Task<TextAndVersion> LoadTextAndVersionAsync<T>(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => (TextAndVersion?)null!;
     }
 
     private sealed class LoaderNoOverride3 : LoaderNoOverrideBase
     {
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult((TextAndVersion?)null!);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => (TextAndVersion?)null!;
     }
 
     private sealed class LoaderNoOverride4 : LoaderNoOverrideBase
@@ -56,14 +56,14 @@ public sealed class TextLoaderTests
 
     private sealed class LoaderNoOverride5 : LoaderNoOverrideBase
     {
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, ref DocumentId? documentId, CancellationToken cancellationToken)
-           => Task.FromResult((TextAndVersion?)null!);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, ref DocumentId? documentId, CancellationToken cancellationToken)
+           => (TextAndVersion?)null!;
     }
 
     private sealed class LoaderNoOverride6 : LoaderNoOverrideBase
     {
-        public override Task<TextAndVersion> LoadTextAndVersionAsync<T>(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult((TextAndVersion?)null!);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync<T>(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => (TextAndVersion?)null!;
     }
 
     public static IEnumerable<object[]> GetNoOverideLoaders()
@@ -82,8 +82,8 @@ public sealed class TextLoaderTests
         public static readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
         [Obsolete]
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult(Value);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => Value;
     }
 
     private sealed class LoaderOverridesObsolete2 : LoaderOverridesObsolete
@@ -91,16 +91,16 @@ public sealed class TextLoaderTests
         public static new readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
         [Obsolete]
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => Task.FromResult(Value);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => Value;
     }
 
     private sealed class LoaderOverridesNew : TextLoader
     {
         public static readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => Task.FromResult(Value);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => Value;
     }
 
     [Theory, Obsolete]

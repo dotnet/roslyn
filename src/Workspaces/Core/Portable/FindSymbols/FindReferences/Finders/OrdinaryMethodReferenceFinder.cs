@@ -20,7 +20,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
                                 MethodKind.ReducedExtension or
                                 MethodKind.LocalFunction;
 
-    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IMethodSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -29,7 +29,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         // If it's a delegate method, then cascade to the type as well.  These guys are
         // practically equivalent for users.
         if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
-            return new([symbol.ContainingType]);
+            return [symbol.ContainingType];
 
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
@@ -40,7 +40,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
 
         CascadeFromExtensionImplementation(symbol, result);
 
-        return new(result.ToImmutableAndClear());
+        return result.ToImmutableAndClear();
     }
 
     private static void CascadeFromExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)

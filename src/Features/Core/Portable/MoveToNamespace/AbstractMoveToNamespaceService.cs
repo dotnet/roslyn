@@ -167,20 +167,20 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     private static bool ContainsMultipleTypesInSpine(SyntaxNode node)
         => node.AncestorsAndSelf().OfType<TNamedTypeDeclarationSyntax>().Count() > 1;
 
-    public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
+    public async Task<MoveToNamespaceResult> MoveToNamespaceAsync(
         MoveToNamespaceAnalysisResult analysisResult,
         string targetNamespace,
         CancellationToken cancellationToken)
     {
         if (!analysisResult.CanPerform)
-            return Task.FromResult(MoveToNamespaceResult.Failed);
+            return MoveToNamespaceResult.Failed;
 
-        return analysisResult.Container switch
+        return await (analysisResult.Container switch
         {
             MoveToNamespaceAnalysisResult.ContainerType.Namespace => MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
             MoveToNamespaceAnalysisResult.ContainerType.NamedType => MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
             _ => throw new InvalidOperationException(),
-        };
+        }).ConfigureAwait(false);
     }
 
     private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)

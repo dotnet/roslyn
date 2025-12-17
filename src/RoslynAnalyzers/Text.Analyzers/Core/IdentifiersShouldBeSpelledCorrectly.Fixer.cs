@@ -21,11 +21,8 @@ namespace Text.Analyzers
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            // Fixer not yet implemented.
-            return Task.CompletedTask;
-
         }
     }
 }

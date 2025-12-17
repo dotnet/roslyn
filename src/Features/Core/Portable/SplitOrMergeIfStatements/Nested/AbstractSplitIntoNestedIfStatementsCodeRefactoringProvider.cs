@@ -37,7 +37,7 @@ internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvid
             createChangedDocument,
             nameof(FeaturesResources.Split_into_nested_0_statements) + "_" + ifKeywordText);
 
-    protected sealed override Task<SyntaxNode> GetChangedRootAsync(
+    protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
         Document document,
         SyntaxNode root,
         SyntaxNode ifOrElseIf,
@@ -53,7 +53,6 @@ internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvid
         var innerIfStatement = ifGenerator.WithCondition(ifGenerator.ToIfStatement(ifOrElseIf), rightCondition);
         var outerIfOrElseIf = ifGenerator.WithCondition(ifGenerator.WithStatementInBlock(ifOrElseIf, innerIfStatement), leftCondition);
 
-        return Task.FromResult(
-            root.ReplaceNode(ifOrElseIf, outerIfOrElseIf.WithAdditionalAnnotations(Formatter.Annotation)));
+        return root.ReplaceNode(ifOrElseIf, outerIfOrElseIf.WithAdditionalAnnotations(Formatter.Annotation));
     }
 }

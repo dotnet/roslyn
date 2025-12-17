@@ -24,7 +24,7 @@ internal abstract partial class TextDocumentState
     public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
         return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+            static async (lazyChecksums, cancellationToken) => lazyChecksums.GetValueAsync(cancellationToken),
             static (documentStateChecksums, _) => documentStateChecksums.Checksum,
             _lazyChecksums,
             cancellationToken).AsTask();

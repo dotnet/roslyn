@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         public override FixAllProvider GetFixAllProvider()
             => new ReleaseTrackingFixAllProvider();
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -98,15 +98,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     context.RegisterCodeFix(codeAction, diagnostic);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
-        private static Task<Solution> AddAnalyzerReleaseTrackingFilesAsync(Project project)
+        private static async Task<Solution> AddAnalyzerReleaseTrackingFilesAsync(Project project)
         {
             project = AddAdditionalDocument(project, ReleaseTrackingHelper.ShippedFileName, ShippedAnalyzerReleaseTrackingFileDefaultContent);
             project = AddAdditionalDocument(project, ReleaseTrackingHelper.UnshippedFileName, UnshippedAnalyzerReleaseTrackingFileDefaultContent);
-            return Task.FromResult(project.Solution);
+            return project.Solution;
 
             // Local functions.
             static Project AddAdditionalDocument(Project project, string name, string fileContent)

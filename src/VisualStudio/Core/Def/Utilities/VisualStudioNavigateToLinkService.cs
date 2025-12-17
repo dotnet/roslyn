@@ -23,20 +23,20 @@ internal sealed class VisualStudioNavigateToLinkService : INavigateToLinkService
     {
     }
 
-    public Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+    public async Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
     {
         if (!uri.IsAbsoluteUri)
         {
-            return SpecializedTasks.False;
+            return false;
         }
 
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
         {
-            return SpecializedTasks.False;
+            return false;
         }
 
         StartBrowser(uri);
-        return SpecializedTasks.True;
+        return true;
     }
 
     public static void StartBrowser(string uri)

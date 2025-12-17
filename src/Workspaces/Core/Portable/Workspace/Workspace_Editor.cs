@@ -352,10 +352,9 @@ public abstract partial class Workspace
     protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
 
-    internal virtual ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
+    internal virtual async ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
     {
         OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
-        return ValueTask.CompletedTask;
     }
 
     internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
