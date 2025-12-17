@@ -2057,7 +2057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property FeatureStrictEnabled As Boolean
             Get
-                Return Me.Feature("strict") IsNot Nothing
+                Return Me.Feature(CodeAnalysis.Feature.Strict) IsNot Nothing
             End Get
         End Property
 

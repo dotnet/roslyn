@@ -3263,7 +3263,7 @@ public " + keyword + @" Test2(
     int M1() => P1;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             var test1 = comp.GetTypeByMetadataName("Test1");
             var ctor = test1.InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
 
@@ -6965,7 +6965,7 @@ public class Derived(int X) : Base(X);
 class Attr : System.Attribute {}
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -6991,7 +6991,7 @@ public class Derived() : Base(M(out var y))
 class Attr : System.Attribute {}
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

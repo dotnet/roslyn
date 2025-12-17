@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,9 +23,11 @@ internal sealed class TypeDeclarationStructureProvider : AbstractSyntaxNodeStruc
         if (!typeDeclaration.OpenBraceToken.IsMissing &&
             !typeDeclaration.CloseBraceToken.IsMissing)
         {
-            var lastToken = typeDeclaration.TypeParameterList == null
-                ? typeDeclaration.Identifier
-                : typeDeclaration.TypeParameterList.GetLastToken(includeZeroWidth: true);
+            var lastToken = typeDeclaration.TypeParameterList != null
+                ? typeDeclaration.TypeParameterList.GetLastToken(includeZeroWidth: true)
+                : typeDeclaration is ExtensionBlockDeclarationSyntax extensionBlock
+                    ? extensionBlock.Keyword
+                    : typeDeclaration.Identifier;
 
             SyntaxNodeOrToken current = typeDeclaration;
             var nextSibling = current.GetNextSibling();
