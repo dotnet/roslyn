@@ -5,9 +5,17 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.GoToDefinition;
+#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition;
+#endif
 
 internal interface IFSharpFindDefinitionService
 {

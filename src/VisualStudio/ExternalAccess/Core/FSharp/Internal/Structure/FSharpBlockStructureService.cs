@@ -8,11 +8,19 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Structure;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Structure;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Structure;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure;
+#endif
 
 [Shared]
 [ExportLanguageService(typeof(BlockStructureService), LanguageNames.FSharp)]

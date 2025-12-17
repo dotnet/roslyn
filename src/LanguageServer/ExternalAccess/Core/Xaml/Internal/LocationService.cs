@@ -16,13 +16,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
+#pragma warning disable RS0030 // Do not use banned APIs
 [Export(typeof(ILocationService))]
+#pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class LocationService : ILocationService
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IGlobalOptionService _globalOptions;
 
+#pragma warning disable RS0030 // Do not use banned APIs
     [ImportingConstructor]
+#pragma warning restore RS0030 // Do not use banned APIs
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LocationService(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
     {

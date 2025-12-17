@@ -7,6 +7,8 @@
     <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
+    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Features</PackageId>

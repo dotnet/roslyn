@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighlighting;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.DocumentHighlighting;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.DocumentHighlighting;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests;

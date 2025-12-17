@@ -8,7 +8,11 @@ using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+#endif
 
 internal static class FSharpCommonCompletionUtilities
 {

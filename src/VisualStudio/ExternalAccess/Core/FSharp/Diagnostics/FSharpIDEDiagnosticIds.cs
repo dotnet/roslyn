@@ -6,7 +6,11 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Diagnostics;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
+#endif
 
 internal static class FSharpIDEDiagnosticIds
 {

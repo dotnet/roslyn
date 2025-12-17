@@ -4,11 +4,19 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.Api;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator;
+#endif
 
 [Export(typeof(IEditorConfigGenerator)), Shared]
 [method: ImportingConstructor]
