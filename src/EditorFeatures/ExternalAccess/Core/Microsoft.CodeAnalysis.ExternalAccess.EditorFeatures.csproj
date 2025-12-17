@@ -3,16 +3,15 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Debugger</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Debugger</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</PackageId>
     <PackageDescription>
-      A supporting package for the Visual Studio debugger:
-      https://devdiv.visualstudio.com/DevDiv/_git/VS?path=%2Fsrc%2Fdebugger%2FRazor
+      A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
   </PropertyGroup>
 
@@ -30,10 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\Debugger\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
