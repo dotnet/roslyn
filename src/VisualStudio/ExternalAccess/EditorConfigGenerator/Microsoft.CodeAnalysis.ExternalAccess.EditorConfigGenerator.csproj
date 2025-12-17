@@ -22,4 +22,8 @@
     <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Core\EditorConfigGenerator\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>
