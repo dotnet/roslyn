@@ -227,12 +227,11 @@ internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeE
             new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText));
     }
 
-    public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+    public override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
     {
         if (!item.TryGetProperty(DescriptionKey, out var description))
-            return SpecializedTasks.Null<CompletionDescription>();
+            return null;
 
-        return Task.FromResult((CompletionDescription?)CompletionDescription.Create(
-            [new TaggedText(TextTags.Text, description)]));
+        return CompletionDescription.Create([new TaggedText(TextTags.Text, description)]);
     }
 }
