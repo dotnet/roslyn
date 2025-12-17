@@ -23,8 +23,8 @@ internal sealed partial class ProjectState
 
     public async ValueTask<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
-        var checksums = await this.LazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        return checksums.Checksum;
+        var projectStateChecksums = await this.LazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return projectStateChecksums.Checksum;
     }
 
     public Checksum GetParseOptionsChecksum()
