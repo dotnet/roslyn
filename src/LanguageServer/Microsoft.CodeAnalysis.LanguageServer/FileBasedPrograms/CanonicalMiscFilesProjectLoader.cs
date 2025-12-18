@@ -278,6 +278,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
 
     protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
+        // Nothing special to do on unload for canonical project
     }
 
     protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
