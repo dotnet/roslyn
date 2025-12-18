@@ -37,7 +37,7 @@ internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvid
             createChangedDocument,
             nameof(FeaturesResources.Split_into_nested_0_statements) + "_" + ifKeywordText);
 
-    protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
+    protected sealed override async ValueTask<SyntaxNode> GetChangedRootAsync(
         Document document,
         SyntaxNode root,
         SyntaxNode ifOrElseIf,
