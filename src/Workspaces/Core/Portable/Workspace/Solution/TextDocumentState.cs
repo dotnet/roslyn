@@ -100,15 +100,10 @@ internal abstract partial class TextDocumentState
     public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         if (TryGetText(out var text))
-        {
             return text;
-        }
 
-        return await SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
-            static (textAndVersion, _) => textAndVersion.Text,
-            this,
-            cancellationToken).ConfigureAwait(false);
+        var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+        return textAndVersion.Text;
     }
 
     public SourceText GetTextSynchronously(CancellationToken cancellationToken)

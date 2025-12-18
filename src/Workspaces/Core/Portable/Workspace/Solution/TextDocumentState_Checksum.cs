@@ -21,13 +21,10 @@ internal abstract partial class TextDocumentState
     public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
         => _lazyChecksums.GetValueAsync(cancellationToken);
 
-    public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+    public async ValueTask<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
-        return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (lazyChecksums, cancellationToken) => lazyChecksums.GetValueAsync(cancellationToken),
-            static (documentStateChecksums, _) => documentStateChecksums.Checksum,
-            _lazyChecksums,
-            cancellationToken).AsTask();
+        var documentStateChecksums = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return documentStateChecksums.Checksum;
     }
 
     private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)

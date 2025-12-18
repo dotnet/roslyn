@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using Xunit;
 
-#pragma warning disable IDE0039 // Use local function
-
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [SuppressMessage("Usage", "VSTHRD104:Offer async methods", Justification = "This class tests specific behavior of tasks.")]
@@ -69,6 +67,7 @@ public sealed class SpecializedTasksTests
         Debug.Assert(whenAll.IsCompleted);
         Assert.Equal((int[])[0], whenAll.Result);
     }
+<<<<<<< HEAD
 
     [Fact]
     public void Transform_ArgumentValidation()
@@ -554,4 +553,6 @@ public sealed class SpecializedTasksTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => task.AsTask());
         Assert.Same(fault, exception);
     }
+=======
+>>>>>>> origin/taskHelper
 }

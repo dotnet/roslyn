@@ -133,12 +133,8 @@ internal sealed class SerializableSourceText
             // Otherwise, the state object has reified the text into some other form, and dumped any original
             // information on how it got it.  In that case, we create a new text instance to represent the serializable
             // source text out of.
-
-            return await SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
-                static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
-                state,
-                cancellationToken).ConfigureAwait(false);
+            var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return new SerializableSourceText(text, text.GetContentHash());
         }
     }
 
