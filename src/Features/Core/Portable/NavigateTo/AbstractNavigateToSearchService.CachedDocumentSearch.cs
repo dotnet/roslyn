@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
@@ -157,7 +156,7 @@ internal abstract partial class AbstractNavigateToSearchService
         }
     }
 
-    private static async Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(
+    private static async ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(
         IChecksummedPersistentStorageService storageService,
         DocumentKey documentKey,
         CancellationToken cancellationToken)
