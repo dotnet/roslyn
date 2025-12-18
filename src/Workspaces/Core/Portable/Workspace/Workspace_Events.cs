@@ -93,13 +93,13 @@ public abstract partial class Workspace
 
     #endregion
 
-    protected async Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
+    protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
     {
         if (newSolution == null)
             throw new ArgumentNullException(nameof(newSolution));
 
         if (oldSolution == newSolution)
-            return;
+            return Task.CompletedTask;
 
         if (projectId == null && documentId != null)
             projectId = documentId.ProjectId;
@@ -117,8 +117,10 @@ public abstract partial class Workspace
         if (handlerSet.HasHandlers)
         {
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            await ScheduleTask(args, handlerSet).ConfigureAwait(false);
+            return this.ScheduleTask(args, handlerSet);
         }
+
+        return Task.CompletedTask;
     }
 
     protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
@@ -159,10 +161,10 @@ public abstract partial class Workspace
     protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         => throw new NotImplementedException();
 
-    protected async Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
+    protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
     {
         if (sourceTextContainer == null || oldActiveContextDocumentId == null || newActiveContextDocumentId == null)
-            return;
+            return Task.CompletedTask;
 
         var handlerSet = GetEventHandlers(WorkspaceEventType.DocumentActiveContextChanged);
         if (handlerSet.HasHandlers)
@@ -171,8 +173,10 @@ public abstract partial class Workspace
             var currentSolution = this.CurrentSolution;
             var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
 
-            await ScheduleTask(args, handlerSet).ConfigureAwait(false);
+            return ScheduleTask(args, handlerSet);
         }
+
+        return Task.CompletedTask;
     }
 
     private EventHandlerSet GetEventHandlers(WorkspaceEventType eventType)
