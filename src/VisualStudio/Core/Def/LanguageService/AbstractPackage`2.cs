@@ -42,21 +42,18 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
-    }
-
-    private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
-    {
-        // We still need to ensure the RoslynPackage is loaded, since it's OnAfterPackageLoaded will hook up event handlers in RoslynPackage.LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync.
-        // Once that method has been replaced, then this package load can be removed.
-        var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
-        Assumes.Present(shell);
-        await shell.LoadPackageAsync(Guids.RoslynPackageId);
     }
 
     private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
+        // We still need to ensure the RoslynPackage is loaded, since it's OnAfterPackageLoaded will hook up event handlers in RoslynPackage.LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync.
+        // Once that method has been replaced, then this package load can be removed.
+        //
+        // Rather than triggering a package load via IVsShell (which requires a transition to the UI thread), we request an async service that is free-threaded;
+        // this let's us stay on the background and goes through the full background package load path.
+        _ = await GetServiceAsync<RoslynPackageLoadService, RoslynPackageLoadService>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
+
         AddService(typeof(TLanguageService), async (_, cancellationToken, _) =>
             {
                 // Ensure we're on the BG when creating the language service.

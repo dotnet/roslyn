@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup;
 [Guid(Guids.RoslynPackageIdString)]
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
+[ProvideService(typeof(RoslynPackageLoadService), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = true)]
 internal sealed class RoslynPackage : AbstractPackage
 {
     private static RoslynPackage? s_lazyInstance;
@@ -72,6 +73,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
+            AddService(typeof(RoslynPackageLoadService), (_, _, _) => Task.FromResult((object?)new RoslynPackageLoadService()), promote: true);
+
             await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
             await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
