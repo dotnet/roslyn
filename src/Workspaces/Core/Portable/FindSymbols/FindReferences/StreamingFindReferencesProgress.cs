@@ -42,8 +42,6 @@ internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindRef
         {
             foreach (var symbol in group.Symbols)
                 _progress.OnDefinitionFound(symbol);
-
-            return;
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
         {
