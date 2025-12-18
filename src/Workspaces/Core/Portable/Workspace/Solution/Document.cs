@@ -176,7 +176,7 @@ public class Document : TextDocument
         // if we have a cached result task use it
         if (_syntaxTreeResultTask != null)
         {
-            return await _syntaxTreeResultTask.AsNullable().ConfigureAwait(false);
+            return await _syntaxTreeResultTask.ConfigureAwait(false);
         }
 
         // check to see if we already have the tree before actually going async
@@ -185,13 +185,13 @@ public class Document : TextDocument
             // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
             // don't use the actual async task because it depends on a specific cancellation token
             // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
-            Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
+            _ = Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-            return await _syntaxTreeResultTask.AsNullable().ConfigureAwait(false);
+            return await _syntaxTreeResultTask.ConfigureAwait(false);
         }
 
         // do it async for real.
-        return await DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable().ConfigureAwait(false);
+        return await DocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
