@@ -153,14 +153,14 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
         }
     }
 
-    public async Task ExpeditedWaitAsync()
+    public Task ExpeditedWaitAsync()
     {
         using (_gate.DisposableWait(CancellationToken.None))
         {
             if (_counter == 0)
             {
                 // There is nothing to wait for, so we are immediately done
-                return;
+                return Task.CompletedTask;
             }
             else
             {
@@ -174,7 +174,7 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
                 var source = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _pendingTasks.Add(source);
 
-                await source.Task.ConfigureAwait(false);
+                return source.Task;
             }
         }
     }
