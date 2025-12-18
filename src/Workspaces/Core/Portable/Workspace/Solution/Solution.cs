@@ -256,7 +256,7 @@ public partial class Solution
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
         {
-            return default;
+            return null;
         }
 
         Contract.ThrowIfNull(documentId);
@@ -271,7 +271,7 @@ public partial class Solution
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
         {
-            return default;
+            return null;
         }
 
         Contract.ThrowIfNull(documentId);

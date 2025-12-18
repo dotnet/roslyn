@@ -34,7 +34,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
         context.UpdateTrackedDocument(request.TextDocument.DocumentUri, text, request.TextDocument.Version);
 
-        return default(object);
+        return null;
     }
 
     internal static bool AreChangesInReverseOrder(TextDocumentContentChangeEvent[] contentChanges)

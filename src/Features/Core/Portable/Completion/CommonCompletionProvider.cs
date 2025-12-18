@@ -118,7 +118,7 @@ internal abstract class CommonCompletionProvider : CompletionProvider
         => GetTextChangeAsync(selectedItem, ch, cancellationToken);
 
     protected virtual async Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        => default(TextChange?);
+        => null;
 
     protected static CompletionItem CreateSuggestionModeItem(string? displayText, string? description)
     {

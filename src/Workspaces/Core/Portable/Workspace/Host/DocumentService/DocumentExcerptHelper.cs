@@ -34,7 +34,7 @@ internal static class DocumentExcerptHelper
         var excerptService = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
         if (excerptService == null)
         {
-            return default(ExcerptResult?);
+            return null;
         }
 
         return await excerptService.TryExcerptAsync(document, span, mode, classificationOptions, cancellationToken).ConfigureAwait(false);
