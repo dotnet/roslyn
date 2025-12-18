@@ -3035,7 +3035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
-        public void FunctionPointerReturnType_StillRejected()
+        public void FunctionPointerReturnType_Allowed()
         {
             var source = """
                 unsafe class Test
@@ -3049,10 +3049,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // (7,19): error CS8978: 'delegate*<int, void>' cannot be made nullable.
-                //         var f = t?.FPtr;
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".FPtr").WithArguments("delegate*<int, void>").WithLocation(7, 19));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void FunctionPointerReturnType_WithReturn()
+        {
+            var source = """
+                unsafe class Test
+                {
+                    public delegate*<int, string> FPtr = null;
+
+                    static void M(Test t)
+                    {
+                        delegate*<int, string> f = t?.FPtr;
+                        var g = t?.FPtr;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void FunctionPointerReturnType_MultipleParameters()
+        {
+            var source = """
+                unsafe class Test
+                {
+                    public delegate*<int, string, void> FPtr = null;
+
+                    static void M(Test t)
+                    {
+                        var f = t?.FPtr;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
