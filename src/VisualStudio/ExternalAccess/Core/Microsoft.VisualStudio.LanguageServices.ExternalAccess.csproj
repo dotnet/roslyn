@@ -7,7 +7,7 @@
     <TargetFrameworks>net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
 
-    <Define>Unified_ExternalAccess</Define>
+    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
