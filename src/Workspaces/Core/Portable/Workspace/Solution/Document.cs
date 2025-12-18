@@ -165,18 +165,18 @@ public class Document : TextDocument
     /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
     /// to occur at that point.
     /// </returns>
-    public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
+    public async Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
     {
         // If the language doesn't support getting syntax trees for a document, then bail out immediately.
         if (!this.SupportsSyntaxTree)
         {
-            return SpecializedTasks.Null<SyntaxTree>();
+            return null;
         }
 
         // if we have a cached result task use it
         if (_syntaxTreeResultTask != null)
         {
-            return _syntaxTreeResultTask.AsNullable();
+            return await _syntaxTreeResultTask.AsNullable().ConfigureAwait(false);
         }
 
         // check to see if we already have the tree before actually going async
@@ -187,11 +187,11 @@ public class Document : TextDocument
             // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
             Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-            return _syntaxTreeResultTask.AsNullable();
+            return await _syntaxTreeResultTask.AsNullable().ConfigureAwait(false);
         }
 
         // do it async for real.
-        return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable();
+        return await DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable().ConfigureAwait(false);
     }
 
     internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
