@@ -173,7 +173,7 @@ public abstract partial class Workspace
             var currentSolution = this.CurrentSolution;
             var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
 
-            return ScheduleTask(args, handlerSet);
+            return this.ScheduleTask(args, handlerSet);
         }
 
         return Task.CompletedTask;
