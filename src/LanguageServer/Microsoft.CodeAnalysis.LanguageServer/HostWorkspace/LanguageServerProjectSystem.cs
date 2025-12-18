@@ -104,6 +104,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
     protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
+        // Nothing else to unload for ordinary projects.
     }
 
     protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
