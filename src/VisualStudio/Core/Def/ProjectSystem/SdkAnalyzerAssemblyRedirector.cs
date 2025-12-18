@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SdkAnalyzerAssemblyRedirector(SVsServiceProvider serviceProvider) : SdkAnalyzerAssemblyRedirectorCore(
     Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet")),
-    serviceProvider.GetServiceOnMainThread<SVsActivityLog, IVsActivityLog>());
+    (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
 
 /// <summary>
 /// Core functionality of <see cref="SdkAnalyzerAssemblyRedirector"/> extracted for testing.
