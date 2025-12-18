@@ -7228,6 +7228,7 @@ class Program
 #line 300
         var s = new S1(x);
         _ = s switch { int => 1, string => 2, bool => 3 };
+        x.ToString();
     } 
 
     static void Test4(bool x)
@@ -7242,6 +7243,7 @@ class Program
 #line 500
         var s = new S1(x);
         _ = s switch { int => 1, string => 2, bool => 3 };
+        x.Value.ToString();
     } 
 }
 ";
@@ -7349,6 +7351,7 @@ class Program
 #line 300
         S1 s = x;
         _ = s switch { int => 1, string => 2, bool => 3 };
+        x.ToString();
     } 
 
     static void Test4(bool x)
@@ -7363,6 +7366,7 @@ class Program
 #line 500
         S1 s = x;
         _ = s switch { int => 1, string => 2, bool => 3 };
+        x.Value.ToString();
     } 
 }
 ";
@@ -7470,6 +7474,7 @@ class Program
 #line 300
         (S1, int) s = (x, 1);
         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.ToString();
     } 
 
     static void Test4(bool x)
@@ -7484,6 +7489,7 @@ class Program
 #line 500
         (S1, int) s = (x, 1);
         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.Value.ToString();
     } 
 }
 ";
@@ -7714,6 +7720,7 @@ class Program
 #line 300
         S1 s = (S1)x;
         _ = s switch { int => 1, string => 2, bool => 3 };
+        x.ToString();
     } 
 
     static void Test4(bool x)
@@ -7728,6 +7735,7 @@ class Program
 #line 500
         S1 s = (S1)x;
         _ = s switch { int => 1, string => 2, bool => 3 };
+        x.Value.ToString();
     } 
 }
 ";
@@ -7835,6 +7843,7 @@ class Program
 #line 300
         (S1, int) s = ((S1, int))(x, 1.0);
         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.ToString();
     } 
 
     static void Test4(bool x)
@@ -7849,6 +7858,7 @@ class Program
 #line 500
         (S1, int) s = ((S1, int))(x, 1.0);
         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
+        x.Value.ToString();
     } 
 }
 ";
@@ -8674,6 +8684,170 @@ class Program
                 // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { { Value: {} } => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_28_ValuePropertyOfTheInterfaceIsTargetedToImplementPatternMatching()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public string? OtherProp => throw null!;
+}
+
+public interface I1
+{
+    object? Value { get; }
+}
+
+struct S2 : I1
+{
+    public S2(int x) => throw null!;
+    public S2(bool? x) => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
+    object? I1.Value => throw null!;
+    public string? OtherProp => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+#line 200
+         _ = s switch { bool => s.OtherProp.ToString(), _ => """" };
+    } 
+
+    static void Test3(S2 s)
+    {
+#line 300
+         _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => """" };
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, MemberNotNullAttributeDefinition]);
+
+            // From spec: The Value property of the interface is targeted by the compiler to implement pattern matching
+            comp.VerifyDiagnostics(
+                // (200,33): warning CS8602: Dereference of a possibly null reference.
+                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33),
+                // (300,25): hidden CS9335: The pattern is redundant.
+                //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(300, 25),
+                // (300,51): warning CS8602: Dereference of a possibly null reference.
+                //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(300, 51)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_29_Conversion_Value_Check([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(string x) => throw null!;
+    public S1(bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(string? x)
+    {
+#line 100
+        S1 s = x;
+        x.ToString();
+    } 
+
+    static void Test2(string? x)
+    {
+#line 200
+        var s = new S1(x);
+        x.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,16): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(string x)'.
+                //         S1 s = x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "S1.S1(string x)").WithLocation(100, 16),
+                // (200,24): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(string x)'.
+                //         var s = new S1(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "S1.S1(string x)").WithLocation(200, 24)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_30_Conversion_Value_Check([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+#nullable enable
+
+" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1([System.Diagnostics.CodeAnalysis.DisallowNull] string? x) => throw null!;
+    public S1([System.Diagnostics.CodeAnalysis.DisallowNull] bool? x) => throw null!;
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(string? x)
+    {
+#line 100
+        S1 s = x;
+        x.ToString();
+    } 
+
+    static void Test2(string? x)
+    {
+#line 200
+        var s = new S1(x);
+        x.ToString();
+    } 
+
+    static void Test3(bool? x)
+    {
+#line 300
+        S1 s = x;
+        x.Value.ToString();
+    } 
+
+    static void Test4(bool? x)
+    {
+#line 400
+        var s = new S1(x);
+        x.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, IUnionSource, DisallowNullAttributeDefinition]);
+            comp.VerifyDiagnostics(
+                // (100,16): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(string? x)'.
+                //         S1 s = x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "S1.S1(string? x)").WithLocation(100, 16),
+                // (200,24): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(string? x)'.
+                //         var s = new S1(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "S1.S1(string? x)").WithLocation(200, 24),
+                // (300,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
+                //         S1 s = x;
+                Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "x").WithLocation(300, 16),
+                // (400,24): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
+                //         var s = new S1(x);
+                Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "x").WithLocation(400, 24)
                 );
         }
     }

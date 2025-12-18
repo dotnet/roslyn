@@ -10354,7 +10354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
 
             // conversion "from" type -> method parameter type
-            NullableFlowState operandState = operandType.State;
             Location operandLocation = conversionOperand.Syntax.GetLocation();
             _ = ClassifyAndVisitConversion(
                 conversionOperand,
