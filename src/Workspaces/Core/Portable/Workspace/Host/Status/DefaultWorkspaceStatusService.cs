@@ -24,6 +24,7 @@ internal sealed class DefaultWorkspaceStatusService() : IWorkspaceStatusService
 
     public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
     {
+        // by the default, we are always fully loaded
     }
 
     public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
