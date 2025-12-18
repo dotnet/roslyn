@@ -22,11 +22,11 @@ public class ExceptionInGetFixAllProvider : CodeFixProvider
     public sealed override FixAllProvider GetFixAllProvider()
         => throw new Exception($"Exception thrown in GetFixAllProvider of {nameof(ExceptionInGetFixAllProvider)}");
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
-        context.RegisterCodeFix(CodeAction.Create("Do Nothing", async token => context.Document), context.Diagnostics[0]);
+        context.RegisterCodeFix(CodeAction.Create("Do Nothing", token => Task.FromResult(context.Document)), context.Diagnostics[0]);
 #pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
-        return true;
+        return Task.FromResult(true);
     }
 }
