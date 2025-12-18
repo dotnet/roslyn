@@ -567,6 +567,11 @@
         <target state="translated">集合初始值设定项会生成集合 ‘{0}’ 的无限实例化链。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">类型参数“{1}”具有 "unmanaged" 约束，因此“{1}”不能用作“{0}”的约束</target>

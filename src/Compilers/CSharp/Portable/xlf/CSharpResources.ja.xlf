@@ -567,6 +567,11 @@
         <target state="translated">コレクション初期化子は、コレクション '{0}' のインスタンス化の無限チェーンになります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">型パラメーター '{1}' は 'unmanaged' 制約を含むので、'{0}' の制約として '{1}' を使用することはできません</target>

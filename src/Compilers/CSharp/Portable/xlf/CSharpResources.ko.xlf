@@ -567,6 +567,11 @@
         <target state="translated">컬렉션 이니셜라이저를 사용하면 컬렉션 '{0}'의 인스턴스화 체인이 무한해집니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">형식 매개 변수 '{1}'에 'unmanaged' 제약 조건이 있으므로 '{1}'은(는) '{0}'에 대한 제약 조건으로 사용할 수 없습니다.</target>

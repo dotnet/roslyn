@@ -567,6 +567,11 @@
         <target state="translated">Inicializátor kolekce má za následek nekonečný řetězec vytváření instancí kolekce '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Parametr typu {1} má omezení unmanaged, takže není možné používat {1} jako omezení pro {0}.</target>
