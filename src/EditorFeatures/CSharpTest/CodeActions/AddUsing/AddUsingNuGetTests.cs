@@ -384,7 +384,7 @@ public sealed class AddUsingNuGetTests : AbstractAddUsingTests
     }
 
     private static async ValueTask<ImmutableArray<PackageResult>> CreateSearchResult(params PackageResult[] results)
-        => ImmutableArray.Create(results);
+        => [.. results];
 
     private static ImmutableArray<string> CreateNameParts(params string[] parts)
         => [.. parts];
