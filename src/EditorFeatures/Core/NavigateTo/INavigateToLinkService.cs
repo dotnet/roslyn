@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.Editor;
 
 internal interface INavigateToLinkService : IWorkspaceService
 {
-    Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken);
+    ValueTask<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken);
 }

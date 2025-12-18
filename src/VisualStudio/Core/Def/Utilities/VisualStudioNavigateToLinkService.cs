@@ -13,17 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-[ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Host)]
-[Shared]
-internal sealed class VisualStudioNavigateToLinkService : INavigateToLinkService
+[ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Host), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioNavigateToLinkService() : INavigateToLinkService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioNavigateToLinkService()
-    {
-    }
-
-    public async Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+    public async ValueTask<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
     {
         if (!uri.IsAbsoluteUri)
         {
