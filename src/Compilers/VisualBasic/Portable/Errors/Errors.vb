@@ -923,11 +923,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PermissionSetAttributeFileReadError = 31217
         ERR_ExpectedWarningKeyword = 31218
         ERR_InvalidHashAlgorithmName = 31219
+        ERR_StructLayoutAndExtendedLayout = 31220
+        ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 31221
 
         '// NOTE: If you add any new errors that may be attached to a symbol during meta-import when it is marked as bad,
         '//       particularly if it applies to method symbols, please appropriately modify Bindable::ResolveOverloadingShouldSkipBadMember.
         '//       Failure to do so may break customer code.
-        '// AVAILABLE                             31220-31390
+        '// AVAILABLE                             31222-31390
 
         ERR_InvalidSubsystemVersion = 31391
         ERR_LibAnycpu32bitPreferredConflict = 31392

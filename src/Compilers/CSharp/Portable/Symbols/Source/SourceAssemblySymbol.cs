@@ -2724,7 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         handledUnreadFields.Add(field);
                     }
 
-                    if (containingType.HasStructLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
+                    if (containingType.HasStructLayoutAttribute || containingType.HasExtendedLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
                     {
                         continue;
                     }

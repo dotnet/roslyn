@@ -1549,7 +1549,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_ConvertingLock,
                      ERRID.ERR_EmbeddedAttributeMustFollowPattern,
                      ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed,
-                     ERRID.ERR_AttributeCannotBeAppliedManually
+                     ERRID.ERR_AttributeCannotBeAppliedManually,
+                     ERRID.ERR_StructLayoutAndExtendedLayout,
+                     ERRID.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

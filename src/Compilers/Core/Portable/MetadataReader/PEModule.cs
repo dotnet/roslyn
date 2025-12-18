@@ -965,6 +965,10 @@ namespace Microsoft.CodeAnalysis
                         return default(TypeLayout);
 
                     default:
+                        if ((def.Attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExtendedLayout)
+                        {
+                            return new TypeLayout(LayoutKind.Extended, 0, 0);
+                        }
                         // TODO (tomat) report error:
                         return default(TypeLayout);
                 }

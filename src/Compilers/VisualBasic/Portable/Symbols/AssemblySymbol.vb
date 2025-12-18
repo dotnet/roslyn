@@ -413,6 +413,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend ReadOnly Property RuntimeSupportsExtendedLayout As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsExtendedLayout
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor) IsNot Nothing
+            End Get
+        End Property
+
         Private ReadOnly Property RuntimeSupportsByRefLikeGenerics As Boolean
             Get
                 ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefLikeGenerics

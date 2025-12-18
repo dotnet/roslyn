@@ -51,7 +51,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
             Dim knownMissingSpecialTypes As HashSet(Of SpecialType) = New HashSet(Of SpecialType) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
-            Dim knownMissingInternalSpecialTypes As HashSet(Of InternalSpecialType) = New HashSet(Of InternalSpecialType) From {InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers}
+            Dim knownMissingInternalSpecialTypes As HashSet(Of InternalSpecialType) = New HashSet(Of InternalSpecialType) From
+            {
+                InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers,
+                InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind
+            }
 
             For i As Integer = 1 To SpecialType.Count
                 Dim specialType = CType(i, SpecialType)

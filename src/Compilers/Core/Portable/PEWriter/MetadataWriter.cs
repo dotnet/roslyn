@@ -1474,6 +1474,13 @@ namespace Microsoft.Cci
                 case LayoutKind.Explicit:
                     result |= TypeAttributes.ExplicitLayout;
                     break;
+
+                default:
+                    if (typeDef.Layout == LayoutKind.Extended)
+                    {
+                        result |= TypeAttributes.ExtendedLayout;
+                    }
+                    break;
             }
 
             if (typeDef.IsInterface)

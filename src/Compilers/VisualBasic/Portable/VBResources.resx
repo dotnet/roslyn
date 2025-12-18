@@ -5716,4 +5716,10 @@
   <data name="ERR_AttributeCannotBeAppliedManually" xml:space="preserve">
     <value>'{0}' cannot be applied manually.</value>
   </data>
+  <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
+    <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportExtendedLayoutTypes" xml:space="preserve">
+    <value>The target runtime does not support extended layout types.</value>
+  </data>
 </root>
