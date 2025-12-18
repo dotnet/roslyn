@@ -11546,7 +11546,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: As far as the language is concerned, pointers (including function pointers) are not value types.
             // However, due to a historical quirk in the compiler implementation, we do treat them as value types.
             // Since we're checking for value types here, we exclude pointers to avoid wrapping them in Nullable<>.
-            // Pointers can already represent null as the zero value, so Nullable<> wrapping is not needed.
             if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType() && !accessType.IsPointerOrFunctionPointer())
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
