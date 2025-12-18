@@ -23,8 +23,8 @@ internal sealed class TestMethodHandler : IRequestHandler<MockRequest, MockRespo
     public static TypeRef ResponseType = TypeRef.Of<MockResponse>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, LanguageServerConstants.DefaultLanguageName);
 
-    public async Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
-        => new("stuff");
+    public Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult<MockResponse>(new("stuff"));
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
@@ -38,8 +38,8 @@ internal sealed class TestParameterlessMethodHandler : IRequestHandler<MockRespo
     public static TypeRef ResponseTypeRef = TypeRef.Of<MockResponse>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestTypeRef: null, ResponseTypeRef, LanguageServerConstants.DefaultLanguageName);
 
-    public async Task<MockResponse> HandleRequestAsync(TestRequestContext context, CancellationToken cancellationToken)
-        => new MockResponse("true");
+    public Task<MockResponse> HandleRequestAsync(TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult(new MockResponse("true"));
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
@@ -52,8 +52,8 @@ internal sealed class TestNotificationHandler : INotificationHandler<MockRequest
     public static TypeRef RequestTypeRef = TypeRef.Of<MockRequest>();
     public static readonly RequestHandlerMetadata Metadata = new(Name, RequestTypeRef, ResponseTypeRef: null, LanguageServerConstants.DefaultLanguageName);
 
-    public async Task HandleNotificationAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
-        => true;
+    public Task HandleNotificationAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult(true);
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
@@ -65,8 +65,8 @@ internal sealed class TestParameterlessNotificationHandler : INotificationHandle
     public bool MutatesSolutionState => true;
     public static readonly RequestHandlerMetadata Metadata = new(Name, RequestTypeRef: null, ResponseTypeRef: null, LanguageServerConstants.DefaultLanguageName);
 
-    public async Task HandleNotificationAsync(TestRequestContext context, CancellationToken cancellationToken)
-        => true;
+    public Task HandleNotificationAsync(TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult(true);
 }
 
 internal sealed class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequestContext>
@@ -93,9 +93,9 @@ internal sealed class MutatingHandler : IRequestHandler<MockRequest, MockRespons
 
     public bool MutatesSolutionState => true;
 
-    public async Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+    public Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
     {
-        return new MockResponse(string.Empty);
+        return Task.FromResult(new MockResponse(string.Empty));
     }
 }
 
@@ -166,8 +166,8 @@ internal sealed class TestDefaultLanguageHandler : IRequestHandler<MockRequest, 
     public static TypeRef ResponseType = TypeRef.Of<MockResponse>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, LanguageServerConstants.DefaultLanguageName);
 
-    public async Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
-        => new MockResponse(string.Empty);
+    public Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult(new MockResponse(string.Empty));
 }
 
 [LanguageServerEndpoint(Name, Language)]
@@ -182,7 +182,7 @@ internal sealed class TestXamlLanguageHandler : IRequestHandler<MockRequest, Moc
     public static TypeRef ResponseType = TypeRef.Of<MockResponse>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, Language);
 
-    public async Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
-        => new MockResponse("xaml");
+    public Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult(new MockResponse("xaml"));
 }
 

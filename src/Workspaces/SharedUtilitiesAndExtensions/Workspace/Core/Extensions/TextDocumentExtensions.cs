@@ -17,7 +17,7 @@ internal static partial class TextDocumentExtensions
         if (document.TryGetText(out var text))
             return text;
 
-        return document.GetTextAsync(cancellationToken);
+        return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
     }
 #endif
 
