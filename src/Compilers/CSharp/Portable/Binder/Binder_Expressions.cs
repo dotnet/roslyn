@@ -11543,7 +11543,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if access has value type (but not a pointer), the type of the conditional access is nullable of that
             // https://github.com/dotnet/roslyn/issues/35075: The test `accessType.IsValueType && !accessType.IsNullableType()`
             // should probably be `accessType.IsNonNullableValueType()`
-            // Note: Pointers (including function pointers) are not wrapped in Nullable<> because they can already represent null (as the zero value).
+            // Note: As far as the language is concerned, pointers (including function pointers) are not value types.
+            // However, due to a historical quirk in the compiler implementation, we do treat them as value types.
+            // Since we're checking for value types here, we exclude pointers to avoid wrapping them in Nullable<>.
+            // Pointers can already represent null as the zero value, so Nullable<> wrapping is not needed.
             if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType() && !accessType.IsPointerOrFunctionPointer())
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
