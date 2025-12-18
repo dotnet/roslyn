@@ -55,15 +55,18 @@ schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
     branches:
-      include: 
+      include:
         - main
         - release/*
-      exclude: 
+      exclude:
         - ""
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
 
 variables:
+  # Defines $(DncEngInternalBuildPool)
+  - template: /eng/common/templates-official/variables/pool-providers.yml@self
+
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
@@ -116,20 +119,20 @@ extends:
       autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Svc-Internal
+        name: $(DncEngInternalBuildPool)
         image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
       suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
       policheck:
           enabled: true
       tsa:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Svc-Internal
+      name: $(DncEngInternalBuildPool)
       image: windows.vs2022preview.scout.amd64
       os: windows
     customBuildTags:
@@ -168,7 +171,7 @@ extends:
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files'
+            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
             publishLocation: Container
 
           - output: pipelineArtifact
@@ -223,7 +226,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -316,10 +319,10 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests $(SkipTests)
+                       -officialSkipTests ${{ parameters.SkipTests }}
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
-                       -officialIbcDrop $(IbcDrop)
+                       -officialIbcDrop ${{ parameters.IbcDrop }}
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -359,7 +362,7 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+          condition: and(succeededOrFailed(), ${{ not(parameters.SkipTests) }})
 
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
@@ -368,7 +371,7 @@ extends:
           dependsOn:
           - OfficialBuild
           pool:
-            name: NetCore1ESPool-Svc-Internal
+            name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
 
       - ${{ if eq(variables.enableSourceIndex, 'true') }}:

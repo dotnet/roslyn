@@ -822,6 +822,147 @@ public sealed class RemoveUnusedMembersTests
         await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                public void M()
+                {
+                    var lam = (int x = _goo) => x;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LocalFunctionDefaultParameter()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                public void M()
+                {
+                    int LocalFunc(int x = _goo) => x;
+                    LocalFunc();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter_NestedReferences()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                private const int _bar = 10;
+                public void M()
+                {
+                    var lam = (int x = _goo + _bar * 2) => x;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter_MultipleParameters()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                private const int _bar = 10;
+                public void M()
+                {
+                    var lam = (int x = _goo, int y = _bar) => x + y;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter_BinaryExpression()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                private const int _bar = 10;
+                public void M()
+                {
+                    var lam = (int x = _goo + _bar) => x;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63892")]
+    public async Task FieldIsRead_LambdaDefaultParameter_QualifiedAccess()
+    {
+        var code = """
+            class MyClass
+            {
+                private const int _goo = 42;
+                public void M()
+                {
+                    var lam = (int x = MyClass._goo) => x;
+                    lam();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task FieldIsRead_Delegate()
     {
@@ -2641,6 +2782,52 @@ public sealed class RemoveUnusedMembersTests
                     [System.Diagnostics.DebuggerDisplayAttribute("{C.s}")]
                     public int M;
                 }
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
+    public async Task DebuggerDisplayAttribute_OnType_NameParameter_ReferencesProperty()
+    {
+        var code = """
+            [System.Diagnostics.DebuggerDisplay("{DebuggerValue}", Name = "{DebuggerName}")]
+            class C
+            {
+                private string DebuggerValue => GetType().Name;
+                private string DebuggerName => GetType().Name;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
+    public async Task DebuggerDisplayAttribute_OnType_TypeParameter_ReferencesMethod()
+    {
+        var code = """
+            [System.Diagnostics.DebuggerDisplay("{DebuggerValue}", Type = "{DebuggerType()}")]
+            class C
+            {
+                private string DebuggerValue => GetType().Name;
+                private string DebuggerType() => GetType().Name;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
+    public async Task DebuggerDisplayAttribute_OnType_AllParameters_ReferencesMembers()
+    {
+        var code = """
+            [System.Diagnostics.DebuggerDisplay("{DebuggerValue}", Name = "{DebuggerName}", Type = "{DebuggerType()}")]
+            class C
+            {
+                private string DebuggerValue => GetType().Name;
+                private string DebuggerName => GetType().Name;
+                private string DebuggerType() => GetType().Name;
             }
             """;
 

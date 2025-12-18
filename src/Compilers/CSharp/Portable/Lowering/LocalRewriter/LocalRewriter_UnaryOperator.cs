@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceIncrementOperator(BoundIncrementOperator node, bool used)
         {
             Debug.Assert(node.MethodOpt is { });
-            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.GetIsNewExtensionMember()));
+            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.IsExtensionBlockMember()));
 
             SyntaxNode syntax = node.Syntax;
 
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
                 tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment));
 
-                if (!isPrefix && IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                if (!isPrefix && IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the increment operation
                     BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);

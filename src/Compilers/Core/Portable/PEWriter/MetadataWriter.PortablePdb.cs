@@ -884,11 +884,11 @@ namespace Microsoft.Cci
             else
             {
                 var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-                WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString());
+                WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
                 WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
-                WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
+                WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString(System.Globalization.CultureInfo.InvariantCulture));
                 WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
 
                 if (module.EmitOptions.FallbackSourceFileEncoding != null)
@@ -910,7 +910,7 @@ namespace Microsoft.Cci
 
                 if (portabilityPolicy != 0)
                 {
-                    WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+                    WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;

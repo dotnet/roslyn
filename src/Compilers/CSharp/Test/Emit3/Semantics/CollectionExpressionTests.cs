@@ -13135,7 +13135,7 @@ static class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void SpreadElement_Dynamic_05()
         {
             var source = """
@@ -13158,11 +13158,10 @@ static class Program
 
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       96 (0x60)
+                  // Code size       86 (0x56)
                   .maxstack  3
                   .locals init (int V_0,
-                                System.Span<dynamic> V_1,
-                                int V_2)
+                                System.Span<dynamic> V_1)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -13173,41 +13172,31 @@ static class Program
                   IL_000f:  dup
                   IL_0010:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
                   IL_0015:  stloc.1
-                  IL_0016:  ldc.i4.0
-                  IL_0017:  stloc.2
-                  IL_0018:  ldloca.s   V_1
-                  IL_001a:  ldloc.2
-                  IL_001b:  call       "ref dynamic System.Span<dynamic>.this[int].get"
-                  IL_0020:  ldc.i4.1
-                  IL_0021:  box        "int"
-                  IL_0026:  stind.ref
-                  IL_0027:  ldloc.2
-                  IL_0028:  ldc.i4.1
-                  IL_0029:  add
-                  IL_002a:  stloc.2
-                  IL_002b:  ldloca.s   V_1
-                  IL_002d:  ldloc.2
-                  IL_002e:  call       "ref dynamic System.Span<dynamic>.this[int].get"
-                  IL_0033:  ldc.i4.2
-                  IL_0034:  box        "int"
-                  IL_0039:  stind.ref
-                  IL_003a:  ldloc.2
-                  IL_003b:  ldc.i4.1
-                  IL_003c:  add
-                  IL_003d:  stloc.2
-                  IL_003e:  ldloca.s   V_1
-                  IL_0040:  ldloc.2
-                  IL_0041:  call       "ref dynamic System.Span<dynamic>.this[int].get"
-                  IL_0046:  ldc.i4.3
-                  IL_0047:  box        "int"
-                  IL_004c:  stind.ref
-                  IL_004d:  dup
-                  IL_004e:  ldc.i4.0
-                  IL_004f:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0054:  callvirt   "dynamic[] System.Collections.Generic.List<dynamic>.ToArray()"
-                  IL_0059:  ldc.i4.0
-                  IL_005a:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_005f:  ret
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "ref dynamic System.Span<dynamic>.this[int].get"
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  box        "int"
+                  IL_0024:  stind.ref
+                  IL_0025:  ldloca.s   V_1
+                  IL_0027:  ldc.i4.1
+                  IL_0028:  call       "ref dynamic System.Span<dynamic>.this[int].get"
+                  IL_002d:  ldc.i4.2
+                  IL_002e:  box        "int"
+                  IL_0033:  stind.ref
+                  IL_0034:  ldloca.s   V_1
+                  IL_0036:  ldc.i4.2
+                  IL_0037:  call       "ref dynamic System.Span<dynamic>.this[int].get"
+                  IL_003c:  ldc.i4.3
+                  IL_003d:  box        "int"
+                  IL_0042:  stind.ref
+                  IL_0043:  dup
+                  IL_0044:  ldc.i4.0
+                  IL_0045:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_004a:  callvirt   "dynamic[] System.Collections.Generic.List<dynamic>.ToArray()"
+                  IL_004f:  ldc.i4.0
+                  IL_0050:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0055:  ret
                 }
                 """);
         }
@@ -17472,7 +17461,7 @@ partial class Program
             for (int i = 0; i < n; i++)
             {
                 if (i > 0) builder.Append(", ");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             string sourceC = $$"""
                 using System;
@@ -22214,7 +22203,7 @@ partial class Program
         }
 
         [CombinatorialData]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void ListConstruction_01(
             [CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework,
             [CombinatorialValues("List<object>", "ICollection<object>", "IList<object>")] string targetType)
@@ -22240,11 +22229,10 @@ partial class Program
             {
                 verifier.VerifyIL("Program.F<T>(T, T, T)", """
                     {
-                      // Code size       78 (0x4e)
+                      // Code size       68 (0x44)
                       .maxstack  3
                       .locals init (int V_0,
-                                    System.Span<object> V_1,
-                                    int V_2)
+                                    System.Span<object> V_1)
                       IL_0000:  ldc.i4.3
                       IL_0001:  stloc.0
                       IL_0002:  ldloc.0
@@ -22255,35 +22243,25 @@ partial class Program
                       IL_000f:  dup
                       IL_0010:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
                       IL_0015:  stloc.1
-                      IL_0016:  ldc.i4.0
-                      IL_0017:  stloc.2
-                      IL_0018:  ldloca.s   V_1
-                      IL_001a:  ldloc.2
-                      IL_001b:  call       "ref object System.Span<object>.this[int].get"
-                      IL_0020:  ldarg.0
-                      IL_0021:  box        "T"
-                      IL_0026:  stind.ref
-                      IL_0027:  ldloc.2
-                      IL_0028:  ldc.i4.1
-                      IL_0029:  add
-                      IL_002a:  stloc.2
-                      IL_002b:  ldloca.s   V_1
-                      IL_002d:  ldloc.2
-                      IL_002e:  call       "ref object System.Span<object>.this[int].get"
-                      IL_0033:  ldarg.1
-                      IL_0034:  box        "T"
-                      IL_0039:  stind.ref
-                      IL_003a:  ldloc.2
-                      IL_003b:  ldc.i4.1
-                      IL_003c:  add
-                      IL_003d:  stloc.2
-                      IL_003e:  ldloca.s   V_1
-                      IL_0040:  ldloc.2
-                      IL_0041:  call       "ref object System.Span<object>.this[int].get"
-                      IL_0046:  ldarg.2
-                      IL_0047:  box        "T"
-                      IL_004c:  stind.ref
-                      IL_004d:  ret
+                      IL_0016:  ldloca.s   V_1
+                      IL_0018:  ldc.i4.0
+                      IL_0019:  call       "ref object System.Span<object>.this[int].get"
+                      IL_001e:  ldarg.0
+                      IL_001f:  box        "T"
+                      IL_0024:  stind.ref
+                      IL_0025:  ldloca.s   V_1
+                      IL_0027:  ldc.i4.1
+                      IL_0028:  call       "ref object System.Span<object>.this[int].get"
+                      IL_002d:  ldarg.1
+                      IL_002e:  box        "T"
+                      IL_0033:  stind.ref
+                      IL_0034:  ldloca.s   V_1
+                      IL_0036:  ldc.i4.2
+                      IL_0037:  call       "ref object System.Span<object>.this[int].get"
+                      IL_003c:  ldarg.2
+                      IL_003d:  box        "T"
+                      IL_0042:  stind.ref
+                      IL_0043:  ret
                     }
                     """);
             }
@@ -22311,6 +22289,123 @@ partial class Program
                     }
                     """);
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
+        public void ListConstruction_FixedElementsBeforeSpread()
+        {
+            // Test that when there are fixed elements before a spread element,
+            // we use an index variable for ALL elements (not constant indices).
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<int> y = [5, 6];
+                        List<int> x = [1, 2, ..y];
+                        x.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 5, 6], "));
+            verifier.VerifyDiagnostics();
+
+            // Verify that we use an index variable (V_6) for all elements, including the fixed elements before the spread
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      167 (0xa7)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                System.Span<int> V_1,
+                                int V_2,
+                                System.Collections.Generic.List<int> V_3,
+                                int V_4,
+                                System.Span<int> V_5,
+                                int V_6,
+                                System.Span<int> V_7)
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0008:  dup
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_000f:  dup
+                  IL_0010:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "ref int System.Span<int>.this[int].get"
+                  IL_001e:  ldc.i4.5
+                  IL_001f:  stind.i4
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0028:  ldc.i4.6
+                  IL_0029:  stind.i4
+                  IL_002a:  ldc.i4.1
+                  IL_002b:  stloc.0
+                  IL_002c:  ldc.i4.2
+                  IL_002d:  stloc.2
+                  IL_002e:  stloc.3
+                  IL_002f:  ldc.i4.2
+                  IL_0030:  ldloc.3
+                  IL_0031:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0036:  add
+                  IL_0037:  stloc.s    V_4
+                  IL_0039:  ldloc.s    V_4
+                  IL_003b:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0040:  dup
+                  IL_0041:  ldloc.s    V_4
+                  IL_0043:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0048:  dup
+                  IL_0049:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_004e:  stloc.s    V_5
+                  IL_0050:  ldc.i4.0
+                  IL_0051:  stloc.s    V_6
+                  IL_0053:  ldloca.s   V_5
+                  IL_0055:  ldloc.s    V_6
+                  IL_0057:  call       "ref int System.Span<int>.this[int].get"
+                  IL_005c:  ldloc.0
+                  IL_005d:  stind.i4
+                  IL_005e:  ldloc.s    V_6
+                  IL_0060:  ldc.i4.1
+                  IL_0061:  add
+                  IL_0062:  stloc.s    V_6
+                  IL_0064:  ldloca.s   V_5
+                  IL_0066:  ldloc.s    V_6
+                  IL_0068:  call       "ref int System.Span<int>.this[int].get"
+                  IL_006d:  ldloc.2
+                  IL_006e:  stind.i4
+                  IL_006f:  ldloc.s    V_6
+                  IL_0071:  ldc.i4.1
+                  IL_0072:  add
+                  IL_0073:  stloc.s    V_6
+                  IL_0075:  ldloc.3
+                  IL_0076:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_007b:  stloc.s    V_7
+                  IL_007d:  ldloca.s   V_7
+                  IL_007f:  ldloca.s   V_5
+                  IL_0081:  ldloc.s    V_6
+                  IL_0083:  ldloca.s   V_7
+                  IL_0085:  call       "int System.Span<int>.Length.get"
+                  IL_008a:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                  IL_008f:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                  IL_0094:  ldloc.s    V_6
+                  IL_0096:  ldloca.s   V_7
+                  IL_0098:  call       "int System.Span<int>.Length.get"
+                  IL_009d:  add
+                  IL_009e:  stloc.s    V_6
+                  IL_00a0:  ldc.i4.0
+                  IL_00a1:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_00a6:  ret
+                }
+                """);
         }
 
         [CombinatorialData]
@@ -23658,7 +23753,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void ListConstruction_Dynamic_04_StaticBinding()
         {
             string source = $$"""
@@ -23791,11 +23886,10 @@ partial class Program
             verifier.VerifyIL("Program.F1",
                 """
                 {
-                  // Code size       35 (0x23)
+                  // Code size       33 (0x21)
                   .maxstack  3
                   .locals init (int V_0,
-                                System.Span<object> V_1,
-                                int V_2)
+                                System.Span<object> V_1)
                   IL_0000:  ldc.i4.1
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -23806,14 +23900,12 @@ partial class Program
                   IL_000f:  dup
                   IL_0010:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
                   IL_0015:  stloc.1
-                  IL_0016:  ldc.i4.0
-                  IL_0017:  stloc.2
-                  IL_0018:  ldloca.s   V_1
-                  IL_001a:  ldloc.2
-                  IL_001b:  call       "ref object System.Span<object>.this[int].get"
-                  IL_0020:  ldarg.0
-                  IL_0021:  stind.ref
-                  IL_0022:  ret
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "ref object System.Span<object>.this[int].get"
+                  IL_001e:  ldarg.0
+                  IL_001f:  stind.ref
+                  IL_0020:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2",
@@ -26290,52 +26382,14 @@ partial class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
-                source,
-                targetFramework: targetFramework,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(""));
-            if (targetFramework == TargetFramework.Net80)
-            {
-                verifier.VerifyIL("Program.F", """
-                    {
-                      // Code size       66 (0x42)
-                      .maxstack  1
-                      .locals init (object V_0,
-                                    object V_1,
-                                    object V_2,
-                                    object V_3)
-                      IL_0000:  ldc.i4.1
-                      IL_0001:  box        "int"
-                      IL_0006:  stloc.0
-                      IL_0007:  ldloca.s   V_0
-                      IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
-                      IL_000e:  pop
-                      IL_000f:  ldarg.0
-                      IL_0010:  brfalse.s  IL_0023
-                      IL_0012:  ldc.i4.2
-                      IL_0013:  box        "int"
-                      IL_0018:  stloc.1
-                      IL_0019:  ldloca.s   V_1
-                      IL_001b:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
-                      IL_0020:  pop
-                      IL_0021:  br.s       IL_0032
-                      IL_0023:  ldc.i4.3
-                      IL_0024:  box        "int"
-                      IL_0029:  stloc.2
-                      IL_002a:  ldloca.s   V_2
-                      IL_002c:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
-                      IL_0031:  pop
-                      IL_0032:  ldc.i4.4
-                      IL_0033:  box        "int"
-                      IL_0038:  stloc.3
-                      IL_0039:  ldloca.s   V_3
-                      IL_003b:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
-                      IL_0040:  pop
-                      IL_0041:  ret
-                    }
-                    """);
-            }
+            var comp = CreateCompilation(source, targetFramework: targetFramework);
+            comp.VerifyEmitDiagnostics(
+                // (14,17): error CS9203: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                //             x = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[2]").WithArguments("System.ReadOnlySpan<object>").WithLocation(14, 17),
+                // (19,17): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //             x = y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 17));
         }
 
         [Fact]
@@ -26364,70 +26418,14 @@ partial class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensionsWithSpan },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[3, 4], "));
-            verifier.VerifyIL("Program.M<T>", """
-                {
-                  // Code size      134 (0x86)
-                  .maxstack  2
-                  .locals init (System.Span<T> V_0, //s
-                                <>y__InlineArray3<T> V_1,
-                                <>y__InlineArray2<T> V_2,
-                                System.ReadOnlySpan<T> V_3)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.Span<T>"
-                  IL_0008:  ldarg.0
-                  IL_0009:  brfalse.s  IL_0046
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  initobj    "<>y__InlineArray3<T>"
-                  IL_0013:  ldloca.s   V_1
-                  IL_0015:  ldc.i4.0
-                  IL_0016:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_001b:  ldarg.1
-                  IL_001c:  stobj      "T"
-                  IL_0021:  ldloca.s   V_1
-                  IL_0023:  ldc.i4.1
-                  IL_0024:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_0029:  ldarg.2
-                  IL_002a:  stobj      "T"
-                  IL_002f:  ldloca.s   V_1
-                  IL_0031:  ldc.i4.2
-                  IL_0032:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_0037:  ldarg.3
-                  IL_0038:  stobj      "T"
-                  IL_003d:  ldloca.s   V_1
-                  IL_003f:  ldc.i4.3
-                  IL_0040:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_0045:  stloc.0
-                  IL_0046:  ldarg.0
-                  IL_0047:  brfalse.s  IL_0077
-                  IL_0049:  ldloca.s   V_2
-                  IL_004b:  initobj    "<>y__InlineArray2<T>"
-                  IL_0051:  ldloca.s   V_2
-                  IL_0053:  ldc.i4.0
-                  IL_0054:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
-                  IL_0059:  ldarg.3
-                  IL_005a:  stobj      "T"
-                  IL_005f:  ldloca.s   V_2
-                  IL_0061:  ldc.i4.1
-                  IL_0062:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
-                  IL_0067:  ldarg.s    V_4
-                  IL_0069:  stobj      "T"
-                  IL_006e:  ldloca.s   V_2
-                  IL_0070:  ldc.i4.2
-                  IL_0071:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
-                  IL_0076:  stloc.0
-                  IL_0077:  ldloc.0
-                  IL_0078:  call       "System.ReadOnlySpan<T> System.Span<T>.op_Implicit(System.Span<T>)"
-                  IL_007d:  stloc.3
-                  IL_007e:  ldloca.s   V_3
-                  IL_0080:  call       "void CollectionExtensions.Report<T>(in System.ReadOnlySpan<T>)"
-                  IL_0085:  ret
-                }
-                """);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (13,17): error CS9203: A collection expression of type 'Span<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                //             s = [x, y, z];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y, z]").WithArguments("System.Span<T>").WithLocation(13, 17),
+                // (17,17): error CS9203: A collection expression of type 'Span<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                //             s = [z, w];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[z, w]").WithArguments("System.Span<T>").WithLocation(17, 17));
         }
 
         [Fact]
@@ -26452,33 +26450,11 @@ partial class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensionsWithSpan },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[1, null, 3], "));
-            verifier.VerifyIL("Program.M<T>", """
-                {
-                  // Code size       39 (0x27)
-                  .maxstack  2
-                  .locals init (System.Span<T> V_0, //s
-                                System.ReadOnlySpan<T> V_1)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.Span<T>"
-                  IL_0008:  ldarg.0
-                  IL_0009:  brfalse.s  IL_0018
-                  IL_000b:  ldloca.s   V_0
-                  IL_000d:  ldarg.1
-                  IL_000e:  call       "T[] System.Linq.Enumerable.ToArray<T>(System.Collections.Generic.IEnumerable<T>)"
-                  IL_0013:  call       "System.Span<T>..ctor(T[])"
-                  IL_0018:  ldloc.0
-                  IL_0019:  call       "System.ReadOnlySpan<T> System.Span<T>.op_Implicit(System.Span<T>)"
-                  IL_001e:  stloc.1
-                  IL_001f:  ldloca.s   V_1
-                  IL_0021:  call       "void CollectionExtensions.Report<T>(in System.ReadOnlySpan<T>)"
-                  IL_0026:  ret
-                }
-                """);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (13,17): error CS9203: A collection expression of type 'Span<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                //             s = [..a];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[..a]").WithArguments("System.Span<T>").WithLocation(13, 17));
         }
 
         [Fact]
@@ -26507,51 +26483,48 @@ partial class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensionsWithSpan },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[1, null, 3], "));
-            verifier.VerifyIL("Program.<>c__1<T>.<F>b__1_0(bool, T, T, T)", """
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (16,26): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //                     s1 = s2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 26));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80107")]
+        public void SpanAssignment_NestedScope_IssueExample()
+        {
+            // Test case from the issue description
+            string source = """
+                using System;
+                class Program
                 {
-                  // Code size       86 (0x56)
-                  .maxstack  2
-                  .locals init (System.Span<T> V_0, //s1
-                                <>y__InlineArray3<T> V_1,
-                                System.ReadOnlySpan<T> V_2)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.Span<T>"
-                  IL_0008:  ldarg.1
-                  IL_0009:  brfalse.s  IL_0047
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  initobj    "<>y__InlineArray3<T>"
-                  IL_0013:  ldloca.s   V_1
-                  IL_0015:  ldc.i4.0
-                  IL_0016:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_001b:  ldarg.2
-                  IL_001c:  stobj      "T"
-                  IL_0021:  ldloca.s   V_1
-                  IL_0023:  ldc.i4.1
-                  IL_0024:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_0029:  ldarg.3
-                  IL_002a:  stobj      "T"
-                  IL_002f:  ldloca.s   V_1
-                  IL_0031:  ldc.i4.2
-                  IL_0032:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_0037:  ldarg.s    V_4
-                  IL_0039:  stobj      "T"
-                  IL_003e:  ldloca.s   V_1
-                  IL_0040:  ldc.i4.3
-                  IL_0041:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
-                  IL_0046:  stloc.0
-                  IL_0047:  ldloc.0
-                  IL_0048:  call       "System.ReadOnlySpan<T> System.Span<T>.op_Implicit(System.Span<T>)"
-                  IL_004d:  stloc.2
-                  IL_004e:  ldloca.s   V_2
-                  IL_0050:  call       "void CollectionExtensions.Report<T>(in System.ReadOnlySpan<T>)"
-                  IL_0055:  ret
+                    static void Main()
+                    {
+                        scoped Span<int> items1 = default;
+                        scoped Span<int> items2 = default;
+                        foreach (var x in new[] { 1, 2 })
+                        {
+                            Span<int> items = [x];
+                            if (x == 1)
+                                items1 = items;
+
+                            if (x == 2)
+                                items2 = items;
+                        }
+
+                        Console.Write(items1[0]);
+                        Console.Write(items2[0]);
+                    }
                 }
-                """);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (12,26): error CS8352: Cannot use variable 'items' in this context because it may expose referenced variables outside of their declaration scope
+                //                 items1 = items;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("items").WithLocation(12, 26),
+                // (15,26): error CS8352: Cannot use variable 'items' in this context because it may expose referenced variables outside of their declaration scope
+                //                 items2 = items;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("items").WithLocation(15, 26));
         }
 
         [Fact]
@@ -26678,6 +26651,143 @@ partial class Program
                   IL_0036:  ret
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void SpanAssignment_ScopedParameter_Constructor_Span()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    public C(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = new ReadOnlySpan<int>(ref x);
+                    }
+
+                    void M(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = new ReadOnlySpan<int>(ref x);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void SpanAssignment_ScopedParameter_Constructor_CollectionExpression()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    public C(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = [x];
+                    }
+
+                    void M(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = [x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void SpanAssignment_ScopedParameter_PrimaryConstructor_Span()
+        {
+            // Each field initializer can be considered its own local scope as variables declared within it are not visible to the other initializers.
+            string source = """
+                using System;
+
+                class C(scoped ReadOnlySpan<int> items) // 1
+                {
+                    private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1)); // 2, 3
+                    private int y = x1; // 4
+
+                    static int M0(int x0, ReadOnlySpan<int> items) => items[0];
+                    static int M1(out int x1) { return x1 = 0; }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,34): warning CS9113: Parameter 'items' is unread.
+                // class C(scoped ReadOnlySpan<int> items) // 1
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34),
+                // (5,48): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1)); // 2, 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x1)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(5, 48),
+                // (5,74): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //     private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1)); // 2, 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(5, 74),
+                // (6,21): error CS0103: The name 'x1' does not exist in the current context
+                //     private int y = x1; // 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void SpanAssignment_StaticFieldInitializer()
+        {
+            // Each field initializer can be considered its own local scope as variables declared within it are not visible to the other initializers.
+            string source = """
+                using System;
+
+                class C
+                {
+                    private static int x = M0(M1(out ReadOnlySpan<int> items, out int x1), items = new ReadOnlySpan<int>(ref x1)); // 1, 2
+                    private static int y = items[0]; // 3
+
+                    static int M0(int x0, ReadOnlySpan<int> items) => items[0];
+                    static int M1(out ReadOnlySpan<int> span, out int x1) { span = default; return x1 = 0; }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,84): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     private static int x = M0(M1(out ReadOnlySpan<int> items, out int x1), items = new ReadOnlySpan<int>(ref x1)); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x1)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(5, 84),
+                // (5,110): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
+                //     private static int x = M0(M1(out ReadOnlySpan<int> items, out int x1), items = new ReadOnlySpan<int>(ref x1)); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(5, 110),
+                // (6,28): error CS0103: The name 'items' does not exist in the current context
+                //     private static int y = items[0]; // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(6, 28));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void SpanAssignment_ScopedParameter_PrimaryConstructor_CollectionExpression()
+        {
+            // '[M1()]' cannot be assigned to 'items' because its backing storage lives in a narrower scope than 'items'.
+            string source = """
+                using System;
+
+                class C(scoped ReadOnlySpan<int> items)
+                {
+                    private int x = M0(items = [M1()]);
+
+                    static int M0(ReadOnlySpan<int> x) => x[0];
+                    static int M1() => 0;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,34): warning CS9113: Parameter 'items' is unread.
+                // class C(scoped ReadOnlySpan<int> items)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34),
+                // (5,32): error CS9203: A collection expression of type 'ReadOnlySpan<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     private int x = M0(items = [M1()]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[M1()]").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 32)
+                );
         }
 
         [Fact]
@@ -38519,7 +38629,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void Spread_TargetSpan()
         {
             var source = """
@@ -38631,13 +38741,13 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      147 (0x93)
+                  // Code size      140 (0x8c)
                   .maxstack  4
                   .locals init (int V_0,
                                 System.Span<int> V_1,
-                                int V_2,
-                                System.Collections.Generic.List<int> V_3,
-                                System.Span<int> V_4,
+                                System.Collections.Generic.List<int> V_2,
+                                System.Span<int> V_3,
+                                int V_4,
                                 System.Span<int> V_5)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
@@ -38649,66 +38759,56 @@ partial class Program
                   IL_000f:  dup
                   IL_0010:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
                   IL_0015:  stloc.1
-                  IL_0016:  ldc.i4.0
-                  IL_0017:  stloc.2
-                  IL_0018:  ldloca.s   V_1
-                  IL_001a:  ldloc.2
-                  IL_001b:  call       "ref int System.Span<int>.this[int].get"
-                  IL_0020:  ldc.i4.1
-                  IL_0021:  stind.i4
-                  IL_0022:  ldloc.2
-                  IL_0023:  ldc.i4.1
-                  IL_0024:  add
-                  IL_0025:  stloc.2
-                  IL_0026:  ldloca.s   V_1
-                  IL_0028:  ldloc.2
-                  IL_0029:  call       "ref int System.Span<int>.this[int].get"
-                  IL_002e:  ldc.i4.2
-                  IL_002f:  stind.i4
-                  IL_0030:  ldloc.2
-                  IL_0031:  ldc.i4.1
-                  IL_0032:  add
-                  IL_0033:  stloc.2
-                  IL_0034:  ldloca.s   V_1
-                  IL_0036:  ldloc.2
-                  IL_0037:  call       "ref int System.Span<int>.this[int].get"
-                  IL_003c:  ldc.i4.3
-                  IL_003d:  stind.i4
-                  IL_003e:  dup
-                  IL_003f:  ldc.i4.0
-                  IL_0040:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0045:  dup
-                  IL_0046:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
-                  IL_004b:  stloc.2
-                  IL_004c:  ldloc.2
-                  IL_004d:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                  IL_0052:  stloc.3
-                  IL_0053:  ldloc.3
-                  IL_0054:  ldloc.2
-                  IL_0055:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                  IL_005a:  ldloc.3
-                  IL_005b:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0060:  stloc.s    V_4
-                  IL_0062:  ldc.i4.0
-                  IL_0063:  stloc.0
-                  IL_0064:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0069:  stloc.s    V_5
-                  IL_006b:  ldloca.s   V_5
-                  IL_006d:  ldloca.s   V_4
-                  IL_006f:  ldloc.0
-                  IL_0070:  ldloca.s   V_5
-                  IL_0072:  call       "int System.Span<int>.Length.get"
-                  IL_0077:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
-                  IL_007c:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
-                  IL_0081:  ldloc.0
-                  IL_0082:  ldloca.s   V_5
-                  IL_0084:  call       "int System.Span<int>.Length.get"
-                  IL_0089:  add
-                  IL_008a:  stloc.0
-                  IL_008b:  ldloc.3
-                  IL_008c:  ldc.i4.0
-                  IL_008d:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0092:  ret
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "ref int System.Span<int>.this[int].get"
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  stind.i4
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0028:  ldc.i4.2
+                  IL_0029:  stind.i4
+                  IL_002a:  ldloca.s   V_1
+                  IL_002c:  ldc.i4.2
+                  IL_002d:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0032:  ldc.i4.3
+                  IL_0033:  stind.i4
+                  IL_0034:  dup
+                  IL_0035:  ldc.i4.0
+                  IL_0036:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_003b:  dup
+                  IL_003c:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0041:  stloc.0
+                  IL_0042:  ldloc.0
+                  IL_0043:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0048:  stloc.2
+                  IL_0049:  ldloc.2
+                  IL_004a:  ldloc.0
+                  IL_004b:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0050:  ldloc.2
+                  IL_0051:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0056:  stloc.3
+                  IL_0057:  ldc.i4.0
+                  IL_0058:  stloc.s    V_4
+                  IL_005a:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_005f:  stloc.s    V_5
+                  IL_0061:  ldloca.s   V_5
+                  IL_0063:  ldloca.s   V_3
+                  IL_0065:  ldloc.s    V_4
+                  IL_0067:  ldloca.s   V_5
+                  IL_0069:  call       "int System.Span<int>.Length.get"
+                  IL_006e:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                  IL_0073:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                  IL_0078:  ldloc.s    V_4
+                  IL_007a:  ldloca.s   V_5
+                  IL_007c:  call       "int System.Span<int>.Length.get"
+                  IL_0081:  add
+                  IL_0082:  stloc.s    V_4
+                  IL_0084:  ldloc.2
+                  IL_0085:  ldc.i4.0
+                  IL_0086:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_008b:  ret
                 }
                 """);
         }
@@ -40552,7 +40652,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void List_AddRange_IEnumerable_ClassConstraint()
         {
             var source = """
@@ -40619,14 +40719,14 @@ partial class Program
             // Ideally we'd like to be able to use *both* something like AddRange, *and* AsSpan/CopyTo/etc. while building the same target collection
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      182 (0xb6)
+                  // Code size      173 (0xad)
                   .maxstack  3
                   .locals init (int V_0,
                                 System.Span<int> V_1,
-                                int V_2,
-                                System.Collections.Generic.ICollection<int> V_3,
-                                System.Collections.Generic.List<int> V_4,
-                                System.Span<int> V_5,
+                                System.Collections.Generic.ICollection<int> V_2,
+                                System.Collections.Generic.List<int> V_3,
+                                System.Span<int> V_4,
+                                int V_5,
                                 System.Collections.Generic.IEnumerator<int> V_6,
                                 int V_7)
                   IL_0000:  ldc.i4.3
@@ -40639,91 +40739,81 @@ partial class Program
                   IL_000f:  dup
                   IL_0010:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
                   IL_0015:  stloc.1
-                  IL_0016:  ldc.i4.0
-                  IL_0017:  stloc.2
-                  IL_0018:  ldloca.s   V_1
-                  IL_001a:  ldloc.2
-                  IL_001b:  call       "ref int System.Span<int>.this[int].get"
-                  IL_0020:  ldc.i4.1
-                  IL_0021:  stind.i4
-                  IL_0022:  ldloc.2
-                  IL_0023:  ldc.i4.1
-                  IL_0024:  add
-                  IL_0025:  stloc.2
-                  IL_0026:  ldloca.s   V_1
-                  IL_0028:  ldloc.2
-                  IL_0029:  call       "ref int System.Span<int>.this[int].get"
-                  IL_002e:  ldc.i4.2
-                  IL_002f:  stind.i4
-                  IL_0030:  ldloc.2
-                  IL_0031:  ldc.i4.1
-                  IL_0032:  add
-                  IL_0033:  stloc.2
-                  IL_0034:  ldloca.s   V_1
-                  IL_0036:  ldloc.2
-                  IL_0037:  call       "ref int System.Span<int>.this[int].get"
-                  IL_003c:  ldc.i4.3
-                  IL_003d:  stind.i4
-                  IL_003e:  dup
-                  IL_003f:  ldc.i4.0
-                  IL_0040:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0045:  stloc.3
-                  IL_0046:  ldc.i4.1
-                  IL_0047:  ldloc.3
-                  IL_0048:  callvirt   "int System.Collections.Generic.ICollection<int>.Count.get"
-                  IL_004d:  add
-                  IL_004e:  stloc.2
-                  IL_004f:  ldloc.2
-                  IL_0050:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                  IL_0055:  stloc.s    V_4
-                  IL_0057:  ldloc.s    V_4
-                  IL_0059:  ldloc.2
-                  IL_005a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                  IL_005f:  ldloc.s    V_4
-                  IL_0061:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0066:  stloc.s    V_5
-                  IL_0068:  ldc.i4.0
-                  IL_0069:  stloc.0
-                  IL_006a:  ldloc.3
-                  IL_006b:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
-                  IL_0070:  stloc.s    V_6
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "ref int System.Span<int>.this[int].get"
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  stind.i4
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0028:  ldc.i4.2
+                  IL_0029:  stind.i4
+                  IL_002a:  ldloca.s   V_1
+                  IL_002c:  ldc.i4.2
+                  IL_002d:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0032:  ldc.i4.3
+                  IL_0033:  stind.i4
+                  IL_0034:  dup
+                  IL_0035:  ldc.i4.0
+                  IL_0036:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_003b:  stloc.2
+                  IL_003c:  ldc.i4.1
+                  IL_003d:  ldloc.2
+                  IL_003e:  callvirt   "int System.Collections.Generic.ICollection<int>.Count.get"
+                  IL_0043:  add
+                  IL_0044:  stloc.0
+                  IL_0045:  ldloc.0
+                  IL_0046:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_004b:  stloc.3
+                  IL_004c:  ldloc.3
+                  IL_004d:  ldloc.0
+                  IL_004e:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0053:  ldloc.3
+                  IL_0054:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0059:  stloc.s    V_4
+                  IL_005b:  ldc.i4.0
+                  IL_005c:  stloc.s    V_5
+                  IL_005e:  ldloc.2
+                  IL_005f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_0064:  stloc.s    V_6
                   .try
                   {
-                    IL_0072:  br.s       IL_008c
-                    IL_0074:  ldloc.s    V_6
-                    IL_0076:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
-                    IL_007b:  stloc.s    V_7
-                    IL_007d:  ldloca.s   V_5
-                    IL_007f:  ldloc.0
-                    IL_0080:  call       "ref int System.Span<int>.this[int].get"
-                    IL_0085:  ldloc.s    V_7
-                    IL_0087:  stind.i4
-                    IL_0088:  ldloc.0
-                    IL_0089:  ldc.i4.1
-                    IL_008a:  add
-                    IL_008b:  stloc.0
-                    IL_008c:  ldloc.s    V_6
-                    IL_008e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0093:  brtrue.s   IL_0074
-                    IL_0095:  leave.s    IL_00a3
+                    IL_0066:  br.s       IL_0083
+                    IL_0068:  ldloc.s    V_6
+                    IL_006a:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_006f:  stloc.s    V_7
+                    IL_0071:  ldloca.s   V_4
+                    IL_0073:  ldloc.s    V_5
+                    IL_0075:  call       "ref int System.Span<int>.this[int].get"
+                    IL_007a:  ldloc.s    V_7
+                    IL_007c:  stind.i4
+                    IL_007d:  ldloc.s    V_5
+                    IL_007f:  ldc.i4.1
+                    IL_0080:  add
+                    IL_0081:  stloc.s    V_5
+                    IL_0083:  ldloc.s    V_6
+                    IL_0085:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_008a:  brtrue.s   IL_0068
+                    IL_008c:  leave.s    IL_009a
                   }
                   finally
                   {
-                    IL_0097:  ldloc.s    V_6
-                    IL_0099:  brfalse.s  IL_00a2
-                    IL_009b:  ldloc.s    V_6
-                    IL_009d:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_00a2:  endfinally
+                    IL_008e:  ldloc.s    V_6
+                    IL_0090:  brfalse.s  IL_0099
+                    IL_0092:  ldloc.s    V_6
+                    IL_0094:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0099:  endfinally
                   }
-                  IL_00a3:  ldloca.s   V_5
-                  IL_00a5:  ldloc.0
-                  IL_00a6:  call       "ref int System.Span<int>.this[int].get"
-                  IL_00ab:  ldc.i4.4
-                  IL_00ac:  stind.i4
-                  IL_00ad:  ldloc.s    V_4
-                  IL_00af:  ldc.i4.0
-                  IL_00b0:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_00b5:  ret
+                  IL_009a:  ldloca.s   V_4
+                  IL_009c:  ldloc.s    V_5
+                  IL_009e:  call       "ref int System.Span<int>.this[int].get"
+                  IL_00a3:  ldc.i4.4
+                  IL_00a4:  stind.i4
+                  IL_00a5:  ldloc.3
+                  IL_00a6:  ldc.i4.0
+                  IL_00a7:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_00ac:  ret
                 }
                 """);
         }
@@ -43710,9 +43800,9 @@ partial class Program
                 // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
-                // (20,40): error CS1061: 'MyCollection<int?>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int?>' could be found (are you missing a using directive or an assembly reference?)
+                // (20,40): error CS0411: The type arguments for method 'Extensions.Add<T>(IEnumerable<T>, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         MyCollection<int?> w = new() { x };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("MyCollection<int?>", "Add").WithLocation(20, 40)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "x").WithArguments("Extensions.Add<T>(System.Collections.Generic.IEnumerable<T>, int)").WithLocation(20, 40)
                 );
         }
 
@@ -43876,7 +43966,10 @@ partial class Program
                 """;
             var comp = CreateCompilation([sourceA, sourceB]);
             comp.VerifyEmitDiagnostics(
-                // (11,36): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
+                // (7,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<int> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(7, 31),
+                // (11,36): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     public static void Add<T>(this dynamic d, T t) { d.__AddInternal(t); }
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(11, 36));
         }
@@ -46603,6 +46696,775 @@ class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
 
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        private static readonly string s_collectionWithRefStructElementType = """
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                ref struct SpanCollection<T>() : IEnumerable<T> where T : allows ref struct
+                {
+                    int _count = 0;
+                    T? _item0;
+                    T? _item1;
+
+                    public SpanEnumerator GetEnumerator()
+                        => new SpanEnumerator(this);
+
+                    public void Add(T element)
+                    {
+                        switch (_count)
+                        {
+                            case 0: _item0 = element; break;
+                            case 1: _item1 = element; break;
+                            default: throw new InvalidOperationException();
+                        }
+                        _count++;
+                    }
+
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+                        => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                        => throw new NotImplementedException();
+
+                    public ref struct SpanEnumerator(SpanCollection<T> spans)
+                    {
+                        private SpanCollection<T> spans = spans;
+                        private int _index = -1;
+                        public T Current
+                        {
+                            get
+                            {
+                                switch (_index)
+                                {
+                                    case 0: return spans._item0!;
+                                    case 1: return spans._item1!;
+                                    default: throw new InvalidOperationException();
+                                }
+                            }
+                        }
+                        public bool MoveNext() => ++_index < spans._count;
+                    }
+                }
+                """;
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_01()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+
+                Test1();
+                Test2();
+
+                partial class Program
+                {
+                    public static void Test1()
+                    {
+                        SpanCollection<Span<int>> spans1 = [[1], [2]];
+                        foreach (Span<int> span in spans1)
+                        {
+                            foreach (int item in span)
+                                Console.Write(item);
+                        }
+                    }
+
+                    public static void Test2()
+                    {
+                        ReadOnlySpan<int> span3 = [3];
+                        ReadOnlySpan<int> span4 = [4];
+                        SpanCollection<ReadOnlySpan<int>> spans2 = [span3, span4];
+                        foreach (ReadOnlySpan<int> span in spans2)
+                        {
+                            foreach (int item in span)
+                                Console.Write(item);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", """
+                {
+                  // Code size      108 (0x6c)
+                  .maxstack  2
+                  .locals init (SpanCollection<System.Span<int>> V_0, //spans1
+                                int V_1,
+                                int V_2,
+                                SpanCollection<System.Span<int>> V_3,
+                                SpanCollection<System.Span<int>>.SpanEnumerator V_4,
+                                System.Span<int> V_5,
+                                int V_6)
+                  IL_0000:  ldloca.s   V_3
+                  IL_0002:  call       "SpanCollection<System.Span<int>>..ctor()"
+                  IL_0007:  ldloca.s   V_3
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  stloc.1
+                  IL_000b:  ldloca.s   V_1
+                  IL_000d:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0012:  call       "void SpanCollection<System.Span<int>>.Add(System.Span<int>)"
+                  IL_0017:  ldloca.s   V_3
+                  IL_0019:  ldc.i4.2
+                  IL_001a:  stloc.2
+                  IL_001b:  ldloca.s   V_2
+                  IL_001d:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0022:  call       "void SpanCollection<System.Span<int>>.Add(System.Span<int>)"
+                  IL_0027:  ldloc.3
+                  IL_0028:  stloc.0
+                  IL_0029:  ldloca.s   V_0
+                  IL_002b:  call       "SpanCollection<System.Span<int>>.SpanEnumerator SpanCollection<System.Span<int>>.GetEnumerator()"
+                  IL_0030:  stloc.s    V_4
+                  IL_0032:  br.s       IL_0062
+                  IL_0034:  ldloca.s   V_4
+                  IL_0036:  call       "System.Span<int> SpanCollection<System.Span<int>>.SpanEnumerator.Current.get"
+                  IL_003b:  stloc.s    V_5
+                  IL_003d:  ldc.i4.0
+                  IL_003e:  stloc.s    V_6
+                  IL_0040:  br.s       IL_0057
+                  IL_0042:  ldloca.s   V_5
+                  IL_0044:  ldloc.s    V_6
+                  IL_0046:  call       "ref int System.Span<int>.this[int].get"
+                  IL_004b:  ldind.i4
+                  IL_004c:  call       "void System.Console.Write(int)"
+                  IL_0051:  ldloc.s    V_6
+                  IL_0053:  ldc.i4.1
+                  IL_0054:  add
+                  IL_0055:  stloc.s    V_6
+                  IL_0057:  ldloc.s    V_6
+                  IL_0059:  ldloca.s   V_5
+                  IL_005b:  call       "int System.Span<int>.Length.get"
+                  IL_0060:  blt.s      IL_0042
+                  IL_0062:  ldloca.s   V_4
+                  IL_0064:  call       "bool SpanCollection<System.Span<int>>.SpanEnumerator.MoveNext()"
+                  IL_0069:  brtrue.s   IL_0034
+                  IL_006b:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2", """
+                {
+                  // Code size      114 (0x72)
+                  .maxstack  2
+                  .locals init (System.ReadOnlySpan<int> V_0, //span3
+                                System.ReadOnlySpan<int> V_1, //span4
+                                SpanCollection<System.ReadOnlySpan<int>> V_2, //spans2
+                                SpanCollection<System.ReadOnlySpan<int>> V_3,
+                                SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator V_4,
+                                System.ReadOnlySpan<int> V_5,
+                                int V_6)
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.9D9F290527A6BE626A8F5985B26E19B237B44872B03631811DF4416FC17131784"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.FB5E512425FC9449316EC95969EBE71E2D576DBAB833D61E2A5B9330FD70EE024"
+                  IL_0010:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldloca.s   V_3
+                  IL_0018:  call       "SpanCollection<System.ReadOnlySpan<int>>..ctor()"
+                  IL_001d:  ldloca.s   V_3
+                  IL_001f:  ldloc.0
+                  IL_0020:  call       "void SpanCollection<System.ReadOnlySpan<int>>.Add(System.ReadOnlySpan<int>)"
+                  IL_0025:  ldloca.s   V_3
+                  IL_0027:  ldloc.1
+                  IL_0028:  call       "void SpanCollection<System.ReadOnlySpan<int>>.Add(System.ReadOnlySpan<int>)"
+                  IL_002d:  ldloc.3
+                  IL_002e:  stloc.2
+                  IL_002f:  ldloca.s   V_2
+                  IL_0031:  call       "SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator SpanCollection<System.ReadOnlySpan<int>>.GetEnumerator()"
+                  IL_0036:  stloc.s    V_4
+                  IL_0038:  br.s       IL_0068
+                  IL_003a:  ldloca.s   V_4
+                  IL_003c:  call       "System.ReadOnlySpan<int> SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator.Current.get"
+                  IL_0041:  stloc.s    V_5
+                  IL_0043:  ldc.i4.0
+                  IL_0044:  stloc.s    V_6
+                  IL_0046:  br.s       IL_005d
+                  IL_0048:  ldloca.s   V_5
+                  IL_004a:  ldloc.s    V_6
+                  IL_004c:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                  IL_0051:  ldind.i4
+                  IL_0052:  call       "void System.Console.Write(int)"
+                  IL_0057:  ldloc.s    V_6
+                  IL_0059:  ldc.i4.1
+                  IL_005a:  add
+                  IL_005b:  stloc.s    V_6
+                  IL_005d:  ldloc.s    V_6
+                  IL_005f:  ldloca.s   V_5
+                  IL_0061:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_0066:  blt.s      IL_0048
+                  IL_0068:  ldloca.s   V_4
+                  IL_006a:  call       "bool SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator.MoveNext()"
+                  IL_006f:  brtrue.s   IL_003a
+                  IL_0071:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_01()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test()
+                    {
+                        SpanCollection<Span<int>> spans = [[1], [2]];
+                        return spans;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/80750
+            // The spec implies the safe-context of 'spans' should be 'caller-context'. (That would be bad.)
+            // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_02()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(scoped Span<int> span1, scoped Span<int> span2)
+                    {
+                        scoped var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(11, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_03()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(scoped Span<int> span1, scoped Span<int> span2)
+                    {
+                        scoped var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_04()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_05()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_06()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        SpanCollection<Span<int>> spans = [span1, span2];
+                        return spans;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/80750
+            // The spec implies the safe-context of 'spans' should be 'caller-context'.
+            // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_07()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_08()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void BuiltInInlineArrayTypes([CombinatorialRange(1, 17)] int arrayLength)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            var sourceB = $$"""
+                MyCollection<object> m = [{{string.Join(", ", Enumerable.Range(1, arrayLength))}}];
+                m.Report();
+                """;
+
+            var expectedOutput = $"[{string.Join(", ", Enumerable.Range(1, arrayLength))}],";
+            var ilVerifyFailure = arrayLength == 1
+                ? Verification.FailsPEVerify
+                : Verification.Fails with
+                {
+                    ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+                };
+            var verifier = CompileAndVerify([sourceA, sourceB, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput(expectedOutput), targetFramework: TargetFramework.Net100, verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: arrayLength == 17, arrayLength));
+            verifier.VerifyDiagnostics();
+            if (arrayLength == 2)
+            {
+                verifier.VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       63 (0x3f)
+                      .maxstack  2
+                      .locals init (System.Runtime.CompilerServices.InlineArray2<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "System.Runtime.CompilerServices.InlineArray2<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<object>, object>(ref System.Runtime.CompilerServices.InlineArray2<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<object>, object>(ref System.Runtime.CompilerServices.InlineArray2<object>, int)"
+                      IL_001f:  ldc.i4.2
+                      IL_0020:  box        "int"
+                      IL_0025:  stind.ref
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  ldc.i4.2
+                      IL_0029:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray2<object>, object>(in System.Runtime.CompilerServices.InlineArray2<object>, int)"
+                      IL_002e:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                      IL_0033:  box        "MyCollection<object>"
+                      IL_0038:  ldc.i4.0
+                      IL_0039:  call       "void CollectionExtensions.Report(object, bool)"
+                      IL_003e:  ret
+                    }
+                    """);
+            }
+
+            var comp = CreateCompilation([sourceA, sourceB, s_collectionExtensionsWithSpan], targetFramework: TargetFramework.Net100);
+            if (arrayLength is not (1 or 17))
+            {
+                comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2));
+            }
+
+            verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: arrayLength != 1, arrayLength));
+            verifier.VerifyDiagnostics();
+            if (arrayLength == 2)
+            {
+                verifier.VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       63 (0x3f)
+                      .maxstack  2
+                      .locals init (<>y__InlineArray2<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "<>y__InlineArray2<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                      IL_001f:  ldc.i4.2
+                      IL_0020:  box        "int"
+                      IL_0025:  stind.ref
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  ldc.i4.2
+                      IL_0029:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<object>, object>(in <>y__InlineArray2<object>, int)"
+                      IL_002e:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                      IL_0033:  box        "MyCollection<object>"
+                      IL_0038:  ldc.i4.0
+                      IL_0039:  call       "void CollectionExtensions.Report(object, bool)"
+                      IL_003e:  ret
+                    }
+                    """);
+            }
+
+            static Action<ModuleSymbol> verifyResult(bool shouldHaveSynthesizedArrayType, int arrayLength)
+            {
+                return (moduleSymbol) =>
+                {
+                    var expectedSythesizedName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, generation: 0);
+                    if (shouldHaveSynthesizedArrayType)
+                    {
+                        Assert.True(moduleSymbol.TypeNames.Contains(expectedSythesizedName));
+                    }
+                    else
+                    {
+                        Assert.False(moduleSymbol.TypeNames.Contains(expectedSythesizedName));
+                    }
+                };
+            }
+        }
+
+        [Fact]
+        public void BuiltInInlineArrayTypes_DependencyTracking()
+        {
+            var librarySource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    [InlineArray(2)]
+                    public struct InlineArray2<T>
+                    {
+                        private T _element0;
+                    }
+                }
+                """;
+
+            var libraryComp = CreateCompilation(librarySource, targetFramework: TargetFramework.Net80);
+            libraryComp.VerifyDiagnostics();
+            var libraryRef = libraryComp.ToMetadataReference();
+
+            string consumerSource = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        int i = 1;
+                        MyCollection<int> m = [i, i + 1];
+                        m.Report();
+                    }
+                }
+                """;
+
+            var consumerComp = CreateCompilation([consumerSource, s_collectionExtensionsWithSpan], options: TestOptions.ReleaseExe, references: [libraryRef], targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(consumerComp, expectedOutput: IncludeExpectedOutput("[1, 2],"), verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+            }).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       57 (0x39)
+                  .maxstack  3
+                  .locals init (int V_0, //i
+                                System.Runtime.CompilerServices.InlineArray2<int> V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  initobj    "System.Runtime.CompilerServices.InlineArray2<int>"
+                  IL_000a:  ldloca.s   V_1
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<int>, int>(ref System.Runtime.CompilerServices.InlineArray2<int>, int)"
+                  IL_0012:  ldloc.0
+                  IL_0013:  stind.i4
+                  IL_0014:  ldloca.s   V_1
+                  IL_0016:  ldc.i4.1
+                  IL_0017:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<int>, int>(ref System.Runtime.CompilerServices.InlineArray2<int>, int)"
+                  IL_001c:  ldloc.0
+                  IL_001d:  ldc.i4.1
+                  IL_001e:  add
+                  IL_001f:  stind.i4
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldc.i4.2
+                  IL_0023:  call       "System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray2<int>, int>(in System.Runtime.CompilerServices.InlineArray2<int>, int)"
+                  IL_0028:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_002d:  box        "MyCollection<int>"
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0038:  ret
+                }
+                """);
+
+            // Verify that the library reference is included in used assembly references
+            var usedRefs = consumerComp.GetUsedAssemblyReferences();
+            Assert.Contains(libraryRef, usedRefs);
+
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81552")]
+        public void VisitedNodes_CollectionExpression()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                Merge([.. D.P]);
+
+                static void Merge(params ReadOnlySpan<C> cs) { }
+
+                [CollectionBuilder(typeof(C), methodName: nameof(Create))]
+                class C : IEnumerable<int>
+                {
+                    public static C Create(ReadOnlySpan<int> span) => new();
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                class D
+                {
+                    public static IEnumerable<int> P => [1];
+                }
+                """;
+
+            CompileAndVerify(CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]), expectedOutput: "").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81576")]
+        public void Issue81576_01()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.))]
+                public class MyFancyCollection : IEnumerable<int>
+                {
+                    public MyFancyCollection Create(ReadOnlySpan<int> ints)
+                    {
+                        return null;
+                    }
+
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
+                }               
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics(
+                // (6,72): error CS1001: Identifier expected
+                // [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.))]
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 72)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81576")]
+        public void Issue81576_02()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.Missing))]
+                public class MyFancyCollection : IEnumerable<int>
+                {
+                    public MyFancyCollection Create(ReadOnlySpan<int> ints)
+                    {
+                        return null;
+                    }
+
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
+                }               
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics(
+                // (6,72): error CS0117: 'MyFancyCollection' does not contain a definition for 'Missing'
+                // [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.Missing))]
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("MyFancyCollection", "Missing").WithLocation(6, 72)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81576")]
+        public void Issue81576_03()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.Create))]
+                public class MyFancyCollection : IEnumerable<int>
+                {
+                    public MyFancyCollection Create(ReadOnlySpan<int> ints)
+                    {
+                        return null;
+                    }
+
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
+                }               
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics();
         }
     }
 }

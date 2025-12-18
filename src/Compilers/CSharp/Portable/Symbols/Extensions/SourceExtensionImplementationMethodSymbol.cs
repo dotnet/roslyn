@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
-            Debug.Assert(sourceMethod.GetIsNewExtensionMember());
+            Debug.Assert(sourceMethod.IsExtensionBlockMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
+        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbolBase
         {
             public ExtensionMetadataMethodParameterSymbol(SourceExtensionImplementationMethodSymbol containingMethod, ParameterSymbol sourceParameter) :
                 base(containingMethod, sourceParameter)
@@ -205,8 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
                 }
 
-                // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here
-                // as that would delegate to underlying parameter symbol
                 SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
             }
 

@@ -131,39 +131,36 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         }
     }
 
-    public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
+    internal static async ValueTask HydrateDocumentsAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var documentTasks =
+            from project in solution.Projects
+            where project.SupportsEditAndContinue()
+            from documentState in GetDocumentStates(project.State)
+            where documentState.SupportsEditAndContinue()
+            select documentState.GetTextAsync(cancellationToken).AsTask();
+
+        _ = await Task.WhenAll(documentTasks).ConfigureAwait(false);
+
+        static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
+            => ((IEnumerable<TextDocumentState>)projectState.DocumentStates.States.Values).Concat(
+                projectState.AdditionalDocumentStates.States.Values).Concat(
+                projectState.AnalyzerConfigDocumentStates.States.Values);
+    }
+
+    public DebuggingSessionId StartDebuggingSession(
         Solution solution,
         IManagedHotReloadService debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
-        ImmutableArray<DocumentId> captureMatchingDocuments,
-        bool captureAllMatchingDocuments,
-        bool reportDiagnostics,
-        CancellationToken cancellationToken)
+        bool reportDiagnostics)
     {
         try
         {
-            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
-
-            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
-
-            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
-            {
-                var documentsByProject = captureAllMatchingDocuments
-                    ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
-                    : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
-
-                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(Log, documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                initialDocumentStates = [];
-            }
-
             // Make sure the solution snapshot has all source-generated documents up-to-date:
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, Log, AnalysisLog, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
@@ -174,18 +171,11 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             return sessionId;
 
         }
-        catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+        catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
         {
             throw ExceptionUtilities.Unreachable();
         }
     }
-
-    private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)
-        => from documentId in documentIds
-           where solution.ContainsDocument(documentId)
-           group documentId by documentId.ProjectId into projectDocumentIds
-           let project = solution.GetRequiredProject(projectDocumentIds.Key)
-           select (project, from documentId in projectDocumentIds select project.State.DocumentStates.GetState(documentId));
 
     public void EndDebuggingSession(DebuggingSessionId sessionId)
     {

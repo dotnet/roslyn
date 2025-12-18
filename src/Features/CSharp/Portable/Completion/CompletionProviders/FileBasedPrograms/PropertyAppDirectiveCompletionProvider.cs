@@ -39,4 +39,7 @@ internal sealed class PropertyAppDirectiveCompletionProvider() : AbstractAppDire
                 new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Defines_a_build_property),
                 ]));
     }
+
+    protected override Task AddDirectiveContentCompletionsAsync(CompletionContext context, ReadOnlyMemory<char> contentPrefix)
+        => Task.CompletedTask;
 }

@@ -885,6 +885,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">找到單一組件: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">產生比較運算子</target>
@@ -2575,11 +2580,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">將擷取到的變數從 '{0}' 重新命名為 '{1}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">目前尚不支援重新命名匿名類型成員。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">將 ‘{0}’ 取代為 ‘{1}'</target>
@@ -3935,11 +3935,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">產生 Equals 與 GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">產生 Equals(object)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">產生 GetHashCode()</target>
@@ -4150,8 +4145,8 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">變更簽章...</target>
-        <note />
+        <target state="needs-review-translation">變更簽章...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

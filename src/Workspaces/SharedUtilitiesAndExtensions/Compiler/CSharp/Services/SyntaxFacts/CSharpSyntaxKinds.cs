@@ -64,6 +64,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int? Utf8SingleLineRawStringLiteralToken => (int)SyntaxKind.Utf8SingleLineRawStringLiteralToken;
     public int? Utf8MultiLineRawStringLiteralToken => (int)SyntaxKind.Utf8MultiLineRawStringLiteralToken;
 
+    public int XmlCrefAttribute => (int)SyntaxKind.XmlCrefAttribute;
     public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 
     public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;

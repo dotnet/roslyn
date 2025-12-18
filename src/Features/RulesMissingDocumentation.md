@@ -18,6 +18,8 @@ IDE0330 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0340 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0340> | Use unbound generic type |
 IDE0350 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0350> | Use implicitly typed lambda |
 IDE0360 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0360> | Simplify property accessor |
+IDE0370 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0370> | Remove unnecessary suppression |
+IDE0380 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0380> | Remove unnecessary 'unsafe' modifier |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |

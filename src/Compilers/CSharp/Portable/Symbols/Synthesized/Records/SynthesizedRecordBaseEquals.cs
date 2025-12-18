@@ -62,10 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
+                BoundParameter parameterRef = F.Parameter(parameter);
+                NamedTypeSymbol objectType = F.SpecialType(SpecialType.System_Object);
+                Conversion c = F.ClassifyEmitConversion(parameterRef, objectType);
+                Debug.Assert(c.IsImplicit);
+                Debug.Assert(c.IsReference);
+
                 var retExpr = F.Call(
                     F.This(),
                     ContainingType.GetMembersUnordered().OfType<SynthesizedRecordObjEquals>().Single(),
-                    F.Convert(F.SpecialType(SpecialType.System_Object), F.Parameter(parameter)));
+                    F.Convert(objectType, parameterRef, c));
 
                 F.CloseMethod(F.Block(F.Return(retExpr)));
             }

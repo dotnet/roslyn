@@ -62,7 +62,8 @@ public partial class Solution
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
             new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
-            workspace.PartialSemanticsEnabled))
+            workspace.PartialSemanticsEnabled,
+            workspace.GeneratorDriverCreationCache))
     {
     }
 
@@ -340,7 +341,7 @@ public partial class Solution
             }
             else if (documentState is DocumentState)
             {
-                return GetDocument(documentState.Id)!;
+                return GetDocument(documentState.Id);
             }
         }
 
@@ -518,6 +519,44 @@ public partial class Solution
     /// </summary>
     internal Solution WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
         => WithCompilationState(CompilationState.WithFallbackAnalyzerOptions(options));
+
+    /// <summary>
+    /// Forks this solution to ensure that its <see cref="FallbackAnalyzerOptions"/> are updated with the latest values
+    /// from the host, provided via <see cref="IFallbackAnalyzerConfigOptionsProvider"/>, using <paramref
+    /// name="oldSolution"/> as the baseline solution that this solution was forked from.  Specifically, this will
+    /// ensure that if this solution no longer contains certain project in certain languages that those languages are
+    /// removed from <see cref="FallbackAnalyzerOptions"/>.  Similarly, if there are new languages in this solution not
+    /// present in the <paramref name="oldSolution"/>, those languages will be added to <see
+    /// cref="FallbackAnalyzerOptions"/>.
+    /// </summary>
+    internal Solution WithFallbackAnalyzerOptionValuesFromHost(Solution oldSolution)
+    {
+        var newFallbackOptions = this.FallbackAnalyzerOptions;
+
+        // Clear out languages that are no longer present in the solution.
+        // If we didn't, the workspace might clear the solution (which removes the fallback options)
+        // and we would never re-initialize them from global options.
+        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (!this.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+                newFallbackOptions = newFallbackOptions.Remove(language);
+        }
+
+        // Update solution snapshot to include options for newly added languages:
+        foreach (var (language, _) in this.SolutionState.ProjectCountByLanguage)
+        {
+            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+                continue;
+
+            if (newFallbackOptions.ContainsKey(language))
+                continue;
+
+            var provider = oldSolution.Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
+        }
+
+        return this.WithFallbackAnalyzerOptions(newFallbackOptions);
+    }
 
     /// <summary>
     /// Create a new solution instance with the project specified updated to have

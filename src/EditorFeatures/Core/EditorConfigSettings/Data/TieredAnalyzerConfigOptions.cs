@@ -29,7 +29,7 @@ internal sealed class TieredAnalyzerConfigOptions(AnalyzerConfigOptions editorCo
         else
         {
             location = new SettingLocation(LocationKind.VisualStudio, Path: null);
-            initialValue = GlobalOptions.GetOption<TValue>(new OptionKey2(option, option.IsPerLanguage ? Language : null))!;
+            initialValue = GlobalOptions.GetOption<TValue>(new OptionKey2(option, option.IsPerLanguage ? Language : null));
         }
     }
 }

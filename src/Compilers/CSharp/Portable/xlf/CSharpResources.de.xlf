@@ -67,6 +67,16 @@
         <target state="translated">Der Operator "{0}" kann nicht auf "default" und den Operanden vom Typ "{1}" angewendet werden, weil es sich um einen Typparameter handelt, der nicht als Verweistyp bekannt ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">Bezeichner „{0}“ ist zwischen Typ „{1}“ und Parameter „{2}“ in diesem Kontext mehrdeutig.</target>
@@ -557,6 +567,11 @@
         <target state="translated">Der Sammlungsinitialisierer führt zu einer unendlichen Kette von Instanziierungen von Sammlungs- "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Der {1}-Typparameter enthält die Einschränkung "unmanaged". "{1}" kann daher nicht als Einschränkung für "{0}" verwendet werden.</target>
@@ -620,6 +635,11 @@
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Ein Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder "null"). Verwenden Sie zum Abgleich aller Elemente ein discard-Muster "_".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DesignatorBeforePropertyPattern">
+        <source>A variable designator must come after a property pattern.</source>
+        <target state="new">A variable designator must come after a property pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
@@ -692,6 +712,11 @@
         <target state="translated">Update kann nicht ausgeben;  {0} '{1}' fehlt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Anwendungseinstiegspunkte können nicht mit dem Attribut "UnmanagedCallersOnly" versehen werden.</target>
@@ -700,6 +725,11 @@
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
         <target state="translated">Die EqualityContract-Eigenschaft "{0}" für Datensätze muss eine get-Zugriffsmethode aufweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
+        <source>The '==' operator is not supported in a pattern.</source>
+        <target state="new">The '==' operator is not supported in a pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
@@ -850,6 +880,11 @@
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
         <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterInStaticContext">
+        <source>Static members cannot access the value of extension parameter '{0}'.</source>
+        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
@@ -1087,6 +1122,11 @@
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch gebundenen Ausdrücken verwendet werden.</target>
@@ -1095,6 +1135,11 @@
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
         <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
+        <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
+        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -2377,6 +2422,16 @@
         <target state="translated">Das Programm mit Anweisungen der obersten Ebene muss eine ausführbare Datei sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
         <target state="translated">Der Überfüllungsoperator ".." kann nicht für Variablen vom Typ "{0}" verwendet werden, weil "{0}" keine öffentliche Instanz- oder Erweiterungsdefinition für "{1}" enthält.</target>
@@ -2535,6 +2590,11 @@
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
+        <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
+        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -11793,8 +11853,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">Der Ausdruck muss implizit in einen booleschen Ausdruck konvertiert werden können, oder der Typ "{0}" muss den Operator "{1}" definieren.</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">Der Ausdruck muss implizit in einen booleschen Ausdruck konvertiert werden können, oder der Typ "{0}" muss den Operator "{1}" definieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13000,11 +13060,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">out-Variablendeklaration</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">Ein Verweis auf eine implizit typisierte out-Variable "{0}" ist in der gleichen Argumentliste unzulässig.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">Der Typ der implizit typisierten out-Variablen "{0}" kann nicht abgeleitet werden.</target>
@@ -13221,8 +13276,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">Compilerversion: "{0}". Sprachversion: {1}.</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

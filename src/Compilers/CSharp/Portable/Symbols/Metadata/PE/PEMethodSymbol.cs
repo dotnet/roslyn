@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
-            thisParameter = IsStatic || this.GetIsNewExtensionMember() ? null :
+            thisParameter = IsStatic || this.IsExtensionBlockMember() ? null :
                            _uncommonFields?._lazyThisParameter ?? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyThisParameter, new ThisParameterSymbol(this));
             return true;
         }
@@ -1016,11 +1016,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
-                bool isNewExtensionMember = this.GetIsNewExtensionMember();
+                bool isExtensionBlockMember = this.IsExtensionBlockMember();
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember)
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isExtensionBlockMember)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
                         filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,

@@ -41,8 +41,8 @@ internal static partial class ExpressionSyntaxExtensions
         return expression;
     }
 
-    public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
-        => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
+    public static bool IsQualifiedCrefName([NotNullWhen(true)] this ExpressionSyntax? expression)
+        => expression is { Parent: NameMemberCrefSyntax { Parent: QualifiedCrefSyntax } };
 
     public static bool IsSimpleMemberAccessExpressionName([NotNullWhen(true)] this ExpressionSyntax? expression)
         => expression?.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess && memberAccess.Name == expression;
@@ -66,7 +66,7 @@ internal static partial class ExpressionSyntaxExtensions
     public static bool IsRightSideOfColonColon(this ExpressionSyntax expression)
         => expression?.Parent is AliasQualifiedNameSyntax aliasName && aliasName.Name == expression;
 
-    public static bool IsRightSideOfDot(this ExpressionSyntax name)
+    public static bool IsRightSideOfDot([NotNullWhen(true)] this ExpressionSyntax? name)
         => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
     public static bool IsRightSideOfDotOrArrow([NotNullWhen(true)] this ExpressionSyntax? name)

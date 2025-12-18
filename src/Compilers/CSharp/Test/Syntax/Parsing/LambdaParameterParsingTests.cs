@@ -5469,12 +5469,18 @@ class C {
                 // (1,20): error CS1002: ; expected
                 // Action<object> a = public => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 20),
-                // (1,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,27): error CS1031: Type expected
                 // Action<object> a = public => { };
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "public").WithLocation(1, 20),
-                // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "=>").WithLocation(1, 27),
+                // (1,27): error CS1001: Identifier expected
                 // Action<object> a = public => { };
-                Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(1, 27));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                // (1,30): error CS1525: Invalid expression term '{'
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 30),
+                // (1,30): error CS1002: ; expected
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 30));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5513,9 +5519,23 @@ class C {
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.PropertyDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -6745,6 +6765,122 @@ class C {
                                 N(SyntaxKind.NumericLiteralToken, "0");
                             }
                         }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestParenthesizedLambdaRecovery1()
+        {
+            UsingExpression("(int a,) => { }",
+                // (1,8): error CS1001: Identifier expected
+                // (int a,) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 8));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Parameter);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestParenthesizedLambdaRecovery2()
+        {
+            UsingExpression("(int a, b) => { }");
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestParenthesizedLambdaRecovery3()
+        {
+            UsingExpression("(int a, b, ) => { }",
+                // (1,12): error CS1001: Identifier expected
+                // (int a, b, ) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 12));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Parameter);
+                    {
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }

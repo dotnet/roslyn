@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private bool _hasNoBaseCycles;
 
-        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null);
 
         /// <summary>
         /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
@@ -389,13 +389,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(thisParam is not null);
 
+            if (!thisParam.Type.IsValidExtensionParameterType())
+            {
+                return false;
+            }
+
             // For ref and ref-readonly extension members and classic extension methods, receivers need to be of the correct types to be considered in lookup
             if (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType)
             {
                 return false;
             }
 
-            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct)
+            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                && !thisParam.Type.IsValidInOrRefReadonlyExtensionParameterType())
             {
                 return false;
             }
@@ -406,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
+            Debug.Assert((options & ~(LookupOptions.AllMethodsOnArityZero
                 | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
                 | LookupOptions.MustBeOperator | LookupOptions.MustNotBeMethodTypeParameter)) == 0);
 

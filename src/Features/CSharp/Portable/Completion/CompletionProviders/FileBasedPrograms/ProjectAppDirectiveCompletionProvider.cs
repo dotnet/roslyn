@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -36,5 +38,24 @@ internal sealed class ProjectAppDirectiveCompletionProvider() : AbstractAppDirec
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
                 new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_a_project_reference),
                 ]));
+    }
+
+    protected override async Task AddDirectiveContentCompletionsAsync(CompletionContext context, ReadOnlyMemory<char> contentPrefix)
+    {
+        // Suppose we have a directive '#:project path/to/pr$$'
+        // In this case, 'contentPrefix' is 'path/to/pr'.
+
+        var documentDirectory = PathUtilities.GetDirectoryName(context.Document.FilePath);
+        var fileSystemHelper = new FileSystemCompletionHelper(
+            Glyph.OpenFolder,
+            Glyph.CSharpProject,
+            searchPaths: [],
+            baseDirectory: PathUtilities.IsAbsolute(documentDirectory) ? documentDirectory : null,
+            [".csproj", ".vbproj"],
+            CompletionItemRules.Default);
+
+        var contentDirectory = PathUtilities.GetDirectoryName(contentPrefix.ToString());
+        var items = await fileSystemHelper.GetItemsAsync(contentDirectory, context.CancellationToken).ConfigureAwait(false);
+        context.AddItems(items);
     }
 }

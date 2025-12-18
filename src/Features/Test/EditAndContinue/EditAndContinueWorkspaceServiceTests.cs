@@ -36,8 +36,8 @@ using static ActiveStatementTestHelpers;
 [UseExportProvider]
 public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorkspaceTestBase
 {
-    [Theory, CombinatorialData]
-    public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
+    [Fact]
+    public async Task StartDebuggingSession_CapturingDocuments()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -132,19 +132,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             loader: new FailingTextLoader(),
             filePath: sourceFileD.Path));
 
-        var captureMatchingDocuments = captureAllDocuments
-            ? []
-            : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
-
-        var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
+        var sessionId = service.StartDebuggingSession(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, reportDiagnostics: true);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
-        var matchingDocuments = debuggingSession.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(
-        [
-            "(A, MatchesBuildOutput)",
-            "(C, MatchesBuildOutput)"
-        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        Assert.Empty(debuggingSession.LastCommittedSolution.Test_GetDocumentStates());
 
         // change content of B on disk again:
         sourceFileB.WriteAllText("class B { int F() => 3; }", encodingB);
@@ -168,7 +159,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document1) = AddDefaultTestProject(solution, "class C1 { void M() { System.Console.WriteLine(1); } }");
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // no changes:
         var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, s_noActiveSpans, CancellationToken.None);
@@ -205,7 +196,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         solution = solution.WithProjectOutputFilePath(document.Project.Id, moduleFile.Path);
         _mockCompilationOutputs.Add(document.Project.Id, new CompilationOutputFiles(moduleFile.Path));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // update the document
         var document1 = solution.GetDocument(document.Id);
@@ -238,7 +229,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document = project.AddDocument("test", "dummy1");
         solution = document.Project.Solution;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         if (breakMode)
         {
             EnterBreakState(debuggingSession);
@@ -286,7 +277,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // Debugger reports error when trying to emit change for optimized module. We do not report another rude edit.
         _debuggerService.IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Optimized, localizedMessage: "*optimized*");
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // change the source:
         solution = solution.WithDocumentText(documentId, CreateText("""
@@ -319,7 +310,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             """, generator: generator);
         solution = solution.WithProjectCompilationOutputInfo(document.Project.Id, new CompilationOutputInfo(assemblyPath: null, generatedFilesOutputDirectory: null));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         // change the source:
@@ -370,7 +361,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         var (code, settingName) = settingKind switch
         {
@@ -463,7 +454,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         var (code, settingName, isWarning) = settingKind switch
         {
@@ -542,7 +533,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         var (code, settingName) = settingKind switch
         {
@@ -609,7 +600,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var project = solution.GetRequiredProject(projectId);
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         var newRefOutPath = Path.Combine(TempRoot.Root, "newRef");
         solution = solution.WithProjectOutputRefFilePath(projectId, newRefOutPath);
@@ -671,7 +662,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // change version of the dependency:
         solution = project.RemoveMetadataReference(libV1).AddMetadataReference(libV2).Solution;
@@ -717,7 +708,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // remove dependency:
         solution = project.RemoveMetadataReference(libV1).Solution;
@@ -765,7 +756,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // add dependency:
         solution = project.AddMetadataReference(libV1).Solution;
@@ -800,7 +791,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(project);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // add version 3:
         solution = project.AddMetadataReference(libV3).Solution;
@@ -836,7 +827,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         _mockCompilationOutputs.Add(projectId, new CompilationOutputFiles(moduleFile.Path));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // update a design-time-only source file:
         solution = solution.WithDocumentText(documentInfo.Id, CreateText("class UpdatedC2 {}"));
@@ -876,7 +867,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         solution = solution.AddDocument(documentInfo);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         // change the source:
@@ -896,7 +887,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Theory, CombinatorialData]
-    public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open, bool designTimeOnlyAddedAfterSessionStarts)
+    public async Task DesignTimeOnlyDocument_Wpf(
+        [CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language,
+        bool delayLoad,
+        bool designTimeOnlyAddedAfterSessionStarts)
     {
         var source = "class A { }";
         var sourceDesignTimeOnly = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
@@ -940,8 +934,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // make sure renames are not supported:
         _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
-        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : [];
-        var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
+        var sessionId = service.StartDebuggingSession(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, reportDiagnostics: true);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
         if (designTimeOnlyAddedAfterSessionStarts)
@@ -1021,7 +1014,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var projectId = document1.Project.Id;
         _mockCompilationOutputs.Add(projectId, new CompilationOutputFiles(moduleFile.Path));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         if (breakMode)
         {
@@ -1107,7 +1100,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             }
         };
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
         EnterBreakState(debuggingSession);
 
         // change the source:
@@ -1154,7 +1147,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(project.Id, source1, sourceFilePath: sourceFile.Path, checksumAlgorithm: SourceHashAlgorithms.Default);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
         EnterBreakState(debuggingSession);
 
         // change the source:
@@ -1216,7 +1209,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // Source B will be added while debugging.
         EmitAndLoadLibraryToDebuggee(project.Id, sourceA, sourceFilePath: sourceFileA.Path);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         if (breakMode)
         {
@@ -1278,7 +1271,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(solution.Projects.Single());
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // delete B:
         solution = solution.RemoveDocument(documentBId);
@@ -1308,7 +1301,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(solution.Projects.Single());
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // delete:
         solution = solution.RemoveDocument(documentBId);
@@ -1375,7 +1368,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document0 = project.AddTestDocument(source0, path: sourceFile.Path);
         solution = document0.Project.Solution;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         if (breakMode)
         {
@@ -1415,7 +1408,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         LoadLibraryToDebuggee(moduleId, new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForRuntime, "*message*"));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -1454,7 +1447,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         LoadLibraryToDebuggee(moduleId, new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForRuntime, "*message*"));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -1538,7 +1531,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             }
         };
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None, sourceTextProvider);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None, sourceTextProvider);
 
         EnterBreakState(debuggingSession);
 
@@ -1562,7 +1555,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         _mockCompilationOutputs.Add(document.Project.Id, new MockCompilationOutputs(moduleId));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         if (breakMode)
         {
@@ -1630,7 +1623,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, source1);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         var activeLineSpan1 = CreateText(source1).Lines.GetLinePositionSpan(GetSpan(source1, "System.Console.WriteLine(1);"));
         var activeLineSpan2 = CreateText(source2).Lines.GetLinePositionSpan(GetSpan(source2, "System.Console.WriteLine(2);"));
@@ -1704,7 +1697,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // mock project build:
         _mockCompilationOutputs.Add(document.Project.Id, new MockCompilationOutputs(Guid.NewGuid()));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         // change the source:
@@ -1759,7 +1752,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         solution = document1.Project.Solution;
         var documentId = document1.Id;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         if (breakMode)
         {
@@ -1846,7 +1839,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitAndLoadLibraryToDebuggee(project.Id, source1, sourceFilePath: sourceFile.Path);
 
         // do not initialize the document state - we will detect the state based on the PDB content.
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         EnterBreakState(debuggingSession);
 
@@ -1890,7 +1883,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(project.Id, source1, sourceFilePath: sourceFile.Path);
 
         // do not initialize the document state - we will detect the state based on the PDB content.
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         EnterBreakState(debuggingSession);
 
@@ -1944,7 +1937,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitAndLoadLibraryToDebuggee(document);
         var sourceFilePath = document.FilePath;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EmitSolutionUpdateResults results;
         var readers = ImmutableArray<IDisposable>.Empty;
@@ -2051,7 +2044,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         _mockCompilationOutputs.Add(document.Project.Id, new MockCompilationOutputs(moduleId));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -2091,7 +2084,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, sourceV1);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -2154,7 +2147,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
             AddDocument("C.cs", "class C {}", filePath: pathC).Project.Solution;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         // mock project build:
@@ -2251,7 +2244,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var generatedDocument = (await project.GetSourceGeneratedDocumentsAsync()).Single();
         var generatedDocumentId = generatedDocument.Id;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         Assert.Equal(1, generatorExecutionCount);
@@ -2429,7 +2422,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
         Assert.Empty(generatorDiagnostics);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         var diffences = new ProjectDifferences();
@@ -2475,7 +2468,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             AddTestProject("A", out var projectId).
             AddTestDocument("class C;", sourcePath).Project.Solution;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession);
 
         var oldSolution = solution;
@@ -2498,7 +2491,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             AddTestProject("A", out var projectAId).Solution.
             AddTestProject("B", out var projectBId).Solution;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution0);
+        var debuggingSession = StartDebuggingSession(service, solution0);
         EnterBreakState(debuggingSession);
 
         // add metadata reference:
@@ -2534,7 +2527,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectAId));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // Add project B and a project reference A -> B
         solution = solution
@@ -2578,7 +2571,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectAId));
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectBId));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // Add project reference A -> B
         solution = solution.AddProjectReference(projectAId, new ProjectReference(projectBId));
@@ -2623,7 +2616,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var mvidA = EmitAndLoadLibraryToDebuggee(projectAId, sourceA1, sourceFilePath: sourceFileA.Path, assemblyName: "A");
         var mvidB = EmitAndLoadLibraryToDebuggee(projectBId, sourceB1, sourceFilePath: sourceFileB.Path, assemblyName: "B");
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // An active statement may be present in the added file since the file exists in the PDB:
         var activeLineSpanA1 = CreateText(sourceA1).Lines.GetLinePositionSpan(GetSpan(sourceA1, "System.Console.WriteLine(1);"));
@@ -2702,7 +2695,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         _debuggerService.GetCapabilitiesImpl = () => ["Baseline", "ChangeCustomAttributes"];
 
         // F5
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // update document:
         solution = solution.WithDocumentText(documentId, CreateText("[System.Obsolete]class C { void M() { } }"));
@@ -2803,7 +2796,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // attached to processes that doesn't allow creating new types
         _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // change the source
         solution = solution.WithDocumentText(document1.Id, CreateText("""
@@ -2850,7 +2843,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         // F5
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // update document:
         solution = solution.WithDocumentText(documentId, CreateText("class C { void M() { var x = new { Goo = 1 }; } }"));
@@ -2872,6 +2865,44 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+    public async Task Capabilities_ExplicitInterfaceImplementation()
+    {
+        var source1 = "class C { System.Collections.Generic.IEnumerable<int> M() => [1]; }";
+        var source2 = "class C { System.Collections.Generic.IEnumerable<int> M() => [2]; }";
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+        solution = AddDefaultTestProject(solution, [source1]);
+        var project = solution.Projects.Single();
+        var documentId = solution.Projects.Single().Documents.Single().Id;
+
+        EmitAndLoadLibraryToDebuggee(project.Id, source1);
+
+        // attached to processes that doesn't allow creating new types
+        _debuggerService.GetCapabilitiesImpl = () => EditAndContinueTestVerifier.NetFrameworkCapabilities.ToStringArray();
+
+        // F5
+        var debuggingSession = StartDebuggingSession(service, solution);
+
+        // update document:
+        solution = solution.WithDocumentText(documentId, CreateText(source2));
+        var document2 = solution.Projects.Single().Documents.Single();
+
+        // The error isn't reported as document diagnostic:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        // The error is reported as emit diagnostic:
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        AssertEx.Equal([$"proj: <no location>: Error CS9346: {CSharpResources.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime}"], InspectDiagnostics(results.Diagnostics));
+
+        // no emitted delta:
+        Assert.Empty(results.ModuleUpdates.Updates);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
     public async Task ValidSignificantChange_EmitError()
     {
         var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -2881,7 +2912,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         (solution, var document) = AddDefaultTestProject(solution, sourceV1);
         EmitAndLoadLibraryToDebuggee(document.Project.Id, sourceV1);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -2971,7 +3002,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(documentId.ProjectId, source1, sourceFilePath: sourceFile.Path);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None, sourceTextProvider);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None, sourceTextProvider);
 
         EnterBreakState(debuggingSession);
 
@@ -3046,7 +3077,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(project.Id, source1, sourceFilePath: sourceFile.Path);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         EnterBreakState(debuggingSession);
 
@@ -3117,7 +3148,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         _debuggerService.IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Attach, localizedMessage: "*attached*");
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         // An active statement may be present in the added file since the file exists in the PDB:
         var activeInstruction1 = new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1);
@@ -3183,7 +3214,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             LoadLibraryToDebuggee(moduleId);
         }
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         EnterBreakState(debuggingSession);
 
@@ -3219,7 +3250,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document1.Project.Id, sourceV1);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         if (breakMode)
         {
@@ -3362,7 +3393,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             sourceSpan: new SourceSpan(0, 15, 0, 16),
             ActiveStatementFlags.LeafFrame));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // module is not loaded:
         EnterBreakState(debuggingSession, activeStatements);
@@ -3466,7 +3497,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         LoadLibraryToDebuggee(EmitLibrary(project.Id, [(sourceA1, "test1.cs"), (sourceB1, "test2.cs")]));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -3539,7 +3570,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentAId));
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentBId));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // change the source (valid edit in A and rude edit in B):
         solution = solution
@@ -3620,7 +3651,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentAId));
         EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentBId));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // change the source (valid edit in A and no-effect edit in B):
         solution = solution
@@ -3701,7 +3732,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // the EnC service has to do so.
         _ = await solution.Projects.Single().GetCompilationAsync(CancellationToken.None);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -3758,7 +3789,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // the EnC service has to do so.
         _ = await solution.Projects.Single().GetCompilationAsync(CancellationToken.None);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -3810,7 +3841,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(document1.Project.Id, sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -3867,7 +3898,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(document1.Project.Id, sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -3920,7 +3951,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(document.Project.Id, source, generatorProject: document.Project, additionalFileText: additionalSourceV1);
         LoadLibraryToDebuggee(moduleId);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -3970,7 +4001,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(document.Project.Id, source, generatorProject: document.Project, analyzerOptions: configV1);
         LoadLibraryToDebuggee(moduleId);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -4012,7 +4043,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(document1.Project.Id, source1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -4048,7 +4079,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document1.Project.Id, source1);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // change the source (valid insignificant edit):
         solution = solution.WithDocumentText(document1.Id, CreateText(source2));
@@ -4091,7 +4122,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         // F5
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // update document:
         solution = solution.WithDocumentText(documentId, CreateText("class C { void M() { var x = new { Goo = 1 }; } }"));
@@ -4154,7 +4185,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // only module A is loaded
         LoadLibraryToDebuggee(moduleIdA);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
@@ -4301,7 +4332,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var mvidB = EmitAndLoadLibraryToDebuggee(projectBId, source0, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
 
         // force document checksum validation:
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         EnterBreakState(debuggingSession);
 
@@ -4401,7 +4432,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var mvidB = EmitAndLoadLibraryToDebuggee(projectBId, source0, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
 
         // force document checksum validation:
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
 
         EnterBreakState(debuggingSession);
 
@@ -4433,7 +4464,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             OpenAssemblyStreamImpl = () => null,
         });
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // module not loaded
         EnterBreakState(debuggingSession);
@@ -4468,7 +4499,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             OpenAssemblyStreamImpl = () => throw new IOException("*message*"),
         });
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // module not loaded
         EnterBreakState(debuggingSession);
@@ -4524,7 +4555,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var adjustedActiveLineSpan1 = sourceTextV2.Lines.GetLinePositionSpan(adjustedActiveSpan1);
         var adjustedActiveLineSpan2 = sourceTextV2.Lines.GetLinePositionSpan(adjustedActiveSpan2);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // default if not called in a break state
         Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document1.Id], CancellationToken.None)).IsDefault);
@@ -4600,7 +4631,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var activeLineSpan11 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan11);
         var activeLineSpan12 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan12);
 
-        var debuggingSession = await StartDebuggingSessionAsync(
+        var debuggingSession = StartDebuggingSession(
             service,
             solution,
             isOutOfSync ? CommittedSolution.DocumentState.OutOfSync : CommittedSolution.DocumentState.MatchesBuildOutput);
@@ -4659,7 +4690,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         solution = document.Project.Solution;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         var activeStatements = ImmutableArray.Create(
             new ManagedActiveStatementDebugInfo(
@@ -4734,7 +4765,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var docId4 = AddProjectAndLinkDocument("Project3", doc1, text1);
         var docId5 = AddProjectAndLinkDocument("Project4", doc2, text2);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
         EnterBreakState(debuggingSession, debugInfos);
 
         // Base Active Statements
@@ -4821,7 +4852,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var project = solution.Projects.Single();
         var document = project.Documents.Single();
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.OutOfSync);
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.OutOfSync);
         EnterBreakState(debuggingSession, debugInfos);
 
         // update document to test a changed solution
@@ -4925,7 +4956,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var moduleId = EmitLibrary(document1.Project.Id, source1, generatorProject: document1.Project, additionalFileText: additionalFileSourceV1);
         LoadLibraryToDebuggee(moduleId);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
             [GetGeneratedCodeFromMarkedSource(markedSource1)],
@@ -5011,7 +5042,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
             [markedSource1],
@@ -5100,7 +5131,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, SourceMarkers.Clear(markedSourceV1));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // EnC update F v1 -> v2
 
@@ -5219,7 +5250,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, SourceMarkers.Clear(markedSource1));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // Update to snapshot 2, but don't apply
 
@@ -5338,7 +5369,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, SourceMarkers.Clear(markedSource1));
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // Apply update: F v1 -> v2.
 
@@ -5424,7 +5455,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, source);
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // Apply code fix: Move type to AnotherClass.cs
 
@@ -5496,14 +5527,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var tasks = Enumerable.Range(0, 10).Select(async i =>
         {
-            var sessionId = await encService.StartDebuggingSessionAsync(
+            var sessionId = encService.StartDebuggingSession(
                 solution,
                 _debuggerService,
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: true,
-                reportDiagnostics: true,
-                CancellationToken.None);
+                reportDiagnostics: true);
 
             var solution1 = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(" + i + "); } }"));
 
@@ -5532,7 +5560,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         using var _1 = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, "class C { }");
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         EndDebuggingSession(debuggingSession);
 
@@ -5571,7 +5599,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var documentId = document.Id;
         var oldProject = document.Project;
 
-        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        var debuggingSession = StartDebuggingSession(service, solution);
 
         // Build and load two versions of the libary.
         // This happens when projects A and B both reference Lib project and copy the assembly to their respective output directories and

@@ -3194,18 +3194,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocal(BoundLocal node)
         {
-            var local = node.LocalSymbol;
-
             // Ignore var self-references (e.g., the RHS of `var x = x;`) to avoid cycles.
             // While inferring the type of a more complex construct (like lambda),
             // nullability analysis could be triggered against a reference of the local being inferred,
             // querying its type and hence starting the same type inference recursively.
-            if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            if (node.Type == (object)this.compilation.ImplicitlyTypedVariableUsedInForbiddenZoneType)
             {
                 SetResultType(node, TypeWithState.ForType(node.Type));
                 return null;
             }
 
+            var local = node.LocalSymbol;
             int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
 
@@ -3923,7 +3922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Reinfer the addMethod signature and convert the argument to parameter type
                             var addMethod = initializer.AddMethod;
                             MethodSymbol reinferredAddMethod;
-                            if (!addMethod.IsExtensionMethod && !addMethod.GetIsNewExtensionMember())
+                            if (!addMethod.IsExtensionMethod && !addMethod.IsExtensionBlockMember())
                             {
                                 reinferredAddMethod = (MethodSymbol)AsMemberOfType(targetCollectionType, addMethod);
                             }
@@ -4429,7 +4428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol == null)
                     return null;
 
-                if (!symbol.GetIsNewExtensionMember())
+                if (!symbol.IsExtensionBlockMember())
                 {
                     Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                     return AsMemberOfType(containingType, symbol);
@@ -4670,7 +4669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentResults = builder.ToImmutableAndFree();
                     }
                 }
-                else if (!method.GetIsNewExtensionMember())
+                else if (!method.IsExtensionBlockMember())
                 {
                     // Tracked by https://github.com/dotnet/roslyn/issues/78828: Do we need to do anything special for new extensions here?
                     method = (MethodSymbol)AsMemberOfType(containingType, method);
@@ -5340,7 +5339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState rightType,
             BoundBinaryOperator binary)
         {
-            var inferredResult = ReinferAndVisitBinaryOperator(binary, binary.OperatorKind, binary.Method, binary.Type, binary.Left, leftOperand, leftConversion, leftType, binary.Right, rightOperand, rightConversion, rightType);
+            var inferredResult = ReinferAndVisitBinaryOperator(binary, binary.OperatorKind, binary.BinaryOperatorMethod, binary.Type, binary.Left, leftOperand, leftConversion, leftType, binary.Right, rightOperand, rightConversion, rightType);
             SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
         }
 
@@ -5438,7 +5437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol methodContainer = method.ContainingType;
             MethodSymbol reinferredMethod;
 
-            if (!method.GetIsNewExtensionMember())
+            if (!method.IsExtensionBlockMember())
             {
                 TypeSymbol asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type, leftOperand) ??
                     getTypeIfContainingType(methodContainer, rightUnderlyingType.Type, rightOperand) ?? methodContainer;
@@ -6558,10 +6557,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        bool isNewExtensionMethod = node.Method.GetIsNewExtensionMember();
+                        bool isExtensionBlockMethod = node.Method.IsExtensionBlockMember();
 
                         // Only instance receivers go through VisitRvalue; arguments go through VisitArgumentEvaluate.
-                        if (node.ReceiverOpt is not null && !isNewExtensionMethod)
+                        if (node.ReceiverOpt is not null && !isExtensionBlockMethod)
                         {
                             VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
                             receiverType = ResultType;
@@ -6571,12 +6570,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // The receiver for new extension methods is analyzed as an argument
-                            Debug.Assert(node.InvokedAsExtensionMethod || isNewExtensionMethod);
+                            Debug.Assert(node.InvokedAsExtensionMethod || isExtensionBlockMethod);
 
-                            var refKind = isNewExtensionMethod ? GetExtensionReceiverRefKind(node.Method) : GetRefKind(node.ArgumentRefKindsOpt, 0);
+                            var refKind = isExtensionBlockMethod ? GetExtensionReceiverRefKind(node.Method) : GetRefKind(node.ArgumentRefKindsOpt, 0);
 
                             FlowAnalysisAnnotations annotations;
-                            if (isNewExtensionMethod)
+                            if (isExtensionBlockMethod)
                             {
                                 Debug.Assert(node.Method.ContainingType.ExtensionParameter is not null);
                                 annotations = node.Method.ContainingType.ExtensionParameter.FlowAnalysisAnnotations;
@@ -6689,7 +6688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState receiverType = default;
 
             // The receiver for new extension methods will be analyzed as an argument
-            if (receiverOpt is { } receiver && !method.GetIsNewExtensionMember())
+            if (receiverOpt is { } receiver && !method.IsExtensionBlockMember())
             {
                 receiverType = VisitRvalueWithState(receiver);
                 CheckCallReceiver(receiver, receiverType, method);
@@ -6711,19 +6710,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             VisitResult? firstArgumentResult = null)
         {
-            bool adjustForNewExtension = method.GetIsNewExtensionMember();
+            bool adjustForExtensionBlockMember = method.IsExtensionBlockMember();
 
-            refKindsOpt = GetArgumentRefKinds(refKindsOpt, adjustForNewExtension, method, arguments.Length);
+            refKindsOpt = GetArgumentRefKinds(refKindsOpt, adjustForExtensionBlockMember, method, arguments.Length);
 
-            if (!method.GetIsNewExtensionMember() && !receiverType.HasNullType)
+            if (!method.IsExtensionBlockMember() && !receiverType.HasNullType)
             {
                 // Update method based on inferred receiver type.
                 method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
             }
 
-            arguments = getArguments(arguments, adjustForNewExtension, receiverOpt);
-            ImmutableArray<ParameterSymbol> parameters = getParameters(method.Parameters, adjustForNewExtension, method);
-            argsToParamsOpt = GetArgsToParamsOpt(argsToParamsOpt, adjustForNewExtension);
+            arguments = getArguments(arguments, adjustForExtensionBlockMember, receiverOpt);
+            ImmutableArray<ParameterSymbol> parameters = getParameters(method.Parameters, adjustForExtensionBlockMember, method);
+            argsToParamsOpt = GetArgsToParamsOpt(argsToParamsOpt, adjustForExtensionBlockMember);
 
             ImmutableArray<VisitResult> results;
             bool returnNotNull;
@@ -6735,10 +6734,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (newMethod, results, returnNotNull);
 
-            static ImmutableArray<BoundExpression> getArguments(ImmutableArray<BoundExpression> arguments, bool isNewExtension, BoundExpression? receiver)
+            static ImmutableArray<BoundExpression> getArguments(ImmutableArray<BoundExpression> arguments, bool isExtensionBlockMethod, BoundExpression? receiver)
             {
                 // In error cases, the receiver may have already been stored as an argument
-                if (isNewExtension && receiver is not null)
+                if (isExtensionBlockMethod && receiver is not null)
                 {
                     return [receiver, .. arguments];
                 }
@@ -6746,9 +6745,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return arguments;
             }
 
-            static ImmutableArray<ParameterSymbol> getParameters(ImmutableArray<ParameterSymbol> parameters, bool isNewExtension, MethodSymbol method)
+            static ImmutableArray<ParameterSymbol> getParameters(ImmutableArray<ParameterSymbol> parameters, bool isExtensionBlockMethod, MethodSymbol method)
             {
-                if (!isNewExtension)
+                if (!isExtensionBlockMethod)
                 {
                     return parameters;
                 }
@@ -6760,15 +6759,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ImmutableArray<RefKind> GetArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, bool adjustForNewExtension,
+        internal static ImmutableArray<RefKind> GetArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, bool adjustForExtensionBlockMethod,
             MethodSymbol method, int argumentCount)
         {
-            if (!adjustForNewExtension)
+            if (!adjustForExtensionBlockMethod)
             {
                 return argumentRefKindsOpt;
             }
 
-            Debug.Assert(method.GetIsNewExtensionMember());
+            Debug.Assert(method.IsExtensionBlockMember());
             RefKind receiverRefKind = GetExtensionReceiverRefKind(method);
 
             if (argumentRefKindsOpt.IsDefault)
@@ -6796,9 +6795,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return extensionParameter.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.None;
         }
 
-        private static ImmutableArray<int> GetArgsToParamsOpt(ImmutableArray<int> argsToParamsOpt, bool isNewExtension)
+        private static ImmutableArray<int> GetArgsToParamsOpt(ImmutableArray<int> argsToParamsOpt, bool isExtensionBlockMethod)
         {
-            if (!isNewExtension)
+            if (!isExtensionBlockMethod)
             {
                 return argsToParamsOpt;
             }
@@ -7057,7 +7056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckCallReceiver(BoundExpression? receiverOpt, TypeWithState receiverType, MethodSymbol method)
         {
-            if (method.GetIsNewExtensionMember())
+            if (method.IsExtensionBlockMember())
             {
                 return;
             }
@@ -7366,7 +7365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckMethodConstraints(syntaxForConstraintCheck, reinferredMethod);
                         }
                     }
-                    else if (member.GetIsNewExtensionMember())
+                    else if (member.IsExtensionBlockMember())
                     {
                         if (member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
                         {
@@ -7436,7 +7435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         _disableDiagnostics = previousDisableDiagnostics;
 
-                        bool isStaticExtensionReceiver = member?.GetIsNewExtensionMember() == true && member.IsStatic && i == 0;
+                        bool isStaticExtensionReceiver = member?.IsExtensionBlockMember() == true && member.IsStatic && i == 0;
                         if (!isStaticExtensionReceiver)
                         {
                             if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
@@ -7684,7 +7683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)
         {
             Debug.Assert(receiverSlot >= 0);
-            if (method.GetIsNewExtensionMember())
+            if (method.IsExtensionBlockMember())
             {
                 // Tracked by https://github.com/dotnet/roslyn/issues/78828 : should we extend member post-conditions to work with extension members?
                 return;
@@ -8376,7 +8375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
-            var definition = member.GetIsNewExtensionMember() ? member.OriginalDefinition : member.ConstructedFrom();
+            var definition = member.IsExtensionBlockMember() ? member.OriginalDefinition : member.ConstructedFrom();
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
             if (argumentRefKindsOpt != null)
             {
@@ -8804,7 +8803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
-            Debug.Assert(!symbol.GetIsNewExtensionMember(), symbol.ToDisplayString());
+            Debug.Assert(!symbol.IsExtensionBlockMember(), symbol.ToDisplayString());
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
@@ -9911,7 +9910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // In new extension form, the nullable rewriter processes the arguments as if receiver is the first item in the argument list, like the old extension form. This means that all of
                 // our placeholders will be off-by-one, with the extension receiver in the first position.
-                var newExtensionFormOffset = parameterOpt?.ContainingType.IsExtension is true ? 1 : 0;
+                var extensionBlockFormOffset = parameterOpt?.ContainingType.IsExtension is true ? 1 : 0;
                 bool addedPlaceholders = false;
                 foreach (var placeholder in handlerData.ArgumentPlaceholders)
                 {
@@ -9925,7 +9924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
-                            Debug.Assert(newExtensionFormOffset == 1);
+                            Debug.Assert(extensionBlockFormOffset == 1);
                             AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[0]);
                             addedPlaceholders = true;
                             break;
@@ -9935,7 +9934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
                                 // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
                                 // us to miss real warnings.
-                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex + newExtensionFormOffset]);
+                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex + extensionBlockFormOffset]);
                                 addedPlaceholders = true;
                             }
                             break;
@@ -9982,8 +9981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings,
             Location diagnosticLocation)
         {
-            // Uncomment when https://github.com/dotnet/roslyn/issues/67153 is fixed
-            // Debug.Assert(!IsConditionalState);
+            Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert(diagnosticLocation != null);
@@ -10451,12 +10449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol CheckMethodGroupReceiverNullability(BoundMethodGroup group, ImmutableArray<ParameterSymbol> parameters, MethodSymbol method, bool invokedAsExtensionMethod)
         {
             var receiverOpt = group.ReceiverOpt;
-            bool isNewExtensionMethod = method.GetIsNewExtensionMember();
+            bool isExtensionBlockMethod = method.IsExtensionBlockMember();
 
             if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
             {
                 var syntax = group.Syntax;
-                if (!invokedAsExtensionMethod && !isNewExtensionMethod)
+                if (!invokedAsExtensionMethod && !isExtensionBlockMethod)
                 {
                     method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                 }
@@ -10464,7 +10462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (method.GetMemberArityIncludingExtension() != 0 && HasImplicitTypeArguments(group.Syntax))
                 {
                     var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-                    if (invokedAsExtensionMethod || isNewExtensionMethod)
+                    if (invokedAsExtensionMethod || isExtensionBlockMethod)
                     {
                         arguments.Add(CreatePlaceholderIfNecessary(receiverOpt, receiverType.ToTypeWithAnnotations(compilation)));
                     }
@@ -10481,11 +10479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = InferMemberTypeArguments(method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
 
-                if (!isNewExtensionMethod || !method.IsStatic)
+                if (!isExtensionBlockMethod || !method.IsStatic)
                 {
-                    if (invokedAsExtensionMethod || isNewExtensionMethod)
+                    if (invokedAsExtensionMethod || isExtensionBlockMethod)
                     {
-                        ParameterSymbol? receiverParameter = isNewExtensionMethod ? method.ContainingType.ExtensionParameter : method.Parameters[0];
+                        ParameterSymbol? receiverParameter = isExtensionBlockMethod ? method.ContainingType.ExtensionParameter : method.Parameters[0];
                         Debug.Assert(receiverParameter is not null);
 
                         CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, receiverParameter, receiverType);
@@ -10549,7 +10547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var unboundLambda = lambda.UnboundLambda;
                 useDelegateInvokeParameterTypes = !unboundLambda.HasExplicitlyTypedParameterList;
-                useDelegateInvokeReturnType = !unboundLambda.HasExplicitReturnType(out _, out _);
+                useDelegateInvokeReturnType = !unboundLambda.HasExplicitReturnType(out _, out _, out _);
             }
         }
 
@@ -10832,8 +10830,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(rightResult.Type is object);
 
                 int n = variables.Count;
-                bool isNewExtension = deconstructMethod.GetIsNewExtensionMember();
-                if (!invocation.InvokedAsExtensionMethod && !isNewExtension)
+                bool isExtensionBlockMethod = deconstructMethod.IsExtensionBlockMember();
+                if (!invocation.InvokedAsExtensionMethod && !isExtensionBlockMethod)
                 {
                     _ = CheckPossibleNullReceiver(right);
 
@@ -10853,8 +10851,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
                     }
 
-                    var argumentRefKinds = GetArgumentRefKinds(invocation.ArgumentRefKindsOpt, isNewExtension, deconstructMethod, argumentCount: n);
-                    var argsToParams = GetArgsToParamsOpt(invocation.ArgsToParamsOpt, isNewExtension);
+                    var argumentRefKinds = GetArgumentRefKinds(invocation.ArgumentRefKindsOpt, isExtensionBlockMethod, deconstructMethod, argumentCount: n);
+                    var argsToParams = GetArgsToParamsOpt(invocation.ArgsToParamsOpt, isExtensionBlockMethod);
                     deconstructMethod = InferMemberTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), argumentRefKinds, argsToParams, invocation.Expanded);
 
                     // check the constraints remain valid with the re-inferred parameter types
@@ -10868,11 +10866,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
                 Debug.Assert(parameters.Length - offset == n);
 
-                if (invocation.InvokedAsExtensionMethod || isNewExtension)
+                if (invocation.InvokedAsExtensionMethod || isExtensionBlockMethod)
                 {
                     // Check nullability for `this` parameter
                     var argConversion = RemoveConversion(invocation.Arguments[0], includeExplicitConversions: false).conversion;
-                    var receiverParameter = isNewExtension ? deconstructMethod.ContainingType.ExtensionParameter : deconstructMethod.Parameters[0];
+                    var receiverParameter = isExtensionBlockMethod ? deconstructMethod.ContainingType.ExtensionParameter : deconstructMethod.Parameters[0];
                     Debug.Assert(receiverParameter is not null);
                     CheckExtensionMethodThisNullability(right, argConversion, receiverParameter, rightResult);
                 }
@@ -11094,7 +11092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int extensionReceiverSlot = -1;
 
-                    if (instanceMethod.GetIsNewExtensionMember())
+                    if (instanceMethod.IsExtensionBlockMember())
                     {
                         extensionReceiverSlot = MakeSlot(node.Operand) is > 0 and int slot ? slot : GetOrCreatePlaceholderSlot(node.Operand);
                     }
@@ -11116,7 +11114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         SetNotNullResult(node);
                     }
-                    else if (!instanceMethod.GetIsNewExtensionMember())
+                    else if (!instanceMethod.IsExtensionBlockMember())
                     {
                         SetResultType(node, TypeWithState.Create(receiverType.Type, NullableFlowState.NotNull));
                     }
@@ -11271,7 +11269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int extensionReceiverSlot = -1;
 
-                    if (instanceMethod.GetIsNewExtensionMember())
+                    if (instanceMethod.IsExtensionBlockMember())
                     {
                         extensionReceiverSlot = MakeSlot(node.Left) is > 0 and int slot ? slot : GetOrCreatePlaceholderSlot(node.Left);
                     }
@@ -11293,7 +11291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         SetNotNullResult(node);
                     }
-                    else if (!instanceMethod.GetIsNewExtensionMember())
+                    else if (!instanceMethod.IsExtensionBlockMember())
                     {
                         SetResultType(node, TypeWithState.Create(receiverType.Type, NullableFlowState.NotNull));
                     }
@@ -11471,7 +11469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (PropertySymbol updatedProperty, bool returnNotNull) ReInferAndVisitExtensionPropertyAccess(BoundNode node, PropertySymbol property, BoundExpression receiver)
         {
-            Debug.Assert(property.GetIsNewExtensionMember());
+            Debug.Assert(property.IsExtensionBlockMember());
             ImmutableArray<BoundExpression> arguments = [receiver];
 
             var extensionParameter = property.ContainingType.ExtensionParameter;
@@ -11493,7 +11491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = node.PropertySymbol;
             Symbol? updatedProperty;
 
-            if (property.GetIsNewExtensionMember())
+            if (property.IsExtensionBlockMember())
             {
                 Debug.Assert(node.ReceiverOpt is not null);
                 (updatedProperty, _) = ReInferAndVisitExtensionPropertyAccess(node, property, node.ReceiverOpt);
@@ -11599,7 +11597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol VisitMemberAccess(BoundExpression node, BoundExpression? receiverOpt, Symbol member)
         {
             Debug.Assert(!IsConditionalState);
-            Debug.Assert(!member.GetIsNewExtensionMember());
+            Debug.Assert(!member.IsExtensionBlockMember());
 
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 
@@ -11738,7 +11736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
             if (enumeratorInfoOpt?.GetEnumeratorInfo is { } enumeratorMethodInfo
-                && (enumeratorMethodInfo.Method.IsExtensionMethod || enumeratorMethodInfo.Method.GetIsNewExtensionMember()))
+                && (enumeratorMethodInfo.Method.IsExtensionMethod || enumeratorMethodInfo.Method.IsExtensionBlockMember()))
             {
                 // this is case 7
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
@@ -11809,7 +11807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssignmentKind.Assignment);
 
             bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { } getEnumeratorMethod
-                    && (getEnumeratorMethod.IsExtensionMethod || getEnumeratorMethod.GetIsNewExtensionMember())
+                    && (getEnumeratorMethod.IsExtensionMethod || getEnumeratorMethod.IsExtensionBlockMember())
                 ? false
                 : CheckPossibleNullReceiver(expr);
 
@@ -12151,7 +12149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol ReInferUnaryOperator(SyntaxNode syntax, MethodSymbol method, BoundExpression operand, TypeWithState operandType)
         {
-            if (!method.GetIsNewExtensionMember())
+            if (!method.IsExtensionBlockMember())
             {
                 method = (MethodSymbol)AsMemberOfType(operandType.Type!.StrippedType(), method);
             }
@@ -12294,7 +12292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Visit(node.Right);
                 TypeWithState rightType = ResultType;
-                SetResultType(node, InferResultNullability(node.OperatorKind, node.Method, node.Type, leftType, rightType));
+                SetResultType(node, InferResultNullability(node.OperatorKind, node.BinaryOperatorMethod, node.Type, leftType, rightType));
                 AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
             }
 
@@ -12959,7 +12957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock node, ref LocalState finallyState)
+        public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
             TakeIncrementalSnapshot(node);
             if (node.Locals.Length > 0)
@@ -12978,7 +12976,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitWithoutDiagnostics(node.ExceptionSourceOpt);
             }
 
-            base.VisitCatchBlock(node, ref finallyState);
+            base.VisitCatchBlock(node);
+
+            return null;
         }
 
         public override BoundNode? VisitLockStatement(BoundLockStatement node)
