@@ -25,6 +25,7 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
+        // An explicit method can't be referenced anywhere.
     }
 
     protected sealed override void FindReferencesInDocument<TData>(
