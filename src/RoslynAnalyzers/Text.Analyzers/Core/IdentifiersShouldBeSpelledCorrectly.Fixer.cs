@@ -23,6 +23,7 @@ namespace Text.Analyzers
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            // Fixer not yet implemented.
         }
     }
 }
