@@ -48,7 +48,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
-        // We still need to ensure the RoslynPackage is loaded, since it's OnAfterPackageLoaded will hook up event handlers in RoslynPackage.LoadComponentsAsync.
+        // We still need to ensure the RoslynPackage is loaded, since it's OnAfterPackageLoaded will hook up event handlers in RoslynPackage.LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync.
         // Once that method has been replaced, then this package load can be removed.
         var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
         Assumes.Present(shell);
@@ -114,16 +114,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
                     _objectBrowserLibraryManagerRegistered = true;
                 }
-
-                LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
             });
     }
 
-    protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
+    protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
     {
-        // Do the MEF loads and initialization in the BG explicitly.
-        await TaskScheduler.Default;
-
         // Ensure the nuget package services are initialized. This initialization pass will only run
         // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
         // loading us) or through something like the IVsEditorFactory or a debugger service. Right now it's fine

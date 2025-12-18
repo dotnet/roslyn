@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
@@ -78,23 +77,6 @@ internal sealed class RoslynPackage : AbstractPackage
         }
     }
 
-    protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
-    {
-        base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
-
-        afterPackageLoadedTasks.AddTask(isMainThreadTask: true, task: OnAfterPackageLoadedMainThreadAsync);
-
-        return;
-
-        Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
-        {
-            // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-            return Task.CompletedTask;
-        }
-    }
-
     private async Task ProfferServiceBrokerServicesAsync(CancellationToken cancellationToken)
     {
         // Proffer in-process service broker services
@@ -110,10 +92,8 @@ internal sealed class RoslynPackage : AbstractPackage
             (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
-    protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
+    protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
     {
-        await TaskScheduler.Default;
-
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
@@ -125,7 +105,10 @@ internal sealed class RoslynPackage : AbstractPackage
 
         await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 
-        LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
+        await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(false);
+
+        // Initialize keybinding reset detector
+        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     // Overrides for VSSDK003 fix 
@@ -150,16 +133,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
     protected override Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         => Task.FromResult((object?)null);
-
-    private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
-    {
-        await TaskScheduler.Default;
-
-        await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
-
-        // Initialize keybinding reset detector
-        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(true);
-    }
 
     private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)
     {
