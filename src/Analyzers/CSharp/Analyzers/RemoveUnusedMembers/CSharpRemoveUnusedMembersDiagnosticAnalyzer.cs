@@ -37,9 +37,7 @@ internal sealed class CSharpRemoveUnusedMembersDiagnosticAnalyzer
             if (member is ExtensionBlockDeclarationSyntax extensionBlock)
             {
                 foreach (var extensionMember in extensionBlock.Members)
-                {
                     yield return extensionMember;
-                }
             }
             else
             {

@@ -34,8 +34,6 @@ internal static partial class IMethodSymbolExtensions
                 if (member is IMethodSymbol method)
                 {
                     var associated = method.AssociatedExtensionImplementation;
-                    if (associated is null)
-                        continue;
                     if (!Equals(associated, methodSymbol))
                         continue;
 

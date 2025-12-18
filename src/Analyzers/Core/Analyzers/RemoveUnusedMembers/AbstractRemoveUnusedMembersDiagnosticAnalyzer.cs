@@ -286,10 +286,10 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
             {
+                // Extension members are analyzed as part of the enclosing static class.
+                // When we enter the scope of the enclosing static class, we'll analyze extension members there.
                 if (namedType.IsExtension)
-                {
                     return false;
-                }
 
                 // Check if we have at least one candidate symbol in analysis scope.
                 foreach (var member in GetMembersIncludingExtensionBlockMembers(namedType))
@@ -743,9 +743,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 if (member is INamedTypeSymbol { IsExtension: true } extensionBlock)
                 {
                     foreach (var extensionMember in extensionBlock.GetMembers())
-                    {
                         yield return extensionMember;
-                    }
                 }
                 else
                 {
@@ -826,11 +824,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                             && methodSymbol.TryGetCorrespondingExtensionBlockMethod() is { } extensionBlockMethod)
                         {
                             AddIfCandidateSymbol(builder, extensionBlockMethod);
-
-                            if (extensionBlockMethod.AssociatedSymbol is { } associatedSymbol)
-                            {
-                                AddIfCandidateSymbol(builder, associatedSymbol);
-                            }
+                            AddIfCandidateSymbol(builder, extensionBlockMethod.AssociatedSymbol);
                         }
                     }
                 }
