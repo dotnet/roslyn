@@ -51,11 +51,11 @@ internal static class SpecializedTasks
         => EmptyTasks<T>.EmptyEnumerable;
 
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
-    public static async ValueTask<T[]> WhenAll<T>(IEnumerable<ValueTask<T>> tasks)
+    public static ValueTask<T[]> WhenAll<T>(IEnumerable<ValueTask<T>> tasks)
     {
         var taskArray = tasks.AsArray();
         if (taskArray.Length == 0)
-            return Array.Empty<T>();
+            return ValueTask.FromResult(Array.Empty<T>());
 
         var allCompletedSuccessfully = true;
         for (var i = 0; i < taskArray.Length; i++)
@@ -75,11 +75,11 @@ internal static class SpecializedTasks
                 result[i] = taskArray[i].Result;
             }
 
-            return result;
+            return ValueTask.FromResult(result);
         }
         else
         {
-            return Task.WhenAll(taskArray.Select(task => task.AsTask()));
+            return new ValueTask<T[]>(Task.WhenAll(taskArray.Select(task => task.AsTask())));
         }
     }
 
@@ -118,7 +118,7 @@ internal static class SpecializedTasks
     /// <param name="transform">The synchronous transformation to apply to the result of <paramref name="func"/>.</param>
     /// <param name="arg">The state to pass to <paramref name="func"/> and <paramref name="transform"/>.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
-    public static async ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
+    public static ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
         Func<TArg, CancellationToken, ValueTask<TIntermediate>> func,
         Func<TIntermediate, TArg, TResult> transform,
         TArg arg,
@@ -135,22 +135,22 @@ internal static class SpecializedTasks
             // Synchronous fast path if 'func' completes synchronously
             var result = intermediateResult.Result;
             if (cancellationToken.IsCancellationRequested)
-                return Task.FromCanceled<TResult>(cancellationToken);
+                return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
 
-            return transform(result, arg);
+            return new ValueTask<TResult>(transform(result, arg));
         }
         else if (intermediateResult.IsCanceled && cancellationToken.IsCancellationRequested)
         {
             // Synchronous fast path if 'func' cancels synchronously
-            return Task.FromCanceled<TResult>(cancellationToken);
+            return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
         }
         else
         {
             // Asynchronous fallback path
-            return await UnwrapAndTransformAsync(intermediateResult, transform, arg, cancellationToken).ConfigureAwait(false);
+            return UnwrapAndTransformAsync(intermediateResult, transform, arg, cancellationToken);
         }
 
-        static async ValueTask<TResult> UnwrapAndTransformAsync(ValueTask<TIntermediate> intermediateResult, Func<TIntermediate, TArg, TResult> transform, TArg arg, CancellationToken cancellationToken)
+        static ValueTask<TResult> UnwrapAndTransformAsync(ValueTask<TIntermediate> intermediateResult, Func<TIntermediate, TArg, TResult> transform, TArg arg, CancellationToken cancellationToken)
         {
             // Apply the transformation function once a result is available. The behavior depends on the final
             // status of 'intermediateResult' and the 'cancellationToken'.
@@ -171,11 +171,11 @@ internal static class SpecializedTasks
             //   instances. Indirect faults are exceptions captured by return an instance of
             //   ValueTask<TIntermediate> which (immediately or eventually) transitions to the faulted state. The
             //   direct fault behavior is currently handled without calling UnwrapAndTransformAsync.
-            return intermediateResult.AsTask().ContinueWith(
+            return new ValueTask<TResult>(intermediateResult.AsTask().ContinueWith(
                 task => transform(task.GetAwaiter().GetResult(), arg),
                 cancellationToken,
                 TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+                TaskScheduler.Default));
         }
     }
 

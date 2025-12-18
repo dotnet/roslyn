@@ -191,7 +191,7 @@ internal abstract partial class TextDocumentState
         }
         else
         {
-            return TextAndVersionSource.GetValueAsync(LoadTextOptions, cancellationToken);
+            return await TextAndVersionSource.GetValueAsync(LoadTextOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 
