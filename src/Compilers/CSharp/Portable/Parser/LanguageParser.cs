@@ -10541,7 +10541,8 @@ done:
 
             // In C# 14 we decided that within a lambda 'scoped' would *always* be a modifier, not a type.
             // so `scoped scoped` is `modifier-scoped identifier-scoped` not `type-scoped identifier-scoped`.
-            // Note: this only applies the modifier/type portion.  We still allow the identifier of a 
+            // Note: this only applies the modifier/type portion.  We still allow the identifier of a lambda
+            // to be named 'scoped'.
             if (isLambdaParameter && IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
                 return true;
 
