@@ -8048,6 +8048,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidExtensionParameterReference" xml:space="preserve">
     <value>Cannot use extension parameter '{0}' in this context.</value>
   </data>
+  <data name="ERR_ExtensionParameterInStaticContext" xml:space="preserve">
+    <value>Static members cannot access the value of extension parameter '{0}'.</value>
+  </data>
   <data name="ERR_ValueParameterSameNameAsExtensionTypeParameter" xml:space="preserve">
     <value>'value': an automatically-generated parameter name conflicts with an extension type parameter name</value>
   </data>

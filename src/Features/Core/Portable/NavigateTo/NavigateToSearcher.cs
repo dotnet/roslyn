@@ -384,7 +384,7 @@ internal sealed class NavigateToSearcher
             await processProjectAsync(
                 searchService,
                 [.. grouping],
-                results =>
+                async results =>
                 {
                     using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(results.Length, out var nonDuplicates);
 
@@ -401,9 +401,10 @@ internal sealed class NavigateToSearcher
                     }
 
                     if (nonDuplicates.Count > 0)
-                        _callback.AddResultsAsync(nonDuplicates.ToImmutableAndClear(), _activeDocument, cancellationToken);
-
-                    return Task.CompletedTask;
+                    {
+                        await _callback.AddResultsAsync(
+                            nonDuplicates.ToImmutableAndClear(), _activeDocument, cancellationToken).ConfigureAwait(false);
+                    }
                 },
                 () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
         }
