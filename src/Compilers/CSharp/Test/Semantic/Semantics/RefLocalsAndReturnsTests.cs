@@ -4653,12 +4653,9 @@ class Test
         M(out out int x);
     }
 }").GetParseDiagnostics().Verify(
-                // (10,15): error CS1525: Invalid expression term 'out'
+                // (10,15): error CS1073: Unexpected token 'out'
                 //         M(out out int x);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 15),
-                // (10,15): error CS1003: Syntax error, ',' expected
-                //         M(out out int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(10, 15));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "out").WithArguments("out").WithLocation(10, 15));
         }
 
         [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
@@ -4676,18 +4673,9 @@ class Test
         M(out in int x);
     }
 }").GetParseDiagnostics().Verify(
-                // (10,15): error CS1525: Invalid expression term 'in'
+                // (10,15): error CS1073: Unexpected token 'in'
                 //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(10, 15),
-                // (10,15): error CS1003: Syntax error, ',' expected
-                //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(10, 15),
-                // (10,18): error CS1525: Invalid expression term 'int'
-                //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
-                // (10,22): error CS1003: Syntax error, ',' expected
-                //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(10, 15));
         }
 
         [Fact]
@@ -5188,16 +5176,9 @@ class C
                 // (7,10): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         (ref var a, ref var (b, c)) = (x, (y, z));
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 10),
-                // (7,21): error CS1525: Invalid expression term 'ref'
-                //         (ref var a, ref var (b, c)) = (x, (y, z));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref var (b, c)").WithArguments("ref").WithLocation(7, 21),
-                // (7,21): error CS1073: Unexpected token 'ref'
-                //         (ref var a, ref var (b, c)) = (x, (y, z));
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 21),
                 // (8,10): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         (ref int d, var e) = (x, y);
-                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(8, 10)
-            );
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(8, 10));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -5215,8 +5196,16 @@ class C
                     type = refType.Type;
                 }
 
-                Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
-                Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                if (decl.Designation is ParenthesizedVariableDesignationSyntax)
+                {
+                    Assert.Equal("(System.Int32 b, System.Int32 c)", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("(System.Int32 b, System.Int32 c)", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
             }
         }
 

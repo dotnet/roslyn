@@ -1452,6 +1452,11 @@
         <target state="translated">'{0}' 不是來自 '{1}' 的有效參數名稱。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidModifierAfterScoped">
+        <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
+        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
         <target state="translated">修飾元 '{0}' 在 C# {1} 中對此項目無效。請使用 '{2}' 或更高的語言版本。</target>
@@ -2350,6 +2355,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">目標執行階段不支援可延伸或執行階段環境的預設呼叫慣例。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
+        <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
+        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">

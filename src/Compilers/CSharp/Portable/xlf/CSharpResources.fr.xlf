@@ -1452,6 +1452,11 @@
         <target state="translated">« {0} » n’est pas un nom de paramètre valide de « {1} ».</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidModifierAfterScoped">
+        <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
+        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
         <target state="translated">Le modificateur '{0}' est non valide pour cet élément en C# {1}. Utilisez la version de langage '{2}' ou une version ultérieure.</target>
@@ -2350,6 +2355,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Le runtime cible ne prend pas en charge les conventions d'appel par défaut des environnements extensibles ou d'exécution.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
+        <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
+        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">

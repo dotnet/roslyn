@@ -1452,6 +1452,11 @@
         <target state="translated">'{0}'은(는) '{1}'의 유효한 매개 변수 이름이 아닙니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidModifierAfterScoped">
+        <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
+        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
         <target state="translated">C# {1}의 이 항목에는 '{0}' 한정자가 유효하지 않습니다. 언어 버전 '{2}' 이상을 사용하세요.</target>
@@ -2350,6 +2355,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">대상 런타임에서 확장 가능 또는 런타임 환경 기본 호출 규칙을 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
+        <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
+        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">

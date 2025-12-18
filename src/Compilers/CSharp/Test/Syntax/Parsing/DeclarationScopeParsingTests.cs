@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -133,32 +135,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        private static DiagnosticDescription[] FilterLanguageVersionChecks(LanguageVersion langVersion, params DiagnosticDescription[] diagnostics)
+        {
+            if (langVersion > LanguageVersion.CSharp10)
+                diagnostics = [.. diagnostics.Where(d => d.Code is not (int)ErrorCode.ERR_FeatureNotAvailableInVersion10)];
+
+            // Can add further filtering here if needed in future.
+
+            return diagnostics;
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void Method_03(LanguageVersion langVersion)
         {
             string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,19): error CS1001: Identifier expected
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 19),
-                // (1,36): error CS1001: Identifier expected
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 36),
-                // (1,36): error CS1003: Syntax error, ',' expected
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 36),
-                // (1,54): error CS1001: Identifier expected
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 54),
-                // (1,54): error CS1003: Syntax error, ',' expected
-                // void F(ref scoped int b, in scoped int c, out scoped int d) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 54)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,6): error CS0177: The out parameter 'd' must be assigned to before control leaves the current method
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("d").WithLocation(1, 6),
+                    // (1,6): warning CS8321: The local function 'F' is declared but never used
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                    // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 12),
+                    // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                    // (1,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 29),
+                    // (1,29): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 29),
+                    // (1,47): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 47),
+                    // (1,47): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(ref scoped int b, in scoped int c, out scoped int d) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 47)));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -173,15 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -192,15 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.InKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -211,15 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.OutKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -564,11 +559,20 @@ ref @scoped F4() { }";
         public void Method_08()
         {
             string source = "void F(ref scoped scoped R r) { }";
-            UsingDeclaration(source, TestOptions.Regular11,
-                // (1,26): error CS1003: Syntax error, ',' expected
+            UsingDeclaration(source, TestOptions.Regular11);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
                 // void F(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 26)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                // (1,19): error CS1107: A parameter can only have one 'scoped' modifier
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(1, 19),
+                // (1,26): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // void F(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 26));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -583,15 +587,8 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "R");
@@ -615,14 +612,36 @@ ref @scoped F4() { }";
         public void Method_09(LanguageVersion langVersion)
         {
             string source = "void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,57): error CS1003: Syntax error, ',' expected
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(",").WithLocation(1, 57),
-                // (1,58): error CS1001: Identifier expected
-                // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 58)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,6): warning CS8321: The local function 'F' is declared but never used
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                    // (1,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 8),
+                    // (1,15): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 15),
+                    // (1,29): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 29),
+                    // (1,43): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 43),
+                    // (1,43): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 43),
+                    // (1,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 50),
+                    // (1,60): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 60),
+                    // (1,71): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                    // void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 71)));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -657,20 +676,12 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "z");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
@@ -763,14 +774,24 @@ ref @scoped F4() { }";
         public void Method_11(LanguageVersion langVersion)
         {
             string source = "void F(scoped readonly int a) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,15): error CS1001: Identifier expected
-                // void F(scoped readonly int a) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
-                // void F(scoped readonly int a) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 15)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,6): warning CS8321: The local function 'F' is declared but never used
+                    // void F(scoped readonly int a) { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                    // (1,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(scoped readonly int a) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 8),
+                    // (1,8): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                    // void F(scoped readonly int a) { }
+                    Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped readonly int a").WithLocation(1, 8),
+                    // (1,15): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
+                    // void F(scoped readonly int a) { }
+                    Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(1, 15),
+                    // (1,15): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                    // void F(scoped readonly int a) { }
+                    Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 15)));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -784,15 +805,7 @@ ref @scoped F4() { }";
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -857,14 +870,24 @@ ref @scoped F4() { }";
         public void Method_13(LanguageVersion langVersion)
         {
             string source = "void F(out scoped ref int a) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,19): error CS1001: Identifier expected
-                // void F(out scoped ref int a) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
-                // void F(out scoped ref int a) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 19)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,6): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                    // void F(out scoped ref int a) { }
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("a").WithLocation(1, 6),
+                    // (1,6): warning CS8321: The local function 'F' is declared but never used
+                    // void F(out scoped ref int a) { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                    // (1,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // void F(out scoped ref int a) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 12),
+                    // (1,12): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // void F(out scoped ref int a) { }
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 12),
+                    // (1,19): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
+                    // void F(out scoped ref int a) { }
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(1, 19)));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -879,15 +902,7 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.OutKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1020,30 +1035,41 @@ ref @scoped F4() { }";
         public void Lambda_03_Ref(LanguageVersion langVersion)
         {
             string source = "(ref scoped int a) => null";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS1073: Unexpected token 'int'
-                // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(ref scoped ").WithArguments("int").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'ref'
-                // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(1, 2),
-                // (1,13): error CS1026: ) expected
-                // (ref scoped int a) => null
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(1, 13)
-                );
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
+                    // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                    // (1,27): error CS1002: ; expected
+                    // (ref scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
                     }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
             }
             EOF();
         }
@@ -1054,26 +1080,41 @@ ref @scoped F4() { }";
         public void Lambda_03_In(LanguageVersion langVersion)
         {
             string source = "(in scoped int a) => null";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS1073: Unexpected token 'in'
-                // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(").WithArguments("in").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'in'
-                // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(1, 2),
-                // (1,2): error CS1026: ) expected
-                // (in scoped int a) => null
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(1, 2)
-                );
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 5),
+                    // (1,5): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 5),
+                    // (1,26): error CS1002: ; expected
+                    // (in scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26)));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ParameterList);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
             }
             EOF();
         }
@@ -1084,26 +1125,44 @@ ref @scoped F4() { }";
         public void Lambda_03_Out(LanguageVersion langVersion)
         {
             string source = "(out scoped int a) => null";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS1073: Unexpected token 'out'
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(").WithArguments("out").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'out'
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(1, 2),
-                // (1,2): error CS1026: ) expected
-                // (out scoped int a) => null
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(1, 2)
-                );
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                FilterLanguageVersionChecks(langVersion,
+                    // (1,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(1, 6),
+                    // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                    // (1,23): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "null").WithArguments("a").WithLocation(1, 23),
+                    // (1,27): error CS1002: ; expected
+                    // (out scoped int a) => null
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ParameterList);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
             }
             EOF();
         }
@@ -1181,10 +1240,20 @@ ref @scoped F4() { }";
         public void Lambda_06()
         {
             string source = "(ref scoped scoped R r) => { }";
-            UsingExpression(source, TestOptions.Regular11,
-                // (1,20): error CS1003: Syntax error, ',' expected
+            UsingExpression(source, TestOptions.Regular11);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,6): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(1, 6),
+                // (1,13): error CS1107: A parameter can only have one 'scoped' modifier
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(1, 13),
+                // (1,20): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 20),
+                // (1,31): error CS1002: ; expected
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 31));
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -1194,15 +1263,8 @@ ref @scoped F4() { }";
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "R");
@@ -1321,14 +1383,20 @@ ref @scoped F4() { }";
         public void Params_01()
         {
             string source = "void F(scoped params object[] args);";
-            UsingDeclaration(source, TestOptions.Regular11,
-                // (1,15): error CS1001: Identifier expected
+            UsingDeclaration(source, TestOptions.Regular11);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,6): error CS8112: Local function 'F(params scoped object[])' must declare a body because it is not marked 'static extern'.
                 // void F(scoped params object[] args);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "params").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "F").WithArguments("F(params scoped object[])").WithLocation(1, 6),
+                // (1,6): warning CS8321: The local function 'F' is declared but never used
                 // void F(scoped params object[] args);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "params").WithArguments(",").WithLocation(1, 15)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(1, 6),
+                // (1,8): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // void F(scoped params object[] args);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped params object[] args").WithLocation(1, 8),
+                // (1,15): error CS9348: The 'params' modifier cannot immediately follow the 'scoped' modifier.
+                // void F(scoped params object[] args);
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "params").WithArguments("params").WithLocation(1, 15));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -1342,15 +1410,7 @@ ref @scoped F4() { }";
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.ParamsKeyword);
                         N(SyntaxKind.ArrayType);
                         {
@@ -3656,21 +3716,9 @@ scoped ref readonly R x = M;
 (ref scoped int b, var c) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,6): error CS1073: Unexpected token 'scoped'
                 // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 2),
-                // (2,13): error CS1026: ) expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(2, 13),
-                // (2,20): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 20),
-                // (2,24): error CS1003: Syntax error, ',' expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 24));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 6));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3678,40 +3726,54 @@ scoped ref readonly R x = M;
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
+                        N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.RefExpression);
+                            N(SyntaxKind.TupleExpression);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
                                 }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "M");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -3732,21 +3794,9 @@ scoped ref readonly R x = M;
 (ref scoped a b, var c) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,6): error CS1073: Unexpected token 'scoped'
                 // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 2),
-                // (2,13): error CS1026: ) expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "a").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "a").WithLocation(2, 13),
-                // (2,18): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 18),
-                // (2,22): error CS1003: Syntax error, ',' expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 22));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 6));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3754,40 +3804,54 @@ scoped ref readonly R x = M;
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
+                        N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.RefExpression);
+                            N(SyntaxKind.TupleExpression);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "a");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
                                 }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
+                            N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "a");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "M");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -3880,27 +3944,9 @@ scoped ref readonly R x = M;
 (ref readonly scoped int c, var d) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,15): error CS1073: Unexpected token 'scoped'
                 // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 2),
-                // (2,6): error CS1525: Invalid expression term 'readonly'
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 6),
-                // (2,6): error CS1026: ) expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 6),
-                // (2,6): error CS1002: ; expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(2, 6),
-                // (2,6): error CS0106: The modifier 'readonly' is not valid for this item
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 6),
-                // (2,29): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 29),
-                // (2,33): error CS1003: Syntax error, ',' expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 15));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3908,45 +3954,55 @@ scoped ref readonly R x = M;
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
+                        N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.RefExpression);
+                            N(SyntaxKind.TupleExpression);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ReadOnlyKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
+                                        }
+                                    }
                                 }
-                            }
-                            M(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "d");
+                                        }
+                                    }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.VariableDeclarator);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "c");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "M");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -3967,24 +4023,12 @@ scoped ref readonly R x = M;
 (ref scoped readonly int c, var d) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,2): error CS1525: Invalid expression term 'ref'
+                // (2,6): error CS1073: Unexpected token 'scoped'
                 // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 2),
-                // (2,13): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 6),
+                // (2,13): error CS1073: Unexpected token 'readonly'
                 // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(2, 13),
-                // (2,13): error CS0106: The modifier 'readonly' is not valid for this item
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 13),
-                // (2,29): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 29),
-                // (2,33): error CS1003: Syntax error, ',' expected
-                // (ref scoped readonly int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 13));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3992,41 +4036,54 @@ scoped ref readonly R x = M;
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
+                        N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.RefExpression);
+                            N(SyntaxKind.TupleExpression);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
+                                        }
+                                    }
                                 }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "d");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "c");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "M");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -5286,18 +5343,9 @@ scoped ref readonly R x = M;
 (scoped scoped var b, var c) = M;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,9): error CS1026: ) expected
+                // (2,9): error CS1073: Unexpected token 'scoped'
                 // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(2, 9),
-                // (2,9): error CS1002: ; expected
-                // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(2, 9),
-                // (2,23): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 23),
-                // (2,27): error CS1003: Syntax error, ',' expected
-                // (scoped scoped var b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 27));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 9));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5305,40 +5353,54 @@ scoped ref readonly R x = M;
                 {
                     N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
+                        N(SyntaxKind.SimpleAssignmentExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.ScopedType);
+                                        {
+                                            N(SyntaxKind.ScopedKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "var");
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "M");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -5922,6 +5984,242 @@ scoped ref readonly var (a, b) = M;
             EOF();
         }
 
+        [Fact]
+        public void DeclExpr_34()
+        {
+            string source =
+                """
+                (ref in int a, in int b) = M;
+                """;
+
+            UsingTree(source,
+                // (1,6): error CS1073: Unexpected token 'in'
+                // (ref in int a, in int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 6),
+                // (1,16): error CS1073: Unexpected token 'in'
+                // (ref in int a, in int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 16));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DeclExpr_35()
+        {
+            string source =
+                """
+                (params ref int a, ref params int b) = M;
+                """;
+
+            UsingTree(source,
+                // (1,2): error CS1073: Unexpected token 'params'
+                // (params ref int a, ref params int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 2),
+                // (1,24): error CS1073: Unexpected token 'params'
+                // (params ref int a, ref params int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 24));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DeclExpr_36()
+        {
+            string source =
+                """
+                (this ref int a, ref this int b) = M;
+                """;
+
+            UsingTree(source,
+                // (1,2): error CS1073: Unexpected token 'this'
+                // (this ref int a, ref this int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 2),
+                // (1,22): error CS1073: Unexpected token 'this'
+                // (this ref int a, ref this int b) = M;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 22));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -6040,88 +6338,9 @@ M(out ref scoped b);
 M(out ref scoped int b);
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,7): error CS1525: Invalid expression term 'ref'
+                // (2,11): error CS1073: Unexpected token 'scoped'
                 // M(out ref scoped int b);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 7),
-                // (2,18): error CS1003: Syntax error, ',' expected
-                // M(out ref scoped int b);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(2, 18),
-                // (2,18): error CS1525: Invalid expression term 'int'
-                // M(out ref scoped int b);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 18),
-                // (2,22): error CS1003: Syntax error, ',' expected
-                // M(out ref scoped int b);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 22)
-                );
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "M");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.OutKeyword);
-                                    N(SyntaxKind.RefExpression);
-                                    {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "scoped");
-                                        }
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "b");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void OutDeclExpr_04(LanguageVersion langVersion)
-        {
-            string source =
-@"
-M(out ref scoped a b);
-";
-            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,20): error CS1003: Syntax error, ',' expected
-                // M(out ref scoped a b);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 20)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 11));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6146,23 +6365,82 @@ M(out ref scoped a b);
                                         N(SyntaxKind.RefType);
                                         {
                                             N(SyntaxKind.RefKeyword);
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.ScopedType);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "scoped");
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
                                             }
                                         }
                                         N(SyntaxKind.SingleVariableDesignation);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "a");
+                                            N(SyntaxKind.IdentifierToken, "b");
                                         }
                                     }
                                 }
-                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void OutDeclExpr_04(LanguageVersion langVersion)
+        {
+            string source =
+@"
+M(out ref scoped a b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,11): error CS1073: Unexpected token 'scoped'
+                // M(out ref scoped a b);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OutKeyword);
+                                    N(SyntaxKind.DeclarationExpression);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "b");
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "a");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
                                     }
                                 }
                                 N(SyntaxKind.CloseParenToken);
@@ -6243,24 +6521,9 @@ M(out ref readonly scoped c);
 M(out ref readonly scoped int c);
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,7): error CS1525: Invalid expression term 'ref'
+                // (2,20): error CS1073: Unexpected token 'scoped'
                 // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 7),
-                // (2,11): error CS1525: Invalid expression term 'readonly'
-                // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 11),
-                // (2,11): error CS1026: ) expected
-                // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 11),
-                // (2,11): error CS1002: ; expected
-                // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(2, 11),
-                // (2,11): error CS0106: The modifier 'readonly' is not valid for this item
-                // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 11),
-                // (2,32): error CS1003: Syntax error, ',' expected
-                // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 32));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 20));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6280,39 +6543,28 @@ M(out ref readonly scoped int c);
                                 N(SyntaxKind.Argument);
                                 {
                                     N(SyntaxKind.OutKeyword);
-                                    N(SyntaxKind.RefExpression);
+                                    N(SyntaxKind.DeclarationExpression);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        M(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.RefType);
                                         {
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ReadOnlyKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
                                 }
-                                M(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -6333,21 +6585,12 @@ M(out ref readonly scoped int c);
 M(out ref scoped readonly int c);
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,7): error CS1525: Invalid expression term 'ref'
+                // (2,11): error CS1073: Unexpected token 'scoped'
                 // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 7),
-                // (2,18): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 11),
+                // (2,18): error CS1073: Unexpected token 'readonly'
                 // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 18),
-                // (2,18): error CS1002: ; expected
-                // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(2, 18),
-                // (2,18): error CS0106: The modifier 'readonly' is not valid for this item
-                // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 18),
-                // (2,32): error CS1003: Syntax error, ',' expected
-                // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 32));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 18));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6367,35 +6610,27 @@ M(out ref scoped readonly int c);
                                 N(SyntaxKind.Argument);
                                 {
                                     N(SyntaxKind.OutKeyword);
-                                    N(SyntaxKind.RefExpression);
+                                    N(SyntaxKind.DeclarationExpression);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.RefType);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "scoped");
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ScopedType);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
                                 }
-                                M(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -7483,10 +7718,9 @@ M(out scoped scoped int a);
 M(out scoped scoped var b);
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,25): error CS1003: Syntax error, ',' expected
+                // (2,14): error CS1073: Unexpected token 'scoped'
                 // M(out scoped scoped var b);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 25)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 14));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7511,23 +7745,19 @@ M(out scoped scoped var b);
                                         N(SyntaxKind.ScopedType);
                                         {
                                             N(SyntaxKind.ScopedKeyword);
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.ScopedType);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "scoped");
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
                                             }
                                         }
                                         N(SyntaxKind.SingleVariableDesignation);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "var");
+                                            N(SyntaxKind.IdentifierToken, "b");
                                         }
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "b");
                                     }
                                 }
                                 N(SyntaxKind.CloseParenToken);
@@ -9616,11 +9846,29 @@ for (scoped scoped var b;;);
         public void FunctionPointer_02(LanguageVersion langVersion)
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
-            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,32): error CS1003: Syntax error, ',' expected
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 32)
-                );
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,11): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(1, 11),
+                // (1,18): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 18),
+                // (1,25): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(1, 25),
+                // (1,32): error CS0246: The type or namespace name 'R' could not be found (are you missing a using directive or an assembly reference?)
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "R").WithArguments("R").WithLocation(1, 32),
+                // (1,35): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(1, 35),
+                // (1,57): warning CS0168: The variable 'f' is declared but never used
+                // delegate*<scoped R, ref scoped R, scoped ref int, void> f;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(1, 57));
 
             N(SyntaxKind.LocalDeclarationStatement);
             {
@@ -9645,9 +9893,10 @@ for (scoped scoped var b;;);
                             N(SyntaxKind.FunctionPointerParameter);
                             {
                                 N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.IdentifierToken, "R");
                                 }
                             }
                             N(SyntaxKind.CommaToken);
@@ -9763,54 +10012,36 @@ foreach (ref scoped b in collection);
 foreach (ref scoped int b in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,1): error CS1073: Unexpected token 'in'
+                // (2,14): error CS1073: Unexpected token 'scoped'
                 // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref scoped int b ").WithArguments("in").WithLocation(2, 1),
-                // (2,10): error CS1525: Invalid expression term 'ref'
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
-                // (2,21): error CS1515: 'in' expected
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "int").WithLocation(2, 21),
-                // (2,21): error CS0230: Type and identifier are both required in a foreach statement
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "int").WithLocation(2, 21),
-                // (2,21): error CS1525: Invalid expression term 'int'
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 21),
-                // (2,25): error CS1026: ) expected
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(2, 25),
-                // (2,27): error CS1002: ; expected
-                // foreach (ref scoped int b in collection);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 27)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 14));
 
-            N(SyntaxKind.ForEachVariableStatement);
+            N(SyntaxKind.ForEachStatement);
             {
                 N(SyntaxKind.ForEachKeyword);
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.RefType);
                 {
                     N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
                     }
                 }
-                M(SyntaxKind.InKeyword);
-                N(SyntaxKind.PredefinedType);
+                N(SyntaxKind.IdentifierToken, "b");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IntKeyword);
+                    N(SyntaxKind.IdentifierToken, "collection");
                 }
-                M(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "b");
-                    }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
             }
             EOF();
@@ -9865,67 +10096,36 @@ foreach (ref readonly scoped c in collection);
 foreach (ref readonly scoped int c in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,10): error CS1525: Invalid expression term 'ref'
+                // (2,23): error CS1073: Unexpected token 'scoped'
                 // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 10),
-                // (2,14): error CS1525: Invalid expression term 'readonly'
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 14),
-                // (2,14): error CS1515: 'in' expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(2, 14),
-                // (2,14): error CS0230: Type and identifier are both required in a foreach statement
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(2, 14),
-                // (2,14): error CS1525: Invalid expression term 'readonly'
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 14),
-                // (2,14): error CS1026: ) expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 14),
-                // (2,14): error CS0106: The modifier 'readonly' is not valid for this item
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 14),
-                // (2,36): error CS1003: Syntax error, ',' expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 23));
 
-            N(SyntaxKind.ForEachVariableStatement);
+            N(SyntaxKind.ForEachStatement);
             {
                 N(SyntaxKind.ForEachKeyword);
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.RefType);
                 {
                     N(SyntaxKind.RefKeyword);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                }
-                M(SyntaxKind.InKeyword);
-                M(SyntaxKind.IdentifierName);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
                     N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.ScopedType);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "c");
+                            N(SyntaxKind.IntKeyword);
                         }
                     }
+                }
+                N(SyntaxKind.IdentifierToken, "c");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -9942,60 +10142,38 @@ foreach (ref readonly scoped int c in collection);
 foreach (ref scoped readonly int c in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,10): error CS1525: Invalid expression term 'ref'
+                // (2,14): error CS1073: Unexpected token 'scoped'
                 // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
-                // (2,21): error CS1515: 'in' expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 14),
+                // (2,21): error CS1073: Unexpected token 'readonly'
                 // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(2, 21),
-                // (2,21): error CS0230: Type and identifier are both required in a foreach statement
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(2, 21),
-                // (2,21): error CS1525: Invalid expression term 'readonly'
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 21),
-                // (2,21): error CS1026: ) expected
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 21),
-                // (2,21): error CS0106: The modifier 'readonly' is not valid for this item
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 21),
-                // (2,36): error CS1003: Syntax error, ',' expected
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(2, 21));
 
-            N(SyntaxKind.ForEachVariableStatement);
+            N(SyntaxKind.ForEachStatement);
             {
                 N(SyntaxKind.ForEachKeyword);
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.RefType);
                 {
                     N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
-                }
-                M(SyntaxKind.InKeyword);
-                M(SyntaxKind.IdentifierName);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
                     }
+                }
+                N(SyntaxKind.IdentifierToken, "c");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -10776,22 +10954,9 @@ foreach (scoped scoped int a in collection);
 foreach (scoped scoped var b in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,1): error CS1073: Unexpected token 'in'
+                // (2,17): error CS1073: Unexpected token 'scoped'
                 // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (scoped scoped var b ").WithArguments("in").WithLocation(2, 1),
-                // (2,28): error CS1515: 'in' expected
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_InExpected, "b").WithLocation(2, 28),
-                // (2,30): error CS1026: ) expected
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(2, 30),
-                // (2,30): error CS1525: Invalid expression term 'in'
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(2, 30),
-                // (2,30): error CS1002: ; expected
-                // foreach (scoped scoped var b in collection);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 30)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(2, 17));
 
             N(SyntaxKind.ForEachStatement);
             {
@@ -10800,28 +10965,29 @@ foreach (scoped scoped var b in collection);
                 N(SyntaxKind.ScopedType);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
                     }
                 }
-                N(SyntaxKind.IdentifierToken, "var");
-                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierToken, "b");
+                N(SyntaxKind.InKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, "b");
+                    N(SyntaxKind.IdentifierToken, "collection");
                 }
-                M(SyntaxKind.CloseParenToken);
-                M(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
                 {
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
             }
             EOF();
+
         }
 
         [Theory]
@@ -11137,6 +11303,147 @@ foreach (scoped ref int[M(out var b)] a in collection);
             EOF();
         }
 
+        [Fact]
+        public void Foreach_31()
+        {
+            string source =
+                """
+                foreach (ref in int a in b) ;
+                """;
+
+            UsingTree(source,
+                // (1,14): error CS1073: Unexpected token 'in'
+                // foreach (ref in int a in b) ;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "in").WithArguments("in").WithLocation(1, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Foreach_32()
+        {
+            string source =
+                """
+                foreach (params ref int a in b) ;
+                """;
+
+            UsingTree(source,
+                // (1,10): error CS1073: Unexpected token 'params'
+                // foreach (params ref int a in b) ;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Foreach_33()
+        {
+            string source =
+                """
+                foreach (this ref int a in b) ;
+                """;
+
+            UsingTree(source,
+                // (1,10): error CS1073: Unexpected token 'this'
+                // foreach (this ref int a in b) ;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -11218,9 +11525,9 @@ scoped readonly record struct B;
 readonly scoped record struct C();
 ";
             UsingTree(source, TestOptions.Regular11,
-                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11229,8 +11536,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -11250,10 +11556,7 @@ readonly scoped record struct C();
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
+                    N(SyntaxKind.ScopedKeyword);
                 }
                 N(SyntaxKind.RecordStructDeclaration);
                 {

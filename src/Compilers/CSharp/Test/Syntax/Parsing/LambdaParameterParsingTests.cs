@@ -509,21 +509,15 @@ class C {
      void Goo() {
           System.Func<int, int> f = (out C c,
 ",
-                // (4,38): error CS1525: Invalid expression term 'out'
+                // (4,38): error CS1073: Unexpected token 'out'
                 //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
-                // (4,38): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,46): error CS1733: Expected expression
                 //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
-                // (4,38): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1026: ) expected
                 //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
-                // (4,42): error CS1002: ; expected
-                //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
-                // (4,46): error CS1001: Identifier expected
-                //           System.Func<int, int> f = (out C c,
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 46),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 46),
                 // (4,46): error CS1002: ; expected
                 //           System.Func<int, int> f = (out C c,
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 46),
@@ -533,6 +527,7 @@ class C {
                 // (4,46): error CS1513: } expected
                 //           System.Func<int, int> f = (out C c,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 46));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -591,36 +586,34 @@ class C {
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedExpression);
+                                            N(SyntaxKind.TupleExpression);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
-                                                M(SyntaxKind.IdentifierName);
+                                                N(SyntaxKind.Argument);
                                                 {
-                                                    M(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.DeclarationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "C");
+                                                        }
+                                                        N(SyntaxKind.SingleVariableDesignation);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "c");
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.Argument);
+                                                {
+                                                    M(SyntaxKind.IdentifierName);
+                                                    {
+                                                        M(SyntaxKind.IdentifierToken);
+                                                    }
                                                 }
                                                 M(SyntaxKind.CloseParenToken);
                                             }
                                         }
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "C");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "c");
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    M(SyntaxKind.VariableDeclarator);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                                 M(SyntaxKind.SemicolonToken);
@@ -5759,7 +5752,7 @@ class C {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
-        public void ScopedAsParameterName_06_CSharp13()
+        public void ScopedAsParameterName_06_CSharp13_A()
         {
             string source = "(scoped scoped) => { }";
             UsingExpression(source, TestOptions.Regular13);
@@ -5790,7 +5783,86 @@ class C {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
-        public void ScopedAsParameterName_06_Preview()
+        public void ScopedAsParameterName_06_CSharp13_B()
+        {
+            string source = "(scoped scoped, int i) => { }";
+            UsingExpression(source, TestOptions.Regular13);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_CSharp13_C()
+        {
+            string source = "(scoped scoped = default) => { }";
+            UsingExpression(source, TestOptions.Regular13);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.DefaultLiteralExpression);
+                            {
+                                N(SyntaxKind.DefaultKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_Preview_A()
         {
             string source = "(scoped scoped) => { }";
             UsingExpression(source, TestOptions.RegularPreview);
@@ -5804,6 +5876,79 @@ class C {
                     {
                         N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_Preview_B()
+        {
+            string source = "(scoped scoped, int i) => { }";
+            UsingExpression(source, TestOptions.RegularPreview);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_Preview_C()
+        {
+            string source = "(scoped scoped = default) => { }";
+            UsingExpression(source, TestOptions.RegularPreview);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.DefaultLiteralExpression);
+                            {
+                                N(SyntaxKind.DefaultKeyword);
+                            }
+                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
