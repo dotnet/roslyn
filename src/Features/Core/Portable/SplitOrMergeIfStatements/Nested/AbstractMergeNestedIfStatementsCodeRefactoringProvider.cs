@@ -40,7 +40,7 @@ internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider
         return CodeAction.Create(title, createChangedDocument, title);
     }
 
-    protected sealed override async Task<bool> CanBeMergedUpAsync(
+    protected sealed override Task<bool> CanBeMergedUpAsync(
         Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode outerIfOrElseIf)
     {
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -48,12 +48,12 @@ internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider
         var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
         if (!IsFirstStatementOfIfOrElseIf(blockFacts, ifGenerator, ifOrElseIf, out outerIfOrElseIf))
-            return false;
+            return SpecializedTasks.False;
 
-        return await CanBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, outerIfOrElseIf, ifOrElseIf, cancellationToken).ConfigureAwait(false);
+        return CanBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, outerIfOrElseIf, ifOrElseIf, cancellationToken);
     }
 
-    protected sealed override async Task<bool> CanBeMergedDownAsync(
+    protected sealed override Task<bool> CanBeMergedDownAsync(
         Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode innerIfStatement)
     {
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -61,9 +61,9 @@ internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider
         var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
         if (!IsFirstStatementIfStatement(blockFacts, ifGenerator, ifOrElseIf, out innerIfStatement))
-            return false;
+            return SpecializedTasks.False;
 
-        return await CanBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, innerIfStatement, cancellationToken).ConfigureAwait(false);
+        return CanBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, innerIfStatement, cancellationToken);
     }
 
     protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode outerIfOrElseIf, SyntaxNode innerIfStatement)
