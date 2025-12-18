@@ -175,12 +175,12 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         if (!analysisResult.CanPerform)
             return MoveToNamespaceResult.Failed;
 
-        return await (analysisResult.Container switch
+        return analysisResult.Container switch
         {
-            MoveToNamespaceAnalysisResult.ContainerType.Namespace => MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
-            MoveToNamespaceAnalysisResult.ContainerType.NamedType => MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
+            MoveToNamespaceAnalysisResult.ContainerType.Namespace => await MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken).ConfigureAwait(false),
+            MoveToNamespaceAnalysisResult.ContainerType.NamedType => await MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken).ConfigureAwait(false),
             _ => throw new InvalidOperationException(),
-        }).ConfigureAwait(false);
+        };
     }
 
     private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
