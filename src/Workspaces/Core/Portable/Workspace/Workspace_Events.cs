@@ -161,10 +161,10 @@ public abstract partial class Workspace
     protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         => throw new NotImplementedException();
 
-    protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
+    protected async Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
     {
         if (sourceTextContainer == null || oldActiveContextDocumentId == null || newActiveContextDocumentId == null)
-            return Task.CompletedTask;
+            return;
 
         var handlerSet = GetEventHandlers(WorkspaceEventType.DocumentActiveContextChanged);
         if (handlerSet.HasHandlers)
@@ -173,10 +173,8 @@ public abstract partial class Workspace
             var currentSolution = this.CurrentSolution;
             var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
 
-            return this.ScheduleTask(args, handlerSet);
+            await this.ScheduleTask(args, handlerSet).ConfigureAwait(false);
         }
-
-        return Task.CompletedTask;
     }
 
     private EventHandlerSet GetEventHandlers(WorkspaceEventType eventType)
