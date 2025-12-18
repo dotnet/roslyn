@@ -5,9 +5,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -79,6 +81,18 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
+        afterPackageLoadedTasks.AddTask(isMainThreadTask: false, async (packageLoadTasks, cancellationToken) =>
+        {
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+            // Trying to await them will throw.
+            if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsZombie)
+            {
+                await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
+
+                // Kick off the work, but don't block
+                LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
+            }
+        });
     }
 
     /// <summary>
@@ -94,16 +108,8 @@ internal abstract class AbstractPackage : AsyncPackage
         ErrorHandler.ThrowOnFailure(registerEditors.RegisterEditor(editorFactory.GetType().GUID, editorFactory, out _));
     }
 
-    protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
-    {
-        // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
-        // Trying to await them will throw.
-        if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsZombie)
-        {
-            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
-            await LoadComponentsAsync(cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// A method called in the background once the solution has fully loaded. Offers a place for initialization to happen after package load.
+    /// </summary>
+    protected abstract Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken);
 }
