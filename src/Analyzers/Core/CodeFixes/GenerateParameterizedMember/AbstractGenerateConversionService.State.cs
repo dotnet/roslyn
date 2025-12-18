@@ -30,7 +30,7 @@ internal abstract partial class AbstractGenerateConversionService<TService, TSim
             return state;
         }
 
-        private async Task<bool> TryInitializeConversionAsync(
+        private async ValueTask<bool> TryInitializeConversionAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
