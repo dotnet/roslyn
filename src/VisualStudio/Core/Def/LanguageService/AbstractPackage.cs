@@ -13,14 +13,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
 internal abstract class AbstractPackage : AsyncPackage
 {
-    private IComponentModel? _componentModel_doNotAccessDirectly;
-
     internal IComponentModel ComponentModel
     {
         get
         {
-            Assumes.Present(_componentModel_doNotAccessDirectly);
-            return _componentModel_doNotAccessDirectly;
+            if (field is null)
+            {
+                // We should have been initialized asynchronously, but somebody is asking earlier than we expected, so fetch it synchronously.
+                var componentModel = (IComponentModel?)GetService(typeof(SComponentModel));
+                Assumes.Present(componentModel);
+                field = componentModel;
+                return field;
+            }
+
+            return field;
+        }
+
+        set
+        {
+            Assumes.Present(value);
+            field = value;
         }
     }
 
@@ -52,19 +64,16 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
-        // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
-        // so that isn't a concern for calculating or setting _componentModel_doNotAccessDirectly multiple times.
+        // We have a legacy property to access the ComponentModel that is used across various parts of our load; we'll fetch this on the
+        // background thread as our first step so any later already has it available. If it were to be accessed by a UI-thread scheduled piece
+        // of work first, it'll still fetch it on demand.
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
         async Task EnsureComponentModelAsync(PackageLoadTasks packageInitializationTasks, CancellationToken token)
         {
-            if (_componentModel_doNotAccessDirectly == null)
-            {
-                _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
-                Assumes.Present(_componentModel_doNotAccessDirectly);
-            }
+            var componentModel = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
+            Assumes.Present(componentModel);
+            ComponentModel = componentModel;
         }
     }
 
