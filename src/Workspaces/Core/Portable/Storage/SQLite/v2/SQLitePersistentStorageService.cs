@@ -70,7 +70,7 @@ internal sealed class SQLitePersistentStorageService(
         if (!TryInitializeLibraries())
         {
             // SQLite is not supported on the current platform
-            return (IChecksummedPersistentStorage?)null;
+            return null;
         }
 
         if (solutionKey.FilePath == null)
