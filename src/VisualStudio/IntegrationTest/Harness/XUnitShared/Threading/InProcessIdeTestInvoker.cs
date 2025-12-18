@@ -97,7 +97,7 @@ namespace Xunit.Threading
             }
         }
 
-        protected override async Task BeforeTestMethodInvokedAsync()
+        protected override Task BeforeTestMethodInvokedAsync()
         {
             foreach (var beforeAfterAttribute in _beforeAfterAttributes)
             {
@@ -134,6 +134,7 @@ namespace Xunit.Threading
             }
 
 #if NET472
+            return Task.CompletedTask;
 #else
             var tcs = new TaskCompletionSource<bool>();
             tcs.SetResult(true);
@@ -214,7 +215,7 @@ namespace Xunit.Threading
             }
         }
 
-        protected override async Task AfterTestMethodInvokedAsync()
+        protected override Task AfterTestMethodInvokedAsync()
         {
             foreach (var beforeAfterAttribute in _beforeAfterAttributesRun)
             {
@@ -246,6 +247,7 @@ namespace Xunit.Threading
             }
 
 #if NET472
+            return Task.CompletedTask;
 #else
             var tcs = new TaskCompletionSource<bool>();
             tcs.SetResult(true);
