@@ -202,6 +202,7 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// <returns>A <see cref="Task"/> which completes when actions that need to be performed when the server is ready are done.</returns>
     public async Task OnServerInitializedAsync()
     {
+        // We don't have any tasks that need to be triggered after the server has successfully initialized.
     }
 
     internal async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
