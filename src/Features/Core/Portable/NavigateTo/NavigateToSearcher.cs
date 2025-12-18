@@ -196,22 +196,22 @@ internal sealed class NavigateToSearcher
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task SearchCurrentProjectAsync(
+    private Task SearchCurrentProjectAsync(
         NavigateToDocumentSupport documentSupport,
         CancellationToken cancellationToken)
     {
         if (_activeDocument == null)
-            return;
+            return Task.CompletedTask;
 
         var activeProject = _activeDocument.Project;
-        await SearchSpecificProjectsAsync(
+        return SearchSpecificProjectsAsync(
             // Because we're only searching the current project, it's fine to bring that project fully up to date before
             // searching it.  We only do the work to search cached files when doing the initial load of something huge
             // (the full solution).
             isFullyLoaded: true,
             documentSupport,
             [[activeProject]],
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private INavigateToSearchService GetNavigateToSearchService(Project project)
@@ -401,7 +401,10 @@ internal sealed class NavigateToSearcher
                     }
 
                     if (nonDuplicates.Count > 0)
-                        _callback.AddResultsAsync(nonDuplicates.ToImmutableAndClear(), _activeDocument, cancellationToken);
+                    {
+                        await _callback.AddResultsAsync(
+                            nonDuplicates.ToImmutableAndClear(), _activeDocument, cancellationToken).ConfigureAwait(false);
+                    }
                 },
                 () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
         }
