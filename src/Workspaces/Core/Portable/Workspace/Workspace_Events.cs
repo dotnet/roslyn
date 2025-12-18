@@ -93,13 +93,13 @@ public abstract partial class Workspace
 
     #endregion
 
-    protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
+    protected async Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
     {
         if (newSolution == null)
             throw new ArgumentNullException(nameof(newSolution));
 
         if (oldSolution == newSolution)
-            return Task.CompletedTask;
+            return;
 
         if (projectId == null && documentId != null)
             projectId = documentId.ProjectId;
@@ -117,10 +117,8 @@ public abstract partial class Workspace
         if (handlerSet.HasHandlers)
         {
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            return this.ScheduleTask(args, handlerSet);
+            await this.ScheduleTask(args, handlerSet).ConfigureAwait(false);
         }
-
-        return Task.CompletedTask;
     }
 
     protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
