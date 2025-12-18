@@ -8747,9 +8747,119 @@ class Program
                 );
         }
 
+        [Fact]
+        public void NullableAnalysis_29_ValuePropertyOfTheInterfaceIsTargetedToImplementPatternMatching()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    string? System.Runtime.CompilerServices.IUnion.OtherProp => throw null!;
+    public string? OtherProp => throw null!;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    public S2(int x) => throw null!;
+    public S2(bool? x) => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public string? OtherProp => throw null!;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
+        object? Value { get; }
+        string? OtherProp { get; }
+    }
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+#line 200
+         _ = s switch { bool => s.OtherProp.ToString(), _ => """" };
+    } 
+
+    static void Test3(S2 s)
+    {
+#line 300
+         _ = s switch { bool => s.OtherProp.ToString(), _ => """" };
+    } 
+}
+";
+            var comp = CreateCompilation([src, MemberNotNullAttributeDefinition]);
+
+            // From spec: The Value property of the interface is targeted by the compiler to implement pattern matching
+            comp.VerifyDiagnostics(
+                // (200,33): warning CS8602: Dereference of a possibly null reference.
+                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33),
+                // (300,33): warning CS8602: Dereference of a possibly null reference.
+                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(300, 33)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_30_ValuePropertyOfTheInterfaceIsTargetedToImplementPatternMatching()
+        {
+            var src = @"
+#nullable enable
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
+    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public string? OtherProp => throw null!;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+#line 100
+        [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(S1.OtherProp))]
+        object? Value { get; }
+    }
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+#line 200
+         _ = s switch { bool => s.OtherProp.ToString(), _ => """" };
+    } 
+}
+";
+            var comp = CreateCompilation([src, MemberNotNullAttributeDefinition]);
+
+            // From spec: The Value property of the interface is targeted by the compiler to implement pattern matching
+            comp.VerifyDiagnostics(
+                // (100,10): warning CS8776: Member 'OtherProp' cannot be used in this attribute.
+                //         [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(S1.OtherProp))]
+                Diagnostic(ErrorCode.WRN_MemberNotNullBadMember, "System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(S1.OtherProp))").WithArguments("OtherProp").WithLocation(100, 10),
+                // (200,33): warning CS8602: Dereference of a possibly null reference.
+                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
-        public void NullableAnalysis_29_Conversion_Value_Check([CombinatorialValues("class", "struct")] string typeKind)
+        public void NullableAnalysis_31_Conversion_Value_Check([CombinatorialValues("class", "struct")] string typeKind)
         {
             var src = @"
 #nullable enable
@@ -8791,7 +8901,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void NullableAnalysis_30_Conversion_Value_Check([CombinatorialValues("class", "struct")] string typeKind)
+        public void NullableAnalysis_32_Conversion_Value_Check([CombinatorialValues("class", "struct")] string typeKind)
         {
             var src = @"
 #nullable enable
