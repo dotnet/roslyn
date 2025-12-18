@@ -8,14 +8,10 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 
 // Example:
 // FullPath: "C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\8.0.8\analyzers\dotnet\System.Windows.Forms.Analyzers.dll"
@@ -31,21 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 [Export(typeof(IAnalyzerAssemblyRedirector))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class SdkAnalyzerAssemblyRedirector(
-    SVsServiceProvider serviceProvider,
-    IThreadingContext threadingContext)
-    : SdkAnalyzerAssemblyRedirectorCore(
-        Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet")),
-        () => serviceProvider.GetService<SVsActivityLog, IVsActivityLog>(threadingContext.JoinableTaskFactory));
+internal sealed class SdkAnalyzerAssemblyRedirector(SVsServiceProvider serviceProvider) : SdkAnalyzerAssemblyRedirectorCore(
+    Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet")),
+    serviceProvider.GetServiceOnMainThread<SVsActivityLog, IVsActivityLog>());
 
 /// <summary>
 /// Core functionality of <see cref="SdkAnalyzerAssemblyRedirector"/> extracted for testing.
 /// </summary>
 internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
 {
-    private readonly Func<IVsActivityLog>? _logFactory;
-
-    private AsyncQueue<string>? _logQueue;
+    private readonly IVsActivityLog? _log;
 
     private readonly bool _enabled;
 
@@ -54,15 +45,15 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
     /// <summary>
     /// Map from analyzer assembly name (file name without extension) to a list of matching analyzers.
     /// </summary>
-    private readonly Lazy<ImmutableDictionary<string, List<AnalyzerInfo>>> _analyzerMap;
+    private readonly ImmutableDictionary<string, List<AnalyzerInfo>> _analyzerMap;
 
-    public SdkAnalyzerAssemblyRedirectorCore(string? insertedAnalyzersDirectory, Func<IVsActivityLog>? logFactory = null)
+    public SdkAnalyzerAssemblyRedirectorCore(string? insertedAnalyzersDirectory, IVsActivityLog? log = null)
     {
-        _logFactory = logFactory;
+        _log = log;
         var enable = Environment.GetEnvironmentVariable("DOTNET_ANALYZER_REDIRECTING");
         _enabled = !"0".Equals(enable, StringComparison.OrdinalIgnoreCase) && !"false".Equals(enable, StringComparison.OrdinalIgnoreCase);
         _insertedAnalyzersDirectory = insertedAnalyzersDirectory;
-        _analyzerMap = new(CreateAnalyzerMap);
+        _analyzerMap = CreateAnalyzerMap();
     }
 
     private ImmutableDictionary<string, List<AnalyzerInfo>> CreateAnalyzerMap()
@@ -128,14 +119,12 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
 
         Log($"Loaded analyzer map ({builder.Count}): {_insertedAnalyzersDirectory}");
 
-        _logQueue?.Complete();
-
         return builder.ToImmutable();
     }
 
     public string? RedirectPath(string fullPath)
     {
-        if (_enabled && _analyzerMap.Value.TryGetValue(Path.GetFileNameWithoutExtension(fullPath), out var analyzers))
+        if (_enabled && _analyzerMap.TryGetValue(Path.GetFileNameWithoutExtension(fullPath), out var analyzers))
         {
             foreach (var analyzer in analyzers)
             {
@@ -193,27 +182,9 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
 
     private void Log(string message)
     {
-        if (_logFactory is null)
-        {
-            return;
-        }
-
-        if (Interlocked.CompareExchange(ref _logQueue, new(), null) == null)
-        {
-            Task.Run(async () =>
-            {
-                var log = _logFactory();
-                while (true)
-                {
-                    var message = await _logQueue.DequeueAsync().ConfigureAwait(false);
-                    log.LogEntry(
-                        (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION,
-                        "Roslyn" + nameof(SdkAnalyzerAssemblyRedirector),
-                        message);
-                }
-            });
-        }
-
-        _logQueue.Enqueue(message);
+        _log?.LogEntry(
+            (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION,
+            "Roslyn" + nameof(SdkAnalyzerAssemblyRedirector),
+            message);
     }
 }
