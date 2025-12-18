@@ -23,6 +23,8 @@ internal sealed partial class FindReferencesSearchEngine
 
         public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
         {
+            // Nothing to do here.  We're in a non-cascading scenario, so even as we encounter a new project we
+            // don't have to figure out what new symbols may be found.
         }
     }
 }
