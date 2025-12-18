@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!TypeSymbol.Equals(awaiterFieldType, awaiterTemp.Type, TypeCompareKind.ConsiderEverything2))
             {
-                Debug.Assert(awaiterFieldType.IsObjectType());
+                Debug.Assert(awaiterFieldType.IsObjectType() || TypeSymbol.Equals(awaiterFieldType, awaiterTempRef.Type, TypeCompareKind.AllIgnoreOptions));
                 Conversion c = F.ClassifyEmitConversion(awaiterTempRef, awaiterFieldType);
                 Debug.Assert(c.IsImplicit);
                 Debug.Assert(c.IsReference || c.IsIdentity);
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!TypeSymbol.Equals(awaiterTemp.Type, awaiterField.Type, TypeCompareKind.ConsiderEverything2))
             {
-                Debug.Assert(awaiterFieldRef.Type.IsObjectType());
+                Debug.Assert(awaiterFieldRef.Type.IsObjectType() || TypeSymbol.Equals(awaiterTemp.Type, awaiterFieldRef.Type, TypeCompareKind.AllIgnoreOptions));
                 Conversion c = F.ClassifyEmitConversion(awaiterFieldRef, awaiterTemp.Type);
                 Debug.Assert(c.IsReference || c.IsIdentity);
                 awaiterFieldRef = F.Convert(awaiterTemp.Type, awaiterFieldRef, c);
