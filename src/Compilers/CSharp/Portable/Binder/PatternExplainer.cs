@@ -687,8 +687,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
 
-                                if (evaluations.Length == 1 && e.Property is { Name: WellKnownMemberNames.ValuePropertyName } &&
-                                    Binder.HasIUnionValueSignature(e.Property) && e.Input.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true })
+                                if (evaluations.Length == 1 && e.Property is { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                                    e.Input.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                                    Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) == (object)property)
                                 {
                                     return subPattern;
                                 }

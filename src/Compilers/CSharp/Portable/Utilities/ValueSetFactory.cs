@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Type.SpecialType: SpecialType.System_Object,
                     Source: BoundDagPropertyEvaluation { Property: { Name: WellKnownMemberNames.ValuePropertyName } property, Input: { } propertyInput }
                 } &&
-                Binder.HasIUnionValueSignature(property) && propertyInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } match)
+                propertyInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } match &&
+                Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(match) == (object)property)
             {
                 unionType = match;
                 return true;

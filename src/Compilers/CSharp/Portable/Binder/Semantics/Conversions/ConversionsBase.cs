@@ -1908,8 +1908,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IncludeNullability);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return HasTopLevelNullabilityImplicitConversion(source, destination) &&
-                ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
+            Conversion conversion = ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo);
+            return conversion.Kind != ConversionKind.NoConversion &&
+                   (conversion.IsUnion || conversion.IsUserDefined || HasTopLevelNullabilityImplicitConversion(source, destination));
         }
 
         private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
@@ -2382,11 +2383,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind.ImplicitTuple,
                 (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
                 {
-                    if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
+                    Conversion conversion = conversions.ClassifyImplicitConversionFromType(s.Type, d.Type, ref u);
+
+                    if (!conversion.IsUserDefined && !conversion.IsUnion && !conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
-                    return conversions.ClassifyImplicitConversionFromType(s.Type, d.Type, ref u);
+
+                    return conversion;
                 },
                 isChecked: false,
                 forCast: false);
@@ -2401,11 +2405,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind.ExplicitTuple,
                 (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
                 {
-                    if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
+                    Conversion conversion = conversions.ClassifyConversionFromType(s.Type, d.Type, isChecked: isChecked, ref u, forCast);
+
+                    if (!conversion.IsUserDefined && !conversion.IsUnion && !conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
-                    return conversions.ClassifyConversionFromType(s.Type, d.Type, isChecked: isChecked, ref u, forCast);
+
+                    return conversion;
                 },
                 isChecked: isChecked,
                 forCast);
