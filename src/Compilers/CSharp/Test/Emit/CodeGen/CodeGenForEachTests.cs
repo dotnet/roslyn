@@ -4463,7 +4463,10 @@ public static class Extensions
 {
     internal static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyEmitDiagnostics(
+                // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27));
         }
 
         [Fact]
@@ -5214,7 +5217,10 @@ public class C
         public bool MoveNext() => Current++ != 3;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyEmitDiagnostics(
+                // (8,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(8, 27));
         }
 
         [Fact]
@@ -5247,7 +5253,10 @@ public class C
         public bool MoveNext() => Current++ != 3;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyEmitDiagnostics(
+                // (10,31): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                //             foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(10, 31));
         }
 
         [Fact]

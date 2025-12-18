@@ -12906,36 +12906,11 @@ public static class Extensions
 {
     internal static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9).VerifyEmitDiagnostics(
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33));
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    [Main]: Return value missing on the stack. { Offset = 0x25 }
-                    """
-            });
-            verifier.VerifyIL("C.Main()", """
-                {
-                  // Code size       38 (0x26)
-                  .maxstack  1
-                  .locals init (C.Enumerator V_0)
-                  IL_0000:  newobj     "C..ctor()"
-                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
-                  IL_000a:  stloc.0
-                  IL_000b:  br.s       IL_0018
-                  IL_000d:  ldloc.0
-                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
-                  IL_0013:  call       "void System.Console.Write(int)"
-                  IL_0018:  ldloc.0
-                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
-                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
-                  IL_0023:  brtrue.s   IL_000d
-                  IL_0025:  ret
-                }
-                """);
         }
 
         [Fact]
@@ -14070,36 +14045,11 @@ public class C
         public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9).VerifyEmitDiagnostics(
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33));
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    [Main]: Return value missing on the stack. { Offset = 0x25 }
-                    """
-            });
-            verifier.VerifyIL("Program.Main()", """
-                {
-                  // Code size       38 (0x26)
-                  .maxstack  1
-                  .locals init (C.Enumerator V_0)
-                  IL_0000:  newobj     "C..ctor()"
-                  IL_0005:  call       "C.Enumerator Program.GetAsyncEnumerator(C)"
-                  IL_000a:  stloc.0
-                  IL_000b:  br.s       IL_0018
-                  IL_000d:  ldloc.0
-                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
-                  IL_0013:  call       "void System.Console.Write(int)"
-                  IL_0018:  ldloc.0
-                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
-                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
-                  IL_0023:  brtrue.s   IL_000d
-                  IL_0025:  ret
-                }
-                """);
         }
 
         [Fact]
@@ -14132,36 +14082,11 @@ public class C
         public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9).VerifyEmitDiagnostics(
+                // (10,37): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //             await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(10, 37));
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    [Main]: Return value missing on the stack. { Offset = 0x25 }
-                    """
-            });
-            verifier.VerifyIL("Program.Inner.Main()", """
-                {
-                  // Code size       38 (0x26)
-                  .maxstack  1
-                  .locals init (C.Enumerator V_0)
-                  IL_0000:  newobj     "C..ctor()"
-                  IL_0005:  call       "C.Enumerator Program.GetAsyncEnumerator(C)"
-                  IL_000a:  stloc.0
-                  IL_000b:  br.s       IL_0018
-                  IL_000d:  ldloc.0
-                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
-                  IL_0013:  call       "void System.Console.Write(int)"
-                  IL_0018:  ldloc.0
-                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
-                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
-                  IL_0023:  brtrue.s   IL_000d
-                  IL_0025:  ret
-                }
-                """);
         }
 
         [Fact]

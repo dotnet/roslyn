@@ -154,3 +154,32 @@ void M()
 ```
 
 See also https://github.com/dotnet/roslyn/issues/80954.
+
+
+## Usage of extension `GetEnumerator` in `foreach` requires `public` accessibility
+
+***Introduced in Visual Studio 2026 version 18.3***
+
+The C# compiler previously allowed a pattern-based extension `GetEnumerator` to be used in `foreach`
+even when the extension method or extension block method was not `public`.
+
+```csharp
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable()) { }
+    }
+
+    private static System.Collections.Generic.IEnumerator<int> GetEnumerator(this Enumerable e)
+    {
+        yield return 42;
+    }
+}
+
+public class Enumerable { }
+```
+
+This is now disallowed, in concordance with the specification:
+https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/extension-getenumerator.md
+

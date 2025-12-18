@@ -1337,6 +1337,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (viaExtensionMethod)
             {
                 getEnumeratorInfo = FindForEachPatternMethodViaExtension(syntax, collectionSyntax, collectionExpr, methodName, diagnostics);
+                if (getEnumeratorInfo?.Method.DeclaredAccessibility != Accessibility.Public)
+                {
+                    return false;
+                }
             }
             else
             {

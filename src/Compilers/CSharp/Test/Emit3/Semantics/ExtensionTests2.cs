@@ -37071,5 +37071,388 @@ class Program
         compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
         CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
     }
+
+    [Fact]
+    public void Private_01()
+    {
+        // private Deconstruct in deconstruction
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        var (x, y) = new object();
+        System.Console.WriteLine((x, y));
+    }
+
+    extension(object o)
+    {
+        private void Deconstruct(out int x, out int y) { x = 42; y = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Private_02()
+    {
+        // private GetEnumerator in foreach
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new object())
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+
+    extension(object o)
+    {
+        private System.Collections.Generic.IEnumerator<int> GetEnumerator()
+        {
+            yield return 42;
+        }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+            //         foreach (var i in new object())
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(5, 27));
+
+        // private instance method
+        src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable())
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+}
+
+public class Enumerable
+{
+    private System.Collections.Generic.IEnumerator<int> GetEnumerator()
+    {
+        yield return 42;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public instance or extension definition for 'GetEnumerator'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator").WithLocation(5, 27));
+
+        // private instance method, accessible
+        src = """
+Enumerable.Test();
+
+public class Enumerable
+{
+    public static void Test()
+    {
+        foreach (var i in new Enumerable())
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+
+    private System.Collections.Generic.IEnumerator<int> GetEnumerator()
+    {
+        yield return 42;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (7,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is not a public instance or extension method.
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()").WithLocation(7, 27),
+            // (7,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public instance or extension definition for 'GetEnumerator'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator").WithLocation(7, 27));
+
+        // private classic extension method
+        src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable())
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+
+    private static System.Collections.Generic.IEnumerator<int> GetEnumerator(this Enumerable e)
+    {
+        yield return 42;
+    }
+}
+
+public class Enumerable { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public instance or extension definition for 'GetEnumerator'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void Private_03()
+    {
+        // private MoveNext extension method in foreach
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable())
+        {
+            System.Console.WriteLine(i);
+            break;
+        }
+    }
+
+    extension(Enumerator e)
+    {
+        private bool MoveNext() => true;
+    }
+}
+
+public class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+
+public class Enumerator
+{
+    public int Current => 42;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS0117: 'Enumerator' does not contain a definition for 'MoveNext'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "MoveNext").WithLocation(5, 27),
+            // (5,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()").WithLocation(5, 27));
+
+        // private instance method
+        src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable())
+        {
+        }
+    }
+}
+
+public class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+
+public class Enumerator
+{
+    public int Current => 42;
+    private bool MoveNext() => true;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS0122: 'Enumerator.MoveNext()' is inaccessible due to its protection level
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_BadAccess, "new Enumerable()").WithArguments("Enumerator.MoveNext()").WithLocation(5, 27),
+            // (5,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void Private_04()
+    {
+        // private Current in foreach
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable())
+        {
+            System.Console.WriteLine(i);
+            break;
+        }
+    }
+
+    extension(Enumerator e)
+    {
+        private int Current => 42;
+    }
+}
+
+public class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+
+public class Enumerator
+{
+    public bool MoveNext() => true;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS0117: 'Enumerator' does not contain a definition for 'Current'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "Current").WithLocation(5, 27),
+            // (5,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void Static_01()
+    {
+        // static Deconstruct in deconstruction
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        var (x, y) = new object();
+        System.Console.WriteLine((x, y));
+    }
+
+    extension(object)
+    {
+        public static void Deconstruct(out int x, out int y) { x = 42; y = 43; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,22): error CS0176: Member 'E.extension(object).Deconstruct(out int, out int)' cannot be accessed with an instance reference; qualify it with a type name instead
+            //         var (x, y) = new object();
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("E.extension(object).Deconstruct(out int, out int)").WithLocation(5, 22),
+            // (5,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+            //         var (x, y) = new object();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new object()").WithArguments("object", "2").WithLocation(5, 22),
+            // (5,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+            //         var (x, y) = new object();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(5, 14),
+            // (5,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+            //         var (x, y) = new object();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17));
+    }
+
+    [Fact]
+    public void Static_02()
+    {
+        // static GetEnumerator in foreach
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new object()) { }
+    }
+
+    extension(object)
+    {
+        public static System.Collections.Generic.IEnumerator<int> GetEnumerator()
+        {
+            yield return 42;
+        }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS0176: Member 'E.extension(object).GetEnumerator()' cannot be accessed with an instance reference; qualify it with a type name instead
+            //         foreach (var i in new object())
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("E.extension(object).GetEnumerator()").WithLocation(5, 27),
+            // (5,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+            //         foreach (var i in new object())
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void Static_03()
+    {
+        // static MoveNext extension method in foreach
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable()) { }
+    }
+
+    extension(Enumerator)
+    {
+        public static bool MoveNext() => true;
+    }
+}
+
+public class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+
+public class Enumerator
+{
+    public int Current => 42;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS0117: 'Enumerator' does not contain a definition for 'MoveNext'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "MoveNext").WithLocation(5, 27),
+            // (5,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void Static_04()
+    {
+        // static Current in foreach
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable()) { }
+    }
+
+    extension(Enumerator)
+    {
+        public static int Current => 42;
+    }
+}
+
+public class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+
+public class Enumerator
+{
+    public bool MoveNext() => true;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,27): error CS0117: 'Enumerator' does not contain a definition for 'Current'
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "Current").WithLocation(5, 27),
+            // (5,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in new Enumerable())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()").WithLocation(5, 27));
+    }
 }
 
