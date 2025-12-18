@@ -32,7 +32,7 @@ internal class NuGetPublish
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
         "Microsoft.CodeAnalysis.Workspaces.Common",
         "Microsoft.CodeAnalysis.Workspaces.MSBuild",
-        "Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts"
+        "Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts",
         "Microsoft.Net.Compilers.Toolset",
         "Microsoft.Net.Compilers.Toolset.Framework",
 
