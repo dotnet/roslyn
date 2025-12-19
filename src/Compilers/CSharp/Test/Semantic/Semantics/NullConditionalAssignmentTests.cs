@@ -3160,9 +3160,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "20 null");
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void PointerConditionalAssignment_IL()
+        {
+            var source = """
+                public unsafe class A
+                {
+                    public byte* Ptr;
+                }
+
+                unsafe class Test
+                {
+                    static void Main()
+                    {
+                        byte b1 = 10;
+                        byte b2 = 20;
+                        var a = new A { Ptr = &b1 };
+                        
+                        a?.Ptr = &b2;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.Main", """
                 {
-                  // Code size       87 (0x57)
+                  // Code size       37 (0x25)
                   .maxstack  3
                   .locals init (byte V_0, //b1
                                 byte V_1, //b2
@@ -3185,28 +3210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_001c:  ldloca.s   V_1
                   IL_001e:  conv.u
                   IL_001f:  stfld      "byte* A.Ptr"
-                  IL_0024:  ldloc.2
-                  IL_0025:  ldfld      "byte* A.Ptr"
-                  IL_002a:  ldind.u1
-                  IL_002b:  call       "void System.Console.Write(int)"
-                  IL_0030:  nop
-                  IL_0031:  ldnull
-                  IL_0032:  stloc.2
-                  IL_0033:  ldloc.2
-                  IL_0034:  brtrue.s   IL_0038
-                  IL_0036:  br.s       IL_0041
-                  IL_0038:  ldloc.2
-                  IL_0039:  ldloca.s   V_0
-                  IL_003b:  conv.u
-                  IL_003c:  stfld      "byte* A.Ptr"
-                  IL_0041:  ldloc.2
-                  IL_0042:  brfalse.s  IL_004b
-                  IL_0044:  ldstr      " not null"
-                  IL_0049:  br.s       IL_0050
-                  IL_004b:  ldstr      " null"
-                  IL_0050:  call       "void System.Console.Write(string)"
-                  IL_0055:  nop
-                  IL_0056:  ret
+                  IL_0024:  ret
                 }
                 """);
         }
@@ -3241,12 +3245,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "21 null");
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void FunctionPointerConditionalAssignment_IL()
+        {
+            var source = """
+                unsafe class Test
+                {
+                    public delegate*<int, int> FPtr;
+                    
+                    static int Double(int x) => x * 2;
+                    static int Triple(int x) => x * 3;
+
+                    static void Main()
+                    {
+                        var t = new Test { FPtr = &Double };
+                        t?.FPtr = &Triple;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.Main", """
                 {
-                  // Code size      110 (0x6e)
+                  // Code size       37 (0x25)
                   .maxstack  3
-                  .locals init (Test V_0, //t
-                                delegate*<int, int> V_1)
+                  .locals init (Test V_0) //t
                   IL_0000:  nop
                   IL_0001:  newobj     "Test..ctor()"
                   IL_0006:  dup
@@ -3259,37 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0018:  ldloc.0
                   IL_0019:  ldftn      "int Test.Triple(int)"
                   IL_001f:  stfld      "delegate*<int, int> Test.FPtr"
-                  IL_0024:  ldloc.0
-                  IL_0025:  ldfld      "delegate*<int, int> Test.FPtr"
-                  IL_002a:  ldc.i4.0
-                  IL_002b:  conv.u
-                  IL_002c:  bne.un.s   IL_0031
-                  IL_002e:  ldc.i4.m1
-                  IL_002f:  br.s       IL_003f
-                  IL_0031:  ldloc.0
-                  IL_0032:  ldfld      "delegate*<int, int> Test.FPtr"
-                  IL_0037:  stloc.1
-                  IL_0038:  ldc.i4.7
-                  IL_0039:  ldloc.1
-                  IL_003a:  calli      "delegate*<int, int>"
-                  IL_003f:  call       "void System.Console.Write(int)"
-                  IL_0044:  nop
-                  IL_0045:  ldnull
-                  IL_0046:  stloc.0
-                  IL_0047:  ldloc.0
-                  IL_0048:  brtrue.s   IL_004c
-                  IL_004a:  br.s       IL_0058
-                  IL_004c:  ldloc.0
-                  IL_004d:  ldftn      "int Test.Double(int)"
-                  IL_0053:  stfld      "delegate*<int, int> Test.FPtr"
-                  IL_0058:  ldloc.0
-                  IL_0059:  brfalse.s  IL_0062
-                  IL_005b:  ldstr      " not null"
-                  IL_0060:  br.s       IL_0067
-                  IL_0062:  ldstr      " null"
-                  IL_0067:  call       "void System.Console.Write(string)"
-                  IL_006c:  nop
-                  IL_006d:  ret
+                  IL_0024:  ret
                 }
                 """);
         }
