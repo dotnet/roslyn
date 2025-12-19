@@ -1674,7 +1674,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-MyCollection<int> mc1 = [|[]|];
+MyCollection<int> mc1 = [];
 MyCollection<int> mc2 = [|[with(1)]|];
 
 public class MyCollection<T> : IEnumerable<T>
