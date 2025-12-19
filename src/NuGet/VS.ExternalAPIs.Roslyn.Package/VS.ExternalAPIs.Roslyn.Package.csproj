@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" PrivateAssets="all" />
@@ -42,15 +43,16 @@
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.Features.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Features\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\LanguageServer\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\RoslynAnalyzers\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" PrivateAssets="all" />
@@ -84,10 +86,12 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.AspNetCore\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Debugger\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Extensions\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Extensions.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.FSharp\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.LanguageServer\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.InteractiveHost\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.InteractiveHost.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.LanguageServer.Protocol\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" TargetDir="" />

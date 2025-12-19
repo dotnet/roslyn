@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
+
+    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</PackageId>
+    <PackageDescription>
+      A supporting package for Roslyn partners to access internal APIs.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ⚠ ONLY VISUAL STUDIO DEBUGGER ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="VsDebugPresentationPackage" Key="$(VisualStudioDebuggerKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Debugger.BrokeredServices.Glass" Key="$(VisualStudioDebuggerKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Buffers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

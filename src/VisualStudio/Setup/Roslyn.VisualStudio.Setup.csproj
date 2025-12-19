@@ -68,8 +68,20 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.AspNetCore</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.Features.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
@@ -80,8 +92,8 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor.Features</Name>
+    <ProjectReference Include="..\..\LanguageServer\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
@@ -98,7 +110,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj">
+    <ProjectReference Include="..\..\Features\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Extensions</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -244,6 +256,12 @@
     </ProjectReference>
     <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj">
       <Name>Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
+    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj">
+      <Name>Microsoft.VisualStudio.LanguageServices.ExternalAccess</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
