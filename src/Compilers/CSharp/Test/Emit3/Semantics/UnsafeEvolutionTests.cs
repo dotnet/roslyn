@@ -76,8 +76,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     private static Func<ModuleSymbol, Symbol> Overload(string qualifiedName, int parameterCount)
     {
         return module => module.GlobalNamespace
-            .GetMembersByQualifiedName(qualifiedName)
-            .OfType<MethodSymbol>()
+            .GetMembersByQualifiedName<MethodSymbol>(qualifiedName)
             .SingleOrDefault(m => m.Parameters.Length == parameterCount)
             ?? throw new InvalidOperationException($"Cannot find '{qualifiedName}' with {parameterCount} parameters.");
     }
