@@ -12,22 +12,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
 {
     public static readonly TheoryData<LanguageVersion> CollectionArgumentsLanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
-    private void CollectionArgumentsOrInvocation(LanguageVersion languageVersion)
-    {
-        if (languageVersion > LanguageVersion.CSharp14)
-        {
-            N(SyntaxKind.WithElement);
-            N(SyntaxKind.WithKeyword);
-        }
-        else
-        {
-            N(SyntaxKind.ExpressionElement);
-            N(SyntaxKind.InvocationExpression);
-            N(SyntaxKind.IdentifierName);
-            N(SyntaxKind.IdentifierToken, "with");
-        }
-    }
-
     [Fact]
     public void TestSyntaxFacts()
     {
