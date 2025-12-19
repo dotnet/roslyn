@@ -2897,19 +2897,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PointerReturnType_Simple()
         {
             var source = """
-                public unsafe class A
+                public class A
                 {
-                    public byte* Ptr = null;
+                    public unsafe byte* Ptr = null;
                 }
 
-                unsafe class Test
+                class Test
                 {
-                    static void M1(A a)
+                    unsafe static void M1(A a)
                     {
                         byte* ptr = a?.Ptr;
                     }
 
-                    static void M2(A a)
+                    unsafe static void M2(A a)
                     {
                         var result = a?.Ptr;
                     }
@@ -2925,14 +2925,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = """
                 using System;
 
-                public unsafe class A
+                public class A
                 {
-                    public byte* Ptr;
+                    public unsafe byte* Ptr;
                 }
 
-                unsafe class Test
+                class Test
                 {
-                    static void Main()
+                    static unsafe void Main()
                     {
                         byte b = 42;
                         var a = new A { Ptr = &b };
@@ -2957,11 +2957,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PointerReturnType_IntPointer()
         {
             var source = """
-                unsafe class Test
+                class Test
                 {
-                    public int* Value = null;
+                    public unsafe int* Value = null;
 
-                    static void M(Test t)
+                    static unsafe void M(Test t)
                     {
                         int* p = t?.Value;
                         var v = t?.Value;
@@ -2982,11 +2982,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PointerReturnType_VoidPointer()
         {
             var source = """
-                unsafe class Test
+                class Test
                 {
-                    public void* Data = null;
+                    public unsafe void* Data = null;
 
-                    static void M(Test t)
+                    static unsafe void M(Test t)
                     {
                         void* p = t?.Data;
                         var d = t?.Data;
@@ -3001,19 +3001,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PointerReturnType_Chained()
         {
             var source = """
-                unsafe struct Node
+                struct Node
                 {
-                    public Node* Next;
+                    public unsafe Node* Next;
                     public int Value;
 
                     public Node(int v) { Next = null; Value = v; }
                 }
 
-                unsafe class Test
+                class Test
                 {
-                    public Node* Head = null;
+                    public unsafe Node* Head = null;
 
-                    static void M(Test t)
+                    static unsafe void M(Test t)
                     {
                         Node* n1 = t?.Head;
                     }
@@ -3027,15 +3027,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PointerReturnType_StatementContext()
         {
             var source = """
-                public unsafe class A
+                public class A
                 {
-                    public byte* Ptr = null;
+                    public unsafe byte* Ptr = null;
                     public void DoSomething() { }
                 }
 
-                unsafe class Test
+                class Test
                 {
-                    static void M(A a)
+                    static unsafe void M(A a)
                     {
                         a?.DoSomething();  // Statement context - method call works
                     }
@@ -3049,11 +3049,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FunctionPointerReturnType_Allowed()
         {
             var source = """
-                unsafe class Test
+                class Test
                 {
-                    public delegate*<int, void> FPtr = null;
+                    public unsafe delegate*<int, void> FPtr = null;
 
-                    static void M(Test t)
+                    static unsafe void M(Test t)
                     {
                         var f = t?.FPtr;
                     }
@@ -3067,11 +3067,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FunctionPointerReturnType_WithReturn()
         {
             var source = """
-                unsafe class Test
+                class Test
                 {
-                    public delegate*<int, string> FPtr = null;
+                    public unsafe delegate*<int, string> FPtr = null;
 
-                    static void M(Test t)
+                    static unsafe void M(Test t)
                     {
                         delegate*<int, string> f = t?.FPtr;
                         var g = t?.FPtr;
@@ -3086,11 +3086,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FunctionPointerReturnType_MultipleParameters()
         {
             var source = """
-                unsafe class Test
+                class Test
                 {
-                    public delegate*<int, string, void> FPtr = null;
+                    public unsafe delegate*<int, string, void> FPtr = null;
 
-                    static void M(Test t)
+                    static unsafe void M(Test t)
                     {
                         var f = t?.FPtr;
                     }
@@ -3106,13 +3106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = """
                 using System;
 
-                unsafe class Test
+                class Test
                 {
-                    public delegate*<int, int> FPtr;
+                    public unsafe delegate*<int, int> FPtr;
 
                     static int Double(int x) => x * 2;
 
-                    static void Main()
+                    static unsafe void Main()
                     {
                         var t = new Test { FPtr = &Double };
                         delegate*<int, int> f1 = t?.FPtr;
@@ -3134,14 +3134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = """
                 using System;
 
-                public unsafe class A
+                public class A
                 {
-                    public byte* Ptr;
+                    public unsafe byte* Ptr;
                 }
 
-                unsafe class Test
+                class Test
                 {
-                    static void Main()
+                    static unsafe void Main()
                     {
                         byte b1 = 10;
                         byte b2 = 20;
@@ -3166,14 +3166,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PointerConditionalAssignment_IL()
         {
             var source = """
-                public unsafe class A
+                public class A
                 {
-                    public byte* Ptr;
+                    public unsafe byte* Ptr;
                 }
 
-                unsafe class Test
+                class Test
                 {
-                    static void Main()
+                    static unsafe void Main()
                     {
                         byte b1 = 10;
                         byte b2 = 20;
@@ -3221,14 +3221,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = """
                 using System;
 
-                unsafe class Test
+                class Test
                 {
-                    public delegate*<int, int> FPtr;
+                    public unsafe delegate*<int, int> FPtr;
                     
                     static int Double(int x) => x * 2;
                     static int Triple(int x) => x * 3;
 
-                    static void Main()
+                    static unsafe void Main()
                     {
                         var t = new Test { FPtr = &Double };
                         
@@ -3251,14 +3251,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FunctionPointerConditionalAssignment_IL()
         {
             var source = """
-                unsafe class Test
+                class Test
                 {
-                    public delegate*<int, int> FPtr;
+                    public unsafe delegate*<int, int> FPtr;
                     
                     static int Double(int x) => x * 2;
                     static int Triple(int x) => x * 3;
 
-                    static void Main()
+                    static unsafe void Main()
                     {
                         var t = new Test { FPtr = &Double };
                         t?.FPtr = &Triple;
