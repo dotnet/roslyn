@@ -1637,17 +1637,11 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement27(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with()..x]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8)
-            };
         UsingExpression("[with()..x]",
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+                // (1,8): error CS1003: Syntax error, ',' expected
+                // [with()..x]
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8));
 
         N(SyntaxKind.CollectionExpression);
         {
@@ -1678,20 +1672,14 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement28(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with().x]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8),
-                // (1,9): error CS1003: Syntax error, ',' expected
-                // [with().x]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 9)
-            };
         UsingExpression("[with().x]",
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with().x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8),
+            // (1,9): error CS1003: Syntax error, ',' expected
+            // [with().x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 9));
 
         N(SyntaxKind.CollectionExpression);
         {
@@ -1980,20 +1968,14 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement37(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with()++]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "++").WithArguments(",").WithLocation(1, 8),
-                // (1,10): error CS1525: Invalid expression term ']'
-                // [with()++]
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 10),
-            };
         UsingExpression("[with()++]",
-            TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+        TestOptions.Regular.WithLanguageVersion(languageVersion),
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with()++]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "++").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1525: Invalid expression term ']'
+            // [with()++]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 10));
 
         N(SyntaxKind.CollectionExpression);
         {
@@ -2027,17 +2009,11 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement38(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with()[0]]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 8)
-            };
         UsingExpression("[with()[0]]",
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with()[0]]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 8));
 
         N(SyntaxKind.CollectionExpression);
         {
