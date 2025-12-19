@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VisualStudioNavigateToLinkService() : INavigateToLinkService
 {
-    public async ValueTask<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+    public async Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
     {
         if (!uri.IsAbsoluteUri)
         {

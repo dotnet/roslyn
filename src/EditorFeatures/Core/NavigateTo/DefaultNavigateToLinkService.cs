@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultNavigateToLinkService() : INavigateToLinkService
 {
-    public async ValueTask<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+    public async Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
         => false;
 }
