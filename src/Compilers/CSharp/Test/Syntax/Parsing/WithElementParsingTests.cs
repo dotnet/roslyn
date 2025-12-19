@@ -1187,7 +1187,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             // [with(), a:b]
             Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 12));
 
-
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
