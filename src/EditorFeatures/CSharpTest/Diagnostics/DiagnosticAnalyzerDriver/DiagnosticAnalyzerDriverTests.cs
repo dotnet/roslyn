@@ -55,7 +55,7 @@ public sealed class DiagnosticAnalyzerDriverTests
         await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, new TextSpan(0, document.GetTextAsync().Result.Length));
         analyzer.VerifyAllAnalyzerMembersWereCalled();
         analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds([SyntaxKind.WithElement]);
+        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds([]);
         analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
     }
 
