@@ -274,10 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = "ref scoped R F() => default;";
             UsingDeclaration(source, TestOptions.Regular11,
-                // (1,14): error CS1003: Syntax error, ',' expected
+                // (1,14): error CS1003: Syntax error, '=' expected
                 // ref scoped R F() => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",").WithLocation(1, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments("=").WithLocation(1, 14));
 
             N(SyntaxKind.FieldDeclaration);
             {
@@ -294,6 +293,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            M(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                        }
                     }
                 }
                 N(SyntaxKind.SemicolonToken);

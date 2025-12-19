@@ -28,13 +28,13 @@ internal sealed class LSPSDKInitializeHandler : ILspRequestHandler<LSP.Initializ
     {
     }
 
-    public Task<LSP.InitializeResult> HandleAsync(LSP.InitializeParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+    public async Task<LSP.InitializeResult> HandleAsync(LSP.InitializeParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
     {
         var result = new LSP.InitializeResult
         {
             Capabilities = new LSP.ServerCapabilities()
         };
 
-        return Task.FromResult(result);
+        return result;
     }
 }

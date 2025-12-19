@@ -61,14 +61,14 @@ internal sealed partial class ExplicitInterfaceTypeCompletionProvider() : Abstra
         }
     }
 
-    protected override Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
+    protected override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
         CompletionContext? completionContext, CSharpSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
     {
         var targetToken = context.TargetToken;
 
         // Don't want to offer this after "async" (even though the compiler may parse that as a type).
         if (SyntaxFacts.GetContextualKeywordKind(targetToken.ValueText) == SyntaxKind.AsyncKeyword)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         var potentialTypeNode = targetToken.Parent;
         if (targetToken.IsKind(SyntaxKind.GreaterThanToken) && potentialTypeNode is TypeArgumentListSyntax typeArgumentList)
@@ -89,17 +89,17 @@ internal sealed partial class ExplicitInterfaceTypeCompletionProvider() : Abstra
         }
 
         if (typeNode == null)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         // We weren't after something that looked like a type.
         var tokenBeforeType = typeNode.GetFirstToken().GetPreviousToken();
 
         if (!IsPreviousTokenValid(tokenBeforeType))
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         var typeDeclaration = typeNode.GetAncestor<TypeDeclarationSyntax>();
         if (typeDeclaration == null)
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
+            return [];
 
         // Looks syntactically good.  See what interfaces our containing class/struct/interface has
         Debug.Assert(IsClassOrStructOrInterfaceOrRecord(typeDeclaration));
@@ -115,7 +115,7 @@ internal sealed partial class ExplicitInterfaceTypeCompletionProvider() : Abstra
             interfaceSet.AddRange(directInterface.AllInterfaces);
         }
 
-        return Task.FromResult(interfaceSet.SelectAsArray(t => new SymbolAndSelectionInfo(Symbol: t, Preselect: false)));
+        return interfaceSet.SelectAsArray(t => new SymbolAndSelectionInfo(Symbol: t, Preselect: false));
     }
 
     private static bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)

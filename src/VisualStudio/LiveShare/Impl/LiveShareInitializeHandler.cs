@@ -25,8 +25,8 @@ internal class LiveShareInitializeHandler : ILspRequestHandler<InitializeParams,
         }
     };
 
-    public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        => Task.FromResult(s_initializeResult);
+    public async Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        => s_initializeResult;
 }
 
 [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.InitializeName)]

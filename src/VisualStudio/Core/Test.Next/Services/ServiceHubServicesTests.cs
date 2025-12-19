@@ -224,10 +224,9 @@ public sealed partial class ServiceHubServicesTests
 
         public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
+        public async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
         {
             _infosSource.SetResult(infos);
-            return ValueTask.CompletedTask;
         }
     }
 
@@ -1933,17 +1932,17 @@ public sealed partial class ServiceHubServicesTests
 
         var result = await service.AnalyzeChangeAsync(
             document, [new TextChange(new TextSpan(listIndex, 1), """
-            <<<<<<<
+            <<<<<<< goo
             Goo
-            =======
+            ======= bar
             Bar
-            >>>>>>>
+            >>>>>>> baz
             """)], CancellationToken.None);
 
         Assert.True(result.Succeeded);
 
         var diagnosticAnalysis = result.DiagnosticAnalyses.Single(d => d.Kind == DiagnosticKind.CompilerSyntax);
-        Assert.Equal(1, diagnosticAnalysis.IdToCount["CS8300"]);
+        Assert.Equal(3, diagnosticAnalysis.IdToCount["CS8300"]);
 
         Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
         Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
@@ -1967,8 +1966,8 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("TestProposalId", properties["vs.ide.vbcs.copilot.analyzechange.proposalid"]);
 
         Assert.Equal(44, properties["vs.ide.vbcs.copilot.analyzechange.olddocumentlength"]);
-        Assert.Equal(78, properties["vs.ide.vbcs.copilot.analyzechange.newdocumentlength"]);
-        Assert.Equal(34, properties["vs.ide.vbcs.copilot.analyzechange.textchangedelta"]);
+        Assert.Equal(90, properties["vs.ide.vbcs.copilot.analyzechange.newdocumentlength"]);
+        Assert.Equal(46, properties["vs.ide.vbcs.copilot.analyzechange.textchangedelta"]);
 
         Assert.Equal(1, properties["vs.ide.vbcs.copilot.analyzechange.projectdocumentcount"]);
         Assert.Equal(0, properties["vs.ide.vbcs.copilot.analyzechange.projectsourcegenerateddocumentcount"]);
@@ -1985,16 +1984,16 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"]);
 
         // CS1002_1 means we got one CS1002 diagnostic. Whereas CS1525_3 means we got 3 CS1525 diagnostics.
-        Assert.Equal("CS1002_1,CS1513_1,CS1525_3,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
-        Assert.Equal("Compiler_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
-        Assert.Equal("Error_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
+        Assert.Equal("CS1002_1,CS8300_3", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
+        Assert.Equal("Compiler_4", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
+        Assert.Equal("Error_4", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
 
         Assert.Equal("CS0103_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_idtocount"]);
         Assert.Equal("Compiler_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_categorytocount"]);
         Assert.Equal("Error_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_severitytocount"]);
 
-        Assert.Equal("CS0103_1,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"]);
-        Assert.Equal("CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider,CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider",
+        Assert.Equal("CS0103_2,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"]);
+        Assert.Equal("CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider:CSharp.SpellCheck.CSharpSpellCheckCodeFixProvider,CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider",
             properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtoprovidername"]);
     }
 

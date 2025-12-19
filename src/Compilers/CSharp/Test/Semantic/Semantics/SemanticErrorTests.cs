@@ -2749,7 +2749,7 @@ int AIProp { get ; set ; }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 5, Column = 10 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 10, Column = 5 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CompilationUnitUnexpected, Line = 10, Column = 5 });
         }
 
         [Fact]

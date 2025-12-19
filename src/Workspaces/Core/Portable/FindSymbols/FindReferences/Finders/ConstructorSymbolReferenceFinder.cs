@@ -25,12 +25,12 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
 
-    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
         if (symbol.MethodKind is MethodKind.Constructor)
-            return new(GetOtherPartsOfPartial(symbol));
+            return GetOtherPartsOfPartial(symbol);
 
-        return new([]);
+        return [];
     }
 
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
