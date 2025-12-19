@@ -2075,23 +2075,43 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Fact]
-    public async Task SemanticError()
+    public async Task SemanticDiagnostics()
     {
-        var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
+        var sourceV1 = """
+            class C1 { void M() { System.Console.WriteLine(1); } }
+            """;
+
+        var sourceV2 = """
+            global using System;
+            using System;
+            
+            class C1 { void M() { int i = 0L; System.Console.WriteLine(i); } }
+            """;
+
+        var globalUsings = """
+            global using System;
+            """;
+
+        var sourceFile = Temp.CreateFile("a.cs").WriteAllText(sourceV1, Encoding.UTF8);
+        var globalUsingsFile = Temp.CreateFile("global.cs").WriteAllText(globalUsings, Encoding.UTF8);
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        (solution, var document) = AddDefaultTestProject(solution, sourceV1);
 
-        var moduleId = EmitAndLoadLibraryToDebuggee(document.Project.Id, sourceV1);
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(sourceV1, sourceFile.Path, out var documentId).Project.
+            AddTestDocument(globalUsings, globalUsingsFile.Path).Project.Solution;
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, sourceV1);
 
         var debuggingSession = StartDebuggingSession(service, solution);
 
         EnterBreakState(debuggingSession);
 
         // change the source (compilation error):
-        var document1 = solution.Projects.Single().Documents.Single();
-        solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { int i = 0L; System.Console.WriteLine(i); } }"));
-        var document2 = solution.Projects.Single().Documents.Single();
+        var document1 = solution.GetRequiredDocument(documentId);
+        solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
+        var document2 = solution.GetRequiredDocument(documentId);
 
         // compilation errors are not reported via EnC diagnostic analyzer:
         var diagnostics1 = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
@@ -2103,10 +2123,13 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Equal(ModuleUpdateStatus.Blocked, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
-        // TODO: https://github.com/dotnet/roslyn/issues/36061
-        // Semantic errors should not be reported in emit diagnostics.
-
-        AssertEx.Equal([$"proj: {document2.FilePath}: (0,30)-(0,32): Error CS0266: {string.Format(CSharpResources.ERR_NoImplicitConvCast, "long", "int")}"], InspectDiagnostics(results.Diagnostics));
+        // Only errors and warnings are reported:
+        AssertEx.Equal(
+        [
+            $"test: {document2.FilePath}: (1,6)-(1,12): Warning CS0105: {string.Format(CSharpResources.WRN_DuplicateUsing, "System")}",
+            $"test: {document2.FilePath}: (3,30)-(3,32): Error CS0266: {string.Format(CSharpResources.ERR_NoImplicitConvCast, "long", "int")}",
+            // Not reported: Hidden CS8933: The using directive for 'System' appeared previously as global using
+        ], InspectDiagnostics(results.Diagnostics));
 
         EndDebuggingSession(debuggingSession);
 
