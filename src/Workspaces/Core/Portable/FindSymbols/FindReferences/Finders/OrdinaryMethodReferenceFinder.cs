@@ -5,17 +5,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
 {
+    public static readonly OrdinaryMethodReferenceFinder Instance = new();
+
+    private OrdinaryMethodReferenceFinder()
+    {
+    }
+
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind is MethodKind.Ordinary or
                                 MethodKind.DelegateInvoke or
@@ -154,6 +159,9 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         FindReferencesInDocumentUsingSymbolName(
             symbol, state, processResult, processResultData, cancellationToken);
 
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
+
         if (IsForEachMethod(symbol))
             FindReferencesInForEachStatements(symbol, state, processResult, processResultData, cancellationToken);
 
@@ -163,14 +171,50 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         if (IsGetAwaiterMethod(symbol))
             FindReferencesInAwaitExpression(symbol, state, processResult, processResultData, cancellationToken);
 
-        FindReferencesInDocumentInsideGlobalSuppressions(
-            symbol, state, processResult, processResultData, cancellationToken);
-
         if (IsAddMethod(symbol))
             FindReferencesInCollectionInitializer(symbol, state, processResult, processResultData, cancellationToken);
 
         if (IsDisposeMethod(symbol))
             FindReferencesInUsingStatements(symbol, state, processResult, processResultData, cancellationToken);
+
+        if (IsCollectionBuilderFactoryMethod(symbol))
+            FindReferencesInCollectionExpressions(symbol, state, processResult, processResultData, cancellationToken);
+    }
+
+    private void FindReferencesInCollectionExpressions<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        FindReferencesInDocument(state, static index => index.ContainsCollectionExpression, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+
+        void CollectMatchingReferences(
+            SyntaxNode node,
+            FindReferencesDocumentState state,
+            Action<FinderLocation, TData> processResult,
+            TData processResultData)
+        {
+            if (!state.SyntaxFacts.IsCollectionExpression(node))
+                return;
+
+            if (state.SemanticModel.GetOperation(node, cancellationToken) is not ICollectionExpressionOperation collectionExpression)
+                return;
+
+            if (!Equals(symbol, collectionExpression.ConstructMethod))
+                return;
+
+            var result = new FinderLocation(node, new ReferenceLocation(
+                state.Document,
+                alias: null,
+                location: node.GetFirstToken().GetLocation(),
+                isImplicit: true,
+                default,
+                GetAdditionalFindUsagesProperties(node, state),
+                candidateReason: CandidateReason.None));
+            processResult(result, processResultData);
+        }
     }
 
     private void FindReferencesInUsingStatements<TData>(
