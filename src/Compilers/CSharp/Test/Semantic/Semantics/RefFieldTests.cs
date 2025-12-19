@@ -8387,7 +8387,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"), targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.PEVerifyCompat), targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -11808,9 +11808,9 @@ readonly scoped record struct C();
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
@@ -11854,9 +11854,9 @@ readonly scoped record struct C();
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
@@ -13496,7 +13496,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13560,7 +13560,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13636,7 +13636,7 @@ ref struct RR
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13707,7 +13707,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -15189,7 +15189,7 @@ class Enumerator2<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -22156,6 +22156,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (1,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // ref struct R
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "R").WithLocation(1, 12),
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
@@ -22168,16 +22171,18 @@ public ref struct R
                 // (3,16): warning CS0169: The field 'R.R' is never used
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
+                // (3,18): error CS1003: Syntax error, '=' expected
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "M").WithLocation(3, 18),
-                // (3,18): error CS1520: Method must have a return type
+                Diagnostic(ErrorCode.ERR_SyntaxError, "M").WithArguments("=").WithLocation(3, 18),
+                // (3,18): error CS8172: Cannot initialize a by-reference variable with a value
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 18),
-                // (3,18): error CS8958: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "M() => throw null").WithLocation(3, 18),
+                // (3,18): error CS0246: The type or namespace name 'M' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "M").WithLocation(3, 18)
-                );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M").WithArguments("M").WithLocation(3, 18),
+                // (3,18): error CS1510: A ref or out value must be an assignable variable
+                //     ref scoped R M() => throw null;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "M() => throw null").WithLocation(3, 18));
 
             source = @"
 delegate void M(ref scoped R parameter);
@@ -28008,7 +28013,7 @@ ref struct R<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -28068,7 +28073,7 @@ ref struct R<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)

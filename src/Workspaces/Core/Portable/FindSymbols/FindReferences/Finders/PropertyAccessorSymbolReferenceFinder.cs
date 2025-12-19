@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -22,11 +23,17 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
         // If we've been asked to search for specific accessors, then do not cascade.
         // We don't want to produce results for the associated property.
-        return options.AssociatePropertyReferencesWithSpecificAccessor || symbol.AssociatedSymbol == null
-            ? new(ImmutableArray<ISymbol>.Empty)
-            : new(ImmutableArray.Create(symbol.AssociatedSymbol));
+        if (!options.AssociatePropertyReferencesWithSpecificAccessor)
+            result.AddIfNotNull(symbol.AssociatedSymbol);
+
+        // If the given symbol is an extension accessor, cascade to its implementation method
+        result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
+
+        return new(result.ToImmutableAndClear());
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(

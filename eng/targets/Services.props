@@ -25,7 +25,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EditAndContinue" ClassName="Microsoft.CodeAnalysis.EditAndContinue.RemoteEditAndContinueService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EncapsulateField" ClassName="Microsoft.CodeAnalysis.Remote.RemoteEncapsulateFieldService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMessageHandler" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMessageHandlerService+Factory" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMethodImportCompletion" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMethodImportCompletionService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMemberImportCompletion" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMemberImportCompletionService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.FindUsages" ClassName="Microsoft.CodeAnalysis.Remote.RemoteFindUsagesService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.FullyQualify" ClassName="Microsoft.CodeAnalysis.Remote.RemoteFullyQualifyService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.GlobalNotificationDelivery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteGlobalNotificationDeliveryService+Factory" />

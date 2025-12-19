@@ -14,7 +14,6 @@ internal sealed partial class CSharpRemoveUnnecessaryUnsafeModifierDiagnosticAna
         IDEDiagnosticIds.RemoveUnnecessaryUnsafeModifier,
         EnforceOnBuildValues.RemoveUnnecessaryUnsafeModifier,
         option: null,
-        fadingOption: null,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_unsafe_modifier), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.unsafe_modifier_is_unnecessary), AnalyzersResources.ResourceManager, typeof(CompilerExtensionsResources)))
 {

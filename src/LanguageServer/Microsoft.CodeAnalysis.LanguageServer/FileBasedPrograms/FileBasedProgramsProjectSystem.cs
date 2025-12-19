@@ -44,7 +44,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
             : base(
                 workspaceFactory,
                 fileChangeWatcher,
@@ -53,7 +54,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider)
+                binLogPathProvider,
+                dotnetCliHelper)
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
@@ -66,23 +68,55 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider);
+                binLogPathProvider,
+                dotnetCliHelper);
     }
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
-    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument textDocument, CancellationToken cancellationToken)
     {
         // There are a few cases here:
         //   1.  The document is a primordial document (either not loaded yet or doesn't support design time build) - it will be in the misc files workspace.
         //   2.  The document is loaded as a canonical misc file - these are always in the misc files workspace.
         //   3.  The document is loaded as a file based program - then it will be in the main workspace where the project path matches the source file path.
-        if (document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
+
+        // NB: The FileBasedProgramsProjectSystem uses the document file path (the on-disk path) as the projectPath in 'IsProjectLoadedAsync'.
+        var isLoadedAsFileBasedProgram = textDocument.FilePath is { } filePath && await IsProjectLoadedAsync(filePath, cancellationToken);
+
+        // If this document has a file-based program syntactic marker, but we aren't loading it in a file-based programs project,
+        // we need the caller to remove and re-add this document, so that it gets put in a file-based programs project instead.
+        // See the check in 'LspWorkspaceManager.GetLspDocumentInfoAsync', which removes a document based on 'IsMiscellaneousFilesDocumentAsync' result,
+        // then calls 'GetLspDocumentInfoAsync' again for the same request.
+        if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await textDocument.GetTextAsync(cancellationToken)))
+            return false;
+
+        if (textDocument.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
+        {
+            // Do a check to determine if the misc project needs to be re-created with a new HasAllInformation flag value.
+            if (!isLoadedAsFileBasedProgram
+                && await _canonicalMiscFilesLoader.IsCanonicalProjectLoadedAsync(cancellationToken)
+                && textDocument is Document document
+                && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
+            {
+                var newHasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(GlobalOptionService, syntaxTree, cancellationToken);
+                if (newHasAllInformation != document.Project.State.HasAllInformation)
+                {
+                    // TODO: replace this method and the call site in LspWorkspaceManager,
+                    // with a mechanism for "updating workspace state if needed" based on changes to a document.
+                    // Perhaps this could be based on actually listening for changes to particular documents, rather than whenever an LSP request related to a document comes in.
+                    // We should be able to do more incremental updates in more cases, rather than needing to throw things away and start over.
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (isLoadedAsFileBasedProgram)
             return true;
 
-        if (document.Project.FilePath is not null && await IsProjectLoadedAsync(document.Project.FilePath, cancellationToken))
-            return true;
-
+        // Document is not managed by this project system. Caller should unload it.
         return false;
     }
 
@@ -102,7 +136,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (supportsDesignTimeBuild)
         {
             // For virtual (non-file) URIs or non-file-based programs, use the canonical loader
-            if (uri.ParsedUri is null || !uri.ParsedUri.IsFile || !VirtualProjectXmlProvider.IsFileBasedProgram(documentFilePath, documentText))
+            if (uri.ParsedUri is null || !uri.ParsedUri.IsFile || !VirtualProjectXmlProvider.IsFileBasedProgram(documentText))
             {
                 return await _canonicalMiscFilesLoader.AddMiscellaneousDocumentAsync(documentFilePath, documentText, CancellationToken.None);
             }
@@ -171,11 +205,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
         var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
-
-        var loader = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.CreateFileTextLoader(documentPath);
-        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
-        var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentPath, textAndVersion.Text);
-
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
@@ -183,11 +212,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return new RemoteProjectLoadResult
         {
             ProjectFile = loadedFile,
-            // If it's a proper file based program, we'll put it in the main host workspace factory since we want cross-project references to work.
-            // Otherwise, we'll keep it in miscellaneous files.
-            ProjectFactory = isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-            IsFileBasedProgram = isFileBasedProgram,
-            IsMiscellaneousFile = !isFileBasedProgram,
+            // If we have made it this far, we must have determined that the document is a file-based program.
+            // TODO: we should assert this somehow. However, we cannot use the on-disk state of the file to do so, because the decision to load this as a file-based program was based on in-editor content.
+            ProjectFactory = _workspaceFactory.HostProjectFactory,
+            IsFileBasedProgram = true,
+            IsMiscellaneousFile = false,
             PreferredBuildHostKind = buildHostKind,
             ActualBuildHostKind = buildHostKind,
         };
@@ -198,7 +227,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return ValueTask.CompletedTask;
     }
 
-    protected override async ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,

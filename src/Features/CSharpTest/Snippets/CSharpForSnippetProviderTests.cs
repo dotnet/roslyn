@@ -142,7 +142,7 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
                 {
                     void LocalFunction()
                     {
-                        for (global::System.Int32 {|0:i|} = 0; {|0:i|} < {|1:length|}; {|0:i|}++)
+                        for (int {|0:i|} = 0; {|0:i|} < {|1:length|}; {|0:i|}++)
                         {
                             $$
                         }
@@ -171,7 +171,7 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
                 {
                     var action = delegate()
                     {
-                        for (global::System.Int32 {|0:i|} = 0; {|0:i|} < {|1:length|}; {|0:i|}++)
+                        for (int {|0:i|} = 0; {|0:i|} < {|1:length|}; {|0:i|}++)
                         {
                             $$
                         }
@@ -200,7 +200,7 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
                 {
                     var action = () =>
                     {
-                        for (global::System.Int32 {|0:i|} = 0; {|0:i|} < {|1:length|}; {|0:i|}++)
+                        for (int {|0:i|} = 0; {|0:i|} < {|1:length|}; {|0:i|}++)
                         {
                             $$
                         }
