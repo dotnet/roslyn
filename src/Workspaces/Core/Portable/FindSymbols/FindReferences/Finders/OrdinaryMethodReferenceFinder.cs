@@ -181,42 +181,6 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
             FindReferencesInCollectionExpressions(symbol, state, processResult, processResultData, cancellationToken);
     }
 
-    private void FindReferencesInCollectionExpressions<TData>(
-        IMethodSymbol symbol,
-        FindReferencesDocumentState state,
-        Action<FinderLocation, TData> processResult,
-        TData processResultData,
-        CancellationToken cancellationToken)
-    {
-        FindReferencesInDocument(state, static index => index.ContainsCollectionExpression, CollectMatchingReferences, processResult, processResultData, cancellationToken);
-
-        void CollectMatchingReferences(
-            SyntaxNode node,
-            FindReferencesDocumentState state,
-            Action<FinderLocation, TData> processResult,
-            TData processResultData)
-        {
-            if (!state.SyntaxFacts.IsCollectionExpression(node))
-                return;
-
-            if (state.SemanticModel.GetOperation(node, cancellationToken) is not ICollectionExpressionOperation collectionExpression)
-                return;
-
-            if (!Equals(symbol, collectionExpression.ConstructMethod?.OriginalDefinition))
-                return;
-
-            var result = new FinderLocation(node, new ReferenceLocation(
-                state.Document,
-                alias: null,
-                location: node.GetLocation(),
-                isImplicit: true,
-                GetSymbolUsageInfo(node, state, cancellationToken),
-                GetAdditionalFindUsagesProperties(node, state),
-                candidateReason: CandidateReason.None));
-            processResult(result, processResultData);
-        }
-    }
-
     private void FindReferencesInUsingStatements<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
