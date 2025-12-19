@@ -698,4 +698,24 @@ internal static partial class INamedTypeSymbolExtensions
                 }
             }
         };
+
+    public static bool IsIEnumerableOfT([NotNullWhen(true)] this INamedTypeSymbol? type)
+        => type is
+        {
+            Name: nameof(IEnumerable<>),
+            TypeArguments.Length: 1,
+            ContainingNamespace:
+            {
+                Name: nameof(System.Collections.Generic),
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Collections),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System),
+                        ContainingNamespace.IsGlobalNamespace: true,
+                    }
+                }
+            }
+        };
 }
