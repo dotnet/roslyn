@@ -265,12 +265,12 @@ internal abstract partial class AbstractInProcLanguageClient(
 
     public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
 
-    public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+    public async Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
     {
         var initializationFailureContext = new InitializationFailureContext();
         initializationFailureContext.FailureMessage = string.Format(EditorFeaturesResources.Language_client_initialization_failed,
             Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
-        return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
+        return initializationFailureContext;
     }
 
     /// <summary>

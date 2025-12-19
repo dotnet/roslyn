@@ -57,10 +57,10 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey, CodeActionPriority.Default, CodeActionCleanup.Default)
         {
-            protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+            protected override async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
             {
                 // PERF: We don't to formatting on the entire global suppressions document, but instead do it for each attribute individual in the fixer.
-                return Task.FromResult(document);
+                return document;
             }
         }
 
