@@ -12,22 +12,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
 {
     public static readonly TheoryData<LanguageVersion> CollectionArgumentsLanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
-    private void CollectionArgumentsOrInvocation(LanguageVersion languageVersion)
-    {
-        if (languageVersion > LanguageVersion.CSharp14)
-        {
-            N(SyntaxKind.WithElement);
-            N(SyntaxKind.WithKeyword);
-        }
-        else
-        {
-            N(SyntaxKind.ExpressionElement);
-            N(SyntaxKind.InvocationExpression);
-            N(SyntaxKind.IdentifierName);
-            N(SyntaxKind.IdentifierToken, "with");
-        }
-    }
-
     [Fact]
     public void TestSyntaxFacts()
     {
@@ -762,7 +746,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -782,7 +767,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -808,7 +794,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -843,7 +830,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -870,7 +858,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -898,7 +887,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -926,7 +916,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -961,7 +952,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -996,7 +988,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1031,14 +1024,16 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
                 N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1066,7 +1061,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                 }
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1108,7 +1104,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                 }
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1137,7 +1134,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                 }
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1157,7 +1155,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1188,80 +1187,37 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             // [with(), a:b]
             Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 12));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "with");
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "b");
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.WithElement);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "a");
                 }
-                N(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "b");
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
@@ -1273,7 +1229,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1302,7 +1259,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1330,7 +1288,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1367,7 +1326,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1405,7 +1365,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1452,7 +1413,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1461,7 +1423,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                     N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        CollectionArgumentsOrInvocation(languageVersion);
+                        N(SyntaxKind.WithElement);
+                        N(SyntaxKind.WithKeyword);
                         N(SyntaxKind.ArgumentList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1486,7 +1449,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1521,7 +1485,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1549,7 +1514,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1577,7 +1543,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1613,7 +1580,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1652,155 +1620,73 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement27(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with()..x]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8)
-            };
         UsingExpression("[with()..x]",
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+                // (1,8): error CS1003: Syntax error, ',' expected
+                // [with()..x]
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.RangeExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "with");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.DotDotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.SpreadElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.WithElement);
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.SpreadElement);
-                {
-                    N(SyntaxKind.DotDotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement28(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with().x]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8),
-                // (1,9): error CS1003: Syntax error, ',' expected
-                // [with().x]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 9)
-            };
         UsingExpression("[with().x]",
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with().x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8),
+            // (1,9): error CS1003: Syntax error, ',' expected
+            // [with().x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 9));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.SimpleMemberAccessExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "with");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.WithElement);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
@@ -1815,7 +1701,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1838,7 +1725,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1859,7 +1747,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1889,7 +1778,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1927,7 +1817,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1965,64 +1856,29 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             // [with():y]
             Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",").WithLocation(1, 9));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "with");
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "y");
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.WithElement);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "y");
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "y");
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
@@ -2037,64 +1893,29 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             // [x:with()]
             Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(",").WithLocation(1, 4));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "with");
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.WithElement);
-                {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
@@ -2130,169 +1951,84 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement37(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with()++]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "++").WithArguments(",").WithLocation(1, 8),
-                // (1,10): error CS1525: Invalid expression term ']'
-                // [with()++]
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 10),
-            };
         UsingExpression("[with()++]",
-            TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+        TestOptions.Regular.WithLanguageVersion(languageVersion),
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with()++]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "++").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1525: Invalid expression term ']'
+            // [with()++]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 10));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.PostIncrementExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "with");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.PlusPlusToken);
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.WithElement);
+                N(SyntaxKind.PreIncrementExpression);
                 {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
+                    N(SyntaxKind.PlusPlusToken);
+                    M(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.PreIncrementExpression);
-                    {
-                        N(SyntaxKind.PlusPlusToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement38(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
-            [] :
-            new[]
-            {
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // [with()[0]]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 8)
-            };
         UsingExpression("[with()[0]]",
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedDiagnostics);
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with()[0]]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 8));
 
-        if (languageVersion == LanguageVersion.CSharp14)
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.CollectionExpression);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "with");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.WithElement);
+                N(SyntaxKind.CollectionExpression);
                 {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.CollectionExpression);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.ExpressionElement);
+                        N(SyntaxKind.NumericLiteralExpression);
                         {
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "0");
-                            }
+                            N(SyntaxKind.NumericLiteralToken, "0");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
-                N(SyntaxKind.CloseBracketToken);
             }
-            EOF();
+            N(SyntaxKind.CloseBracketToken);
         }
+        EOF();
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
@@ -2353,7 +2089,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                                                 }
                                             }
                                             M(SyntaxKind.CommaToken);
-                                            CollectionArgumentsOrInvocation(languageVersion);
+                                            N(SyntaxKind.WithElement);
+                                            N(SyntaxKind.WithKeyword);
                                             N(SyntaxKind.ArgumentList);
                                             {
                                                 N(SyntaxKind.OpenParenToken);

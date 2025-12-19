@@ -13123,13 +13123,16 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
+            // Even though `with(` could start a legal expression (like `with(x) + y`), spec mandates that if we see
+            // `with(` at the start of a collection element, we only parse it as a with-element.
             if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
-                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
-                IsFeatureEnabled(MessageID.IDS_FeatureCollectionExpressionArguments))
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
             }
 
+            // Like above, even though `..` could start a legal expression (like `..` (a naked-range)), the spec
+            // mandates that if we see `..` at the start of a collection element, we only parse it as a spread-element.
             if (this.IsAtDotDotToken())
             {
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());

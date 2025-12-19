@@ -5328,6 +5328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (element is WithElementSyntax withElementSyntax)
                 {
+                    MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax, withElementSyntax.WithKeyword.GetLocation());
+
                     var (withElement, badElement) = bindWithElement(
                         this, syntax, withElementSyntax, diagnostics);
                     firstWithElement ??= withElement;
