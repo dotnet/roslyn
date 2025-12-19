@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -619,12 +618,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        // PROTOTYPE: add a public API for this
+        // PROTOTYPE: add a public API for this (probably just expose a bool)
         /// <summary>
-        /// <see langword="true"/> if this is a member that was compiled under updated memory safety rules
-        /// (<see cref="ModuleSymbol.UseUpdatedMemorySafetyRules"/>) and marked as <see langword="unsafe"/>.
+        /// Whether this member is considered unsafe under the updated memory safety rules.
+        /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
         /// </summary>
-        internal virtual bool IsCallerUnsafe => false; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
+        internal virtual CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols

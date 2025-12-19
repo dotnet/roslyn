@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool IsCallerUnsafe => false;
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 

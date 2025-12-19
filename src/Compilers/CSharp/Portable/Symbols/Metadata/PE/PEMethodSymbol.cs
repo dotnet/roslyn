@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                bool requiresUnsafe = false;
+                bool hasRequiresUnsafeAttribute = false;
                 if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember || checkForRequiresUnsafe)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     isExtensionMethod = !extensionAttribute.IsNil;
                     isReadOnly = !isReadOnlyAttribute.IsNil;
-                    requiresUnsafe = !requiresUnsafeAttribute.IsNil;
+                    hasRequiresUnsafeAttribute = !requiresUnsafeAttribute.IsNil;
                 }
                 else
                 {
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!requiresUnsafeAlreadySet)
                 {
-                    _packedFlags.InitializeRequiresUnsafe(requiresUnsafe);
+                    _packedFlags.InitializeRequiresUnsafe(ComputeRequiresUnsafe(hasRequiresUnsafeAttribute));
                 }
 
                 // Store the result in uncommon fields only if it's not empty.
@@ -1481,14 +1481,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsDeclaredRequiresUnsafe
+        private bool RequiresUnsafe
         {
             get
             {
                 if (!_packedFlags.RequiresUnsafePopulated)
                 {
-                    bool requiresUnsafe = _containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
-                    _packedFlags.InitializeRequiresUnsafe(requiresUnsafe);
+                    bool hasRequiresUnsafeAttribute = _containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    _packedFlags.InitializeRequiresUnsafe(ComputeRequiresUnsafe(hasRequiresUnsafeAttribute));
                 }
 
                 return _packedFlags.RequiresUnsafe;
@@ -1816,7 +1816,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
-        internal sealed override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
+        private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
+        {
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? hasRequiresUnsafeAttribute
+                // This might be expensive, so we cache it in _packedFlags.
+                : this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
+        }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (!RequiresUnsafe)
+                {
+                    return CallerUnsafeMode.None;
+                }
+
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.Implicit;
+            }
+        }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

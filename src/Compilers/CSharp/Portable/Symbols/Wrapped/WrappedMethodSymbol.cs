@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsCallerUnsafe => UnderlyingMethod.IsCallerUnsafe;
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => UnderlyingMethod.CallerUnsafeMode;
 
         internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {

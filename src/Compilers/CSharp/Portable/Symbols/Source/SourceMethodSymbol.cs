@@ -4,11 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -95,6 +93,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        /// <summary>
+        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
+        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
+        /// </summary>
+        internal abstract bool IsUnsafe { get; }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    return IsUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
+                }
+
+                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
+        }
+
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
@@ -115,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(target));
             }
 
-            if (target.IsCallerUnsafe)
+            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute(target));
             }

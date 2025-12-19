@@ -23,10 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNode node)
         {
-            if (symbol.IsCallerUnsafe)
+            var callerUnsafeMode = symbol.CallerUnsafeMode;
+            if (callerUnsafeMode != CallerUnsafeMode.None)
             {
                 ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated,
-                    customErrorCode: ErrorCode.ERR_UnsafeMemberOperation,
+                    customErrorCode: callerUnsafeMode switch
+                    {
+                        CallerUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
+                        CallerUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
+                        _ => throw ExceptionUtilities.UnexpectedValue(callerUnsafeMode),
+                    },
                     customArgs: [symbol]);
             }
         }

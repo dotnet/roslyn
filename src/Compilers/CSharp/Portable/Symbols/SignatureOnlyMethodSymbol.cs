@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => true;
 
-        internal sealed override bool IsCallerUnsafe => throw ExceptionUtilities.Unreachable();
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => throw ExceptionUtilities.Unreachable();
 
         internal sealed override int TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 

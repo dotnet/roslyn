@@ -2587,6 +2587,11 @@
         <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe'</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
         <target state="new">This operation may only be used in an unsafe context</target>

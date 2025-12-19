@@ -861,7 +861,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         internal sealed override bool HasUnscopedRefAttribute => false;
 
-        internal sealed override bool IsCallerUnsafe => false;
+        // The function pointer type itself is not unsafe under the new rules, only its invocation is.
+        // That is analogous to normal pointer types (and pointer dereference, respectively) under the new rules.
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {

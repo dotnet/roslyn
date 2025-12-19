@@ -659,14 +659,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsDeclaredRequiresUnsafe
+        private bool RequiresUnsafe
         {
             get
             {
                 if (!_flags.TryGetRequiresUnsafe(out bool requiresUnsafe))
                 {
                     var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                    requiresUnsafe = containingPEModuleSymbol.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    bool hasRequiresUnsafeAttribute = containingPEModuleSymbol.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    requiresUnsafe = ComputeRequiresUnsafe(hasRequiresUnsafeAttribute);
                     _flags.SetRequiresUnsafe(requiresUnsafe);
                 }
 
@@ -674,7 +675,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool IsCallerUnsafe => ContainingModule.UseUpdatedMemorySafetyRules && IsDeclaredRequiresUnsafe;
+        private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
+        {
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? hasRequiresUnsafeAttribute
+                // This might be expensive, so we cache it in _packedFlags.
+                : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
+        }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (!RequiresUnsafe)
+                {
+                    return CallerUnsafeMode.None;
+                }
+
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.Implicit;
+            }
+        }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
@@ -794,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 _flags.SetCustomAttributesPopulated();
                 _flags.SetHasRequiredMemberAttribute(!required.IsNil);
-                _flags.SetRequiresUnsafe(!requiresUnsafe.IsNil);
+                _flags.SetRequiresUnsafe(ComputeRequiresUnsafe(!requiresUnsafe.IsNil));
             }
 
             var uncommonFields = _uncommonFields;

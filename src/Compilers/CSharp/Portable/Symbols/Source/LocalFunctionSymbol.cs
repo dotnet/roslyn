@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
 
-            if (IsCallerUnsafe)
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 var location = Syntax.Identifier.GetLocation();
                 MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(addTo, compilation, location);
