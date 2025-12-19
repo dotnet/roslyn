@@ -54,10 +54,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             symbolValidator(libAssemblySymbol.Modules.Single());
         }
 
-        var libLegacy = CreateCompilation([lib, .. additionalSources],
-            options: TestOptions.UnsafeReleaseDll)
+        var libLegacy = CompileAndVerify([lib, .. additionalSources],
+            options: TestOptions.UnsafeReleaseDll,
+            verify: verify,
+            symbolValidator: module =>
+            {
+                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
+                VerifyRequiresUnsafeAttribute(
+                    module,
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: [.. expectedUnsafeSymbols, .. expectedSafeSymbols]);
+            })
             .VerifyDiagnostics()
-            .EmitToImageReference();
+            .GetImageReference();
 
         CreateCompilation([caller, .. additionalSources], [libLegacy],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
@@ -87,6 +97,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .SelectMany(block => block.GetMembers(memberName))
             .SingleOrDefault()
             ?? throw new InvalidOperationException($"Cannot find '{containerName}.{memberName}'.");
+    }
+
+    private static Func<ModuleSymbol, Symbol> Overload(string qualifiedName, int parameterCount)
+    {
+        return module => module.GlobalNamespace
+            .GetMembersByQualifiedName<MethodSymbol>(qualifiedName)
+            .SingleOrDefault(m => m.Parameters.Length == parameterCount)
+            ?? throw new InvalidOperationException($"Cannot find '{qualifiedName}' with {parameterCount} parameters.");
     }
 
     private static void VerifyMemorySafetyRulesAttribute(
@@ -2550,6 +2568,73 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
     }
 
+    // PROTOTYPE: Test all supported member kinds here.
+    [Fact]
+    public void Member_LangVersion()
+    {
+        var source = """
+            #pragma warning disable CS8321 // unused local function
+            unsafe void F() { }
+            class C
+            {
+                unsafe void M() { }
+                unsafe int P { get; set; }
+            }
+            """;
+
+        string[] safeSymbols = ["C"];
+        string[] unsafeSymbols = ["Program.<<Main>$>g__F|0_0", "C.M", "C.P", "C.get_P", "C.set_P"];
+
+        CompileAndVerify(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m =>
+            {
+                VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
+                VerifyRequiresUnsafeAttribute(
+                    m,
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols]);
+            })
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: m =>
+            {
+                VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
+                VerifyRequiresUnsafeAttribute(
+                    m,
+                    includesAttributeDefinition: true,
+                    isSynthesized: true,
+                    expectedUnsafeSymbols: [.. unsafeSymbols],
+                    expectedSafeSymbols: [.. safeSymbols]);
+            })
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // unsafe void F() { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("updated memory safety rules").WithLocation(2, 13),
+            // (5,17): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe void M() { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("updated memory safety rules").WithLocation(5, 17),
+            // (6,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("updated memory safety rules").WithLocation(6, 12),
+            // (6,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(6, 20),
+            // (6,25): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(6, 25));
+    }
+
     // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
     // PROTOTYPE: Should some synthesized members be unsafe (like state machine methods that are declared unsafe)?
     [Theory, CombinatorialData]
@@ -2607,6 +2692,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     //     public unsafe void M() => System.Console.Write(111);
                     Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(3, 24));
             }
+
+            if (apiUnsafe && apiUpdatedRules && callerUpdatedRules && callerLangVersion < LanguageVersionFacts.CSharpNext)
+            {
+                expectedDiagnostics.Add(
+                    // (3,24): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public unsafe void M() => System.Console.Write(111);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("updated memory safety rules").WithLocation(3, 24));
+            }
         }
 
         if (!callerAllowUnsafe && callerUnsafeBlock)
@@ -2646,23 +2739,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_OverloadResolution()
     {
-        var source = """
-            C.M(1);
-            C.M("s");
-            _ = nameof(C.M);
-
-            class C
-            {
-                public static void M(int x) { }
-                public static unsafe void M(string s) { }
-            }
-            """;
-        CreateCompilation(source,
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (2,1): error CS9502: 'C.M(string)' must be used in an unsafe context because it is marked as 'unsafe'
-            // C.M("s");
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, @"C.M(""s"")").WithArguments("C.M(string)").WithLocation(2, 1));
+        CompileAndVerify(
+            lib: """
+                public class C
+                {
+                    public static void M() { }
+                    public static unsafe void M(int x) { }
+                }
+                """,
+            caller: """
+                C.M();
+                C.M(1);
+                _ = nameof(C.M);
+                unsafe { C.M(1); }
+                """,
+            expectedUnsafeSymbols: [Overload("C.M", 1)],
+            expectedSafeSymbols: ["C", Overload("C.M", 0)],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.M(int)' must be used in an unsafe context because it is marked as 'unsafe'
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M(1)").WithArguments("C.M(int)").WithLocation(2, 1),
+            ]);
     }
 
     [Fact]

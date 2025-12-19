@@ -1045,6 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
+                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, location);
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 

@@ -984,6 +984,7 @@ done:
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
+                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, _location);
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
