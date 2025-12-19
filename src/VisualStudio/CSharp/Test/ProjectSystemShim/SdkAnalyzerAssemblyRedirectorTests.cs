@@ -55,6 +55,8 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
     [InlineData("9.0.100", "9.1.100")]
     [InlineData("9.0.100", "10.0.100")]
     [InlineData("9.9.100", "9.10.100")]
+    [InlineData("111.111.0", "1.1.0")]
+    [InlineData("1.1.0", "111.111.0")]
     public void DifferentMajorMinorVersion(string a, string b)
     {
         var testDir = Temp.CreateDirectory();

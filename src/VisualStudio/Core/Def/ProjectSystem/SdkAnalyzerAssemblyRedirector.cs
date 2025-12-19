@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -28,8 +29,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SdkAnalyzerAssemblyRedirector(SVsServiceProvider serviceProvider) : SdkAnalyzerAssemblyRedirectorCore(
-    Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet")),
-    (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
+    GetInsertedAnalyzersDirectory(),
+    (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)))
+{
+    private static string? GetInsertedAnalyzersDirectory()
+    {
+        var enable = Environment.GetEnvironmentVariable("DOTNET_ANALYZER_REDIRECTING");
+        if (!"0".Equals(enable, StringComparison.OrdinalIgnoreCase) && !"false".Equals(enable, StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet"));
+        }
+
+        return null;
+    }
+}
 
 /// <summary>
 /// Core functionality of <see cref="SdkAnalyzerAssemblyRedirector"/> extracted for testing.
@@ -38,43 +51,47 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
 {
     private readonly IVsActivityLog? _log;
 
-    private readonly bool _enabled;
-
-    private readonly string? _insertedAnalyzersDirectory;
-
     /// <summary>
     /// Map from analyzer assembly name (file name without extension) to a list of matching analyzers.
     /// </summary>
-    private readonly ImmutableDictionary<string, List<AnalyzerInfo>> _analyzerMap;
+    private readonly Lazy<ImmutableDictionary<string, List<AnalyzerInfo>>> _analyzerMap;
 
     public SdkAnalyzerAssemblyRedirectorCore(string? insertedAnalyzersDirectory, IVsActivityLog? log = null)
     {
         _log = log;
-        var enable = Environment.GetEnvironmentVariable("DOTNET_ANALYZER_REDIRECTING");
-        _enabled = !"0".Equals(enable, StringComparison.OrdinalIgnoreCase) && !"false".Equals(enable, StringComparison.OrdinalIgnoreCase);
-        _insertedAnalyzersDirectory = insertedAnalyzersDirectory;
-        _analyzerMap = CreateAnalyzerMap();
+        _analyzerMap = new(() => CreateAnalyzerMap(insertedAnalyzersDirectory));
     }
 
-    private ImmutableDictionary<string, List<AnalyzerInfo>> CreateAnalyzerMap()
+    private ImmutableDictionary<string, List<AnalyzerInfo>> CreateAnalyzerMap(string? insertedAnalyzersDirectory)
     {
-        if (!_enabled)
+        if (insertedAnalyzersDirectory == null)
         {
             Log("Analyzer redirecting is disabled.");
             return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
         }
 
-        var metadataFilePath = Path.Combine(_insertedAnalyzersDirectory, "metadata.json");
+        var metadataFilePath = Path.Combine(insertedAnalyzersDirectory, "metadata.json");
         if (!File.Exists(metadataFilePath))
         {
             Log($"File does not exist: {metadataFilePath}");
             return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
         }
 
-        var versions = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(metadataFilePath));
+        Dictionary<string, string>? versions;
+
+        try
+        {
+            versions = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(metadataFilePath));
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to read or parse metadata file '{metadataFilePath}'. {ex}", __ACTIVITYLOG_ENTRYTYPE.ALE_WARNING);
+            return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
+        }
+
         if (versions is null || versions.Count == 0)
         {
-            Log($"Versions are empty: {metadataFilePath}");
+            Log($"Versions are empty: {metadataFilePath}", __ACTIVITYLOG_ENTRYTYPE.ALE_WARNING);
             return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
         }
 
@@ -85,16 +102,18 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
         //                                     ~~~~~~~~~~~~~~~~~~~~~~~                                                     = topLevelDirectory
         //                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ = analyzerPath
 
-        foreach (var topLevelDirectory in Directory.EnumerateDirectories(_insertedAnalyzersDirectory))
+        foreach (var topLevelDirectory in Directory.EnumerateDirectories(insertedAnalyzersDirectory))
         {
+            var subsetName = Path.GetFileName(topLevelDirectory);
+
             foreach (var analyzerPath in Directory.EnumerateFiles(topLevelDirectory, "*.dll", SearchOption.AllDirectories))
             {
                 if (!analyzerPath.StartsWith(topLevelDirectory, StringComparison.OrdinalIgnoreCase))
                 {
+                    Debug.Assert(false);
                     continue;
                 }
 
-                var subsetName = Path.GetFileName(topLevelDirectory);
                 if (!versions.TryGetValue(subsetName, out var version))
                 {
                     continue;
@@ -117,14 +136,14 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
             }
         }
 
-        Log($"Loaded analyzer map ({builder.Count}): {_insertedAnalyzersDirectory}");
+        Log($"Loaded analyzer map ({builder.Count}): {insertedAnalyzersDirectory}");
 
         return builder.ToImmutable();
     }
 
     public string? RedirectPath(string fullPath)
     {
-        if (_enabled && _analyzerMap.TryGetValue(Path.GetFileNameWithoutExtension(fullPath), out var analyzers))
+        if (_analyzerMap.Value.TryGetValue(Path.GetFileNameWithoutExtension(fullPath), out var analyzers))
         {
             foreach (var analyzer in analyzers)
             {
@@ -180,10 +199,10 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
         }
     }
 
-    private void Log(string message)
+    private void Log(string message, __ACTIVITYLOG_ENTRYTYPE level = __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION)
     {
         _log?.LogEntry(
-            (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION,
+            (uint)level,
             "Roslyn" + nameof(SdkAnalyzerAssemblyRedirector),
             message);
     }
