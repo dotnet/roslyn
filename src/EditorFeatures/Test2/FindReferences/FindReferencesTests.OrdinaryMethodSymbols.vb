@@ -4348,7 +4348,7 @@ end class
         Public Async Function CollectionExpression_Builder1(host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferencesNet9="true">
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
         <Document><![CDATA[
 using System;
 using System.Collections;
@@ -4377,14 +4377,14 @@ public class MyCollection
         Public Async Function CollectionExpression_Builder2(host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferencesNet9="true">
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
         <Document><![CDATA[
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-MyCollection<int> mc1 = [];
+MyCollection<int> mc1 = [|[]|];
 MyCollection<int> mc2 = [|[with(1)]|];
 
 [CollectionBuilder(typeof(MyCollection), "Create")]
@@ -4407,7 +4407,38 @@ public class MyCollection
         Public Async Function CollectionExpression_Builder3(host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferencesNet9="true">
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> mc1 = [];
+MyCollection<int> mc2 = [|[with(1)]|];
+
+[CollectionBuilder(typeof(MyCollection), "Create")]
+public class MyCollection<T> : IEnumerable<T>
+{
+}
+
+public class MyCollection
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> elements) => null;
+    public static MyCollection<T> {|Definition:$$Create|}<T>(int arg, ReadOnlySpan<T> elements) => null;
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81767")>
+        Public Async Function CollectionExpression_Builder4(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
         <Document><![CDATA[
 using System;
 using System.Collections;
