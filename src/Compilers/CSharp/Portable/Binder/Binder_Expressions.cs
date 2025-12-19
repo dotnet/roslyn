@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 !IsInsideNameof)
                         {
                             // Give a better error for the simple case of using an extension parameter in a static member, while avoiding any of the other cases where it is always illegal
-                            if (this.ContainingMember().IsStatic && !InParameterDefaultValue && !InAttributeArgument && (object)this.ContainingMember().ContainingSymbol == parameter.ContainingSymbol)
+                            if (this.ContainingMember() is { IsStatic: true } && !InParameterDefaultValue && !InAttributeArgument && (object)this.ContainingMember().ContainingSymbol == parameter.ContainingSymbol)
                             {
                                 // Static members cannot access the value of extension parameter '{0}'.
                                 Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter.Name);
