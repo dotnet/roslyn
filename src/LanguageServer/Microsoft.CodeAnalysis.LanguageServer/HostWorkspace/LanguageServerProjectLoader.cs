@@ -36,6 +36,7 @@ internal abstract class LanguageServerProjectLoader
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
+    private readonly DotnetCliHelper _dotnetCliHelper;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
@@ -84,6 +85,11 @@ internal abstract class LanguageServerProjectLoader
         public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
     }
 
+    /// <summary>
+    /// Indicates whether loads should report UI progress to the client for this loader.
+    /// </summary>
+    protected virtual bool EnableProgressReporting => true;
+
     protected LanguageServerProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -92,7 +98,8 @@ internal abstract class LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
@@ -101,6 +108,7 @@ internal abstract class LanguageServerProjectLoader
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
+        _dotnetCliHelper = dotnetCliHelper;
 
         AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
@@ -176,12 +184,8 @@ internal abstract class LanguageServerProjectLoader
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
-                // Tell the client to restore any projects with unresolved dependencies.
-                // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
-                // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
-                //
-                // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.SendProjectNeedsRestoreRequestAsync(projectsThatNeedRestore, cancellationToken);
+                // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
@@ -217,7 +221,7 @@ internal abstract class LanguageServerProjectLoader
     /// Called when transitioning from a primordial project to loaded targets.
     /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
     /// </summary>
-    protected abstract ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,
@@ -328,7 +332,7 @@ internal abstract class LanguageServerProjectLoader
                 if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
                 {
                     // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoadedAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
+                    await TransitionPrimordialProjectToLoaded_NoLockAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.

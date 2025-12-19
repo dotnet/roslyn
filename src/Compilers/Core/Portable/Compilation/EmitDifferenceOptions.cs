@@ -12,4 +12,10 @@ public readonly struct EmitDifferenceOptions()
     /// True to emit FieldRva table entries. The runtime must support this feature.
     /// </summary>
     public bool EmitFieldRva { get; init; }
+
+    /// <summary>
+    /// True if the runtime supports adding entries to MethodImpl table (i.e. adding explicit method implementations in the delta).
+    /// Some runtimes (.NET Framework) do not support this feature.
+    /// </summary>
+    public bool MethodImplEntriesSupported { get; init; } = true;
 }

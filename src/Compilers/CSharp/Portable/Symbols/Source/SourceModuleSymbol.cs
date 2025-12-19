@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static bool isFeatureDisabled(CSharpCompilation compilation)
             {
                 var options = (CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options;
-                return options?.Features?.ContainsKey("noRefSafetyRulesAttribute") == true;
+                return options?.HasFeature(Feature.NoRefSafetyRulesAttribute) == true;
             }
 
             static bool namespaceIncludesTypeDeclarations(NamespaceSymbol ns)
@@ -746,8 +746,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules ||
-                    // PROTOTYPE: temporary way to opt in (remove or centralize as in https://github.com/dotnet/roslyn/pull/81591)
-                    _assemblySymbol.DeclaringCompilation.Feature("updated-memory-safety-rules") != null;
+                    // PROTOTYPE: temporary way to opt in
+                    _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null;
             }
         }
 

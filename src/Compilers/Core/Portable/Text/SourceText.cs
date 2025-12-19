@@ -656,10 +656,7 @@ namespace Microsoft.CodeAnalysis.Text
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
                     }
 
-                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
-                    Span<byte> destination = stackalloc byte[128 / 8];
-                    hash.GetHashAndReset(destination);
-                    return destination.ToImmutableArray();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset());
                 }
                 finally
                 {

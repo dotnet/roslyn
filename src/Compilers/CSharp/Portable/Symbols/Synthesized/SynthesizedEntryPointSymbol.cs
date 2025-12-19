@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Fall back to the old GetAwaiter().GetResult() pattern
                     // The diagnostics that would be produced here will already have been captured and returned.
-                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointInvocation!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointInvocation, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
                 }
 
                 Debug.Assert(
