@@ -2937,15 +2937,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         byte b = 42;
                         var a = new A { Ptr = &b };
                         byte* ptr1 = a?.Ptr;
-                        Console.Write(ptr1 == null ? "null" : *ptr1);
+                        Console.Write(ptr1 == null ? " null-ptr1 " : *ptr1);
+
+                        a?.Ptr = null;
+                        byte* ptr2 = a?.Ptr;
+                        Console.Write(ptr2 == null ? " null-ptr2 " : *ptr2);
 
                         a = null;
-                        byte* ptr2 = a?.Ptr;
-                        Console.Write(ptr2 == null ? " null" : " not null");
+                        byte* ptr3 = a?.Ptr;
+                        Console.Write(ptr3 == null ? " null-ptr3 " : *ptr3);
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "42 null");
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "42 null-ptr2  null-ptr3");
             verifier.VerifyDiagnostics();
         }
 
