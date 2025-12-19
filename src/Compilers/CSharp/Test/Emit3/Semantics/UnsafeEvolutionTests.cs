@@ -3081,6 +3081,92 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void CompatMode_Method_ConstraintType(bool useCompilationReference)
+    {
+        var lib = CreateCompilation("""
+            public class C
+            {
+                public unsafe void M<T>(T t) where T : I<int*[]> { }
+            }
+            public interface I<T>;
+            public unsafe class D : I<int*[]>;
+            """,
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+        var libRef = AsReference(lib, useCompilationReference);
+
+        var source = """
+            var c = new C();
+            c.M<D>(null);
+            """;
+
+        CompileAndVerify(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe,
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            VerifyRequiresUnsafeAttribute(
+                module.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "I", "C.M", "D"],
+                expectedAttributeInMetadata: false);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void CompatMode_Method_DefaultParameterValue(bool useCompilationReference)
+    {
+        var lib = CreateCompilation("""
+            public class C
+            {
+                public unsafe void M(string s = nameof(I<int*[]>)) { }
+            }
+            public interface I<T>;
+            """,
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+        var libRef = AsReference(lib, useCompilationReference);
+
+        var source = """
+            var c = new C();
+            c.M(s: null);
+            """;
+
+        CompileAndVerify(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        CompileAndVerify(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe,
+            symbolValidator: validate)
+            .VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            VerifyRequiresUnsafeAttribute(
+                module.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: [],
+                expectedSafeSymbols: ["C", "C.M", "I"]);
+        }
+    }
+
+    [Theory, CombinatorialData]
     public void CompatMode_Method_ExtensionMethod_ReceiverType(bool useCompilationReference)
     {
         var lib = CreateCompilation("""
