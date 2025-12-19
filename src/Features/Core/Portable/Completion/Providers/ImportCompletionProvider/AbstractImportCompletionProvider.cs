@@ -25,10 +25,9 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
     protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
     protected abstract void LogCommit();
 
-    public Task NotifyCommittingItemAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+    public async Task NotifyCommittingItemAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
     {
         LogCommit();
-        return Task.CompletedTask;
     }
 
     internal override bool IsExpandItemProvider => true;

@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Setup\Roslyn.VisualStudio.Setup.csproj" />
     <ProjectReference Include="..\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
     <ProjectReference Include="New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj" />
-    <ProjectReference Include="TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
+    <ProjectReference Include="New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj" />
+    <ProjectReference Include="Harness\XUnitIntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj" />
   </ItemGroup>
 </Project>

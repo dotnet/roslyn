@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         equivalenceKey: nameof(PreferIsKindFix)),
                     diagnostic);
             }
-
-            return Task.CompletedTask;
         }
 
         private async Task<Document> ConvertKindToIsKindAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)

@@ -3907,8 +3907,8 @@ outerDefault:
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 bool hasSomeRefKinds = !member.GetParameterRefKinds().IsDefaultOrEmpty;
-                bool isNewExtensionMember = member.IsExtensionBlockMember();
-                if (isNewExtensionMember)
+                bool isExtensionBlockMember = member.IsExtensionBlockMember();
+                if (isExtensionBlockMember)
                 {
                     Debug.Assert(member.ContainingType.ExtensionParameter is not null);
                     hasSomeRefKinds |= member.ContainingType.ExtensionParameter.RefKind != RefKind.None;
@@ -3916,7 +3916,7 @@ outerDefault:
 
                 if (!hasSomeRefKinds)
                 {
-                    var parameterTypes = isNewExtensionMember ? GetParameterTypesIncludingReceiver(member) : member.GetParameterTypes();
+                    var parameterTypes = isExtensionBlockMember ? GetParameterTypesIncludingReceiver(member) : member.GetParameterTypes();
                     return new EffectiveParameters(parameterTypes, refKinds: default, firstParamsElementIndex: -1);
                 }
             }
@@ -4272,7 +4272,7 @@ outerDefault:
                 member.GetMemberArityIncludingExtension() > 0)
             {
                 ImmutableArray<TypeWithAnnotations> typeArguments;
-                bool isNewExtensionMember = member.IsExtensionBlockMember();
+                bool isExtensionBlockMember = member.IsExtensionBlockMember();
 
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
                 {
@@ -4286,7 +4286,7 @@ outerDefault:
                     // We don't need to check constraints of types of the non-elided parameters since they 
                     // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
-                    typeArguments = getAllTypeArguments(member, isNewExtensionMember);
+                    typeArguments = getAllTypeArguments(member, isExtensionBlockMember);
                 }
                 else
                 {
@@ -4345,7 +4345,7 @@ outerDefault:
                     // the generic method still needs to be discarded, even though type inference
                     // never saw the second formal parameter.
 
-                    var parameterTypes = isNewExtensionMember
+                    var parameterTypes = isExtensionBlockMember
                         ? GetParameterTypesIncludingReceiver(leastOverriddenMember)
                         : leastOverriddenMember.GetParameterTypes();
 
@@ -4360,7 +4360,7 @@ outerDefault:
                     ignoreOpenTypes = false;
                 }
 
-                var methodForTypeParameters = isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember;
+                var methodForTypeParameters = isExtensionBlockMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember;
                 var map = new TypeMap(methodForTypeParameters.GetTypeParametersIncludingExtension(), typeArguments, allowAlpha: true);
 
                 constructedEffectiveParameters = new EffectiveParameters(
@@ -4390,17 +4390,17 @@ outerDefault:
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
 
-            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isNewExtensionMember)
+            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isExtensionBlockMember)
             {
                 if (member is MethodSymbol method)
                 {
-                    return isNewExtensionMember
+                    return isExtensionBlockMember
                         ? method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations)
                         : method.TypeArgumentsWithAnnotations;
                 }
                 else if (member is PropertySymbol property)
                 {
-                    Debug.Assert(isNewExtensionMember);
+                    Debug.Assert(isExtensionBlockMember);
                     var result = property.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                     Debug.Assert(!result.IsDefaultOrEmpty);
                     return result;

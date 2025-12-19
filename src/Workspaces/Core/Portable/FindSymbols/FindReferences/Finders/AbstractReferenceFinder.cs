@@ -143,7 +143,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             project, documents, static index => index.ContainsGlobalSuppressMessageAttribute, processResult, processResultData, cancellationToken);
     }
 
-    protected static Task FindDocumentsAsync<TData>(
+    protected static async Task FindDocumentsAsync<TData>(
         Project project,
         IImmutableSet<Document>? documents,
         PredefinedType predefinedType,
@@ -152,10 +152,10 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         CancellationToken cancellationToken)
     {
         if (predefinedType == PredefinedType.None)
-            return Task.CompletedTask;
+            return;
 
-        return FindDocumentsWithPredicateAsync(
-            project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, processResult, processResultData, cancellationToken);
+        await FindDocumentsWithPredicateAsync(
+            project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -704,10 +704,10 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         Action<FinderLocation, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    protected virtual Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+    protected virtual async Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
         TSymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        return SpecializedTasks.EmptyImmutableArray<string>();
+        return [];
     }
 
     public sealed override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
@@ -718,15 +718,13 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
             : SpecializedTasks.EmptyImmutableArray<string>();
     }
 
-    public sealed override Task DetermineDocumentsToSearchAsync<TData>(
+    public sealed override async Task DetermineDocumentsToSearchAsync<TData>(
         ISymbol symbol, HashSet<string>? globalAliases, Project project,
         IImmutableSet<Document>? documents, Action<Document, TData> processResult,
         TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
         if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
-            return DetermineDocumentsToSearchAsync(typedSymbol, globalAliases, project, documents, processResult, processResultData, options, cancellationToken);
-
-        return Task.CompletedTask;
+            await DetermineDocumentsToSearchAsync(typedSymbol, globalAliases, project, documents, processResult, processResultData, options, cancellationToken).ConfigureAwait(false);
     }
 
     public sealed override void FindReferencesInDocument<TData>(
@@ -736,23 +734,23 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
             FindReferencesInDocument(typedSymbol, state, processResult, processResultData, options, cancellationToken);
     }
 
-    public sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    public sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
         if (options.Cascade &&
             symbol is TSymbol typedSymbol &&
             CanFind(typedSymbol))
         {
-            return DetermineCascadedSymbolsAsync(typedSymbol, solution, options, cancellationToken);
+            return await DetermineCascadedSymbolsAsync(typedSymbol, solution, options, cancellationToken).ConfigureAwait(false);
         }
 
-        return new([]);
+        return [];
     }
 
-    protected virtual ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected virtual async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         TSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
-        return new([]);
+        return [];
     }
 
     protected static void FindReferencesInDocumentUsingSymbolName<TData>(

@@ -244,12 +244,15 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
+        // Set the FileBasedProgram feature flag so that '#:' is permitted without errors in rich misc files.
+        // This allows us to avoid spurious errors for files which contain '#:' directives yet are not treated as file-based programs (due to not being saved to disk, for example.)
         var virtualProjectXml = $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
                 <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
+                <Features>$(Features);FileBasedProgram</Features>
               </PropertyGroup>
             </Project>
             """;
@@ -273,10 +276,9 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         };
     }
 
-    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
         // Nothing special to do on unload for canonical project
-        return ValueTask.CompletedTask;
     }
 
     protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(

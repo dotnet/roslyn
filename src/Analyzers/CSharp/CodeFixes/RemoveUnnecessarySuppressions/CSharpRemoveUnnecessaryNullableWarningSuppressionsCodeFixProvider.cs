@@ -28,15 +28,13 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         context.RegisterCodeFix(CodeAction.Create(
             AnalyzersResources.Remove_unnecessary_suppression,
             cancellationToken => FixSingleDocumentAsync(context.Document, context.Diagnostics, cancellationToken),
             nameof(AnalyzersResources.Remove_unnecessary_suppression)),
             context.Diagnostics);
-
-        return Task.CompletedTask;
     }
 
     private static async Task<Document> FixSingleDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)

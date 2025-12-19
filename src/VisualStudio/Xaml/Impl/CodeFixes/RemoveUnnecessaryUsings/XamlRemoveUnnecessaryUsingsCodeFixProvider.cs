@@ -40,7 +40,7 @@ internal sealed class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
         return null;
     }
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         context.RegisterCodeFix(
             CodeAction.Create(
@@ -48,7 +48,6 @@ internal sealed class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
                 c => RemoveUnnecessaryImportsAsync(context.Document, c),
                 nameof(Resources.RemoveUnnecessaryNamespaces)),
             context.Diagnostics);
-        return Task.CompletedTask;
     }
 
     private static async Task<Document> RemoveUnnecessaryImportsAsync(

@@ -32,10 +32,9 @@ internal abstract class AbstractJsonDetectionCodeFixProvider : SyntaxEditorBased
     public override ImmutableArray<string> FixableDiagnosticIds
         => [AbstractJsonDetectionAnalyzer.DiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, FeaturesResources.Enable_all_JSON_editor_features, nameof(FeaturesResources.Enable_all_JSON_editor_features));
-        return Task.CompletedTask;
     }
 
     public void Fix(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -50,13 +49,11 @@ internal abstract class AbstractJsonDetectionCodeFixProvider : SyntaxEditorBased
         this.AddComment(editor, stringLiteral, commentContents);
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
             Fix(editor, diagnostic, cancellationToken);
-
-        return Task.CompletedTask;
     }
 }
