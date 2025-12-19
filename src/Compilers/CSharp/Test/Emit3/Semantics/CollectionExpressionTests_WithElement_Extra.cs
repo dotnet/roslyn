@@ -194,7 +194,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         if (languageVersion == LanguageVersion.CSharp14)
         {
-            CreateCompilation([source, s_collectionExtensions]).VerifyDiagnostics(
+            CreateCompilation([source, s_collectionExtensions], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                 // (3,9): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // list = [with(capacity: 1), "one"];
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(3, 9));
