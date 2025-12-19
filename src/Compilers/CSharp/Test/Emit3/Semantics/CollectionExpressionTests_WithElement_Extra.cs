@@ -33,9 +33,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (1,12): error CS0103: The name 'with' does not exist in the current context
+                // (1,12): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // int[] a = [with()];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(1, 12),
+                // (1,12): error CS9401: 'with(...)' elements are not supported for type 'int[]'
+                // int[] a = [with()];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("int[]").WithLocation(1, 12));
         }
         else
         {
@@ -58,12 +61,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (2,19): error CS0103: The name 'with' does not exist in the current context
+                // (2,19): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // List<int> l = [1, with(), 3, with(capacity: 4)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 19),
-                // (2,30): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 19),
+                // (2,19): error CS9400: 'with(...)' element must be the first element
                 // List<int> l = [1, with(), 3, with(capacity: 4)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 30));
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
+                // (2,30): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // List<int> l = [1, with(), 3, with(capacity: 4)];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 30),
+                // (2,30): error CS9400: 'with(...)' element must be the first element
+                // List<int> l = [1, with(), 3, with(capacity: 4)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30));
         }
         else
         {
@@ -89,12 +98,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (2,16): error CS0103: The name 'with' does not exist in the current context
+                // (2,16): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // List<int> l = [with(x: 1), with(y: 2)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 16),
-                // (2,28): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 16),
+                // (2,28): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // List<int> l = [with(x: 1), with(y: 2)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 28));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 28),
+                // (2,28): error CS9400: 'with(...)' element must be the first element
+                // List<int> l = [with(x: 1), with(y: 2)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28));
         }
         else
         {
@@ -138,15 +150,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (2,5): error CS0103: The name 'with' does not exist in the current context
+                // (2,5): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     with(),
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 5),
-                // (3,5): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 5),
+                // (3,5): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     with(arg: 0),
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(3, 5),
-                // (4,5): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(3, 5),
+                // (3,5): error CS9400: 'with(...)' element must be the first element
+                //     with(arg: 0),
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(3, 5),
+                // (4,5): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     with(unknown: 1)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(4, 5),
+                // (4,5): error CS9400: 'with(...)' element must be the first element
+                //     with(unknown: 1)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(4, 5));
         }
         else
         {
@@ -173,10 +191,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 list.Report();
                 string with(int capacity) => $"with({capacity})";
                 """;
-        var verifier = CompileAndVerify([source, s_collectionExtensions],
-            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedOutput: (languageVersion == LanguageVersion.CSharp14 ? "[with(1), one], [with(2), two], " : "[one], [with(2), two], "));
-        verifier.VerifyDiagnostics();
+
+        if (languageVersion == LanguageVersion.CSharp14)
+        {
+            CreateCompilation([source, s_collectionExtensions]).VerifyDiagnostics(
+                // (3,9): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // list = [with(capacity: 1), "one"];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(3, 9));
+        }
+        else
+        {
+            var verifier = CompileAndVerify([source, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                expectedOutput: "[one], [with(2), two], ");
+            verifier.VerifyDiagnostics();
+        }
     }
 
     [Fact]

@@ -762,7 +762,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -782,7 +783,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -808,7 +810,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -843,7 +846,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -870,7 +874,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -898,7 +903,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -926,7 +932,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -961,7 +968,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -996,7 +1004,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1031,14 +1040,16 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
                 N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1066,7 +1077,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                 }
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1108,7 +1120,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                 }
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1137,7 +1150,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                 }
             }
             N(SyntaxKind.CommaToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1157,7 +1171,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1273,7 +1288,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1302,7 +1318,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1330,7 +1347,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1367,7 +1385,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1405,7 +1424,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1452,7 +1472,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1461,7 +1482,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                     N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        CollectionArgumentsOrInvocation(languageVersion);
+                        N(SyntaxKind.WithElement);
+                        N(SyntaxKind.WithKeyword);
                         N(SyntaxKind.ArgumentList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1486,7 +1508,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1521,7 +1544,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1549,7 +1573,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1577,7 +1602,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1613,7 +1639,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1815,7 +1842,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1838,7 +1866,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1859,7 +1888,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1889,7 +1919,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1927,7 +1958,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            CollectionArgumentsOrInvocation(languageVersion);
+            N(SyntaxKind.WithElement);
+            N(SyntaxKind.WithKeyword);
             N(SyntaxKind.ArgumentList);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -2353,7 +2385,8 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
                                                 }
                                             }
                                             M(SyntaxKind.CommaToken);
-                                            CollectionArgumentsOrInvocation(languageVersion);
+                                            N(SyntaxKind.WithElement);
+                                            N(SyntaxKind.WithKeyword);
                                             N(SyntaxKind.ArgumentList);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
