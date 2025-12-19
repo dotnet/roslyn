@@ -65,19 +65,19 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments = ImmutableDictionary<DocumentUri, TrackedDocumentInfo>.Empty;
 
     private readonly ILspLogger _logger;
-    private readonly ILspMiscellaneousFilesWorkspaceProvider? _lspMiscellaneousFilesWorkspaceProvider;
+    private readonly ImmutableArray<ILspMiscellaneousFilesWorkspaceProvider> _lspMiscellaneousFilesWorkspaceProviders;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
-        ILspMiscellaneousFilesWorkspaceProvider? lspMiscellaneousFilesWorkspace,
+        ImmutableArray<ILspMiscellaneousFilesWorkspaceProvider> lspMiscellaneousFilesWorkspaceProviders,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         ILanguageInfoProvider languageInfoProvider,
         RequestTelemetryLogger requestTelemetryLogger)
     {
-        _lspMiscellaneousFilesWorkspaceProvider = lspMiscellaneousFilesWorkspace;
+        _lspMiscellaneousFilesWorkspaceProviders = lspMiscellaneousFilesWorkspaceProviders;
         _logger = logger;
         _requestTelemetryLogger = requestTelemetryLogger;
 
@@ -153,11 +153,18 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         // Also remove it from our loose files if it is still there.
-        if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+        if (!_lspMiscellaneousFilesWorkspaceProviders.IsDefaultOrEmpty)
         {
             try
             {
-                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                // Loop through providers until one successfully removes the document
+                foreach (var provider in _lspMiscellaneousFilesWorkspaceProviders)
+                {
+                    if (await provider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false))
+                    {
+                        break;
+                    }
+                }
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -257,18 +264,87 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // We have at least one document, so find the one in the right project context.
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
-                if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+                if (!_lspMiscellaneousFilesWorkspaceProviders.IsDefaultOrEmpty)
                 {
                     // It is possible that a document that was previously a misc file is now part of a real workspace (e.g. project system told us about a file we already had open).
-                    // If we found a non-misc document, we should clean up any references to it in the misc provider.
-                    var foundNonMiscDocument = await documents
-                        .AnyAsync(async doc => !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false))
-                        .ConfigureAwait(false);
+                    // We need to check if:
+                    // 1. We found a non-misc document, OR
+                    // 2. A different provider can take ownership of this document
+                    
+                    var shouldRemove = false;
+                    
+                    // Check if any document is not a misc document
+                    var foundNonMiscDocument = false;
+                    foreach (var doc in documents)
+                    {
+                        var isMiscInAnyProvider = false;
+                        foreach (var provider in _lspMiscellaneousFilesWorkspaceProviders)
+                        {
+                            if (await provider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false))
+                            {
+                                isMiscInAnyProvider = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!isMiscInAnyProvider)
+                        {
+                            foundNonMiscDocument = true;
+                            break;
+                        }
+                    }
+                    
                     if (foundNonMiscDocument)
+                    {
+                        shouldRemove = true;
+                    }
+                    else if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
+                    {
+                        // Check if a prior provider can take ownership
+                        var documentFilePath = uri.ParsedUri is { } parsedUri 
+                            ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) 
+                            : uri.UriString;
+                        
+                        for (var i = 0; i < _lspMiscellaneousFilesWorkspaceProviders.Length; i++)
+                        {
+                            var priorProvider = _lspMiscellaneousFilesWorkspaceProviders[i];
+                            
+                            // Check if this provider can take ownership
+                            if (await priorProvider.CanTakeOwnership(trackedDocument.SourceText, documentFilePath, trackedDocument.LanguageId).ConfigureAwait(false))
+                            {
+                                // Check if the document is in a different (later) provider
+                                for (var j = i + 1; j < _lspMiscellaneousFilesWorkspaceProviders.Length; j++)
+                                {
+                                    var currentProvider = _lspMiscellaneousFilesWorkspaceProviders[j];
+                                    if (await documents.AnyAsync(async doc => await currentProvider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false))
+                                    {
+                                        // Document is in a later provider but an earlier provider can take ownership
+                                        shouldRemove = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (shouldRemove)
+                                    break;
+                            }
+                        }
+                    }
+                    
+                    if (shouldRemove)
                     {
                         try
                         {
-                            var didRemove = await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                            // Loop through providers until one successfully removes the document
+                            var didRemove = false;
+                            foreach (var provider in _lspMiscellaneousFilesWorkspaceProviders)
+                            {
+                                if (await provider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false))
+                                {
+                                    didRemove = true;
+                                    break;
+                                }
+                            }
+                            
                             if (didRemove)
                             {
                                 // If we actually removed something, lookup the document again to ensure we return updated solutions without the misc document.
@@ -299,13 +375,20 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it is open.
-        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && _lspMiscellaneousFilesWorkspaceProvider is not null)
+        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && !_lspMiscellaneousFilesWorkspaceProviders.IsDefaultOrEmpty)
         {
             try
             {
-                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.SourceText, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
-                if (miscDocument is not null)
-                    return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
+                // Loop through providers until one successfully adds the document
+                foreach (var provider in _lspMiscellaneousFilesWorkspaceProviders)
+                {
+                    var miscDocument = await provider.TryAddMiscellaneousDocumentAsync(uri, trackedDocument.SourceText, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
+                    if (miscDocument is not null)
+                        return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
+                }
+                
+                // If no provider could handle the document, throw an exception
+                throw new InvalidOperationException($"No miscellaneous files provider could handle document {uri}");
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -585,9 +668,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
+        public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {
-            return _manager._lspMiscellaneousFilesWorkspaceProvider!.IsMiscellaneousFilesDocumentAsync(document, CancellationToken.None);
+            // Check if the document is a misc document in any provider
+            foreach (var provider in _manager._lspMiscellaneousFilesWorkspaceProviders)
+            {
+                if (await provider.IsMiscellaneousFilesDocumentAsync(document, CancellationToken.None).ConfigureAwait(false))
+                    return true;
+            }
+            return false;
         }
 
         public async IAsyncEnumerable<T> GetMiscellaneousDocumentsAsync<T>(Func<Project, IEnumerable<T>> documentSelector) where T : TextDocument

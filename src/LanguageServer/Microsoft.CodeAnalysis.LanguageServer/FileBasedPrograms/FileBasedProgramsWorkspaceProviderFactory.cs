@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,7 +19,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>
-/// Service to create <see cref="FileBasedProgramsProjectSystem"/> instances.
+/// Service to create ordered list of <see cref="ILspMiscellaneousFilesWorkspaceProvider"/> instances.
 /// This is not exported as a <see cref="ILspServiceFactory"/> as it requires
 /// special base language server dependencies such as the <see cref="HostServices"/>
 /// </summary>
@@ -37,19 +38,38 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     IBinLogPathProvider binLogPathProvider,
     DotnetCliHelper dotnetCliHelper) : ILspMiscellaneousFilesWorkspaceProviderFactory
 {
-    public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
+    public ImmutableArray<ILspMiscellaneousFilesWorkspaceProvider> CreateLspMiscellaneousFilesWorkspaceProviders(ILspServices lspServices, HostServices hostServices)
     {
-        return new FileBasedProgramsProjectSystem(
-            lspServices,
-            projectXmlProvider,
-            workspaceFactory,
-            fileChangeWatcher,
-            globalOptionService,
-            loggerFactory,
-            listenerProvider,
-            projectLoadTelemetry,
-            serverConfigurationFactory,
-            binLogPathProvider,
-            dotnetCliHelper);
+        // Return providers in priority order:
+        // 1. File-based programs provider (handles files with #! or #: directives)
+        // 2. Canonical misc files provider (handles files that can run design time builds)
+        // 3. LSP misc files provider (catch-all for everything else, like Razor files)
+        return
+        [
+            new FileBasedProgramsMiscFilesProvider(
+                lspServices,
+                projectXmlProvider,
+                workspaceFactory,
+                fileChangeWatcher,
+                globalOptionService,
+                loggerFactory,
+                listenerProvider,
+                projectLoadTelemetry,
+                serverConfigurationFactory,
+                binLogPathProvider,
+                dotnetCliHelper),
+            new CanonicalMiscFilesProvider(
+                lspServices,
+                workspaceFactory,
+                fileChangeWatcher,
+                globalOptionService,
+                loggerFactory,
+                listenerProvider,
+                projectLoadTelemetry,
+                serverConfigurationFactory,
+                binLogPathProvider,
+                dotnetCliHelper),
+            new LspMiscFilesProvider(lspServices, hostServices)
+        ];
     }
 }

@@ -20,15 +20,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
     /// <summary>
-    /// Returns whether the document is one that came from a previous call to <see cref="AddMiscellaneousDocumentAsync"/>.
+    /// Returns whether the document is one that came from a previous call to <see cref="TryAddMiscellaneousDocumentAsync"/>.
     /// </summary>
     ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Adds a document to the workspace. Note that the implementation of this method should not depend on anything expensive such as RPC calls.
+    /// Determines if this provider can take ownership of a document based on its source text and file path.
+    /// This should use the same checks as <see cref="TryAddMiscellaneousDocumentAsync"/> but not actually load anything.
+    /// </summary>
+    /// <param name="documentText">The source text of the document</param>
+    /// <param name="documentFilePath">The file path of the document</param>
+    /// <param name="languageId">The language ID of the document</param>
+    /// <returns><see langword="true"/> if this provider can handle the document</returns>
+    ValueTask<bool> CanTakeOwnership(SourceText documentText, string documentFilePath, string languageId);
+
+    /// <summary>
+    /// Attempts to add a document to the workspace. Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
+    /// <returns>The added document if successful, or <see langword="null"/> if this provider cannot handle the document</returns>
+    ValueTask<TextDocument?> TryAddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
 
     /// <summary>
     /// Removes the document with the given <paramref name="uri"/> from the workspace.

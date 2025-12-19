@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -13,7 +14,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
-/// Service to create <see cref="LspMiscellaneousFilesWorkspaceProvider"/> instances.
+/// Service to create <see cref="LspMiscFilesProvider"/> instances.
 /// This is not exported as a <see cref="ILspServiceFactory"/> as it requires
 /// special base language server dependencies such as the <see cref="HostServices"/>
 /// </summary>
@@ -22,8 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LspMiscellaneousFilesWorkspaceProviderFactory() : ILspMiscellaneousFilesWorkspaceProviderFactory
 {
-    public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
+    public ImmutableArray<ILspMiscellaneousFilesWorkspaceProvider> CreateLspMiscellaneousFilesWorkspaceProviders(ILspServices lspServices, HostServices hostServices)
     {
-        return new LspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices);
+        // Return only the catch-all provider for the base implementation
+        return [new LspMiscFilesProvider(lspServices, hostServices)];
     }
 }

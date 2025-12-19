@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -18,9 +20,9 @@ internal class LspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWor
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var logger = lspServices.GetRequiredService<AbstractLspLogger>();
-        var miscFilesWorkspace = lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var miscFilesWorkspaceProviders = lspServices.GetServices<ILspMiscellaneousFilesWorkspaceProvider>().ToImmutableArray();
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
         var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
-        return new LspWorkspaceManager(logger, miscFilesWorkspace, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);
+        return new LspWorkspaceManager(logger, miscFilesWorkspaceProviders, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);
     }
 }
