@@ -557,21 +557,14 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             // If the invoked method is a reduced extension method, also mark the original
             // method from which it was reduced as "used".
-            if (targetMethod.ReducedFrom != null)
-                OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+            OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
 
             // If the invoked method is an implementation method for an extension member,
             // also mark that extension member as "used".
             // If the extension member is an accessor, also mark its associated property as "used".
-            if (targetMethod.TryGetCorrespondingExtensionBlockMethod() is { } extensionBlockMethod)
-            {
-                OnSymbolUsage(extensionBlockMethod, ValueUsageInfo.Read);
-
-                if (extensionBlockMethod.AssociatedSymbol is { } associatedSymbol)
-                {
-                    OnSymbolUsage(associatedSymbol, ValueUsageInfo.Read);
-                }
-            }
+            var extensionBlockMethod = targetMethod.TryGetCorrespondingExtensionBlockMethod();
+            OnSymbolUsage(extensionBlockMethod, ValueUsageInfo.Read);
+            OnSymbolUsage(extensionBlockMethod?.AssociatedSymbol, ValueUsageInfo.Read);
         }
 
         private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
