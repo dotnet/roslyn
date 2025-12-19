@@ -46,7 +46,7 @@
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
       <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
     </ProjectReference>
-    
+
     <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
     <ProjectReference Include="..\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="Contracts" />
   </ItemGroup>
@@ -125,7 +125,12 @@
            Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
 
       <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if the PackagePath changes. -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)" Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'" TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))" PackagePath="$([System.IO.Path]::Combine('contentFiles', 'any', 'any', '%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))" CopyToOutputDirectory="PreserveNewest" PackageCopyToOutput="true" />
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
+               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
+               TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
+               PackagePath="$([System.IO.Path]::Combine('contentFiles', 'any', 'any', '%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
+               CopyToOutputDirectory="PreserveNewest"
+               PackageCopyToOutput="true" />
     </ItemGroup>
   </Target>
 </Project>
