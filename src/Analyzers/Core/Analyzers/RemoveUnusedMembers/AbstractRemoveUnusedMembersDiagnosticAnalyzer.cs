@@ -813,11 +813,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
                         AddIfCandidateSymbol(builder, symbol);
 
-                        if (symbol is IMethodSymbol methodSymbol
-                            && methodSymbol.TryGetCorrespondingExtensionBlockMethod() is { } extensionBlockMethod)
+                        if (symbol is IMethodSymbol methodSymbol)
                         {
+                            var extensionBlockMethod = methodSymbol.TryGetCorrespondingExtensionBlockMethod();
                             AddIfCandidateSymbol(builder, extensionBlockMethod);
-                            AddIfCandidateSymbol(builder, extensionBlockMethod.AssociatedSymbol);
+                            AddIfCandidateSymbol(builder, extensionBlockMethod?.AssociatedSymbol);
                         }
                     }
                 }
