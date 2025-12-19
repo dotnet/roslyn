@@ -2927,16 +2927,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 public unsafe class A
                 {
-                    public byte* Ptr = null;
+                    public byte* Ptr;
                 }
 
                 unsafe class Test
                 {
                     static void Main()
                     {
-                        var a = new A();
+                        byte b = 42;
+                        var a = new A { Ptr = &b };
                         byte* ptr1 = a?.Ptr;
-                        Console.Write(ptr1 == null ? "null" : "not null");
+                        Console.Write(ptr1 == null ? "null" : *ptr1);
 
                         a = null;
                         byte* ptr2 = a?.Ptr;
@@ -2944,8 +2945,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "null null");
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "42 null");
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.Main", """
+                {
+                  // Code size       98 (0x62)
+                  .maxstack  3
+                  .locals init (byte V_0, //b
+                                A V_1, //a
+                                byte* V_2, //ptr1
+                                byte* V_3) //ptr2
+                  IL_0000:  nop
+                  IL_0001:  ldc.i4.s   42
+                  IL_0003:  stloc.0
+                  IL_0004:  newobj     "A..ctor()"
+                  IL_0009:  dup
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  conv.u
+                  IL_000d:  stfld      "byte* A.Ptr"
+                  IL_0012:  stloc.1
+                  IL_0013:  ldloc.1
+                  IL_0014:  brtrue.s   IL_001a
+                  IL_0016:  ldc.i4.0
+                  IL_0017:  conv.u
+                  IL_0018:  br.s       IL_0020
+                  IL_001a:  ldloc.1
+                  IL_001b:  ldfld      "byte* A.Ptr"
+                  IL_0020:  stloc.2
+                  IL_0021:  ldloc.2
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  conv.u
+                  IL_0024:  beq.s      IL_002f
+                  IL_0026:  ldloc.2
+                  IL_0027:  ldind.u1
+                  IL_0028:  box        "byte"
+                  IL_002d:  br.s       IL_0034
+                  IL_002f:  ldstr      "null"
+                  IL_0034:  call       "void System.Console.Write(object)"
+                  IL_0039:  nop
+                  IL_003a:  ldnull
+                  IL_003b:  stloc.1
+                  IL_003c:  ldloc.1
+                  IL_003d:  brtrue.s   IL_0043
+                  IL_003f:  ldc.i4.0
+                  IL_0040:  conv.u
+                  IL_0041:  br.s       IL_0049
+                  IL_0043:  ldloc.1
+                  IL_0044:  ldfld      "byte* A.Ptr"
+                  IL_0049:  stloc.3
+                  IL_004a:  ldloc.3
+                  IL_004b:  ldc.i4.0
+                  IL_004c:  conv.u
+                  IL_004d:  beq.s      IL_0056
+                  IL_004f:  ldstr      " not null"
+                  IL_0054:  br.s       IL_005b
+                  IL_0056:  ldstr      " null"
+                  IL_005b:  call       "void System.Console.Write(string)"
+                  IL_0060:  nop
+                  IL_0061:  ret
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
@@ -2965,6 +3024,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var conditionalAccess = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
+            var typeInfo = model.GetTypeInfo(conditionalAccess);
+            Assert.Equal("System.Int32*", typeInfo.Type.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
@@ -3087,6 +3152,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void FunctionPointerReturnType_Execution()
+        {
+            var source = """
+                using System;
+
+                unsafe class Test
+                {
+                    public delegate*<int, int> FPtr;
+
+                    static int Double(int x) => x * 2;
+
+                    static void Main()
+                    {
+                        var t = new Test { FPtr = &Double };
+                        delegate*<int, int> f1 = t?.FPtr;
+                        Console.Write(f1 != null ? f1(21) : -1);
+
+                        t = null;
+                        delegate*<int, int> f2 = t?.FPtr;
+                        Console.Write(f2 == null ? " null" : " not null");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "42 null");
+            verifier.VerifyDiagnostics();
         }
     }
 }
