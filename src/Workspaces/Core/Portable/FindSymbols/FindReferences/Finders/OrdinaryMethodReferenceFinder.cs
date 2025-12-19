@@ -136,7 +136,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
                 // See if it has the `[CollectionBuilder(typeof(BuilderType), "FactoryMethodName")]` attribute. And, if
                 // so, that the BuilderType and FactoryMethodName match the method we're looking at.
                 if (attribute.AttributeClass.IsCollectionBuilderAttribute() &&
-                    attribute.ConstructorArguments is [{ Type: ITypeSymbol builderType }, { Value: string factoryName }] &&
+                    attribute.ConstructorArguments is [{ Value: INamedTypeSymbol builderType }, { Value: string factoryName }] &&
                     Equals(methodSymbol.ContainingType, builderType) &&
                     methodSymbol.Name == factoryName)
                 {
@@ -202,15 +202,15 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
             if (state.SemanticModel.GetOperation(node, cancellationToken) is not ICollectionExpressionOperation collectionExpression)
                 return;
 
-            if (!Equals(symbol, collectionExpression.ConstructMethod))
+            if (!Equals(symbol, collectionExpression.ConstructMethod?.OriginalDefinition))
                 return;
 
             var result = new FinderLocation(node, new ReferenceLocation(
                 state.Document,
                 alias: null,
-                location: node.GetFirstToken().GetLocation(),
+                location: node.GetLocation(),
                 isImplicit: true,
-                default,
+                GetSymbolUsageInfo(node, state, cancellationToken),
                 GetAdditionalFindUsagesProperties(node, state),
                 candidateReason: CandidateReason.None));
             processResult(result, processResultData);

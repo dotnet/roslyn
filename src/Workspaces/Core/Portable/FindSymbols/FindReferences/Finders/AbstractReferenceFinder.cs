@@ -366,7 +366,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsUsingStatement, processResult, processResultData, cancellationToken);
 
     protected static Task FindDocumentsWithCollectionExpressionsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsUsingStatement, processResult, processResultData, cancellationToken);
+        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsCollectionExpression, processResult, processResultData, cancellationToken);
 
     /// <summary>
     /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
