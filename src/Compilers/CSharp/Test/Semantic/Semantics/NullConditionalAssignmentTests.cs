@@ -3006,7 +3006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public unsafe Node* Next;
                     public int Value;
 
-                    public Node(int v) { Next = null; Value = v; }
+                    public unsafe Node(int v) { Next = null; Value = v; }
                 }
 
                 class Test
