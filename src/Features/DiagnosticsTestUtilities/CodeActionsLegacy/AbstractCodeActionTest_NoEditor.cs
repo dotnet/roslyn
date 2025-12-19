@@ -97,8 +97,8 @@ public abstract partial class AbstractCodeActionTest_NoEditor<
         return await refactorAllProvider.GetRefactoringAsync(refactorAllContext).ConfigureAwait(false);
     }
 
-    protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TTestWorkspace workspace, TestParameters parameters)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TTestWorkspace workspace, TestParameters parameters)
+        => [];
 
     internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
         TTestWorkspace workspace, TestParameters parameters)

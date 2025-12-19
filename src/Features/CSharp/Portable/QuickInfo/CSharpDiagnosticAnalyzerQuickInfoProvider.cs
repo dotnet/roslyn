@@ -38,13 +38,13 @@ internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider() : CommonQuickI
             await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
         CommonQuickInfoContext context,
         SyntaxToken token)
     {
         // TODO: This provider currently needs access to Document/Project to compute applicable analyzers
         //       and provide quick info, which is not available in CommonQuickInfoContext.
-        return Task.FromResult<QuickInfoItem?>(null);
+        return null;
     }
 
     private static async Task<QuickInfoItem?> GetQuickinfoForPragmaWarningAsync(

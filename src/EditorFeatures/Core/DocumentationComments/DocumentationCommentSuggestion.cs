@@ -41,9 +41,8 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
         Logger.Log(FunctionId.Copilot_Generate_Documentation_Accepted, logLevel: LogLevel.Information);
     }
 
-    public override Task OnChangeProposalAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, bool forward, CancellationToken cancel)
+    public override async Task OnChangeProposalAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, bool forward, CancellationToken cancel)
     {
-        return Task.CompletedTask;
     }
 
     public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
@@ -54,17 +53,15 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
         Logger.Log(FunctionId.Copilot_Generate_Documentation_Dismissed, logLevel: LogLevel.Information);
     }
 
-    public override Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
+    public override async Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
     {
         // Now that we start the Suggestion Session earlier, we will get buffer changes when the '/' is inserted and the
         // shell of the documentation comment. In that case, we need to make sure we have actually have a proposal to display.
         if (originalProposal is not null && reason.HasFlag(ReasonForUpdate.Diverged))
         {
             Logger.Log(FunctionId.Copilot_Generate_Documentation_Diverged, logLevel: LogLevel.Information);
-            return session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel);
+            await session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel).ConfigureAwait(false);
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>

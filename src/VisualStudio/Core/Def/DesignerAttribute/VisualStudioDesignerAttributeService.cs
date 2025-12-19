@@ -311,10 +311,9 @@ internal sealed class VisualStudioDesignerAttributeService :
     /// <summary>
     /// Callback from the OOP service back into us.
     /// </summary>
-    public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+    public async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(_projectSystemNotificationQueue);
         _projectSystemNotificationQueue.AddWork(data.AsSpan());
-        return ValueTask.CompletedTask;
     }
 }

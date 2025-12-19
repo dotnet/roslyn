@@ -37,7 +37,7 @@ internal sealed class SearchExceptionDefinitionItem(string message, ImmutableArr
 {
     internal override bool IsExternal => false;
 
-    public override Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
-        => Task.FromResult<INavigableLocation?>(null);
+    public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+        => null;
 }
 
