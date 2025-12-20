@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.AccessorKind is AccessorKind.Set)
             {
                 Visit(node.ReceiverOpt);
-                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isNewExtensionMethod: false); // TODO2 review
+                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isNewExtensionMethod: false);
                 return null;
             }
 

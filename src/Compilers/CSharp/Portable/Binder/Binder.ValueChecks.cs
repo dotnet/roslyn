@@ -2838,7 +2838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (methodInfo.Symbol.RequiresInstanceReceiver())
             {
                 // We have an instance method receiver.
-                if (!hasRefToRefStructThis(methodInfo.Method)) // TODO2 review this
+                if (!hasRefToRefStructThis(methodInfo.Method))
                 {
                     return;
                 }
