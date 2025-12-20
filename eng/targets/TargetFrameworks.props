@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
 
-  <!-- 
+  <!--
     This props file manages the target framework properties for Roslyn. The strategy for these properties
     is covered in "docs/contributing/target-framework-strategy.md". Please see that for documentation
     on what these values mean.
 
-    Requirements: 
+    Requirements:
       - NetVSShared must include both NetVS and NetVSCode
       - NetRoslynSourceBuild must include NetRoslyn
       - NetRoslynAll must include all .NET Core TFMS in any property below
@@ -17,7 +17,7 @@
     <NetVS>net8.0</NetVS>
     <NetVSCode>net9.0</NetVSCode>
     <NetVSShared>net8.0</NetVSShared>
-    <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
+    <NetRoslynBuildHostNetCoreVersion>net8.0</NetRoslynBuildHostNetCoreVersion>
     <NetRoslynNext>net9.0</NetRoslynNext>
   </PropertyGroup>
 
@@ -26,13 +26,13 @@
     we calculate them
   -->
   <Choose>
-    <!-- 
-      1. CI source build leg: this needs to build the current and previous source build TFM. Both are 
-         necessary as the output of this leg is used in other CI source build legs. Those could be 
-         targeting NetCurrent or NetPrevious hence we must produce both. 
+    <!--
+      1. CI source build leg: this needs to build the current and previous source build TFM. Both are
+         necessary as the output of this leg is used in other CI source build legs. Those could be
+         targeting NetCurrent or NetPrevious hence we must produce both.
 
-        However the toolset package we produce must target NetPrevious. This package gets used as the 
-        bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
+        However the toolset package we produce must target NetPrevious. This package gets used as the
+        bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence
         the toolset must support that.
     -->
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildFromVMR)' != 'true'">

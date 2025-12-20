@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
-            bool wasReported = false;
             if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
             {
                 if (!constantResult)
@@ -67,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expression.Type is object);
                     diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                     hasErrors = true;
-                    wasReported = true;
                 }
                 else
                 {
@@ -84,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundListPattern:
                             Debug.Assert(expression.Type is object);
                             diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
-                            wasReported = true;
                             break;
                         case BoundDiscardPattern _:
                             // we do not give a warning on this because it is an existing scenario, and it should
@@ -105,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!simplifiedResult)
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
-                        wasReported = true;
                     }
                     else
                     {
@@ -113,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundConstantPattern _:
                                 diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
-                                wasReported = true;
                                 break;
                             case BoundRelationalPattern _:
                             case BoundTypePattern _:
@@ -121,16 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundBinaryPattern _:
                             case BoundDiscardPattern _:
                                 diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, node.Location);
-                                wasReported = true;
                                 break;
                         }
                     }
                 }
-            }
-
-            if (!wasReported && diagnostics.AccumulatesDiagnostics && DecisionDagBuilder.EnableRedundantPatternsCheck(this.Compilation))
-            {
-                DecisionDagBuilder.CheckRedundantPatternsForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
             }
 
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,

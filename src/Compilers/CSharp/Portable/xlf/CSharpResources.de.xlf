@@ -2652,26 +2652,6 @@
         <target state="translated">Die Verwenden-Anweisung wurde zuvor als „Global verwenden“ angezeigt</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPatternStackGuard">
-        <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPatternStackGuard_Title">
-        <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
         <target state="translated">Arrayzugriff</target>
@@ -3540,16 +3520,6 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Typen und Aliase dürfen nicht den Namen "record" aufweisen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
