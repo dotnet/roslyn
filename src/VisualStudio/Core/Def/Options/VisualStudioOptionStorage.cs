@@ -136,7 +136,7 @@ internal abstract class VisualStudioOptionStorage
         {"indent_size", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indentSize")},
         {"indent_style", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.character")},
         {"tab_width", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.tabSize")},
-        {"smart_indent", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%arp.tabs.indenting")},
+        {"smart_indent", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indenting")},
 
         {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
         {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
