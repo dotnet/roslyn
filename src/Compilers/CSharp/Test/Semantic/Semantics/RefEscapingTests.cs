@@ -2817,6 +2817,12 @@ class Program
                 // (48,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
                 //         local[stackSpan]++; // 4
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(48, 9),
+                // (48,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(48, 9),
+                // (48,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(48, 15),
                 // (48,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[stackSpan]++; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(48, 15),
@@ -3160,9 +3166,18 @@ class Program
                 // (17,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         local[x]++; // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(17, 9),
+                // (17,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(17, 9),
                 // (17,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[x]++; // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 15),
+                // (17,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 15),
+                // (31,9): error CS8350: This combination of arguments to 'S2<T>.this[int]' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         local[0] = x; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[0]").WithArguments("S2<T>.this[int]", "value").WithLocation(31, 9),
                 // (31,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[0] = x; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 20)
@@ -5679,11 +5694,7 @@ public readonly ref struct S<T>
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b.P = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 15));
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("S<T>.N", @"
 {
   // Code size       24 (0x18)
@@ -5729,11 +5740,7 @@ public ref struct S<T>
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b.P = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 15));
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("S<T>.N", @"
 {
   // Code size       24 (0x18)
@@ -5779,11 +5786,7 @@ public ref struct S<T>
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b.P = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 15));
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("S<T>.N", @"
 {
   // Code size       24 (0x18)
@@ -7440,9 +7443,15 @@ public class C
 
             var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'S1.Span' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         local.Span = stackSpan; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local.Span").WithArguments("S1.Span", "value").WithLocation(17, 9),
                 // (17,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local.Span = stackSpan; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 22),
+                // (36,9): error CS8350: This combination of arguments to 'S2.Span' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         local.Span = stackSpan; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local.Span").WithArguments("S2.Span", "value").WithLocation(36, 9),
                 // (36,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local.Span = stackSpan; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(36, 22),

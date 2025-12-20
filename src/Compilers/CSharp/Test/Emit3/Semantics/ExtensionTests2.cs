@@ -37085,5 +37085,116 @@ public static class E
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("M"), verify: Verification.Skipped).VerifyDiagnostics();
     }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_01()
+    {
+        string source = """
+_ = new S() { Property = 42 };
+System.Console.Write(E.Field);
+
+S s = new S();
+E.get_Property(s) = 43;
+System.Console.Write(E.Field);
+
+ref struct S { }
+
+static class E
+{
+    public static int Field;
+    extension(S s)
+    {
+        public ref int Property { get => ref Field; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "4243").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_02()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { Property = span };
+
+S s = new S();
+E.get_Property(s) = span;
+
+ref struct S { }
+
+static class E
+{
+    extension(S s)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_03()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { Property = span };
+
+S s = new S();
+E.get_Property(ref s) = span;
+
+ref struct S { }
+
+static class E
+{
+    extension(ref S s)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,25): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(ref s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 25));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_04()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new C() { Property = span };
+
+C c = new C();
+E.get_Property(c) = span;
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
+    }
 }
 

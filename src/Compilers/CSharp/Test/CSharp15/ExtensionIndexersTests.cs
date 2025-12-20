@@ -5577,6 +5577,201 @@ public ref struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_Indexing_09()
+    {
+        var src = """
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+public ref struct S
+{
+    object GetReceiver(System.Span<byte> span) => throw null;
+    int GetIndex(System.Span<byte> span) => throw null;
+    
+    void M()
+    {
+        System.Span<byte> span = stackalloc byte[10];
+        System.Span<byte> span2 = stackalloc byte[10];
+
+        this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 1
+        _ = this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 2
+        this.GetReceiver(span)[this.GetIndex(span2)] += 42; // 3
+        this.GetReceiver(span)[this.GetIndex(span2)]++; // 4
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (19,9): error CS8350: This combination of arguments to 'S.GetReceiver(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 1
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetReceiver(span)").WithArguments("S.GetReceiver(System.Span<byte>)", "span").WithLocation(19, 9),
+            // (19,26): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(19, 26),
+            // (19,32): error CS8350: This combination of arguments to 'S.GetIndex(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 1
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetIndex(span2)").WithArguments("S.GetIndex(System.Span<byte>)", "span").WithLocation(19, 32),
+            // (19,46): error CS8352: Cannot use variable 'span2' in this context because it may expose referenced variables outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span2").WithArguments("span2").WithLocation(19, 46),
+            // (20,13): error CS8350: This combination of arguments to 'S.GetReceiver(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         _ = this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 2
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetReceiver(span)").WithArguments("S.GetReceiver(System.Span<byte>)", "span").WithLocation(20, 13),
+            // (20,30): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         _ = this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 2
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(20, 30),
+            // (20,36): error CS8350: This combination of arguments to 'S.GetIndex(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         _ = this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 2
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetIndex(span2)").WithArguments("S.GetIndex(System.Span<byte>)", "span").WithLocation(20, 36),
+            // (20,50): error CS8352: Cannot use variable 'span2' in this context because it may expose referenced variables outside of their declaration scope
+            //         _ = this.GetReceiver(span)[this.GetIndex(span2)] = 42; // 2
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span2").WithArguments("span2").WithLocation(20, 50),
+            // (21,9): error CS8350: This combination of arguments to 'S.GetReceiver(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] += 42; // 3
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetReceiver(span)").WithArguments("S.GetReceiver(System.Span<byte>)", "span").WithLocation(21, 9),
+            // (21,26): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] += 42; // 3
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(21, 26),
+            // (21,32): error CS8350: This combination of arguments to 'S.GetIndex(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] += 42; // 3
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetIndex(span2)").WithArguments("S.GetIndex(System.Span<byte>)", "span").WithLocation(21, 32),
+            // (21,46): error CS8352: Cannot use variable 'span2' in this context because it may expose referenced variables outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)] += 42; // 3
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span2").WithArguments("span2").WithLocation(21, 46),
+            // (22,9): error CS8350: This combination of arguments to 'S.GetReceiver(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)]++; // 4
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetReceiver(span)").WithArguments("S.GetReceiver(System.Span<byte>)", "span").WithLocation(22, 9),
+            // (22,26): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)]++; // 4
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(22, 26),
+            // (22,32): error CS8350: This combination of arguments to 'S.GetIndex(Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)]++; // 4
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this.GetIndex(span2)").WithArguments("S.GetIndex(System.Span<byte>)", "span").WithLocation(22, 32),
+            // (22,46): error CS8352: Cannot use variable 'span2' in this context because it may expose referenced variables outside of their declaration scope
+            //         this.GetReceiver(span)[this.GetIndex(span2)]++; // 4
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span2").WithArguments("span2").WithLocation(22, 46));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_Indexing_10()
+    {
+        var src = """
+public static class E
+{
+    extension(S s)
+    {
+        public int this[System.Span<byte> span] { get => throw null; set { } }
+    }
+}
+
+public ref struct S
+{
+    void M()
+    {
+        System.Span<byte> span = stackalloc byte[10];
+
+        this[span] = 42;
+        E.set_Item(this, span, 42);
+
+        _ = this[span];
+        E.get_Item(this, span);
+
+        this[span] += 42;
+        this[span]++;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_Indexing_11()
+    {
+        var src = """
+public static class E
+{
+    extension(ref S s)
+    {
+        public int this[System.Span<byte> span] { get => throw null; set { } }
+    }
+}
+
+public ref struct S
+{
+    void M()
+    {
+        System.Span<byte> span = stackalloc byte[10];
+
+        this[span] = 42; // 1
+        E.set_Item(ref this, span, 42); // 2
+
+        _ = this[span]; // 3
+        E.get_Item(ref this, span); // 4
+
+        this[span] += 42; // 5
+        this[span]++; // 6
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (15,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this[span] = 42; // 1
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this[span]").WithArguments("E.extension(ref S).this[System.Span<byte>]", "span").WithLocation(15, 9),
+            // (15,14): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this[span] = 42; // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(15, 14),
+            // (16,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, Span<byte>, int)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         E.set_Item(ref this, span, 42); // 2
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref this, span, 42)").WithArguments("E.set_Item(ref S, System.Span<byte>, int)", "span").WithLocation(16, 9),
+            // (16,30): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.set_Item(ref this, span, 42); // 2
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(16, 30),
+            // (18,13): error CS8350: This combination of arguments to 'E.extension(ref S).this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         _ = this[span]; // 3
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this[span]").WithArguments("E.extension(ref S).this[System.Span<byte>]", "span").WithLocation(18, 13),
+            // (18,18): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         _ = this[span]; // 3
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(18, 18),
+            // (19,9): error CS8350: This combination of arguments to 'E.get_Item(ref S, Span<byte>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         E.get_Item(ref this, span); // 4
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.get_Item(ref this, span)").WithArguments("E.get_Item(ref S, System.Span<byte>)", "span").WithLocation(19, 9),
+            // (19,30): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Item(ref this, span); // 4
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(19, 30),
+            // (21,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this[span] += 42; // 5
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this[span]").WithArguments("E.extension(ref S).this[System.Span<byte>]", "span").WithLocation(21, 9),
+            // (21,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this[span] += 42; // 5
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this[span] += 42").WithArguments("E.extension(ref S).this[System.Span<byte>]", "span").WithLocation(21, 9),
+            // (21,14): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this[span] += 42; // 5
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(21, 14),
+            // (21,14): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this[span] += 42; // 5
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(21, 14),
+            // (22,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this[span]++; // 6
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this[span]").WithArguments("E.extension(ref S).this[System.Span<byte>]", "span").WithLocation(22, 9),
+            // (22,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+            //         this[span]++; // 6
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "this[span]").WithArguments("E.extension(ref S).this[System.Span<byte>]", "span").WithLocation(22, 9),
+            // (22,14): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this[span]++; // 6
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(22, 14),
+            // (22,14): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            //         this[span]++; // 6
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(22, 14));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
     public void RefAnalysis_ObjectCreation_01()
     {
         string source = """
@@ -5618,6 +5813,171 @@ static class E
             // (12,35): error CS8168: Cannot return local 'i' by reference because it is not a ref local
             //         return ref E.get_Item(ref i, 1);
             Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(12, 35));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_02()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { [span] = 42 };
+E.set_Item(new S(), span, 42);
+
+ref struct S { }
+
+static class E
+{
+    extension(S s)
+    {
+        public int this[System.Span<byte> s2] { get => throw null; set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_03()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { [span] = 42 };
+
+S s = new S();
+E.set_Item(ref s, span, 42); // 1
+
+ref struct S { }
+
+static class E
+{
+    extension(ref S s)
+    {
+        public int this[System.Span<byte> s2] { get => throw null; set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): error CS8350: This combination of arguments to 'E.set_Item(ref S, Span<byte>, int)' is disallowed because it may expose variables referenced by parameter 's2' outside of their declaration scope
+            // E.set_Item(ref s, span, 42); // 1
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, span, 42)").WithArguments("E.set_Item(ref S, System.Span<byte>, int)", "s2").WithLocation(5, 1),
+            // (5,19): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.set_Item(ref s, span, 42); // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 19));
+    }
+
+    [Fact(Skip = "PROTOTYPE assertion in StackOptimizerPass1 due to assigning to sequence"), CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_04()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { [span] = 42 };
+
+S s = new S();
+E.get_Item(s, span) = 42;
+
+ref struct S { }
+
+static class E
+{
+    extension(S s)
+    {
+        public ref int this[System.Span<byte> s2] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact(Skip = "PROTOTYPE assertion in StackOptimizerPass1 due to assigning to sequence"), CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_05()
+    {
+        string source = """
+_ = new S() { [GetIndex()] = GetValue() };
+
+int GetIndex() { System.Console.Write("GetIndex "); return 0; }
+int GetValue() { System.Console.Write("GetValue "); return 0; }
+
+ref struct S { }
+
+static class E
+{
+    public static int Field;
+
+    extension(S s)
+    {
+        public ref int this[int i] { get { System.Console.Write("get "); return ref Field; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_06()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+S s1 = new S() { [span] = 42 };
+
+S s2 = new S();
+E.get_Item(ref s2, span) = 42; // 1
+
+ref struct S { }
+
+static class E
+{
+    extension(ref S s)
+    {
+        public ref int this[System.Span<byte> s2] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): error CS8350: This combination of arguments to 'E.get_Item(ref S, Span<byte>)' is disallowed because it may expose variables referenced by parameter 's2' outside of their declaration scope
+            // E.get_Item(ref s2, span) = 42; // 1
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.get_Item(ref s2, span)").WithArguments("E.get_Item(ref S, System.Span<byte>)", "s2").WithLocation(5, 1),
+            // (5,20): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Item(ref s2, span) = 42; // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 20));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_07()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new C() { [span] = 42 };
+System.Console.Write(E.Field);
+
+C c = new C();
+E.get_Item(c, span) = 43;
+System.Console.Write(E.Field);
+
+class C { }
+
+static class E
+{
+    public static int Field;
+
+    extension(C c)
+    {
+        public ref int this[System.Span<byte> s2] { get => ref Field; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
