@@ -1052,8 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <remark>
         /// For assignment scenarios, arg mixing will be checked in 
-        /// <see cref="VisitAssignmentOperator"/> / <see cref="ValidateAssignment"/>
-        /// where the 'value' argument is available.
+        /// <see cref="VisitAssignmentOperator"/> / <see cref="ValidateAssignment"/>.
         /// </remark>
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
