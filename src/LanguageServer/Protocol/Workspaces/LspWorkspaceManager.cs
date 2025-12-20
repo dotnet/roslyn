@@ -375,14 +375,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it is open.
-        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && !_lspMiscellaneousFilesWorkspaceProviders.IsDefaultOrEmpty)
+        if (_trackedDocuments.TryGetValue(uri, out var trackedDocInfo) && !_lspMiscellaneousFilesWorkspaceProviders.IsDefaultOrEmpty)
         {
             try
             {
                 // Loop through providers until one successfully adds the document
                 foreach (var provider in _lspMiscellaneousFilesWorkspaceProviders)
                 {
-                    var miscDocument = await provider.TryAddMiscellaneousDocumentAsync(uri, trackedDocument.SourceText, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
+                    var miscDocument = await provider.TryAddMiscellaneousDocumentAsync(uri, trackedDocInfo.SourceText, trackedDocInfo.LanguageId, _logger).ConfigureAwait(false);
                     if (miscDocument is not null)
                         return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
                 }

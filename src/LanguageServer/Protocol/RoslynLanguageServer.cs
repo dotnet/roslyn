@@ -97,15 +97,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
         // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
         // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
-        if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-        {
-            // Add all providers from the factory
-            var providers = lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProviders(lspServices, hostServices);
-            foreach (var provider in providers)
-            {
-                AddService<ILspMiscellaneousFilesWorkspaceProvider>(provider);
-            }
-        }
+        // Note: The LspWorkspaceManager will get providers from the factory via ImportingConstructor
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,

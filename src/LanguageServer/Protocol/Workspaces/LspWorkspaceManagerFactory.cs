@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -15,12 +15,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(LspWorkspaceManager)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class LspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
+internal class LspWorkspaceManagerFactory(
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+    ILspMiscellaneousFilesWorkspaceProviderFactory? miscFilesProviderFactory,
+    HostServices hostServices) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var logger = lspServices.GetRequiredService<AbstractLspLogger>();
-        var miscFilesWorkspaceProviders = lspServices.GetServices<ILspMiscellaneousFilesWorkspaceProvider>().ToImmutableArray();
+        
+        // Get all providers from the factory
+        var miscFilesWorkspaceProviders = miscFilesProviderFactory != null
+            ? miscFilesProviderFactory.CreateLspMiscellaneousFilesWorkspaceProviders(lspServices, hostServices)
+            : ImmutableArray<ILspMiscellaneousFilesWorkspaceProvider>.Empty;
+        
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
         var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
         return new LspWorkspaceManager(logger, miscFilesWorkspaceProviders, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);

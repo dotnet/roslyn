@@ -120,6 +120,27 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return false;
     }
 
+    public async ValueTask<bool> CanTakeOwnership(SourceText documentText, string documentFilePath, string languageId)
+    {
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        var uri = new DocumentUri(documentFilePath);
+        if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
+        {
+            return false;
+        }
+
+        var supportsDesignTimeBuild = languageInformation.LanguageName == LanguageNames.CSharp
+            && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+
+        // Can handle C# files when file-based programs are enabled
+        return supportsDesignTimeBuild;
+    }
+
+    public async ValueTask<TextDocument?> TryAddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+    {
+        return await AddMiscellaneousDocumentAsync(uri, documentText, languageId, logger);
+    }
+
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = GetDocumentFilePath(uri);
