@@ -2760,7 +2760,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput( "1..^0"), verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       55 (0x37)
