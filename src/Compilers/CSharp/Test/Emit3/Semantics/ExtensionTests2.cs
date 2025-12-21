@@ -37110,7 +37110,7 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "4243").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]

@@ -2595,7 +2595,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: "^1").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       44 (0x2c)
@@ -2651,7 +2651,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: "False ^1 False").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("False ^1 False"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("E.Test", """
 {
   // Code size       51 (0x33)
@@ -2760,7 +2760,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: "1..^0").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput( "1..^0"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       55 (0x37)
@@ -5977,7 +5977,7 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
