@@ -22,12 +22,16 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+    <!-- We suppress NETSDK1138 because we intentionally build against net6.0 to support a wider range of .NET SDKs -->
+    <NoWarn>$(NoWarn);NETSDK1138</NoWarn>
 
     <!--
-      We specifically reference Microsoft.Build 17.11.48, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
+      We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
     -->
-    <_MsbuildVersion>17.11.48</_MsbuildVersion>
+    <_MsbuildVersion>17.3.4</_MsbuildVersion>
+    <!-- S.C.I 9.0 no longer supports .NET 6 -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />

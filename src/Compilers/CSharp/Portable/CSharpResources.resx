@@ -8147,4 +8147,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'node' is not an 'await using' statement</value>
     <comment>node and await using are not localizable</comment>
   </data>
-</root>
+  <data name="HDN_RedundantPattern" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="HDN_RedundantPattern_Title" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="WRN_RedundantPattern" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="WRN_RedundantPattern_Title" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="HDN_RedundantPatternStackGuard" xml:space="preserve">
+    <value>The pattern is too complex to analyze for redundancy.</value>
+  </data>
+  <data name="HDN_RedundantPatternStackGuard_Title" xml:space="preserve">
+    <value>The pattern is too complex to analyze for redundancy.</value>
+  </data>
+ </root>

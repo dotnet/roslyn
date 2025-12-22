@@ -2652,6 +2652,26 @@
         <target state="translated">A diretiva using apareceu anteriormente como using global</target>
         <note />
       </trans-unit>
+      <trans-unit id="HDN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard_Title">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
         <target state="translated">acesso à matriz</target>
@@ -3520,6 +3540,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Os tipos e os aliases não devem ser nomeados como 'registro'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
