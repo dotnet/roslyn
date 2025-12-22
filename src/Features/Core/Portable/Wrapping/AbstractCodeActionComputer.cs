@@ -157,7 +157,7 @@ internal abstract partial class AbstractSyntaxWrapper
             // Store the root so we don't just end up creating this code action again.
             _seenDocumentRoots.Add(formattedRoot);
 
-            return new WrapItemsAction(title, parentTitle, (_, _) => Task.FromResult(formattedDocument));
+            return new WrapItemsAction(title, parentTitle, async (_, _) => formattedDocument);
         }
 
         private async Task<Document> FormatDocumentAsync(

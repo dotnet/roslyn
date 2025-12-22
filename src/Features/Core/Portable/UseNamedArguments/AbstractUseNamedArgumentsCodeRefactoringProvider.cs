@@ -132,7 +132,7 @@ internal abstract class AbstractUseNamedArgumentsCodeRefactoringProvider : CodeR
             }
         }
 
-        private Task<Document> AddNamedArgumentsAsync(
+        private async Task<Document> AddNamedArgumentsAsync(
             SyntaxNode root,
             Document document,
             TSimpleArgumentSyntax firstArgument,
@@ -143,7 +143,7 @@ internal abstract class AbstractUseNamedArgumentsCodeRefactoringProvider : CodeR
             var argumentList = (TArgumentListSyntax)firstArgument.Parent!;
             var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index, includingTrailingArguments);
             var newRoot = root.ReplaceNode(argumentList, newArgumentList);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private TArgumentListSyntax GetOrSynthesizeNamedArguments(

@@ -18,26 +18,23 @@ internal static partial class IMethodSymbolExtensions
 #if !ROSLYN_4_12_OR_LOWER
     internal static IMethodSymbol? TryGetCorrespondingExtensionBlockMethod(this IMethodSymbol methodSymbol)
     {
-        if (methodSymbol is not { IsStatic: true, IsImplicitlyDeclared: true, ContainingType.MightContainExtensionMethods: true })
-            return null;
-
-        // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
-        // Tracked by https://github.com/dotnet/roslyn/issues/81686
-
-        foreach (var nestedType in methodSymbol.ContainingType.GetTypeMembers())
+        if (methodSymbol is { IsStatic: true, IsImplicitlyDeclared: true, ContainingType.MightContainExtensionMethods: true })
         {
-            if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
-                continue;
+            // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
+            // Tracked by https://github.com/dotnet/roslyn/issues/81686
 
-            foreach (var member in nestedType.GetMembers())
+            foreach (var nestedType in methodSymbol.ContainingType.GetTypeMembers())
             {
-                if (member is IMethodSymbol method)
-                {
-                    var associated = method.AssociatedExtensionImplementation;
-                    if (!Equals(associated, methodSymbol))
-                        continue;
+                if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
+                    continue;
 
-                    return method;
+                foreach (var member in nestedType.GetMembers())
+                {
+                    if (member is IMethodSymbol method &&
+                        Equals(method.AssociatedExtensionImplementation, methodSymbol))
+                    {
+                        return method;
+                    }
                 }
             }
         }

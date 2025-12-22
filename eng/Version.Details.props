@@ -13,7 +13,7 @@ This file should be imported by eng/Versions.props
     <RoslynDiagnosticsAnalyzersPackageVersion>5.3.0-2.25609.8</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet/dotnet dependencies -->
     <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-alpha.1.25570.101</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-alpha.1.25619.109</SystemCommandLinePackageVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>9.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>9.0.0</MicrosoftExtensionsConfigurationPackageVersion>

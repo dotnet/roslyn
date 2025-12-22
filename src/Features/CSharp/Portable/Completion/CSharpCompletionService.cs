@@ -68,7 +68,7 @@ internal sealed class CSharpCompletionService : CommonCompletionService
         return newRules;
     }
 
-    internal override async Task<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    internal override async ValueTask<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 

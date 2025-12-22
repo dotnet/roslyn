@@ -28,13 +28,12 @@ internal sealed class CSharpSimplifyPropertyAccessorCodeFixProvider() : SyntaxEd
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.SimplifyPropertyAccessorDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_property_accessor, nameof(CSharpAnalyzersResources.Simplify_property_accessor));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         using var _ = PooledHashSet<PropertyDeclarationSyntax>.GetInstance(out var seenPartialProperties);
 
@@ -68,7 +67,5 @@ internal sealed class CSharpSimplifyPropertyAccessorCodeFixProvider() : SyntaxEd
 
             editor.ReplaceNode(accessor, fixedAccessor.WithAdditionalAnnotations(Formatter.Annotation));
         }
-
-        return Task.CompletedTask;
     }
 }

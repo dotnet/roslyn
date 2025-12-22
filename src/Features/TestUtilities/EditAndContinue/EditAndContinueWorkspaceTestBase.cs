@@ -38,7 +38,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     private protected static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
 
     private protected static readonly ActiveStatementSpanProvider s_noActiveSpans =
-        (_, _, _) => new([]);
+        async (_, _, _) => [];
 
     private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetLatest;
 

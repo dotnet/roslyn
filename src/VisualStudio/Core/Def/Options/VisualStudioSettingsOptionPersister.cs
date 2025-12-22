@@ -40,12 +40,11 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
         settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
     }
 
-    private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
+    private async Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
     {
         Contract.ThrowIfNull(this.SettingsManager);
 
         RefreshIfTracked(args.PropertyName);
-        return Task.CompletedTask;
     }
 
     public override bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)

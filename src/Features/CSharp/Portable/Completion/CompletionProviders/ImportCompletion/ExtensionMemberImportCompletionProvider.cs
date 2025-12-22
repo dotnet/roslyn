@@ -46,7 +46,7 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
         };
     }
 
-    protected override Task<bool> ShouldProvideParenthesisCompletionAsync(
+    protected override async Task<bool> ShouldProvideParenthesisCompletionAsync(
         Document document,
         CompletionItem item,
         char? commitKey,
@@ -57,7 +57,7 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
         // it can only be used as like: bar.ToInt();
         // Func<int> x = bar.ToInt or Func<Bar, int> x = bar.ToInt is illegal. It can't be assign to delegate.
         // Therefore at here we always assume the user always wants to add parenthesis.
-        => Task.FromResult(commitKey is ';' or '.');
+        => commitKey is ';' or '.';
 
     protected override (ITypeSymbol? receiverTypeSymbol, bool isStatic) TryGetReceiverTypeSymbol(
         SemanticModel semanticModel,

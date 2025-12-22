@@ -24,6 +24,6 @@ internal sealed class NullPdbMatchingSourceTextProvider : IPdbMatchingSourceText
     {
     }
 
-    public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-        => ValueTask.FromResult<string?>(null);
+    public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+        => null;
 }

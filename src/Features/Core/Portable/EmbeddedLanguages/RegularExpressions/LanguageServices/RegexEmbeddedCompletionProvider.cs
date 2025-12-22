@@ -442,7 +442,7 @@ internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLangu
         }
     }
 
-    public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+    public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
     {
         // These values have always been added by us.
         var startString = item.GetProperty(StartKey);
@@ -452,19 +452,19 @@ internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLangu
         // This value is optionally added in some cases and may not always be there.
         item.TryGetProperty(NewPositionKey, out var newPositionString);
 
-        return Task.FromResult(CompletionChange.Create(
+        return CompletionChange.Create(
             new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
-            newPositionString == null ? null : int.Parse(newPositionString)));
+            newPositionString == null ? null : int.Parse(newPositionString));
     }
 
-    public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+    public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
     {
         if (!item.TryGetProperty(DescriptionKey, out var description))
         {
-            return SpecializedTasks.Null<CompletionDescription>();
+            return null;
         }
 
-        return Task.FromResult(CompletionDescription.Create(
-            [new TaggedText(TextTags.Text, description)]));
+        return CompletionDescription.Create(
+            [new TaggedText(TextTags.Text, description)]);
     }
 }
