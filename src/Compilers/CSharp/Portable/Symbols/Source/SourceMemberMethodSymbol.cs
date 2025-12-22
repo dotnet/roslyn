@@ -982,7 +982,7 @@ done:
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (CallerUnsafeMode.NeedsRequiresUnsafeAttribute())
             {
                 MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, _location);
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, _location, modifyCompilation: true);
