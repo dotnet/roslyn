@@ -218,26 +218,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(unconvertedInterpolatedString.Type?.SpecialType == SpecialType.System_String);
 
-            // We have 5 possible lowering strategies, dependent on the contents of the string, in this order:
+            // We have 6 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
             //  2. The string is composed of 4 or fewer components that are all strings, we can lower to a call to string.Concat without a
             //     params array. This is very efficient as the runtime can allocate a buffer for the string with exactly the correct length and
             //     make no intermediate allocations.
-            //  3. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
+            //  3. The string is composed of more than 4 components that are all strings, `string.Concat(ReadOnlySpan<string>)` is available, and
+            //     the runtime supports inline array types. We can lower to a call to that method, which avoids the params array allocation, and
+            //     the same benefits as case 2 apply.
+            //  4. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
             //     The builder is a ref struct, and we can guarantee the lifetime won't outlive the stack if the string doesn't contain any
             //     awaits, but if it does we cannot use it. This builder is the only way that ref structs can be directly used as interpolation
             //     hole components, which means that ref structs components and await expressions cannot be combined. It is already illegal for
             //     the user to use ref structs in an async method today, but if that were to ever change, this would still need to be respected.
             //     We also cannot use this method if the interpolated string appears within a catch filter, as the builder is disposable and we
             //     cannot put a try/finally inside a filter block.
-            //  4. The string is composed of more than 4 components that are all strings themselves. We can turn this into a single
+            //  5. The string is composed of more than 4 components that are all strings themselves. We can turn this into a single
             //     call to string.Concat. We prefer the builder over this because the builder can use pooling to avoid new allocations, while this
             //     call will need to allocate a param array.
-            //  5. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
+            //  6. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
             //     expression. This is turned into a call to string.Format.
             //
             // We need to do the determination of 1, 2, 3, or 4/5 up front, rather than in lowering, as it affects diagnostics (ref structs not being
             // able to be used, for example). However, between 4 and 5, we don't need to know at this point, so that logic is deferred for lowering.
+            // When updating lowering strategies here, also update TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler.
 
             if (unconvertedInterpolatedString.ConstantValueOpt is not null)
             {
@@ -246,17 +250,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructWithoutData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics));
             }
 
-            if ((unconvertedInterpolatedString.Parts.Length > 4 || !AllInterpolatedStringPartsAreStrings(unconvertedInterpolatedString.Parts)) &&
-                tryBindAsHandlerType(out var result))
+            (bool canUseConcat, bool canUseAlloclessConcat) = canLowerToStringConcatenation(unconvertedInterpolatedString.Parts, this, diagnostics);
+
+            if (!canUseAlloclessConcat && tryBindAsHandlerType(out var result))
             {
-                // Case 3
+                // Case 4
                 return result;
             }
 
-            // Case 2, 4, 5
+            // Cases 2, 3, 5, 6
             ImmutableArray<BoundExpression> parts = BindInterpolatedStringPartsForFactory(unconvertedInterpolatedString, diagnostics, out bool haveErrors);
 
-            if (unconvertedInterpolatedString.Type.IsErrorType() || haveErrors || canLowerToStringConcatenation(parts))
+            if (unconvertedInterpolatedString.Type.IsErrorType() || haveErrors || canUseConcat)
             {
                 return constructWithoutData(parts);
             }
@@ -292,25 +297,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            bool canLowerToStringConcatenation(ImmutableArray<BoundExpression> parts)
+            static (bool canUseConcat, bool canUseAlloclessConcat) canLowerToStringConcatenation(ImmutableArray<BoundExpression> parts, Binder @this, BindingDiagnosticBag diagnostics)
             {
+                // Are all parts strings without alignment or format?
                 foreach (var part in parts)
                 {
                     if (part is BoundStringInsert fillin)
                     {
                         // this is one of the expression holes
-                        if (InExpressionTree ||
+                        if (@this.InExpressionTree ||
                             fillin.HasErrors ||
                             fillin.Value.Type?.SpecialType != SpecialType.System_String ||
                             fillin.Alignment != null ||
                             fillin.Format != null)
                         {
-                            return false;
+                            return (false, false);
                         }
+                    }
+                    else
+                    {
+                        Debug.Assert(part is BoundLiteral { Type.SpecialType: SpecialType.System_String });
                     }
                 }
 
-                return true;
+                if (parts.Length <= 4)
+                {
+                    // Case 2
+                    return (true, true);
+                }
+
+                if (!@this.InExpressionTree // Can't use spans in an expression tree
+                    && TryGetSpecialTypeMember<MethodSymbol>(@this.Compilation, SpecialMember.System_String__ConcatReadOnlySpanString, parts[0].Syntax, diagnostics, out _, isOptional: true)
+                    && @this.Compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes))
+                {
+                    // Case 3
+                    return (true, true);
+                }
+
+                // Potentially case 4 or 5
+                return (true, false);
             }
         }
 
@@ -450,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var interpolatedStringHandlerType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler);
             if (interpolatedStringHandlerType.IsErrorType())
             {
-                // Can't ever bind to the handler no matter what, so just let the default handling take care of it. Cases 4 and 5 are covered by this.
+                // Can't ever bind to the handler no matter what, so just let the default handling take care of it. Cases 5 and 6 are covered by this.
                 return false;
             }
 
@@ -483,14 +508,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(partsArrayBuilder.Count >= 2);
 
+            var canUseReadOnlySpanStringConcat =
+                TryGetSpecialTypeMember<MethodSymbol>(Compilation, SpecialMember.System_String__ConcatReadOnlySpanString, binaryOperator.Syntax, diagnostics, out _, isOptional: true)
+                && Compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
+
             int count = 0;
 
             foreach (var parts in partsArrayBuilder)
             {
                 count += parts.Length;
-                if (count > 4 || !AllInterpolatedStringPartsAreStrings(parts))
+                if ((!canUseReadOnlySpanStringConcat && count > 4) || !AllInterpolatedStringPartsAreStrings(parts))
                 {
-                    // Case 3. Bind as handler.
+                    // Case 4. Bind as handler.
                     var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
                         binaryOperator.Syntax,
                         partsArrayBuilder.ToImmutableAndFree(),
@@ -506,8 +535,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Case 2. Let the standard machinery handle it.
-            Debug.Assert(count <= 4);
+            // Case 2 or 3. Let the standard machinery handle it.
+            Debug.Assert(count <= 4 || canUseReadOnlySpanStringConcat);
             partsArrayBuilder.Free();
             return false;
         }

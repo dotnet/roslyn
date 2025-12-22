@@ -145,6 +145,16 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
 
+                // System_String__ConcatReadOnlySpanString
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
                 // System_String__op_Equality
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -1364,6 +1374,7 @@ namespace Microsoft.CodeAnalysis
                 "Concat",                                   // System_String__Concat_2ReadOnlySpans
                 "Concat",                                   // System_String__Concat_3ReadOnlySpans
                 "Concat",                                   // System_String__Concat_4ReadOnlySpans
+                "Concat",                                   // System_String__ConcatReadOnlySpanString
                 "op_Equality",                              // System_String__op_Equality
                 "op_Inequality",                            // System_String__op_Inequality
                 "get_Length",                               // System_String__Length

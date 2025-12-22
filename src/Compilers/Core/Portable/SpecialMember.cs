@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis
         System_String__Concat_3ReadOnlySpans,
         System_String__Concat_4ReadOnlySpans,
 
+        System_String__ConcatReadOnlySpanString,
+
         System_String__op_Equality,
         System_String__op_Inequality,
         System_String__Length,
