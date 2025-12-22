@@ -119,14 +119,14 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
 
         private static readonly TestComposition s_editorFeaturesOOPComposition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
-        protected override Task<Workspace> CreateWorkspaceImplAsync()
+        protected override async Task<Workspace> CreateWorkspaceImplAsync()
         {
             if (TestHost == TestHost.InProcess)
-                return base.CreateWorkspaceImplAsync();
+                return await base.CreateWorkspaceImplAsync().ConfigureAwait(false);
 
             var hostServices = s_editorFeaturesOOPComposition.GetHostServices();
             var workspace = new AdhocWorkspace(hostServices);
-            return Task.FromResult<Workspace>(workspace);
+            return workspace;
         }
 #endif
     }

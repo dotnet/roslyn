@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
@@ -69,21 +68,13 @@ internal sealed class RoslynPackage : AbstractPackage
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
 
         return;
 
-        Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+        async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            return ProfferServiceBrokerServicesAsync(cancellationToken);
-        }
-
-        Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
-        {
-            var settingsEditorFactory = SettingsEditorFactory.GetInstance();
-            RegisterEditorFactory(settingsEditorFactory);
-
-            return Task.CompletedTask;
+            await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
+            await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
     }
 
@@ -91,25 +82,14 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
 
-        afterPackageLoadedTasks.AddTask(isMainThreadTask: false, task: OnAfterPackageLoadedBackgroundThreadAsync);
         afterPackageLoadedTasks.AddTask(isMainThreadTask: true, task: OnAfterPackageLoadedMainThreadAsync);
 
         return;
 
-        Task OnAfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
-        {
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            _ = ComponentModel.GetService<IGlobalOptionService>();
-
-            return Task.CompletedTask;
-        }
-
-        Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
+        async Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
         {
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-            return Task.CompletedTask;
         }
     }
 
@@ -120,12 +100,12 @@ internal sealed class RoslynPackage : AbstractPackage
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
-            (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+            async (_, _, _, _) => new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>()));
 
         // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+            async (_, _, _, _) => new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>()));
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -166,8 +146,8 @@ internal sealed class RoslynPackage : AbstractPackage
     protected override string GetToolWindowTitle(Type toolWindowType, int id)
             => base.GetToolWindowTitle(toolWindowType, id);
 
-    protected override Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
-        => Task.FromResult((object?)null);
+    protected override async Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        => (object?)null;
 
     private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
     {

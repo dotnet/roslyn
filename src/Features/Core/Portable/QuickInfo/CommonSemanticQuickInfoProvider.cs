@@ -168,7 +168,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var symbols = tokenInformation.Symbols;
 
         // if generating quick info for an attribute, prefer bind to the class instead of the constructor
-        if (syntaxFactsService.IsNameOfAttribute(token.Parent!))
+        if (syntaxFactsService.IsNameOfAttribute(token.Parent))
         {
             symbols = [.. symbols.OrderBy((s1, s2) =>
                 s1.Kind == s2.Kind ? 0 :
@@ -185,8 +185,8 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
     protected abstract bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found);
 
-    protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
-        => Task.FromResult<OnTheFlyDocsInfo?>(null);
+    protected virtual async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
+        => null;
 
     protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
 

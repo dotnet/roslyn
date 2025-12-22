@@ -75,13 +75,13 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
     protected override int GetTargetCaretPosition(PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)
         => propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         var identifier = propertyDeclaration.Identifier;
         var type = propertyDeclaration.Type;
 
-        return
-        [
+        return [
             new SnippetPlaceholder(type.ToString(), type.SpanStart),
             new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart),
         ];

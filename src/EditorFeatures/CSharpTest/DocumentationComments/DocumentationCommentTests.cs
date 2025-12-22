@@ -33,6 +33,26 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             """);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public void TypingCharacter_Extension()
+        => VerifyTypingCharacter("""
+            static class C
+            {
+                //$$
+                extension<T>(int i) { }
+            }
+            """, """
+            static class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+                /// <typeparam name="T"></typeparam>
+                /// <param name="i"></param>
+                extension<T>(int i) { }
+            }
+            """);
+
     [WpfFact]
     public void TypingCharacter_Record()
         => VerifyTypingCharacter("""
@@ -2053,6 +2073,169 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 }
             }
             """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_Class_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
+        };
+
+        VerifyTypingCharacter("""
+            //$$
+            class C
+            {
+            }
+            """, """
+            /// <summary>$$</summary>
+            class C
+            {
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_Method_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M() { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                void M() { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_MethodWithParameters_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M(int x, string y) { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                /// <param name="x"></param>
+                /// <param name="y"></param>
+                void M(int x, string y) { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_Property_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                public int P { get; set; }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                public int P { get; set; }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_MethodWithParameters_OnlySummary()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M(int x, string y) { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+                void M(int x, string y) { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_MethodWithParameters_OnlySummaryAndSingleLine()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true },
+            { DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M(int x, string y) { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                void M(int x, string y) { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void PressingEnter_InsideSingleLineSummary_Expands()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
+        };
+
+        VerifyPressingEnter("""
+            /// <summary>$$</summary>
+            class C
+            {
+            }
+            """, """
+            /// <summary>
+            /// $$</summary>
+            class C
+            {
+            }
+            """, globalOptions: globalOptions);
+    }
 
     protected override char DocumentationCommentCharacter
     {

@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -82,14 +83,9 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         internal SemanticModel SemanticModel { get; set; }
         internal ISymbol TypeResolutionSymbol { get; set; }
         internal int Position { get; set; }
+        internal StructuralTypeDisplayInfo TypeDisplayInfo { get; set; }
 
-        public bool AtBeginning
-        {
-            get
-            {
-                return Builder.Count == 0;
-            }
-        }
+        public bool AtBeginning => Builder.Count == 0;
 
         public SymbolDisplayFormat Format { get; internal set; }
 
@@ -286,15 +282,26 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         return state.GetText();
     }
 
-    public ImmutableArray<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
+    public ImmutableArray<TaggedText> Format(
+        string rawXmlText,
+        ISymbol symbol,
+        SemanticModel semanticModel,
+        int position,
+        SymbolDisplayFormat format,
+        StructuralTypeDisplayInfo typeDisplayInfo,
+        CancellationToken cancellationToken)
     {
         if (rawXmlText is null)
-        {
             return [];
-        }
-        //symbol = symbol.OriginalDefinition;
 
-        var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format, TypeResolutionSymbol = symbol };
+        var state = new FormatterState()
+        {
+            SemanticModel = semanticModel,
+            Position = position,
+            Format = format,
+            TypeResolutionSymbol = symbol,
+            TypeDisplayInfo = typeDisplayInfo,
+        };
 
         // In case the XML is a fragment (that is, a series of elements without a parent)
         // wrap it up in a single tag. This makes parsing it much, much easier.
@@ -337,8 +344,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         (string target, string hint)? navigationTarget = null;
 
         if (name is DocumentationCommentXmlNames.SeeElementName or
-            DocumentationCommentXmlNames.SeeAlsoElementName or
-            "a")
+                    DocumentationCommentXmlNames.SeeAlsoElementName or
+                    "a")
         {
             if (element.IsEmpty || element.FirstNode == null)
             {
@@ -359,7 +366,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             }
         }
         else if (name is DocumentationCommentXmlNames.ParameterReferenceElementName or
-                 DocumentationCommentXmlNames.TypeParameterReferenceElementName)
+                         DocumentationCommentXmlNames.TypeParameterReferenceElementName)
         {
             var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
             foreach (var attribute in element.Attributes())
@@ -369,7 +376,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
 
             return;
         }
-        else if (name is DocumentationCommentXmlNames.CElementName or "tt")
+        else if (name is DocumentationCommentXmlNames.CElementName or DocumentationCommentXmlNames.TtElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Code);
@@ -379,12 +386,12 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
         }
-        else if (name is "em" or "i")
+        else if (name is DocumentationCommentXmlNames.EmElementName or DocumentationCommentXmlNames.IElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Emphasis);
         }
-        else if (name is "strong" or "b" or DocumentationCommentXmlNames.TermElementName)
+        else if (name is DocumentationCommentXmlNames.StrongElementName or DocumentationCommentXmlNames.BElementName or DocumentationCommentXmlNames.TermElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Strong);
@@ -480,12 +487,12 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             if (kind == SymbolDisplayPartKind.TypeParameterName)
             {
                 state.AppendParts(
-                    TypeParameterRefToSymbolDisplayParts(attribute.Value, state.TypeResolutionSymbol, state.Position, state.SemanticModel, state.Format).ToTaggedText(state.Style));
+                    TypeParameterRefToSymbolDisplayParts(attribute.Value, state).ToTaggedText(state.Style));
             }
             else
             {
                 state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.TypeDisplayInfo, state.Format, kind).ToTaggedText(state.Style));
             }
         }
         else
@@ -504,7 +511,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
     }
 
     internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(
-        string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null, SymbolDisplayPartKind kind = SymbolDisplayPartKind.Text)
+        string crefValue, int position, SemanticModel semanticModel, StructuralTypeDisplayInfo typeDisplayInfo, SymbolDisplayFormat format = null, SymbolDisplayPartKind kind = SymbolDisplayPartKind.Text)
     {
         // first try to parse the symbol
         if (crefValue != null && semanticModel != null)
@@ -518,7 +525,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                     format = format.WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
                 }
 
-                return symbol.ToMinimalDisplayParts(semanticModel, position, format);
+                var parts = symbol.ToMinimalDisplayParts(semanticModel, position, format);
+                return typeDisplayInfo.ReplaceStructuralTypes(parts, semanticModel, position);
             }
         }
 
@@ -526,9 +534,14 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         return [new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue))];
     }
 
-    internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
-        string crefValue, ISymbol typeResolutionSymbol, int position, SemanticModel semanticModel, SymbolDisplayFormat format)
+    private static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
+        string crefValue, FormatterState state)
     {
+        var typeResolutionSymbol = state.TypeResolutionSymbol;
+        var semanticModel = state.SemanticModel;
+        var position = state.Position;
+        var format = state.Format;
+
         if (semanticModel != null)
         {
             var typeParameterIndex = typeResolutionSymbol.OriginalDefinition.GetAllTypeParameters().IndexOf(tp => tp.Name == crefValue);
@@ -537,7 +550,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                 var typeArgs = typeResolutionSymbol.GetAllTypeArguments();
                 if (typeArgs.Length > typeParameterIndex)
                 {
-                    return typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    var parts = typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    return state.TypeDisplayInfo.ReplaceStructuralTypes(parts, semanticModel, position);
                 }
             }
         }

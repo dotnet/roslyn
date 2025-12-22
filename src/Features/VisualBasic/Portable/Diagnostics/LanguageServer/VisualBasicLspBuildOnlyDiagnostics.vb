@@ -14,7 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
         "BC31091", ' ERRID.ERR_TypeRefResolutionError3,
         "BC35000", ' ERRID.ERR_MissingRuntimeHelper,
         "BC36597", ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
-        "BC37327"  ' ERRID.ERR_SymbolDefinedInAssembly
+        "BC37327", ' ERRID.ERR_SymbolDefinedInAssembly
+        "BC36934", ' ERRID.ERR_AsyncSubMain
+        "BC36983", ' ERRID.ERR_EncUpdateFailedMissingSymbol,
+        "BC37230", ' ERRID.ERR_EncNoPIAReference,
+        "BC37248", ' ERRID.ERR_EncReferenceToAddedMember,
+        "BC37339"  ' ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
     )>
     <[Shared]>
     Friend NotInheritable Class VisualBasicLspBuildOnlyDiagnostics

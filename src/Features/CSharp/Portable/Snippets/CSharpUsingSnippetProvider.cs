@@ -25,7 +25,8 @@ internal sealed class CSharpUsingSnippetProvider() : AbstractUsingSnippetProvide
 
     public override string Description => CSharpFeaturesResources.using_statement;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(UsingStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, UsingStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         var expression = node.Expression!;
         return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];

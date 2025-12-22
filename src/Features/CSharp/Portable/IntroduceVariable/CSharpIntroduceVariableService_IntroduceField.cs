@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,14 +22,20 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpIntroduceVariableService
 {
-    protected override Task<Document> IntroduceFieldAsync(
+    protected override async Task<Document> IntroduceFieldAsync(
         SemanticDocument document,
         ExpressionSyntax expression,
         bool allOccurrences,
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        var oldTypeDeclaration = expression.GetAncestorOrThis<TypeDeclarationSyntax>();
+        // Get the ancestor TypeDeclarationSyntax that is NOT an ExtensionBlockDeclarationSyntax.
+        // Extension blocks can't contain fields, so we need to find the containing class/struct.
+        //
+        // Note, this can be revised in the future as we do expect to allow constants/static in
+        // extension blocks in a future version of the language.
+        var oldTypeDeclaration = expression.GetAncestorsOrThis<TypeDeclarationSyntax>()
+            .FirstOrDefault(t => t is not ExtensionBlockDeclarationSyntax);
 
         var oldType = oldTypeDeclaration != null
             ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken)
@@ -61,7 +68,7 @@ internal sealed partial class CSharpIntroduceVariableService
             var finalTypeDeclaration = InsertMember(newTypeDeclaration, newFieldDeclaration, insertionIndex);
 
             var newRoot = document.Root.ReplaceNode(oldTypeDeclaration, finalTypeDeclaration);
-            return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+            return document.Document.WithSyntaxRoot(newRoot);
         }
         else
         {
@@ -74,7 +81,7 @@ internal sealed partial class CSharpIntroduceVariableService
                 : DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
             var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
-            return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+            return document.Document.WithSyntaxRoot(newRoot);
         }
     }
 

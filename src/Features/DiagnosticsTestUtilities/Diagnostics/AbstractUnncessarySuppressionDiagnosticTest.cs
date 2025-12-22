@@ -48,7 +48,7 @@ public abstract class AbstractUnnecessarySuppressionDiagnosticTest(ITestOutputHe
     {
         AddAnalyzersToWorkspace(workspace);
 
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
 
         // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
         var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true);

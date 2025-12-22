@@ -466,13 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return WellKnownMemberNames.DestructorName;
                     case SyntaxKind.OperatorDeclaration:
                         var operatorDeclaration = (OperatorDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, baseMethodDeclarationSyntax.Modifiers, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
                     case SyntaxKind.ConversionOperatorDeclaration:
                         var conversionDeclaration = (ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, baseMethodDeclarationSyntax.Modifiers, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
                     case SyntaxKind.MethodDeclaration:
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, baseMethodDeclarationSyntax.Modifiers, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(baseMethodDeclarationSyntax.Kind());
                 }
@@ -491,13 +491,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.PropertyDeclaration:
                         var propertyDecl = (PropertyDeclarationSyntax)basePropertyDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, propertyDecl.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, basePropertyDeclarationSyntax.Modifiers, explicitInterfaceSpecifierSyntax, propertyDecl.Identifier.ValueText);
                     case SyntaxKind.IndexerDeclaration:
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, WellKnownMemberNames.Indexer);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, basePropertyDeclarationSyntax.Modifiers, explicitInterfaceSpecifierSyntax, WellKnownMemberNames.Indexer);
                     case SyntaxKind.EventDeclaration:
                     case SyntaxKind.EventFieldDeclaration:
                         var eventDecl = (EventDeclarationSyntax)basePropertyDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, eventDecl.Modifiers, explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(basePropertyDeclarationSyntax.Kind());
                 }
@@ -1175,8 +1175,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (elementKind)
                 {
                     case XmlNameAttributeElementKind.Parameter:
-                    case XmlNameAttributeElementKind.ParameterReference:
                         extraInfo = NodeUsage.DocumentationCommentParameter;
+                        break;
+                    case XmlNameAttributeElementKind.ParameterReference:
+                        extraInfo = NodeUsage.DocumentationCommentParameterReference;
                         break;
                     case XmlNameAttributeElementKind.TypeParameter:
                         extraInfo = NodeUsage.DocumentationCommentTypeParameter;
@@ -1236,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, bool isParamRef, Binder nextBinder)
             {
-                if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
+                if (memberSyntax is BaseMethodDeclarationSyntax baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
@@ -1246,7 +1248,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         nextBinder = new WithExtensionParameterBinder(method.ContainingType, nextBinder);
                     }
 
-                    return new WithParametersBinder(method.Parameters, nextBinder);
+                    if (method.ParameterCount > 0)
+                    {
+                        return new WithParametersBinder(method.Parameters, nextBinder);
+                    }
+                    else
+                    {
+                        return nextBinder;
+                    }
                 }
                 else if (memberSyntax is ExtensionBlockDeclarationSyntax extensionDeclaration)
                 {

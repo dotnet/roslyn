@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
-internal interface IBackgroundWorkIndicatorContext : IUIThreadOperationContext, IAsyncDisposable
+internal interface IBackgroundWorkIndicatorContext : IUIThreadOperationContext
 {
     /// <summary>
     /// Allows clients to temporarily suppress auto cancel behaviors when they want to apply edits or navigate without canceling.

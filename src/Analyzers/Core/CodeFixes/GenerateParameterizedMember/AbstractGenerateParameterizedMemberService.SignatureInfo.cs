@@ -105,7 +105,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 attributes: default,
                 accessibility: DetermineAccessibility(isAbstract),
                 modifiers: DeclarationModifiers.None
-                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(knownTypes.IsTaskLike(returnType)),
+                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(!isAbstract && knownTypes.IsTaskLike(returnType)),
                 returnType: returnType,
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,

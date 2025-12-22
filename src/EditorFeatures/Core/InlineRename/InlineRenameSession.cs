@@ -769,10 +769,9 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
             // any of that work and then only have the work of rolling back to the original state of the world
             // and applying the desired edits ourselves.
             var factory = Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            var context = factory.Create(
+            using var context = factory.Create(
                 _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                 cancelOnEdit: false, cancelOnFocusLost: false);
-            await using var _ = context.ConfigureAwait(false);
 
             // .ConfigureAwait(true); so we can return to the UI thread to dispose the operation context.  It
             // has a non-JTF threading dependency on the main thread.  So it can deadlock if you call it on a BG

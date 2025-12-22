@@ -131,39 +131,36 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         }
     }
 
-    public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
+    internal static async ValueTask HydrateDocumentsAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var documentTasks =
+            from project in solution.Projects
+            where project.SupportsEditAndContinue()
+            from documentState in GetDocumentStates(project.State)
+            where documentState.SupportsEditAndContinue()
+            select documentState.GetTextAsync(cancellationToken).AsTask();
+
+        _ = await Task.WhenAll(documentTasks).ConfigureAwait(false);
+
+        static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
+            => ((IEnumerable<TextDocumentState>)projectState.DocumentStates.States.Values).Concat(
+                projectState.AdditionalDocumentStates.States.Values).Concat(
+                projectState.AnalyzerConfigDocumentStates.States.Values);
+    }
+
+    public DebuggingSessionId StartDebuggingSession(
         Solution solution,
         IManagedHotReloadService debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
-        ImmutableArray<DocumentId> captureMatchingDocuments,
-        bool captureAllMatchingDocuments,
-        bool reportDiagnostics,
-        CancellationToken cancellationToken)
+        bool reportDiagnostics)
     {
         try
         {
-            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
-
-            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
-
-            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
-            {
-                var documentsByProject = captureAllMatchingDocuments
-                    ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
-                    : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
-
-                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(Log, documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                initialDocumentStates = [];
-            }
-
             // Make sure the solution snapshot has all source-generated documents up-to-date:
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, Log, AnalysisLog, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
@@ -174,18 +171,11 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             return sessionId;
 
         }
-        catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+        catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
         {
             throw ExceptionUtilities.Unreachable();
         }
     }
-
-    private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)
-        => from documentId in documentIds
-           where solution.ContainsDocument(documentId)
-           group documentId by documentId.ProjectId into projectDocumentIds
-           let project = solution.GetRequiredProject(projectDocumentIds.Key)
-           select (project, from documentId in projectDocumentIds select project.State.DocumentStates.GetState(documentId));
 
     public void EndDebuggingSession(DebuggingSessionId sessionId)
     {
@@ -217,7 +207,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             cancellationToken);
     }
 
-    public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+    public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSessionId sessionId,
         Solution solution,
         ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
@@ -227,10 +217,10 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ValueTask.FromResult(EmitSolutionUpdateResults.Empty);
+            return EmitSolutionUpdateResults.Empty;
         }
 
-        return debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken);
+        return await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
     }
 
     public void CommitSolutionUpdate(DebuggingSessionId sessionId)
@@ -249,7 +239,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         debuggingSession.DiscardSolutionUpdate();
     }
 
-    public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
@@ -257,18 +247,18 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             return default;
         }
 
-        return debuggingSession.GetBaseActiveStatementSpansAsync(solution, documentIds, cancellationToken);
+        return await debuggingSession.GetBaseActiveStatementSpansAsync(solution, documentIds, cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument mappedDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument mappedDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
     {
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+            return ImmutableArray<ActiveStatementSpan>.Empty;
         }
 
-        return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);
+        return await debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor()

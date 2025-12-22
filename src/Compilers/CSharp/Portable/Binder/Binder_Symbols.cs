@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1342,6 +1344,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Binds the <see cref="TypeSyntax"/> nodes in <paramref name="typeArguments"/> from some <see
+        /// cref="GenericNameSyntax.TypeArgumentList"/> and returns the actual types referenced.  In the case of a <see
+        /// cref="OmittedTypeArgumentSyntax"/> a <see cref="UnboundArgumentErrorTypeSymbol.Instance"/> will be returned
+        /// as the type.  No diagnostics are issued in that case.  Callers must check for omitted type arguments and
+        /// issue a diagnostic if in a context where they are not allowed.  For example, an omitted type argument is
+        /// allowed in <c><![CDATA[typeof(List<>)]]></c> or <c><![CDATA[nameof(List<>)]]></c> (the latter in C# 14 and
+        /// above).  However they are not allowed in a regular type reference, or invocation (like
+        /// <c><![CDATA[x.M<>()]]></c>)
+        /// </summary>
         private ImmutableArray<TypeWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(typeArguments.Count > 0);
@@ -1514,16 +1526,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, right, receiver.Type, plainName);
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [receiver], receiver.Type, hasErrors: true).MakeCompilerGenerated();
+                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [AdjustBadExpressionChild(receiver)], receiver.Type, hasErrors: true).MakeCompilerGenerated();
             }
 
             return receiver;
 
             bool isPossiblyCapturingPrimaryConstructorParameterReference(BoundExpression receiver, out ParameterSymbol parameterSymbol)
             {
-                BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
+                Symbol colorColorValueSymbol = GetValueSymbolIfTypeOrValueReceiver(receiver);
 
-                if (colorColorValueReceiver is BoundParameter { ParameterSymbol: { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter } &&
+                if (colorColorValueSymbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
                     IsInDeclaringTypeInstanceMember(primaryConstructor) &&
                     !InFieldInitializer &&
                     this.ContainingMember() != (object)primaryConstructor &&
@@ -1584,8 +1596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(symbol.GetIsNewExtensionMember());
-                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(this.Compilation, symbol, receiverType) is { } compatibleSubstitutedMember)
+                            Debug.Assert(symbol.IsExtensionBlockMember());
+                            if (SourceNamedTypeSymbol.ReduceExtensionMember(this.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 if (compatibleSubstitutedMember.IsStatic)
                                 {
@@ -1836,6 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(compilation, type, diagnostics, node.Location);
         }
 
+#nullable enable
         internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location)
         {
             NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
@@ -1843,6 +1856,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUseSite(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
+
+        internal static bool TryGetOptionalWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location, [NotNullWhen(true)] out NamedTypeSymbol? typeSymbol)
+        {
+            typeSymbol = compilation.GetWellKnownType(type);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
+            var useSiteInfo = typeSymbol.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                typeSymbol = null;
+                return false;
+            }
+
+            // Ignore warnings
+            useSiteInfo = new UseSiteInfo<AssemblySymbol>(diagnosticInfo: null, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies);
+            diagnostics.Add(useSiteInfo, location);
+            return true;
+        }
+#nullable disable
 
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known

@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -20,7 +21,8 @@ internal abstract class AbstractConditionalBlockSnippetProvider<TStatementSyntax
     protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
         => type.SpecialType == SpecialType.System_Boolean;
 
-    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected sealed override async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, TStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         if (ConstructedFromInlineExpression)
             return [];

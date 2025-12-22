@@ -113,7 +113,7 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_linq,
-                c => ApplyConversionAsync(queryConverter, document, convertToQuery: true, c),
+                cancellationToken => ApplyConversionAsync(queryConverter, document, convertToQuery: true, cancellationToken),
                 nameof(FeaturesResources.Convert_to_linq)),
             forEachStatement.Span);
 
@@ -136,13 +136,13 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Convert_to_linq_call_form,
-                    c => ApplyConversionAsync(linqConverter, document, convertToQuery: false, c),
+                    cancellationToken => ApplyConversionAsync(linqConverter, document, convertToQuery: false, cancellationToken),
                     nameof(FeaturesResources.Convert_to_linq_call_form)),
                 forEachStatement.Span);
         }
     }
 
-    private Task<Document> ApplyConversionAsync(
+    private async Task<Document> ApplyConversionAsync(
         IConverter<TForEachStatement, TStatement> converter,
         Document document,
         bool convertToQuery,
@@ -152,7 +152,7 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
         converter.Convert(editor, convertToQuery, cancellationToken);
         var newRoot = editor.GetChangedRoot();
         var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);
-        return Task.FromResult(document.WithSyntaxRoot(rootWithLinqUsing));
+        return document.WithSyntaxRoot(rootWithLinqUsing);
     }
 
     /// <summary>

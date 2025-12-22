@@ -5064,9 +5064,9 @@ public class FirstClassSpanTests : CSharpTestBase
             // (5,7): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(a.M<int>);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<int>").WithArguments("int[]", "M").WithLocation(5, 7),
-            // (6,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // (6,12): error CS0411: The type arguments for method 'C.M<T>(Span<T>, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // C.R(x => a.M(x));
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 12),
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(System.Span<T>, int)").WithLocation(6, 12),
             // (7,10): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M<int>(Span<int>, int)' requires a receiver of type 'System.Span<int>'
             // C.R(x => a.M<int>(x));
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(7, 10));
@@ -5114,9 +5114,9 @@ public class FirstClassSpanTests : CSharpTestBase
             // (5,10): error CS8917: The delegate type could not be inferred.
             // var d2 = x => a.M(x);
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10),
-            // (6,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // (6,23): error CS0411: The type arguments for method 'C.M<T>(Span<T>, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // var d3 = (int x) => a.M(x);
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 23),
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(System.Span<T>, int)").WithLocation(6, 23),
             // (7,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // var d4 = a.M<int>;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<int>").WithArguments("int[]", "M").WithLocation(7, 12),
@@ -5129,9 +5129,9 @@ public class FirstClassSpanTests : CSharpTestBase
             // (10,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // Func<int, int> d7 = a.M;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(10, 23),
-            // (11,28): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // (11,28): error CS0411: The type arguments for method 'C.M<T>(Span<T>, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // Func<int, int> d8 = x => a.M(x);
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(11, 28));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(System.Span<T>, int)").WithLocation(11, 28));
 
         var expectedDiagnostics = new[]
         {
@@ -6704,9 +6704,9 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (4,44): error CS1061: 'int[]' does not contain a definition for 'E' and no accessible extension method 'E' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // (4,44): error CS0411: The type arguments for method 'C.E<T>(Span<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //     public static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E").WithArguments("int[]", "E").WithLocation(4, 44));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "E").WithArguments("C.E<T>(System.Span<T>)").WithLocation(4, 44));
 
         var expectedIl = """
             {

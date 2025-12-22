@@ -29,6 +29,8 @@ public static partial class FormattedClassifications
         public static FormattedClassification Semicolon { get; } = New(";");
         public static FormattedClassification Colon { get; } = New(":");
         public static FormattedClassification DotDot { get; } = New("..");
+        public static FormattedClassification XmlOpenAngle { get; } = New("&lt;");
+        public static FormattedClassification XmlCloseAngle { get; } = New("&gt;");
 
         [DebuggerStepThrough]
         public static FormattedClassification Text(string text) => New(text);

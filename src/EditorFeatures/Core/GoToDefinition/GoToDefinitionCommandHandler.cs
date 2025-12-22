@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
+[Order(Before = PredefinedCommandHandlerNames.LspGoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class GoToDefinitionCommandHandler(
@@ -109,10 +110,9 @@ internal sealed class GoToDefinitionCommandHandler(
             ? new SnapshotSpan(position, position + 1)
             : new SnapshotSpan(position - 1, position);
 
-        var backgroundIndicator = indicatorFactory.Create(
+        using (var backgroundIndicator = indicatorFactory.Create(
             args.TextView, applicableToSpan,
-            EditorFeaturesResources.Navigating_to_definition);
-        await using (var _1 = backgroundIndicator.ConfigureAwait(false))
+            EditorFeaturesResources.Navigating_to_definition))
         {
             var cancellationToken = backgroundIndicator.UserCancellationToken;
 

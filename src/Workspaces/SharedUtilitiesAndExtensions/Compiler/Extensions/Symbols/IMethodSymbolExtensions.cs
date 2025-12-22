@@ -15,6 +15,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class IMethodSymbolExtensions
 {
+#if !ROSLYN_4_12_OR_LOWER
+    internal static IMethodSymbol? TryGetCorrespondingExtensionBlockMethod(this IMethodSymbol methodSymbol)
+    {
+        if (methodSymbol is { IsStatic: true, IsImplicitlyDeclared: true, ContainingType.MightContainExtensionMethods: true })
+        {
+            // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
+            // Tracked by https://github.com/dotnet/roslyn/issues/81686
+
+            foreach (var nestedType in methodSymbol.ContainingType.GetTypeMembers())
+            {
+                if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
+                    continue;
+
+                foreach (var member in nestedType.GetMembers())
+                {
+                    if (member is IMethodSymbol method &&
+                        Equals(method.AssociatedExtensionImplementation, methodSymbol))
+                    {
+                        return method;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+#endif
+
     /// <summary>
     /// Returns the methodSymbol and any partial parts.
     /// </summary>
@@ -122,5 +150,34 @@ internal static partial class IMethodSymbolExtensions
         // `Task` type doesn't have an `AsyncMethodBuilder` attribute, so we need to check for it separately
         return method.ReturnType.Equals(compilation.TaskType()) ||
                method.ReturnType.HasAttribute(compilation.AsyncMethodBuilderAttribute());
+    }
+
+    /// <summary>
+    /// Returns true if the method is a primary constructor.
+    /// Primary constructors are not implicitly declared and have their declaring syntax reference
+    /// on the type declaration itself (not a separate constructor declaration).
+    /// </summary>
+    public static bool IsPrimaryConstructor(this IMethodSymbol constructor)
+    {
+        if (constructor.IsImplicitlyDeclared)
+            return false;
+
+        if (constructor.DeclaringSyntaxReferences is not [{ SyntaxTree: var constructorSyntaxTree, Span: var constructorSpan }])
+            return false;
+
+        // Primary constructors have their declaring syntax on the containing type's declaration
+        var containingType = constructor.ContainingType;
+        if (containingType.DeclaringSyntaxReferences.Length == 0)
+            return false;
+
+        // Check if any of the containing type's syntax references match the constructor's syntax tree
+        // and are at the same location (same syntax node)
+        foreach (var typeRef in containingType.DeclaringSyntaxReferences)
+        {
+            if (typeRef.SyntaxTree == constructorSyntaxTree && typeRef.Span == constructorSpan)
+                return true;
+        }
+
+        return false;
     }
 }

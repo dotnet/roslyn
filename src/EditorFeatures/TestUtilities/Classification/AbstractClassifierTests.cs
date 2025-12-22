@@ -62,7 +62,7 @@ public abstract class AbstractClassifierTests
         }
 
         var actual = await GetClassificationSpansAsync(allCode, spans, parseOptions, testHost);
-
+        actual = actual.WhereAsArray(a => a.ClassificationType != ClassificationTypeNames.TestCode);
         var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
         var actualFormatted = actualOrdered.SelectAsArray(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));

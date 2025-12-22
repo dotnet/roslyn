@@ -42,7 +42,7 @@ internal sealed class ContainerElementConverter : JsonConverter<ContainerElement
                                 if (reader.TokenType == JsonTokenType.EndArray)
                                     break;
 
-                                objects.Add(ObjectContentConverter.Instance.Read(ref reader, typeof(object), options)!);
+                                objects.Add(ObjectContentConverter.Instance.Read(ref reader, typeof(object), options));
                             }
 
                             break;

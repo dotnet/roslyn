@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return [];
             }
 
-            Debug.Assert(sortedSymbols.All(s => s.GetIsNewExtensionMember()));
+            Debug.Assert(sortedSymbols.All(s => s.IsExtensionBlockMember()));
 
             return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
 
@@ -341,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (result.Kind == LookupResultKind.Viable)
                         {
+                            Debug.Assert(result.Symbol is not null);
                             sortedSymbolsBuilder ??= ArrayBuilder<Symbol>.GetInstance();
                             sortedSymbolsBuilder.Add(result.Symbol);
                         }
@@ -907,7 +908,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CrefSyntax crefSyntax = GetRootCrefSyntax(memberSyntax);
                     int otherIndex = symbolIndex == 0 ? 1 : 0;
-                    diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(), symbol, symbols[otherIndex]);
+                    diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(),
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                        new FormattedSymbol(symbols[otherIndex], SymbolDisplayFormat.CSharpErrorMessageFormat));
 
                     ambiguityWinner = ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, symbol);
                     return symbols.SelectAsArray(sym => ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, sym));

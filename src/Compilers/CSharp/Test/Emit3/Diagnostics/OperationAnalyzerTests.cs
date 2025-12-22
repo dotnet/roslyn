@@ -1310,14 +1310,14 @@ class C
                     int i;
                     for (i = 0; i < count; i++)
                     {
-                        builder.Append(i + 1);
+                        builder.Append((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                         builder.Append(" * ");
                         builder.Append("f[");
-                        builder.Append(i);
+                        builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         builder.Append("] + ");
                     }
 
-                    builder.Append(i + 1);
+                    builder.Append((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                     return builder.ToString();
                 };

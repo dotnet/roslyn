@@ -110,6 +110,63 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("dynamic"));
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
+    public Task ArrayTypeAlias(TestHost testHost)
+        => TestAsync(
+            """
+            using IntArray = int[];
+
+            class C
+            {
+                void M()
+                {
+                    IntArray a = new int[10];
+                }
+            }
+            """,
+            testHost,
+            Array("IntArray"),
+            Array("IntArray"));
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
+    public Task PointerTypeAlias(TestHost testHost)
+        => TestAsync(
+            """
+            using IntPointer = int*;
+
+            class C
+            {
+                unsafe void M()
+                {
+                    IntPointer p;
+                }
+            }
+            """,
+            testHost,
+            Pointer("IntPointer"),
+            Pointer("IntPointer"));
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
+    public Task FunctionPointerTypeAlias(TestHost testHost)
+        => TestAsync(
+            """
+            using MethodPtr = delegate*<int, void>;
+
+            class C
+            {
+                unsafe void M()
+                {
+                    MethodPtr ptr;
+                }
+            }
+            """,
+            testHost,
+            FunctionPointer("MethodPtr"),
+            FunctionPointer("MethodPtr"));
+
+    [Theory, CombinatorialData]
     public Task DynamicAsDelegateName(TestHost testHost)
         => TestAsync(
             """

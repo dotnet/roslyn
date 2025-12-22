@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -55,7 +56,8 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
     protected override bool CanInsertStatementAfterToken(SyntaxToken token)
         => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
-    protected override ForEachStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    protected override ForEachStatementSyntax GenerateStatement(
+        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var position = syntaxContext.Position;
@@ -109,7 +111,8 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
     /// Goes through each piece of the foreach statement and extracts the identifiers
     /// as well as their locations to create SnippetPlaceholder's of each.
     /// </summary>
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForEachStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, ForEachStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
         arrayBuilder.Add(new SnippetPlaceholder(node.Identifier.ToString(), node.Identifier.SpanStart));

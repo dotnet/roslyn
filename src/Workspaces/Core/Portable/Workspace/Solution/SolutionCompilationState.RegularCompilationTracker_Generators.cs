@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -13,10 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -108,6 +106,7 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
+            var projectId = this.ProjectState.Id;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
@@ -116,14 +115,23 @@ internal sealed partial class SolutionCompilationState
             // We're going to be making multiple calls over to OOP.  No point in resyncing data multiple times.  Keep a
             // single connection, and keep this solution instance alive (and synced) on both sides of the connection
             // throughout the calls.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the connection.  All subsequent
+            // uses of this connection must do that aas well. This ensures that all calls will see the same exact
+            // snapshot on the OOP side, which is necessary for the GetSourceGeneratedDocumentInfoAsync and
+            // GetContentsAsync calls to see the exact same data and return sensible results.
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
-            using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            using var _ = await RemoteKeepAliveSession.CreateAsync(
+                compilationState, projectId, cancellationToken).ConfigureAwait(false);
 
             // First, grab the info from our external host about the generated documents it has for this project.  Note:
             // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
             // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
             // any overlaid 'frozen' source generated documents.
-            var projectId = this.ProjectState.Id;
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures the call to GetContentsAsync below sees the exact same solution
+            // instance as this call.
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
@@ -193,6 +201,10 @@ internal sealed partial class SolutionCompilationState
             // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
             // side reflects that by asking for the real source generated docs, and *not* any overlaid 'frozen' source
             // generated documents.
+            //
+            // CRITICAL: We pass the "compilationState+projectId" as the context for the invocation, matching the
+            // KeepAliveSession above.  This ensures that we see the exact same solution instance on the OOP side as the
+            // call to GetSourceGeneratedDocumentInfoAsync above.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
@@ -269,16 +281,6 @@ internal sealed partial class SolutionCompilationState
             if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
 
-            // Hold onto the prior results so we can compare when filtering
-            var priorRunResult = generatorDriver?.GetRunResult();
-
-            // If we don't already have an existing generator driver, create one from scratch
-            generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
-
-            CheckGeneratorDriver(generatorDriver, this.ProjectState);
-
-            Contract.ThrowIfNull(generatorDriver);
-
             // HACK HACK HACK HACK to address https://github.com/dotnet/roslyn/issues/59818. There, we were running into issues where
             // a generator being present and consuming syntax was causing all red nodes to be processed. This was problematic when
             // Razor design time files are also fed in, since those files tend to be quite large. The Razor design time files
@@ -298,9 +300,19 @@ internal sealed partial class SolutionCompilationState
             var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
             // END HACK HACK HACK HACK.
 
-            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken);
+            // Hold onto the prior results so we can compare when filtering
+            var priorRunResult = generatorDriver?.GetRunResult();
 
-            Contract.ThrowIfNull(generatorDriver);
+            if (generatorDriver == null)
+            {
+                generatorDriver = await compilationState.GeneratorDriverCache.CreateAndRunGeneratorDriverAsync(this.ProjectState, compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken);
+            }
+
+            CheckGeneratorDriver(generatorDriver, this.ProjectState);
 
             var runResult = generatorDriver.GetRunResult();
 
@@ -424,20 +436,6 @@ internal sealed partial class SolutionCompilationState
                 }
 
                 return null;
-            }
-
-            static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
-            {
-                var generatedFilesBaseDirectory = projectState.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory();
-                var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
-
-                return compilationFactory.CreateGeneratorDriver(
-                    projectState.ParseOptions!,
-                    GetSourceGenerators(projectState),
-                    projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts,
-                    generatedFilesBaseDirectory);
             }
 
             [Conditional("DEBUG")]

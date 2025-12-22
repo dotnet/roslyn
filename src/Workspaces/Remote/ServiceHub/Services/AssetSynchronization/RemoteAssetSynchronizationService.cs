@@ -46,11 +46,10 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
         }, cancellationToken);
     }
 
-    public ValueTask SynchronizeActiveDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken)
+    public async ValueTask SynchronizeActiveDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken)
     {
         var documentTrackingService = GetWorkspace().Services.GetRequiredService<IDocumentTrackingService>() as RemoteDocumentTrackingService;
         documentTrackingService?.SetActiveDocument(documentId);
-        return ValueTask.CompletedTask;
     }
 
     public ValueTask SynchronizeTextChangesAsync(

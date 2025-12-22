@@ -118,7 +118,7 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
         public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
             => throw ExceptionUtilities.Unreachable();
 
-        public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
+        public async ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
         {
             var pipePair = FullDuplexStream.CreatePipePair();
 
@@ -145,7 +145,7 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
 
             clientConnection.StartListening();
 
-            return ValueTask.FromResult((T?)clientConnection.ConstructRpcClient<T>());
+            return (T?)clientConnection.ConstructRpcClient<T>();
         }
     }
 
@@ -191,7 +191,7 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
             RegisterRemoteBrokeredService(new RemoteEditAndContinueService.Factory());
             RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
             RegisterRemoteBrokeredService(new RemoteExtensionMessageHandlerService.Factory());
-            RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
+            RegisterRemoteBrokeredService(new RemoteExtensionMemberImportCompletionService.Factory());
             RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
             RegisterRemoteBrokeredService(new RemoteFullyQualifyService.Factory());
             RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
@@ -202,7 +202,6 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
             RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
             RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
             RegisterRemoteBrokeredService(new RemoteProcessTelemetryService.Factory());
-            RegisterRemoteBrokeredService(new RemoteRelatedDocumentsService.Factory());
             RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
             RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
             RegisterRemoteBrokeredService(new RemoteSemanticSearchService.Factory());

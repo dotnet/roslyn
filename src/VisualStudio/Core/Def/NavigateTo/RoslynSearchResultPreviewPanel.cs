@@ -34,8 +34,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
 
             UserInterface = new CodeEditorModel(
                 nameof(RoslynSearchResultPreviewPanel),
-                new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
-                    Task.FromResult(new TextDocumentLocation(uri, projectGuid, span)),
+                new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(async () =>
+                    new TextDocumentLocation(uri, projectGuid, span),
                     provider._threadingContext.JoinableTaskFactory),
                 isEditable: true);
         }

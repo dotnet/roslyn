@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,16 +16,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 
+using static VirtualCharUtilities;
+
 [ExportEmbeddedLanguageClassifier(
     PredefinedEmbeddedLanguageNames.CSharpTest, [LanguageNames.CSharp], supportsUnannotatedAPIs: false,
-    PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
+    PredefinedEmbeddedLanguageNames.CSharpTest, LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguageClassifier
 {
-    private static TextSpan FromBounds(VirtualChar vc1, VirtualChar vc2)
-        => TextSpan.FromBounds(vc1.Span.Start, vc2.Span.End);
-
     public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
     {
         var cancellationToken = context.CancellationToken;
@@ -45,11 +43,17 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // the token has diagnostics).
 
         cancellationToken.ThrowIfCancellationRequested();
+        using var _ = ArrayBuilder<VirtualChar>.GetInstance(virtualCharsWithMarkup.Length, out var virtualCharsBuilder);
+        foreach (var vc in virtualCharsWithMarkup)
+            virtualCharsBuilder.Add(vc);
 
-        using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
+        // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
+        // Otherwise, process the C# code as-is.
+        var (virtualCharsWithoutMarkup, markdownSpans) = StringComparer.OrdinalIgnoreCase.Equals(context.LanguageIdentifier, PredefinedEmbeddedLanguageNames.CSharpTest)
+            ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
+            : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
 
         // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
-        var virtualCharsWithoutMarkup = StripMarkupCharacters(virtualCharsWithMarkup, markdownSpans, cancellationToken);
         foreach (var span in markdownSpans)
             context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
@@ -93,195 +97,12 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // components. Note: markdown components may be in between individual language components.  For example
         // `ret$$urn`.  This will break the `return` classification into two individual classifications around the
         // `$$` classification.
-        var testFileClassifiedSpans = GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
-        foreach (var testClassifiedSpan in testFileClassifiedSpans)
-            AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
-    }
+        var testFileClassifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
+            context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
 
-    private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
-        Host.SolutionServices solutionServices, SemanticModel semanticModel,
-        ImmutableSegmentedList<VirtualChar> virtualCharsWithoutMarkup, CancellationToken cancellationToken)
-    {
-        var compilation = semanticModel.Compilation;
-        var encoding = semanticModel.SyntaxTree.Encoding;
-        var testFileSourceText = new VirtualCharSequenceSourceText(virtualCharsWithoutMarkup, encoding);
-
-        var testFileTree = SyntaxFactory.ParseSyntaxTree(testFileSourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
-        var compilationWithTestFile = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
-        var semanticModeWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
-
-        var testFileClassifiedSpans = Classifier.GetClassifiedSpans(
-            solutionServices,
-            project: null,
-            semanticModeWithTestFile,
-            new TextSpan(0, virtualCharsWithoutMarkup.Count),
-            ClassificationOptions.Default,
-            cancellationToken);
-        return testFileClassifiedSpans;
-    }
-
-    /// <summary>
-    /// Takes a <see cref="VirtualCharSequence"/> and returns the same characters from it, without any characters
-    /// corresponding to test markup (e.g. <c>$$</c> and the like).  Because the virtual chars contain their
-    /// original text span, these final virtual chars can be used both as the underlying source of a <see
-    /// cref="SourceText"/> (which only cares about their <see cref="char"/> value), as well as the way to then map
-    /// positions/spans within that <see cref="SourceText"/> to actual full virtual char spans in the original
-    /// document for classification.
-    /// </summary>
-    private static ImmutableSegmentedList<VirtualChar> StripMarkupCharacters(
-        VirtualCharSequence virtualChars, ArrayBuilder<TextSpan> markdownSpans, CancellationToken cancellationToken)
-    {
-        var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-
-        var nestedAnonymousSpanCount = 0;
-        var nestedNamedSpanCount = 0;
-
-        for (int i = 0, n = virtualChars.Length; i < n;)
-        {
-            var vc1 = virtualChars[i];
-            var vc2 = i + 1 < n ? virtualChars[i + 1] : default;
-
-            // These casts are safe because we disallowed virtual chars whose Value doesn't fit in a char in
-            // RegisterClassifications.
-            //
-            // TODO: this algorithm is not actually the one used in roslyn or the roslyn-sdk for parsing a
-            // markup file.  for example it will get `[|]` wrong (as that depends on knowing if we're starting
-            // or ending an existing span).  Fix this up to follow the actual algorithm we use.
-            switch ((vc1.Value, vc2.Value))
-            {
-                case ('$', '$'):
-                    markdownSpans.Add(FromBounds(vc1, vc2));
-                    i += 2;
-                    continue;
-                case ('|', ']'):
-                    nestedAnonymousSpanCount = Math.Max(0, nestedAnonymousSpanCount - 1);
-                    markdownSpans.Add(FromBounds(vc1, vc2));
-                    i += 2;
-                    continue;
-                case ('|', '}'):
-                    markdownSpans.Add(FromBounds(vc1, vc2));
-                    nestedNamedSpanCount = Math.Max(0, nestedNamedSpanCount - 1);
-                    i += 2;
-                    continue;
-
-                // We have a slight ambiguity with cases like these:
-                //
-                // [|]    [|}
-                //
-                // Is it starting a new match, or ending an existing match.  As a workaround, we special case
-                // these and consider it ending a match if we have something on the stack already.
-
-                case ('[', '|'):
-                    var vc3 = i + 2 < n ? virtualChars[i + 2] : default;
-                    if ((vc3 == ']' && nestedAnonymousSpanCount > 0) ||
-                        (vc3 == '}' && nestedNamedSpanCount > 0))
-                    {
-                        // not the start of a span, don't classify this '[' specially.
-                        break;
-                    }
-
-                    nestedAnonymousSpanCount++;
-                    markdownSpans.Add(FromBounds(vc1, vc2));
-                    i += 2;
-                    continue;
-
-                case ('{', '|'):
-                    if (TryConsumeNamedSpanStart(ref i, n))
-                        continue;
-
-                    // didn't find the colon.  don't classify these specially.
-                    break;
-            }
-
-            // Nothing special, add character as is.
-            builder.Add(vc1);
-            i++;
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        return builder.ToImmutable();
-
-        bool TryConsumeNamedSpanStart(ref int i, int n)
-        {
-            var start = i;
-            var seekPoint = i;
-            while (seekPoint < n)
-            {
-                var colonChar = virtualChars[seekPoint];
-                if (colonChar == ':')
-                {
-                    markdownSpans.Add(FromBounds(virtualChars[start], colonChar));
-                    nestedNamedSpanCount++;
-                    i = seekPoint + 1;
-                    return true;
-                }
-
-                seekPoint++;
-            }
-
-            return false;
-        }
-    }
-
-    private static void AddClassifications(
-        EmbeddedLanguageClassificationContext context,
-        ImmutableSegmentedList<VirtualChar> virtualChars,
-        ClassifiedSpan classifiedSpan)
-    {
-        if (classifiedSpan.TextSpan.IsEmpty)
-            return;
-
-        // The classified span in C# may actually spread over discontinuous chunks when mapped back to the original
-        // virtual chars in the C#-Test content.  For example: `yield ret$$urn;`  There will be a classified span
-        // for `return` that has span [6, 12) (exactly the 6 characters corresponding to the contiguous 'return'
-        // seen). However, those positions will map to the two virtual char spans [6, 9) and [11, 14).
-
-        var classificationType = classifiedSpan.ClassificationType;
-        var startIndexInclusive = classifiedSpan.TextSpan.Start;
-        var endIndexExclusive = classifiedSpan.TextSpan.End;
-
-        var currentStartIndexInclusive = startIndexInclusive;
-        while (currentStartIndexInclusive < endIndexExclusive)
-        {
-            var currentEndIndexExclusive = currentStartIndexInclusive + 1;
-
-            while (currentEndIndexExclusive < endIndexExclusive &&
-                   virtualChars[currentEndIndexExclusive - 1].Span.End == virtualChars[currentEndIndexExclusive].Span.Start)
-            {
-                currentEndIndexExclusive++;
-            }
-
-            context.AddClassification(
-                classificationType,
-                FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
-            currentStartIndexInclusive = currentEndIndexExclusive;
-        }
-    }
-
-    /// <summary>
-    /// Trivial implementation of a <see cref="SourceText"/> that directly maps over a <see
-    /// cref="VirtualCharSequence"/>.
-    /// </summary>
-    private sealed class VirtualCharSequenceSourceText : SourceText
-    {
-        private readonly ImmutableSegmentedList<VirtualChar> _virtualChars;
-
-        public override Encoding? Encoding { get; }
-
-        public VirtualCharSequenceSourceText(ImmutableSegmentedList<VirtualChar> virtualChars, Encoding? encoding)
-        {
-            _virtualChars = virtualChars;
-            Encoding = encoding;
-        }
-
-        public override int Length => _virtualChars.Count;
-
-        public override char this[int position] => _virtualChars[position];
-
-        public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-        {
-            for (int i = sourceIndex, n = sourceIndex + count; i < n; i++)
-                destination[destinationIndex + i] = this[i];
-        }
+        CSharpTestEmbeddedLanguageUtilities.AddClassifications(
+            virtualCharsWithoutMarkup, testFileClassifiedSpans,
+            static (context, classificationType, span) => context.AddClassification(classificationType, span),
+            context);
     }
 }

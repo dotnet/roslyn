@@ -51,6 +51,11 @@ public abstract partial class Workspace : IDisposable
     private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
 
     /// <summary>
+    /// Cache for initializing generator drivers across different Solution instances from this Workspace.
+    /// </summary>
+    internal SolutionCompilationState.GeneratorDriverInitializationCache GeneratorDriverCreationCache { get; } = new();
+
+    /// <summary>
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
@@ -261,7 +266,7 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = data.transformation(oldSolution);
 
-                newSolution = data.@this.InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
+                newSolution = InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
 
                 // Attempt to unify the syntax trees in the new solution.
                 return UnifyLinkedDocumentContents(oldSolution, newSolution);
@@ -275,11 +280,20 @@ public abstract partial class Workspace : IDisposable
             {
                 data.onAfterUpdate?.Invoke(oldSolution, newSolution);
 
+                // The GeneratorDriverCreationCache holds onto a primordial GeneratorDriver for a project when we first creat one. That way, if another fork
+                // of the Solution also needs to run generators, it's able to reuse that primordial driver rather than recreating one from scratch. We want to
+                // clean up that cache at some point so we're not holding onto unneeded GeneratorDrivers. We'll clean out some cached entries here for projects
+                // that have a GeneratorDriver held in CurrentSolution. The idea being that once a project has a GeneratorDriver in the CurrentSolution, all future
+                // requests for generated documents will just use the updated generator that project already has, so there will never be another need to create one.
+                data.@this.GeneratorDriverCreationCache.EmptyCacheForProjectsThatHaveGeneratorDriversInSolution(newSolution.CompilationState);
+
                 // Queue the event but don't execute its handlers on this thread.
                 // Doing so under the serialization lock guarantees the same ordering of the events
                 // as the order of the changes made to the solution.
                 var (changeKind, projectId, documentId) = data.changeKind(oldSolution, newSolution);
-                data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
+
+                // Fire and forget
+                _ = data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
             },
             cancellationToken).ConfigureAwait(false);
 
@@ -400,55 +414,23 @@ public abstract partial class Workspace : IDisposable
 
             return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray);
         }
-    }
 
-    /// <summary>
-    /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
-    /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
-    /// Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
-    /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
-    /// 
-    /// This mechanism only takes care of flowing the initial snapshot of option values.
-    /// It's up to the host to keep the individual values up-to-date by updating 
-    /// <see cref="CurrentSolution"/> as appropriate.
-    /// 
-    /// Implementing the initialization here allows us to uphold an invariant that
-    /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
-    /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
-    /// </summary>
-    private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
-    {
-        var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
-
-        // Clear out languages that are no longer present in the solution.
-        // If we didn't, the workspace might clear the solution (which removes the fallback options)
-        // and we would never re-initialize them from global options.
-        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
-        {
-            if (!newSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
-            {
-                newFallbackOptions = newFallbackOptions.Remove(language);
-            }
-        }
-
-        // Update solution snapshot to include options for newly added languages:
-        foreach (var (language, _) in newSolution.SolutionState.ProjectCountByLanguage)
-        {
-            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
-            {
-                continue;
-            }
-
-            if (newFallbackOptions.ContainsKey(language))
-            {
-                continue;
-            }
-
-            var provider = Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
-            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
-        }
-
-        return newSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
+        // <summary>
+        // Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
+        // allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
+        // Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
+        // we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
+        // 
+        // This mechanism only takes care of flowing the initial snapshot of option values.
+        // It's up to the host to keep the individual values up-to-date by updating 
+        // <see cref="CurrentSolution"/> as appropriate.
+        // 
+        // Implementing the initialization here allows us to uphold an invariant that
+        // the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
+        // of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
+        // </summary>
+        static Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+            => newSolution.WithFallbackAnalyzerOptionValuesFromHost(oldSolution);
     }
 
     /// <summary>
@@ -661,10 +643,13 @@ public abstract partial class Workspace : IDisposable
             (oldSolution, _) => this.CreateSolution(oldSolution.Id),
             mayRaiseEvents: reportChangeEvent,
             onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
-            onAfterUpdate: (oldSolution, newSolution, _) =>
+            onAfterUpdate: (oldSolution, newSolution, _1) =>
             {
                 if (reportChangeEvent)
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
+                {
+                    // Fire and forget
+                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
+                }
             });
     }
 
@@ -1085,7 +1070,10 @@ public abstract partial class Workspace : IDisposable
                 // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
                 // DocumentId associated with it, and we don't want to be raising multiple events.
                 foreach (var projectId in data.documentInfos.Select(i => i.Id.ProjectId).Distinct())
-                    data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                {
+                    // Fire and forget
+                    _ = data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                }
             });
     }
 
@@ -1361,7 +1349,8 @@ public abstract partial class Workspace : IDisposable
 
                 foreach (var updatedDocumentInfo in data.updatedDocumentIds)
                 {
-                    data.@this.RaiseWorkspaceChangedEventAsync(
+                    // Fire and forget
+                    _ = data.@this.RaiseWorkspaceChangedEventAsync(
                         data.changeKind,
                         oldSolution,
                         newSolution,
@@ -2370,7 +2359,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Throws an exception is the project is part of the current solution.
+    /// Throws an exception if the project is part of the current solution.
     /// </summary>
     protected void CheckProjectIsNotInCurrentSolution(ProjectId projectId)
         => CheckProjectIsNotInSolution(this.CurrentSolution, projectId);

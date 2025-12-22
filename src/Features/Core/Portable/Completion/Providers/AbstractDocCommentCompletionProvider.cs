@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
     // Tag names
     private static readonly ImmutableArray<string> s_listTagNames = [ListHeaderElementName, TermElementName, ItemElementName, DescriptionElementName];
     private static readonly ImmutableArray<string> s_listHeaderTagNames = [TermElementName, DescriptionElementName];
-    private static readonly ImmutableArray<string> s_nestedTagNames = [CElementName, CodeElementName, ParaElementName, ListElementName];
+    private static readonly ImmutableArray<string> s_nestedTagNames = [CElementName, CodeElementName, ParaElementName, ListElementName, BElementName, EmElementName, IElementName, StrongElementName, TtElementName];
     private static readonly ImmutableArray<string> s_topLevelRepeatableTagNames = [ExceptionElementName, IncludeElementName, PermissionElementName];
     private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = [SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName];
 
@@ -148,6 +149,11 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         {
             items = items.Concat(GetParamRefItems(symbol))
                          .Concat(GetTypeParamRefItems(symbol));
+        }
+
+        if (symbol is { ContainingSymbol: INamedTypeSymbol { IsExtension: true } extension })
+        {
+            items = items.Concat(GetParamRefItems(extension));
         }
 
         if (includeKeywords)

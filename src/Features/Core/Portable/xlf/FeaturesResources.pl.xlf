@@ -885,6 +885,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Znaleziono pojedynczy zestaw: „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Generuj operatory porównania</target>
@@ -2575,11 +2580,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Zmienianie nazwy przechwyconej zmiennej z "{0}" na "{1}" wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Zmienianie nazwy anonimowych składowych typu nie jest jeszcze obsługiwane.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Zamień element „{0}” na element „{1}”</target>
@@ -3935,11 +3935,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Generuj element Equals i GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Generuj element Equals(object)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Generuj element GetHashCode()</target>
@@ -4150,8 +4145,8 @@ Czy chcesz kontynuować?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Zmień sygnaturę...</target>
-        <note />
+        <target state="needs-review-translation">Zmień sygnaturę...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

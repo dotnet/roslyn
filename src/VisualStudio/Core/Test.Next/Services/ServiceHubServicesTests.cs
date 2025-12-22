@@ -224,10 +224,9 @@ public sealed partial class ServiceHubServicesTests
 
         public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
+        public async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
         {
             _infosSource.SetResult(infos);
-            return ValueTask.CompletedTask;
         }
     }
 
@@ -1730,6 +1729,78 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal($"// razorCallCount: 1", (await doc2.GetTextAsync()).ToString());
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80714")]
+    internal async Task TestSourceGenerationExecution_AnalyzerReferenceChange_AlwaysObserved(
+        bool queryForSourceGeneratorsPriorToChangeNotification)
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var callBackCallCount1 = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callBackCallCount1++));
+        var analyzerReference1 = new TestGeneratorReference(generator1);
+
+        // add a single generator
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(analyzerReference1);
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var documents = await project.GetSourceGeneratedDocumentsAsync();
+        var doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // Now, change the analyzer reference with a new one, simulating that ProjectSystemProjectFactory heard about a
+        // change, and moved the workspace to incorporate it.
+        var analyzerReference2 = new TestGeneratorReference(generator1);
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithProjectAnalyzerReferences(projectId, [analyzerReference1]));
+
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // Simulate a client querying now.  We want to make sure that even as we retrieve the same cached SG documents
+        // from the last run, that that won't 'stick' once we hear about the file changes for the analyzer references.
+        if (queryForSourceGeneratorsPriorToChangeNotification)
+        {
+            // We should have the same result as before as nothing will have changed the SG version for this
+            // project so we won't have rerun anything.  But we
+            project = workspace.CurrentSolution.Projects.Single();
+            documents = await project.GetSourceGeneratedDocumentsAsync();
+            doc = Assert.Single(documents);
+            Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+        }
+
+        // Simulate what we do in ProjectSystemProjectFactory.StartRefreshingAnalyzerReferenceForFileAsync once we have
+        // incorporated the changed analyzer references.  Absent this, the above call could cause us to never rerun
+        // until the next build/save (or some other operation that would refresh the SG version).
+        workspace.EnqueueUpdateSourceGeneratorVersion(null, forceRegeneration: true);
+
+        await WaitForSourceGeneratorsAsync(workspace);
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 1", (await doc.GetTextAsync()).ToString());
+    }
+
     private static async Task<Solution> VerifyIncrementalUpdatesAsync(
         TestWorkspace localWorkspace,
         Workspace remoteWorkspace,
@@ -1861,17 +1932,17 @@ public sealed partial class ServiceHubServicesTests
 
         var result = await service.AnalyzeChangeAsync(
             document, [new TextChange(new TextSpan(listIndex, 1), """
-            <<<<<<<
+            <<<<<<< goo
             Goo
-            =======
+            ======= bar
             Bar
-            >>>>>>>
+            >>>>>>> baz
             """)], CancellationToken.None);
 
         Assert.True(result.Succeeded);
 
         var diagnosticAnalysis = result.DiagnosticAnalyses.Single(d => d.Kind == DiagnosticKind.CompilerSyntax);
-        Assert.Equal(1, diagnosticAnalysis.IdToCount["CS8300"]);
+        Assert.Equal(3, diagnosticAnalysis.IdToCount["CS8300"]);
 
         Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
         Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
@@ -1895,8 +1966,8 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("TestProposalId", properties["vs.ide.vbcs.copilot.analyzechange.proposalid"]);
 
         Assert.Equal(44, properties["vs.ide.vbcs.copilot.analyzechange.olddocumentlength"]);
-        Assert.Equal(78, properties["vs.ide.vbcs.copilot.analyzechange.newdocumentlength"]);
-        Assert.Equal(34, properties["vs.ide.vbcs.copilot.analyzechange.textchangedelta"]);
+        Assert.Equal(90, properties["vs.ide.vbcs.copilot.analyzechange.newdocumentlength"]);
+        Assert.Equal(46, properties["vs.ide.vbcs.copilot.analyzechange.textchangedelta"]);
 
         Assert.Equal(1, properties["vs.ide.vbcs.copilot.analyzechange.projectdocumentcount"]);
         Assert.Equal(0, properties["vs.ide.vbcs.copilot.analyzechange.projectsourcegenerateddocumentcount"]);
@@ -1913,16 +1984,16 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"]);
 
         // CS1002_1 means we got one CS1002 diagnostic. Whereas CS1525_3 means we got 3 CS1525 diagnostics.
-        Assert.Equal("CS1002_1,CS1513_1,CS1525_3,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
-        Assert.Equal("Compiler_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
-        Assert.Equal("Error_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
+        Assert.Equal("CS1002_1,CS8300_3", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
+        Assert.Equal("Compiler_4", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
+        Assert.Equal("Error_4", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
 
         Assert.Equal("CS0103_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_idtocount"]);
         Assert.Equal("Compiler_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_categorytocount"]);
         Assert.Equal("Error_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_severitytocount"]);
 
-        Assert.Equal("CS0103_1,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"]);
-        Assert.Equal("CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider,CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider",
+        Assert.Equal("CS0103_2,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"]);
+        Assert.Equal("CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider:CSharp.SpellCheck.CSharpSpellCheckCodeFixProvider,CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider",
             properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtoprovidername"]);
     }
 

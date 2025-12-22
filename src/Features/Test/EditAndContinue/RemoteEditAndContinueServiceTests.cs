@@ -113,11 +113,11 @@ public sealed class RemoteEditAndContinueServiceTests
         var activeSpans1 = ImmutableArray.Create(
             new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.NonLeafFrame, documentId));
 
-        var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
+        var activeStatementSpanProvider = new ActiveStatementSpanProvider(async (documentId, path, cancellationToken) =>
         {
             Assert.Equal(documentId, documentId);
             Assert.Equal("test.cs", path);
-            return new(activeSpans1);
+            return activeSpans1;
         });
 
         var diagnosticDescriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired);
@@ -129,11 +129,9 @@ public sealed class RemoteEditAndContinueServiceTests
 
         IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
-        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
+        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, reportDiagnostics) =>
         {
             Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
-            AssertEx.Equal(new[] { documentId }, captureMatchingDocuments);
-            Assert.False(captureAllMatchingDocuments);
             Assert.True(reportDiagnostics);
 
             remoteDebuggeeModuleMetadataProvider = debuggerService;
@@ -148,10 +146,8 @@ public sealed class RemoteEditAndContinueServiceTests
                 GetActiveStatementsImpl = () => [as1]
             },
             sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [documentId],
-            captureAllMatchingDocuments: false,
             reportDiagnostics: true,
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         Contract.ThrowIfNull(sessionProxy);
 

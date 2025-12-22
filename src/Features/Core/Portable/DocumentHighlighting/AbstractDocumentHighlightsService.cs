@@ -96,7 +96,7 @@ internal abstract partial class AbstractDocumentHighlightsService :
     {
         var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
         var token = root.FindToken(position);
-        var embeddedHighlightsServices = this.GetServices(semanticModel, token, cancellationToken);
+        var (embeddedHighlightsServices, _) = this.GetServices(semanticModel, token, cancellationToken);
         foreach (var service in embeddedHighlightsServices)
         {
             var result = service.Value.GetDocumentHighlights(
@@ -168,9 +168,14 @@ internal abstract partial class AbstractDocumentHighlightsService :
         references = references.FilterNonMatchingMethodNames(solution, symbol);
         references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
-        if (symbol.IsConstructor())
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
         {
-            references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+            var constructorParts1 = constructor.OriginalDefinition.GetAllMethodSymbolsOfPartialParts();
+            references = references.WhereAsArray(r =>
+            {
+                var constructorParts2 = ((IMethodSymbol)r.Definition).GetAllMethodSymbolsOfPartialParts();
+                return constructorParts1.Intersect(constructorParts2).Any();
+            });
         }
 
         using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
@@ -192,10 +197,10 @@ internal abstract partial class AbstractDocumentHighlightsService :
             documentsToSearch, cancellationToken).ConfigureAwait(false);
     }
 
-    protected virtual Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
+    protected virtual async ValueTask<ImmutableArray<Location>> GetAdditionalReferencesAsync(
         Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
-        return SpecializedTasks.EmptyImmutableArray<Location>();
+        return [];
     }
 
     private static async Task<ImmutableArray<DocumentHighlights>> CreateSpansAsync(

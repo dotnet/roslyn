@@ -83,28 +83,25 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             }
         }
 
+        /// <summary>
+        /// Cancel any existing BG work and tear down this indicator.
+        /// </summary>
         public void CancelAndDispose()
         {
+            // This is only ever called from the factory, which is always the UI thread.
+            Contract.ThrowIfFalse(_factory._threadingContext.JoinableTaskFactory.Context.IsOnMainThread);
             _cancellationTokenSource.Cancel();
             this.Dispose();
         }
 
         /// <summary>
-        /// Inherited from <see cref="IUIThreadOperationContext"/>, so we unfortunately have to keep it.
-        /// Must be called from the UI thread.
+        /// Can be called on any thread.  Can be called multiple times safely.
         /// </summary>
         public void Dispose()
         {
-            Contract.ThrowIfFalse(_factory._threadingContext.JoinableTaskFactory.Context.IsOnMainThread, "Dispose must be called on the UI thread");
+            // Editor implementation of Dispose is safe to call on any thread, and can be called multiple times.
             _backgroundWorkIndicator.Dispose();
             _factory.OnContextDisposed(this);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            // Intentionally non-cancellable.  We must ensure disposal fully happens to leave us in a good state.
-            await _factory._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            this.Dispose();
         }
 
         /// <summary>

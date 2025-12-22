@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the arity of this method, or the number of type parameters it takes.
+        ''' Returns the arity of this method. Arity is the number of type parameters a method declares.
         ''' A non-generic method has zero arity.
         ''' </summary>
         Public MustOverride ReadOnly Property Arity As Integer
@@ -824,6 +824,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function ReduceExtensionMethod(instanceType As TypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol), languageVersion As LanguageVersion) As MethodSymbol
             Return ReduceExtensionMethod(instanceType, proximity:=0, useSiteInfo, languageVersion)
+        End Function
+
+        Public Function ReduceExtensionMember(receiverType As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.ReduceExtensionMember
+            Return Nothing
         End Function
 
         ''' <summary>

@@ -92,24 +92,24 @@ internal sealed partial class CSharpSymbolDisplayService
                 Space());
         }
 
-        protected override Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+        protected override async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             ISymbol symbol)
         {
             // Actually check for C# symbol types here.  
             if (symbol is IParameterSymbol parameter)
             {
-                return GetInitializerSourcePartsAsync(parameter);
+                return await GetInitializerSourcePartsAsync(parameter).ConfigureAwait(false);
             }
             else if (symbol is ILocalSymbol local)
             {
-                return GetInitializerSourcePartsAsync(local);
+                return await GetInitializerSourcePartsAsync(local).ConfigureAwait(false);
             }
             else if (symbol is IFieldSymbol field)
             {
-                return GetInitializerSourcePartsAsync(field);
+                return await GetInitializerSourcePartsAsync(field).ConfigureAwait(false);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
+            return [];
         }
 
         protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
@@ -249,13 +249,13 @@ internal sealed partial class CSharpSymbolDisplayService
             return [];
         }
 
-        protected override void AddCaptures(ISymbol symbol)
+        protected override void AddCaptures(SemanticModel semanticModel, ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
         {
             if (symbol is IMethodSymbol { ContainingSymbol.Kind: SymbolKind.Method } method)
             {
-                var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                var syntax = method.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == semanticModel.SyntaxTree)?.GetSyntax();
                 if (syntax is LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
-                    AddCaptures(syntax);
+                    AddCaptures(semanticModel, syntax, typeDisplayInfo);
             }
         }
 

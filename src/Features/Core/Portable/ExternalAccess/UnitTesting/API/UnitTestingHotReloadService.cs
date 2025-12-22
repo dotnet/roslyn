@@ -19,14 +19,14 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     {
         private readonly ImmutableArray<string> _capabilities = capabilities;
 
-        public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+        public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+            => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
 
-        public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
+        public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
+            => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available);
 
-        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTask.FromResult(_capabilities);
+        public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            => _capabilities;
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
@@ -49,7 +49,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     private DebuggingSessionId _sessionId;
@@ -61,14 +61,15 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
     public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
     {
-        var newSessionId = await _encService.StartDebuggingSessionAsync(
+        // Hydrate the solution snapshot with file content.
+        // It's important to do this before we start watching for changes so that we have a baseline we can compare future snapshots to.
+        await EditAndContinueService.HydrateDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
+
+        var newSessionId = _encService.StartDebuggingSession(
             solution,
             new DebuggerService(capabilities),
             NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: true,
-            reportDiagnostics: false,
-            cancellationToken).ConfigureAwait(false);
+            reportDiagnostics: false);
 
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;

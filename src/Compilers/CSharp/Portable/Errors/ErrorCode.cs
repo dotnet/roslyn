@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Unused 8193-8195
 
         #region diagnostics for out var
-        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
+        ERR_ImplicitlyTypedVariableUsedInForbiddenZone = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
@@ -1639,7 +1639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
         WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
-        // available 8525-8596
+        ERR_DesignatorBeforePropertyPattern = 8525,
+        // available 8526-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -2433,6 +2434,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         HDN_RedundantPattern = 9335,
         WRN_RedundantPattern = 9336,
         HDN_RedundantPatternStackGuard = 9337,
+
+        ERR_BadVisBaseType = 9338,
+        ERR_AmbigExtension = 9339,
+        ERR_SingleInapplicableBinaryOperator = 9340,
+        ERR_SingleInapplicableUnaryOperator = 9341,
+        ERR_AmbigOperator = 9342,
+
+        ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
+        ERR_EqualityOperatorInPatternNotSupported = 9344,
+        ERR_InequalityOperatorInPatternNotSupported = 9345,
+        ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
+        ERR_ExtensionParameterInStaticContext = 9347,
+        ERR_CompilationUnitUnexpected = 9348,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

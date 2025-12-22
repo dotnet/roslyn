@@ -375,6 +375,11 @@ public abstract partial class CompletionService : ILanguageService
         return true;
     }
 
+    internal virtual async ValueTask<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        return false;
+    }
+
     /// <summary>
     /// Don't call. Used for pre-populating MEF providers only.
     /// </summary>

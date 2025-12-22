@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
@@ -16,11 +18,11 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
 {
     private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
     {
-        public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+        public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+            => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
 
-        public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
+        public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
+            => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available);
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
             => capabilitiesProvider();
@@ -127,14 +129,14 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
     private DebuggingSessionId _sessionId;
 
     public HotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services.SolutionServices, () => ValueTask.FromResult(AddImplicitDotNetCapabilities(capabilities)))
+        : this(services.SolutionServices, async () => AddImplicitDotNetCapabilities(capabilities))
     {
     }
 
@@ -158,14 +160,16 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
     /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
     public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
     {
-        var newSessionId = await _encService.StartDebuggingSessionAsync(
+        // Hydrate the solution snapshot with file content.
+        // It's important to do this before we start watching for changes so that we have a baseline we can compare future snapshots to.
+        await EditAndContinueService.HydrateDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
+
+        var newSessionId = _encService.StartDebuggingSession(
             solution,
             new DebuggerService(capabilitiesProvider),
             NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: true,
-            reportDiagnostics: false,
-            cancellationToken).ConfigureAwait(false);
+            reportDiagnostics: false);
+
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;
     }

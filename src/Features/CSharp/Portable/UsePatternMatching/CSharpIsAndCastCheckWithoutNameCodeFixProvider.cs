@@ -27,16 +27,9 @@ internal sealed partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider()
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                CSharpAnalyzersResources.Use_pattern_matching,
-                GetDocumentUpdater(context),
-                nameof(CSharpAnalyzersResources.Use_pattern_matching),
-                CodeActionPriority.Low),
-            context.Diagnostics);
-        return Task.CompletedTask;
+        RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching), CodeActionPriority.Low);
     }
 
     protected override async Task FixAllAsync(

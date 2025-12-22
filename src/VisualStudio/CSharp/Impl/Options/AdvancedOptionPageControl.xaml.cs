@@ -104,6 +104,8 @@ internal sealed partial class AdvancedOptionPageControl : AbstractOptionPageCont
 
         // Comments
         BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
+        BindToOption(GenerateXmlDocCommentsOnSingleLine, DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, LanguageNames.CSharp);
+        BindToOption(GenerateOnlySummaryTag, DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, LanguageNames.CSharp);
         BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitCommentOptionsStorage.Enabled, LanguageNames.CSharp);
         BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 

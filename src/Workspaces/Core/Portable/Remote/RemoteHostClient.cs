@@ -19,37 +19,37 @@ internal abstract class RemoteHostClient : IDisposable
 {
     public abstract void Dispose();
 
-    public static Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
+    public static async Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
     {
         var service = workspace.Services.GetService<IRemoteHostClientProvider>();
         if (service == null)
-            return Task.CompletedTask;
+            return;
 
-        return service.WaitForClientCreationAsync(cancellationToken);
+        await service.WaitForClientCreationAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
+    public static async Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
     {
         if (!RemoteSupportedLanguages.IsSupported(project.Language))
         {
-            return SpecializedTasks.Null<RemoteHostClient>();
+            return null;
         }
 
-        return TryGetClientAsync(project.Solution.Services, cancellationToken);
+        return await TryGetClientAsync(project.Solution.Services, cancellationToken).ConfigureAwait(false);
     }
 
     public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
         => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-    public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
+    public static async Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
     {
         var service = services.GetService<IRemoteHostClientProvider>();
         if (service == null)
         {
-            return SpecializedTasks.Null<RemoteHostClient>();
+            return null;
         }
 
-        return service.TryGetRemoteHostClientAsync(cancellationToken);
+        return await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public abstract RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
@@ -105,17 +105,24 @@ internal abstract class RemoteHostClient : IDisposable
         CancellationToken cancellationToken)
         where TService : class
     {
-        return TryInvokeAsync(solution.CompilationState, invocation, cancellationToken);
+        return TryInvokeAsync(solution.CompilationState, projectId: null, invocation, cancellationToken);
     }
 
+    /// <param name="projectId">If <see langword="null"/> the entire solution snapshot represented by <paramref
+    /// name="compilationState"/> will be synchronized with the OOP side.  If not <see langword="null"/> only the
+    /// project-cone represented by that id will be synchronized over.</param>
+    /// <returns></returns>
     public async ValueTask<bool> TryInvokeAsync<TService>(
         SolutionCompilationState compilationState,
+        ProjectId? projectId,
         Func<TService, Checksum, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken)
         where TService : class
     {
         using var connection = CreateConnection<TService>(callbackTarget: null);
-        return await connection.TryInvokeAsync(compilationState, invocation, cancellationToken).ConfigureAwait(false);
+        return projectId is null
+            ? await connection.TryInvokeAsync(compilationState, invocation, cancellationToken).ConfigureAwait(false)
+            : await connection.TryInvokeAsync(compilationState, projectId, invocation, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(

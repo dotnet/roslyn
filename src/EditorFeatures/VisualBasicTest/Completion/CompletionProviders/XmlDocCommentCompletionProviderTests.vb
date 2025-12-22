@@ -114,6 +114,66 @@ End Class
             Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
+        <Fact>
+        Public Async Function TestCodeStyleElements_InsideSummary() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "b", "em", "i", "strong", "tt")
+        End Function
+
+        <Fact>
+        Public Async Function TestCodeStyleElements_NotAtTopLevel() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Sub Goo()
+    End Sub
+End Class
+"
+
+            Await VerifyItemsAbsentAsync(text, "b", "em", "i", "strong", "tt")
+        End Function
+
+        <Fact>
+        Public Async Function TestCodeStyleElements_InsidePara() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <para>
+    ''' <$$
+    ''' </para>
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "b", "em", "i", "strong", "tt")
+        End Function
+
+        <Fact>
+        Public Async Function TestCodeStyleElements_InsideRemarks() As Task
+            Dim text = "
+Class C
+    ''' <remarks>
+    ''' <$$
+    ''' </remarks>
+    Sub Goo()
+    End Sub
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "b", "em", "i", "strong", "tt")
+        End Function
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
             Dim text = "

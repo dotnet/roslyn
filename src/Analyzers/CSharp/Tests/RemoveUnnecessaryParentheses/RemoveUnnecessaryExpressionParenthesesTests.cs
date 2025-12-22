@@ -1164,6 +1164,158 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
 
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                public const int A = 1 | $$(2);
+            }
+            """,
+            """
+            class C
+            {
+                public const int A = 1 | 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperandAnd()
+        => TestAsync(
+            """
+            class C
+            {
+                public const int A = 1 & $$(2);
+            }
+            """,
+            """
+            class C
+            {
+                public const int A = 1 & 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleIdentifierOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = 1;
+                    var q = 1 | $$(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = 1;
+                    var q = 1 | a;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithMemberAccessOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                int Field = 1;
+                void M()
+                {
+                    var q = 1 | $$(Field);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Field = 1;
+                void M()
+                {
+                    var q = 1 | Field;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithInvocationOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = 1 | $$(GetValue());
+                }
+                int GetValue() => 2;
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = 1 | GetValue();
+                }
+                int GetValue() => 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithElementAccessOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var array = new[] { 1, 2, 3 };
+                    var q = 1 | $$(array[0]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var array = new[] { 1, 2, 3 };
+                    var q = 1 | array[0];
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithThisExpressionOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                public static implicit operator int(C c) => 1;
+                void M()
+                {
+                    var q = 1 | $$(this);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator int(C c) => 1;
+                void M()
+                {
+                    var q = 1 | this;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
     public Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         => TestAsync(
@@ -1288,6 +1440,162 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithNullableIndexing_RequiredForParsing()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(a || x?[0]):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithNullableIndexing_AndOperator()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(a && x?[0]):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithNullableIndexing_NestedBinary()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a, bool b)
+                {
+                    switch ("")
+                    {
+                        case "" when $$((a || b) && x?[0]):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(x?[0]) || a:
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft_EntireExpression()
+        => TestAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$((x?[0] || a)):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """,
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when (x?[0] || a):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithoutNullableIndexing_CanRemove()
+        => TestAsync(
+            """
+            class C
+            {
+                public void M(bool a, bool b)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(a || b):
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public void M(bool a, bool b)
+                {
+                    switch ("")
+                    {
+                        case "" when a || b:
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact]
     public Task TestCastAmbiguity1()

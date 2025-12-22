@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => [];
+
         public sealed override string Name
         {
             get { return this.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName; }

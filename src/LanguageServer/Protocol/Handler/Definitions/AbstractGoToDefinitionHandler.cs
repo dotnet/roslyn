@@ -35,16 +35,16 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
 
     public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
-    protected Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool forSymbolType, RequestContext context, CancellationToken cancellationToken)
+    protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool forSymbolType, RequestContext context, CancellationToken cancellationToken)
     {
         var workspace = context.Workspace;
         var document = context.Document;
         if (workspace is null || document is null)
-            return SpecializedTasks.Null<LSP.Location[]>();
+            return null;
 
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
 
-        return GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, forSymbolType, linePosition, cancellationToken);
+        return await GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, forSymbolType, linePosition, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.Location[]?> GetDefinitionsAsync(IGlobalOptionService globalOptions, IMetadataAsSourceFileService? metadataAsSourceFileService, Workspace workspace, Document document, bool forSymbolType, LinePosition linePosition, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
                 var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 locations.Add(new LSP.Location
                 {
-                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath!),
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
                     Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                 });
             }

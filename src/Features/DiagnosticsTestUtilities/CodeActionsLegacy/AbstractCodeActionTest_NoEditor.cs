@@ -48,7 +48,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor<
     {
         parameters ??= TestParameters.Default;
 
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
 
         var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
         var actions = refactoring == null
@@ -97,13 +97,13 @@ public abstract partial class AbstractCodeActionTest_NoEditor<
         return await refactorAllProvider.GetRefactoringAsync(refactorAllContext).ConfigureAwait(false);
     }
 
-    protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TTestWorkspace workspace, TestParameters parameters)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TTestWorkspace workspace, TestParameters parameters)
+        => [];
 
     internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
         TTestWorkspace workspace, TestParameters parameters)
     {
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
+        var (document, span, _) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
         return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
     }
 

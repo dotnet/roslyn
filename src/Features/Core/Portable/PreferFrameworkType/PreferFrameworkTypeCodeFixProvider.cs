@@ -16,31 +16,20 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PreferFrameworkType;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
-internal sealed class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class PreferFrameworkTypeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public PreferFrameworkTypeCodeFixProvider()
-    {
-    }
-
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics[0];
         if (diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType))
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    FeaturesResources.Use_framework_type,
-                    GetDocumentUpdater(context),
-                    nameof(FeaturesResources.Use_framework_type)),
-                context.Diagnostics);
+            RegisterCodeFix(context, FeaturesResources.Use_framework_type, nameof(FeaturesResources.Use_framework_type));
         }
-
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

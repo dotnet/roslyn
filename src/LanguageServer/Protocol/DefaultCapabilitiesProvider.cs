@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -23,15 +24,18 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
     private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
+    private readonly IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> _renameListeners;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExperimentalCapabilitiesProvider(
         [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders)
+        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
+        [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners)
     {
         _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
         _signatureHelpProviders = [.. signatureHelpProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
+        _renameListeners = renameListeners;
     }
 
     public void Initialize()
@@ -133,7 +137,7 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
         };
 
         // Using VS server capabilities because we have our own custom client.
-        capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n"] };
+        capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n", "\""] };
 
         var diagnosticDynamicRegistationCapabilities = clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration;
         if (diagnosticDynamicRegistationCapabilities is false)
@@ -142,6 +146,33 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
             {
                 InterFileDependencies = true
             };
+        }
+
+        if (clientCapabilities.Workspace?.FileOperations?.WillRename ?? false)
+        {
+            // Register for file rename notifications based on the registered rename listeners.
+            using var _ = PooledObjects.ArrayBuilder<FileOperationFilter>.GetInstance(out var filters);
+            foreach (var listener in _renameListeners)
+            {
+                filters.Add(new FileOperationFilter
+                {
+                    Pattern = new FileOperationPattern { Glob = listener.Metadata.Glob }
+                });
+            }
+
+            if (filters.Count > 0)
+            {
+                capabilities.Workspace = new WorkspaceServerCapabilities
+                {
+                    FileOperations = new WorkspaceFileOperationsServerCapabilities()
+                    {
+                        WillRename = new FileOperationRegistrationOptions()
+                        {
+                            Filters = filters.ToArray()
+                        }
+                    }
+                };
+            }
         }
 
         return capabilities;

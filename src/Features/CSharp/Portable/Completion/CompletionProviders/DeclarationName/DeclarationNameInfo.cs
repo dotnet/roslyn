@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -63,7 +65,9 @@ internal readonly struct NameDeclarationInfo(
     private static async Task<NameDeclarationInfo> GetDeclarationInfoWorkerAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
+        var token = tree
+            .FindTokenOnLeftOfPosition(position, cancellationToken)
+            .GetPreviousTokenIfTouchingWord(position);
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.SpanStart, cancellationToken).ConfigureAwait(false);
         var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
 
@@ -81,6 +85,7 @@ internal readonly struct NameDeclarationInfo(
             || IsPropertyDeclaration(token, semanticModel, cancellationToken, out result)
             || IsPossibleOutVariableDeclaration(token, semanticModel, typeInferenceService, cancellationToken, out result)
             || IsTupleLiteralElement(token, semanticModel, cancellationToken, out result)
+            || IsIncompleteParenthesizedTuple(token, semanticModel, cancellationToken, out result)
             || IsPossibleLocalVariableOrFunctionDeclaration(token, semanticModel, cancellationToken, out result)
             || IsPatternMatching(token, semanticModel, cancellationToken, out result))
         {
@@ -127,6 +132,72 @@ internal readonly struct NameDeclarationInfo(
 
         result = default;
         return false;
+    }
+
+    private static bool CheckType(
+        SemanticModel semanticModel, SyntaxToken token, TypeSyntax type, out NameDeclarationInfo result)
+    {
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(token.SpanStart, type, SpeculativeBindingOption.BindAsTypeOrNamespace);
+        if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
+        {
+            result = new NameDeclarationInfo(
+                [new SymbolKindOrTypeKind(SymbolKind.Local)],
+                Accessibility.NotApplicable,
+                type: typeSymbol);
+            return true;
+        }
+
+        // If not a type symbol, try GetTypeInfo as a fallback
+        var typeInfo = semanticModel.GetSpeculativeTypeInfo(type.SpanStart, type, SpeculativeBindingOption.BindAsTypeOrNamespace);
+        if (typeInfo.Type != null)
+        {
+            result = new NameDeclarationInfo(
+                [new SymbolKindOrTypeKind(SymbolKind.Local)],
+                Accessibility.NotApplicable,
+                type: typeInfo.Type);
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    private static bool IsIncompleteParenthesizedTuple(
+        SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out NameDeclarationInfo result)
+    {
+        // When the user types something like: `(List<Person> $$` in a method body, the parser can create a
+        // ParenthesizedExpressionSyntax or CastExpressionSyntax instead of a TupleExpressionSyntax. We need to check if
+        // the expression inside the parentheses looks like a type.
+        result = default;
+
+        if (!IsPossibleTypeToken(token))
+            return false;
+
+        var castExpression = token.GetAncestor<CastExpressionSyntax>();
+        if (castExpression?.Type.GetLastToken() == token)
+            return CheckType(semanticModel, token, castExpression.Type, out result);
+
+        var parenthesizedExpr = token.GetAncestor<ParenthesizedExpressionSyntax>();
+        if (parenthesizedExpr == null)
+            return false;
+
+        var start = parenthesizedExpr.Expression.SpanStart;
+        var end = token.Span.End;
+        if (start >= end)
+            return false;
+
+        var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
+
+        var subSpan = TextSpan.FromBounds(start, end);
+        var type = SyntaxFactory.ParseTypeName(sourceText.ToString(subSpan));
+
+        if (type.Span.Length != subSpan.Length)
+            return false;
+
+        if (type.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            return false;
+
+        return CheckType(semanticModel, token, type, out result);
     }
 
     private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
@@ -680,8 +751,7 @@ internal readonly struct NameDeclarationInfo(
     {
         // There's no special glyph for local functions.
         // We don't need to differentiate them at this point.
-        return symbolKindOrTypeKind.SymbolKind.HasValue ? symbolKindOrTypeKind.SymbolKind.Value :
-            symbolKindOrTypeKind.MethodKind.HasValue ? SymbolKind.Method :
-            throw ExceptionUtilities.Unreachable();
+        return symbolKindOrTypeKind.SymbolKind ??
+            (symbolKindOrTypeKind.MethodKind.HasValue ? SymbolKind.Method : throw ExceptionUtilities.Unreachable());
     }
 }

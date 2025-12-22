@@ -145,6 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
+
+                PipelinePhaseValidator.AssertAfterLocalRewriting(loweredStatement);
+#if DEBUG
+                localRewriter.AssertNoPlaceholderReplacements();
+#endif
+
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
@@ -158,11 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
+                PipelinePhaseValidator.AssertAfterSpilling(loweredStatement);
+
                 codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
-#if DEBUG
-                LocalRewritingValidator.Validate(loweredStatement);
-                localRewriter.AssertNoPlaceholderReplacements();
-#endif
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
@@ -1143,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
         {
-            if (member.GetIsNewExtensionMember())
+            if (member.IsExtensionBlockMember())
             {
                 Debug.Assert(!member.IsStatic);
                 ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
@@ -1159,129 +1163,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return receiver;
         }
-
-#if DEBUG
-        /// <summary>
-        /// Note: do not use a static/singleton instance of this type, as it holds state.
-        /// Consider generating this type from BoundNodes.xml for easier maintenance.
-        /// </summary>
-        private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
-        {
-            public override BoundNode? Visit(BoundNode? node)
-            {
-                if (node is BoundIfStatement)
-                {
-                    Fail(node);
-                    return null;
-                }
-
-                return base.Visit(node);
-            }
-
-            /// <summary>
-            /// Asserts that no unexpected nodes survived local rewriting.
-            /// </summary>
-            public static void Validate(BoundNode node)
-            {
-                try
-                {
-                    new LocalRewritingValidator().Visit(node);
-                }
-                catch (InsufficientExecutionStackException)
-                {
-                    // Intentionally ignored to let the overflow get caught in a more crucial visitor
-                }
-            }
-
-            public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            private void Fail(BoundNode node)
-            {
-                RoslynDebug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
-            }
-        }
-#endif
     }
 }
