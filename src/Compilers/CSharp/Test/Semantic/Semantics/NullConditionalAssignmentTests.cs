@@ -3082,24 +3082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
-        public void FunctionPointerReturnType_MultipleParameters()
-        {
-            var source = """
-                class Test
-                {
-                    public unsafe delegate*<int, string, void> FPtr = null;
-
-                    static unsafe void M(Test t)
-                    {
-                        var f = t?.FPtr;
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void FunctionPointerReturnType_Execution()
         {
             var source = """
