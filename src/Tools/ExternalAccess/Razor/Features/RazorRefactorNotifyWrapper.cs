@@ -14,19 +14,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorRefactorNotifyWrapper(
-    [Import(AllowDefault = true)] IRazorRefactorNotifyService? implementation) : IRefactorNotifyService
+    [Import(AllowDefault = true)] Lazy<IRazorRefactorNotifyService>? implementation) : IRefactorNotifyService
 {
-    private readonly IRazorRefactorNotifyService? _implementation = implementation;
+    private readonly Lazy<IRazorRefactorNotifyService>? _implementation = implementation;
 
     public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
     {
         // Return true if there is no implementation so rename isn't blocked
-        return _implementation?.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure) ?? true;
+        return _implementation?.Value.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure) ?? true;
     }
 
     public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
     {
         // Return true if there is no implementation so rename isn't blocked
-        return _implementation?.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure) ?? true;
+        return _implementation?.Value.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, symbol, newName, throwOnFailure) ?? true;
     }
 }
